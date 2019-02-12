@@ -3,6 +3,7 @@ import 'package:http/http.dart' show Client;
 import 'dart:convert';
 import '../Models/item_model.dart';
 import '../Models/Comment.dart';
+import '../Models/Subreddit.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
 
@@ -11,7 +12,7 @@ class PostsProvider {
   final _apiKey = 'your_api_key';
 
   Future<ItemModel> fetchPostsList() async {
-    print("entered");
+    print("Posts fetched");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
@@ -37,6 +38,21 @@ class PostsProvider {
       return CommentM.fromJson(json.decode(response.body)[1]["data"]["children"]);
     } else {
       throw Exception('Failed to load comments');
+    }
+  }
+
+  Future<SubredditM> fetchSubReddits(String query) async{
+    query.replaceAll(" ", "+");
+    print('Subreddits fetched');
+    Map<String, String> headers = new Map<String, String>();
+    headers["User-Agent"] = "$appName $appVersion";
+
+    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=${query}&include_over_18=on", headers: headers);
+    if(response.statusCode == 200){
+      print('successfully fetched subreddits');
+      return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
+    } else {
+      throw Exception('Failed to load subreddits');
     }
   }
 }

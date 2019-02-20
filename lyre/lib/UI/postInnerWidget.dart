@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:sqflite/sqflite.dart';
 import '../Models/item_model.dart';
 import '../Models/Post.dart';
 import '../Resources/globals.dart';
@@ -24,10 +27,13 @@ class postInnerWidget extends StatelessWidget {
     if (supportedFormats.contains(last)) {
       if (isIntended) {
         return new Stack(children: <Widget>[
-          new FadeInImage.memoryNetwork(
-            fit: BoxFit.fill,
-            placeholder: kTransparentImage,
-            image: post.url,
+          new Container(
+              child: new CachedNetworkImage(
+                fit: BoxFit.contain,
+                fadeInDuration: Duration(milliseconds: 500),
+                imageUrl: post.url,
+              ),
+            height: 400.0,
           ),
           new Positioned(
               bottom: 0.0,
@@ -101,6 +107,6 @@ class defaultColumn extends StatelessWidget{
         ]);
   }
   void showComments(BuildContext context) {
-    Navigator.push(context, SlideRightRoute(widget: commentsList()));
+    Navigator.push(context, SlideRightRoute(widget: commentsList(post)));
   }
 }

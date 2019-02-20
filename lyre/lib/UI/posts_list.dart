@@ -279,19 +279,23 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
             onHorizontalDragUpdate: (DragUpdateDetails details) {
               if (details.delta.direction > 1.0 && details.delta.dx < -25) {
                 currentPostId = posts[i].id;
-                showComments(context);
+                showComments(context, posts[i]);
               }
             }, //TODO: Add a new fling animation for vertical scrolling
-            child: new Container(
+            child: new Hero(
+              tag: 'post_hero',
+              child: new Container(
                 child: new Card(
                     child: postInnerWidget(posts[i])),
                 padding: const EdgeInsets.only(
-                    left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)),
+                    left: 0.0, right: 0.0, top: 8.0, bottom: 0.0))
+              ,
+            ),
           );
         });
   }
 
-  void showComments(BuildContext context) {
-    Navigator.push(context, SlideRightRoute(widget: commentsList()));
+  void showComments(BuildContext context, Post inside) {
+    Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
   }
 }

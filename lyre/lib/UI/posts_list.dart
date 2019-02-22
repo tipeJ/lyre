@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../Models/item_model.dart';
 import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
 import '../Blocs/posts_bloc.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
+import '../utils/imageUtils.dart';
 import 'dart:async';
-import 'package:url_launcher/url_launcher.dart';
-import '../Models/Comment.dart';
 import '../Ui/Animations/slide_right_transition.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'postInnerWidget.dart';
+import 'interfaces/previewCallback.dart';
 import 'comments_list.dart';
 
-class lyApp extends StatefulWidget {
+class lyApp extends StatefulWidget{
   PostsList createState() => new PostsList();
 }
 
-class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
+class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallback {
   var titletext = "Lyre for Reddit";
   var currentSub = "";
 
@@ -32,7 +34,40 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
   Animation<double> roundAnimation;
   Animation<double> edgeAnimation;
 
+  Tween opacityTween = new Tween<double>(begin: 0.0,end: 1.0);
+  Animation<double> opacityAnimation;
+  AnimationController previewController;
+
   bool isElevated = false;
+
+  bool isIntended = true;
+
+  bool isPreviewing = false;
+  var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
+
+
+  @override
+  void preview(String url) {
+    if(!isPreviewing){
+      previewUrl = url;
+      showOverlay();
+      //previewController.forward();
+    }
+  }
+
+  @override
+  void view(String url) {
+
+  }
+
+  @override
+  void previewEnd(){
+    if(isPreviewing){
+      previewUrl = "";
+     // previewController.reverse();
+      hideOverlay();
+    }
+  }
 
   void reverse(BuildContext context) {
     controller.reset();
@@ -62,6 +97,7 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
         parent: controller,
         curve: Curves.easeIn,
         reverseCurve: Curves.easeOut));
+    opacityAnimation = opacityTween.animate(CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
     heightAnimation.addListener(() {
       setState(() {});
     });
@@ -78,20 +114,62 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
       setState(() {});
     });
     controller.reset();
+    previewController.reset();
   }
 
   @override
   void initState() {
     super.initState();
     controller = new AnimationController(
-        vsync: this, duration: new Duration(milliseconds: 325));
+        vsync: this, duration: const Duration(milliseconds: 325));
+    previewController = new AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 50));
 
     new Future.delayed(Duration.zero, () {
       initV(context);
     });
+    state = Overlay.of(context);
+    entry = OverlayEntry(
+        builder: (context) => new GestureDetector(
+          child: new Container(
+              width: 400.0,
+              height: 500.0,
+              child: new Opacity(
+                opacity: 1.0,
+                child: new Container(
+                  child: new CachedNetworkImage(
+                      imageUrl: previewUrl
+                  ),
+                  color: Color.fromARGB(200, 0, 0, 0),
+                ),
+              )
+          ),
+          onLongPressUp: (){
+            hideOverlay();
+          },
+        )
+    );
   }
 
   String searchQuery = "";
+
+  OverlayState state;
+  OverlayEntry entry;
+  showOverlay(){
+    if(!isPreviewing){
+      state.insert(entry);
+      isPreviewing = true;
+    }
+
+  }
+  hideOverlay(){
+    if(isPreviewing){
+      entry.remove();
+      state.deactivate();
+      isPreviewing = false;
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +364,7 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
               tag: 'post_hero',
               child: new Container(
                 child: new Card(
-                    child: postInnerWidget(posts[i])),
+                    child: postInnerWidget(posts[i],this)),
                 padding: const EdgeInsets.only(
                     left: 0.0, right: 0.0, top: 8.0, bottom: 0.0))
               ,
@@ -298,4 +376,5 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
   void showComments(BuildContext context, Post inside) {
     Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
   }
+
 }

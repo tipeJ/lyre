@@ -10,13 +10,15 @@ import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
+import 'interfaces/previewCallback.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class postInnerWidget extends StatelessWidget {
   bool isIntended = true;
   final Post post;
+  final PreviewCallback callBack;
 
-  postInnerWidget(this.post);
+  postInnerWidget(this.post, this.callBack);
 
   Widget build(BuildContext context) {
     if (post.self) {
@@ -28,10 +30,18 @@ class postInnerWidget extends StatelessWidget {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
-              child: new CachedNetworkImage(
-                fit: BoxFit.contain,
-                fadeInDuration: Duration(milliseconds: 500),
-                imageUrl: post.url,
+              child: new GestureDetector(
+                child: new CachedNetworkImage(
+                  fit: BoxFit.fitWidth,
+                  fadeInDuration: Duration(milliseconds: 500),
+                  imageUrl: post.url,
+                ),
+                onLongPress: (){
+                  callBack.preview(post.url);
+                },
+                onLongPressUp: (){
+                  callBack.previewEnd();
+                },
               ),
             height: 400.0,
           ),

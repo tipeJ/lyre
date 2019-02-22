@@ -5,16 +5,70 @@ import 'posts_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
-import 'Animations/slide_right_transition.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/utils_html.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'postInnerWidget.dart';
+import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
-
-class commentsList extends StatelessWidget {
-  Post post;
+class commentsList extends StatefulWidget{
+  final Post post;
 
   commentsList(this.post);
+
+  comL createState() => new comL(post);
+}
+class comL extends State<lyApp> with SingleTickerProviderStateMixin, PreviewCallback{
+  Post post;
+
+  comL(this.post);
+
+  bool isPreviewing = false;
+  var previewUrl = "";
+
+  void initV(BuildContext context) {
+    opacityAnimation = opacityTween.animate(CurvedAnimation(
+        parent: previewController,
+        curve: Curves.easeInSine));
+    previewController.reset();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    previewController = new AnimationController(
+        vsync: this, duration: new Duration(milliseconds: 50));
+
+    new Future.delayed(Duration.zero, () {
+      initV(context);
+    });
+  }
+
+  @override
+  void preview(String url) {
+    if(!isPreviewing){
+      previewUrl = url;
+      isPreviewing = true;
+      previewController.forward();
+    }
+  }
+
+  @override
+  void view(String url) {
+
+  }
+
+  @override
+  void previewEnd(){
+    if(isPreviewing){
+      previewUrl = "";
+      isPreviewing = false;
+      previewController.reverse();
+    }
+  }
+  Tween opacityTween = new Tween<double>(begin: 0.0,end: 1.0);
+  Animation<double> opacityAnimation;
+  AnimationController previewController;
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +77,32 @@ class commentsList extends StatelessWidget {
       appBar: AppBar(
         title: Text('Comments'),
       ),
-      body: StreamBuilder(
-        stream: bloc.allComments,
-        builder: (context, AsyncSnapshot<CommentM> snapshot) {
-          if (snapshot.hasData) {
-            return getCommentsPage(snapshot);
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      ),
+      body: new Container(
+        child: new Stack(
+          children: <Widget>[
+            new StreamBuilder(
+              stream: bloc.allComments,
+              builder: (context, AsyncSnapshot<CommentM> snapshot) {
+                if (snapshot.hasData) {
+                  return getCommentsPage(snapshot);
+                } else if (snapshot.hasError) {
+                  return Text(snapshot.error.toString());
+                }
+                return Center(child: CircularProgressIndicator());
+              },
+            ),
+            new Opacity(
+              opacity: opacityAnimation.value,
+              child: new Container(
+                child: new CachedNetworkImage(
+                    imageUrl: previewUrl
+                ),
+                color: Color.fromARGB(200, 0, 0, 0),
+              ),
+            )
+          ],
+        ),
+      )
     );
   }
 
@@ -46,7 +115,7 @@ class commentsList extends StatelessWidget {
             return new Hero(
                 tag: 'post_hero',
                 child: new Container(
-                    child: new Card(child: postInnerWidget(post)),
+                    child: new Card(child: postInnerWidget(post, this)),
                     padding: const EdgeInsets.only(
                         left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)));
           } else {

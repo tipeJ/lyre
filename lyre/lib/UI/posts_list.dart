@@ -31,6 +31,7 @@ class PostsList extends State<lyApp> with SingleTickerProviderStateMixin {
   Animation<double> padAnimation;
   Animation<double> roundAnimation;
   Animation<double> edgeAnimation;
+  bool x = false;
 
   bool isElevated = false;
 

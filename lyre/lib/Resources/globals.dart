@@ -28,3 +28,9 @@ String currentPostId = "";
 
 String appName = "Lyre";
 String appVersion = "0.1";
+
+int perPage = 25;
+int currentCount = 0;
+String lastPost = "";
+
+bool autoLoad = false;

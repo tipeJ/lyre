@@ -39,9 +39,9 @@ class postInnerWidget extends StatelessWidget {
                 onLongPress: (){
                   callBack.preview(post.url);
                 },
-                onLongPressUp: (){
+                /*onLongPressUp: (){
                   callBack.previewEnd();
-                },
+                },*/
               ),
             height: 400.0,
           ),

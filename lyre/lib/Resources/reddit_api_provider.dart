@@ -11,12 +11,14 @@ class PostsProvider {
   Client client = Client();
   final _apiKey = 'your_api_key';
 
-  Future<ItemModel> fetchPostsList() async {
+  Future<ItemModel> fetchPostsList(bool loadMore) async {
     print("Posts fetched");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
-    var response = await client.get("${BASE_URL}${currentSubreddit}/.json", headers: headers);
+    var response = (loadMore) ?
+      await client.get("${BASE_URL}${currentSubreddit}/.json?count=$currentCount&after=t3_$lastPost", headers: headers)
+        : await client.get("${BASE_URL}${currentSubreddit}/.json", headers: headers);
     if (response.statusCode == 200) {
       print("succ");
       // If the call to the server was successful, parse the JSON
@@ -27,10 +29,24 @@ class PostsProvider {
     }
   }
 
+  Future<Reddit> getRed() async {
+    return await Reddit.createReadOnlyInstance();
+  }
+
+  Future<ItemModel> fetchUserContent() async {
+    Reddit r = await getRed();
+    Map<String, String> headers = new Map<String, String>();
+    headers["User-Agent"] = "$appName $appVersion";
+
+    var v = await r.subreddit(currentSubreddit).hot().toList();
+    var f = await r.subreddit(currentSubreddit).hot(params: headers);
+
+    return ItemModel.fromApi(v);
+  }
   Future<CommentM> fetchCommentsList() async {
     print('comments fetched');
     Map<String, String> headers = new Map<String, String>();
-    headers["User-Agent"] = "$appName $appVersion";
+    headers["before"] = "0";
 
     var response = await client.get("${COMMENTS_BASE_URL}${currentPostId}/.json", headers: headers);
     if(response.statusCode == 200){

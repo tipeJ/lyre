@@ -1,10 +1,11 @@
 import 'Post.dart';
+import 'package:draw/draw.dart';
 
 class ItemModel {
   int _page;
   int _total_results;
   int _total_pages;
-  List<Post> _results = [];
+  List<Post> _results = new List();
 
   ItemModel.fromJson(List<dynamic> parsedJson) {
     print(parsedJson.length);
@@ -17,6 +18,13 @@ class ItemModel {
       temp.add(result);
     }
     _results = temp;
+  }
+  ItemModel.fromApi(List<UserContent> list){
+    list.forEach((userContent) => () {
+      if(userContent is Submission){
+
+      }
+    });
   }
 
   List<Post> get results => _results;

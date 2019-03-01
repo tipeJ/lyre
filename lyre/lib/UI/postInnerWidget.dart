@@ -49,8 +49,8 @@ class postInnerWidget extends StatelessWidget {
               bottom: 0.0,
               child: new BackdropFilter(
                 filter: ImageFilter.blur(
-                  sigmaX: 10.0,
-                  sigmaY: 10.0,
+                  sigmaX: 0.0,
+                  sigmaY: 0.0,
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,

@@ -11,14 +11,40 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
+
 class commentsList extends StatefulWidget{
   final Post post;
 
   commentsList(this.post);
 
-  comL createState() => new comL(post);
+  @override
+  State<commentsList> createState() => new comL(post);
 }
-class comL extends State<lyApp> with SingleTickerProviderStateMixin, PreviewCallback{
+class comL extends State<commentsList> with SingleTickerProviderStateMixin, PreviewCallback{
+
+  @override
+  void previewEnd() {
+    if(isPreviewing){
+      previewUrl = "";
+      // previewController.reverse();
+      hideOverlay();
+    }
+  }
+
+  @override
+  void view(String s) {
+
+  }
+
+  @override
+  void preview(String url) {
+    if(!isPreviewing){
+      previewUrl = url;
+      showOverlay();
+      //previewController.forward();
+    }
+  }
+
   Post post;
 
   comL(this.post);
@@ -26,83 +52,80 @@ class comL extends State<lyApp> with SingleTickerProviderStateMixin, PreviewCall
   bool isPreviewing = false;
   var previewUrl = "";
 
-  void initV(BuildContext context) {
-    opacityAnimation = opacityTween.animate(CurvedAnimation(
-        parent: previewController,
-        curve: Curves.easeInSine));
-    previewController.reset();
-  }
-
+  OverlayState state;
+  OverlayEntry entry;
   @override
-  void initState() {
+  void initState(){
     super.initState();
-    previewController = new AnimationController(
-        vsync: this, duration: new Duration(milliseconds: 50));
-
-    new Future.delayed(Duration.zero, () {
-      initV(context);
-    });
+    state = Overlay.of(context);
+    entry = OverlayEntry(
+        builder: (context) => new GestureDetector(
+          child: new Container(
+              width: 400.0,
+              height: 500.0,
+              child: new Opacity(
+                opacity: 1.0,
+                child: new Container(
+                  child: new CachedNetworkImage(
+                      imageUrl: previewUrl
+                  ),
+                  color: Color.fromARGB(200, 0, 0, 0),
+                ),
+              )
+          ),
+          onLongPressUp: (){
+            hideOverlay();
+          },
+        )
+    );
   }
-
-  @override
-  void preview(String url) {
+  showOverlay(){
     if(!isPreviewing){
-      previewUrl = url;
+      state.insert(entry);
       isPreviewing = true;
-      previewController.forward();
     }
-  }
-
-  @override
-  void view(String url) {
 
   }
-
-  @override
-  void previewEnd(){
+  hideOverlay(){
     if(isPreviewing){
-      previewUrl = "";
+      entry.remove();
+      state.deactivate();
       isPreviewing = false;
-      previewController.reverse();
     }
-  }
-  Tween opacityTween = new Tween<double>(begin: 0.0,end: 1.0);
-  Animation<double> opacityAnimation;
-  AnimationController previewController;
 
+  }
   @override
   Widget build(BuildContext context) {
     bloc.fetchComments();
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Comments'),
-      ),
-      body: new Container(
-        child: new Stack(
-          children: <Widget>[
-            new StreamBuilder(
-              stream: bloc.allComments,
-              builder: (context, AsyncSnapshot<CommentM> snapshot) {
-                if (snapshot.hasData) {
-                  return getCommentsPage(snapshot);
-                } else if (snapshot.hasError) {
-                  return Text(snapshot.error.toString());
-                }
-                return Center(child: CircularProgressIndicator());
-              },
-            ),
-            new Opacity(
-              opacity: opacityAnimation.value,
-              child: new Container(
-                child: new CachedNetworkImage(
-                    imageUrl: previewUrl
-                ),
-                color: Color.fromARGB(200, 0, 0, 0),
-              ),
-            )
-          ],
+        appBar: AppBar(
+          title: Text('Comments'),
         ),
-      )
+        body: new Container(
+          child: new GestureDetector(
+            child: new Stack(
+              children: <Widget>[
+                new StreamBuilder(
+                  stream: bloc.allComments,
+                  builder: (context, AsyncSnapshot<CommentM> snapshot) {
+                    if (snapshot.hasData) {
+                      return getCommentsPage(snapshot);
+                    } else if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    }
+                    return Center(child: CircularProgressIndicator());
+                  },
+                ),
+              ],
+            ),
+            onTapUp: hideOverlay(),
+            onHorizontalDragUpdate: (DragUpdateDetails details) {
+              if (details.delta.direction < 1.0 && details.delta.dx > 30) {
+                Navigator.pop(context);
+              }
+            }
+          )
+        )
     );
   }
 
@@ -121,11 +144,11 @@ class comL extends State<lyApp> with SingleTickerProviderStateMixin, PreviewCall
           } else {
             var comment = comments[i-1];
             return new GestureDetector(
-              onHorizontalDragUpdate: (DragUpdateDetails details) {
+              /*onHorizontalDragUpdate: (DragUpdateDetails details) {
                 if (details.delta.direction < 1.0 && details.delta.dx > 30) {
                   Navigator.pop(context);
                 }
-              },
+              },*/
               child: new Container(
                   child: new Card(
                       shape: BeveledRectangleBorder(
@@ -169,4 +192,5 @@ class comL extends State<lyApp> with SingleTickerProviderStateMixin, PreviewCall
           }
         });
   }
+
 }

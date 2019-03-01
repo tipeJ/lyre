@@ -6,7 +6,6 @@ import '../Models/Subreddit.dart';
 import '../Blocs/posts_bloc.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
-import '../utils/imageUtils.dart';
 import 'dart:async';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,15 +14,13 @@ import 'interfaces/previewCallback.dart';
 import 'comments_list.dart';
 
 class lyApp extends StatefulWidget{
-  PostsList createState() => new PostsList();
+  State<lyApp> createState() => new PostsList();
 }
 
 class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallback {
   var titletext = "Lyre for Reddit";
   var currentSub = "";
 
-  int loaded = 0;
-  List<Post> postList = new List();
 
   Tween heightTween = new Tween<double>(begin: 0.0, end: 0.0);
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
@@ -218,9 +215,9 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
                 new Container(
                   alignment: Alignment.bottomCenter,
                   padding: new EdgeInsets.only(
-                      bottom: padAnimation.value,
-                      right: edgeAnimation.value,
-                      left: edgeAnimation.value),
+                      bottom: (padAnimation.value != null) ? padAnimation.value : 0.0,
+                      right: (edgeAnimation.value != null) ? edgeAnimation.value : 0.0,
+                      left: (edgeAnimation.value != null) ? edgeAnimation.value : 0.0,),
                   child: new Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.max,
@@ -402,9 +399,17 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
           }),
     );
   }
+  @override
+  void dispose(){
+    controller?.dispose();
+    previewController?.dispose();
+    super.dispose();
+  }
 
   void showComments(BuildContext context, Post inside) {
-    Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
+    //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
+    cPost = inside;
+    Navigator.pushNamed(context, '/second');
   }
 
 }

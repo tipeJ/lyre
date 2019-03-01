@@ -1,4 +1,5 @@
 library lyre.globals;
+import '../Models/Post.dart';
 
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
@@ -34,3 +35,5 @@ int currentCount = 0;
 String lastPost = "";
 
 bool autoLoad = false;
+
+Post cPost;

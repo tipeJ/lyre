@@ -22,15 +22,11 @@ class PostsBloc {
     currentCount += perPage;
     print("START FETCH MORE");
     ItemModel itemModel = await _repository.fetchPosts(true);
-    print("FETCHED");
     if(latestModel.results == null || latestModel == null){
-      print("fuckiong ell");
+      print("FETCH MORE ERROR: RESULTS WERE NULL");
     }
     latestModel.results.addAll(itemModel.results);
-    print("ADDED");
-    print(latestModel.results.length);
     _postsFetcher.sink.add(latestModel);
-    print("SINK ADDED (END)");
   }
 
   dispose() {

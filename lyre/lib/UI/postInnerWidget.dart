@@ -22,7 +22,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget build(BuildContext context) {
     if (post.self) {
-      return new defaultColumn(post);
+      return new defaultColumn(post, callBack);
     }
     var divided = post.url.split(".");
     var last = divided.last;
@@ -55,21 +55,22 @@ class postInnerWidget extends StatelessWidget {
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
                   color: Color.fromARGB(100, 0, 0, 0),
-                  child: new defaultColumn(post),
+                  child: new defaultColumn(post, callBack),
                 ),
               ))
         ]);
       } else {
-        return new defaultColumn(post);
+        return new defaultColumn(post, callBack);
       }
     }
-    return new defaultColumn(post);
+    return new defaultColumn(post, callBack);
   }
 }
 class defaultColumn extends StatelessWidget{
 
   final Post post;
-  defaultColumn(this.post);
+  final PreviewCallback callback;
+  defaultColumn(this.post, this.callback);
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +118,9 @@ class defaultColumn extends StatelessWidget{
         ]);
   }
   void showComments(BuildContext context) {
+    if(callback is comL){
+      return;
+    }
     Navigator.push(context, SlideRightRoute(widget: commentsList(post)));
   }
 }

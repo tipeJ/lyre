@@ -11,6 +11,7 @@ class Repository {
   Future<ItemModel> fetchPosts(bool loadMore) => postsApiProvider.fetchPostsList(loadMore);
   Future<CommentM> fetchComments() => postsApiProvider.fetchCommentsList();
   Future<SubredditM> fetchSubs(String q) => postsApiProvider.fetchSubReddits(q);
+  Future<CommentM> fetchComment(String id) => postsApiProvider.getC(id);
 
 
 }

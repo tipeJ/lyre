@@ -32,6 +32,19 @@ class PostsProvider {
   Future<Reddit> getRed() async {
     return await Reddit.createReadOnlyInstance();
   }
+  Future<CommentM> getC(String id) async {
+    print('comment ' + id + ' fetched');
+    Map<String, String> headers = new Map<String, String>();
+
+    var response = await client.get("https://www.reddit.com/api/info.json?id=t1_" + id, headers: headers);
+    if(response.statusCode == 200){
+      var v = CommentM.fromJson(json.decode(response.body)["data"]["children"]);
+      print('Hands Up for successful comment fetch');
+      return v;
+    } else {
+      throw Exception('Failed to load comments');
+    }
+  }
 
   Future<ItemModel> fetchUserContent() async {
     Reddit r = await getRed();

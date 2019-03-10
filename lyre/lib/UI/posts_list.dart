@@ -177,7 +177,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
       bloc.fetchAllPosts();
     }
     return Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomPadding: true,
         drawer: new Drawer(
             child: new Container(
               padding: EdgeInsets.only(
@@ -215,9 +215,9 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
                 new Container(
                   alignment: Alignment.bottomCenter,
                   padding: new EdgeInsets.only(
-                      bottom: (padAnimation.value != null) ? padAnimation.value : 0.0,
-                      right: (edgeAnimation.value != null) ? edgeAnimation.value : 0.0,
-                      left: (edgeAnimation.value != null) ? edgeAnimation.value : 0.0,),
+                      bottom: (padAnimation != null) ? padAnimation.value : 0.0,
+                      right: (edgeAnimation != null) ? edgeAnimation.value : 0.0,
+                      left: (edgeAnimation != null) ? edgeAnimation.value : 0.0,),
                   child: new Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.max,
@@ -293,7 +293,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
                                     width: MediaQuery.of(context).size.width,
                                   )),
                               new Container(
-                                height: height2Animation.value,
+                                height: (height2Animation != null) ? height2Animation.value : 0.0,
                                 child: new StreamBuilder(
                                   stream: sub_bloc.getSubs,
                                   builder: (context,
@@ -312,7 +312,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
                           ),
                         ),
                         duration: Duration(milliseconds: 325),
-                        height: heightAnimation.value,
+                        height: (heightAnimation != null) ? heightAnimation.value : 0.0,
                         curve: Curves.fastOutSlowIn,
                         width: MediaQuery.of(context).size.width,
                       )
@@ -387,7 +387,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
                 }
               }, //TODO: Add a new fling animation for vertical scrolling
               child: new Hero(
-                tag: 'post_hero',
+                tag: 'post_hero ${posts[i].id}',
                 child: new Container(
                     child: new Card(
                         child: postInnerWidget(posts[i],this)),

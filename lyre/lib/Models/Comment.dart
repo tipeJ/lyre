@@ -36,6 +36,8 @@ enum commentType{
 }
 class commentResult {
   commentType type;
+  bool visible = true;
+  int depth;
 }
 class moreC extends commentResult{
   List<String> children = new List();

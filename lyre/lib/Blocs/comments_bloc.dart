@@ -66,6 +66,33 @@ class CommentsBloc {
     print("AFTERR:" + currentComments.results.length.toString());
     _commentsFetcher.sink.add(currentComments);
   }
+  void changeVisibility(int index){
+    commentResult upperComment = currentComments.results[index] as commentC;
+    var blist = List<bool>();
+    bool hasVisible = false;
+    for(int i = index+1; true; i++){
+      commentResult c = currentComments.results[i];
+      if(i == index+1 && c.depth == upperComment.depth){
+        return;
+      }else if(c.depth == upperComment.depth){
+        break;
+      }
+      blist.add(c.visible);
+      if(c.visible){
+        hasVisible = true;
+      }
+    }
+    if(!hasVisible){
+      for(int i = index+1; i <= index+blist.length; i++){
+        currentComments.results[i].visible = true;
+      }
+    }else{
+      for(int i = index+1; i <= index+blist.length; i++){
+        currentComments.results[i].visible = false;
+      }
+    }
+    _commentsFetcher.sink.add(currentComments);
+  }
 
 }
 

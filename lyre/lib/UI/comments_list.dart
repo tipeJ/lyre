@@ -156,6 +156,84 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
     return colorList[remain];
   }
 
+  Widget getCommentWidget(commentResult comment, int i){
+    if(comment is commentC){
+      return new GestureDetector(
+        child: new Container(
+            child: new Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left: BorderSide(
+                        color: getColor(comment.depth),
+                        width: 3.5
+                    )
+                ),
+              ),
+              child: new Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    new Padding(
+                        child: new Text(
+                            "\u{1F44D} ${comment.points}    \u{1F60F} ${comment.author}",
+                            textAlign: TextAlign.right,
+                            textScaleFactor: 1.0,
+                            style: new TextStyle(
+                                color: Colors.white.withOpacity(0.6))),
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 16.0)),
+                    new Padding(
+                        child: new Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            new MarkdownBody(
+                              data: convertToMarkdown(comment.text),
+                            )
+                          ],
+                        ),
+                        padding: const EdgeInsets.only(
+                            left: 16.0,
+                            right: 16.0,
+                            top: 16.0,
+                            bottom: 16.0))
+                  ]),
+            ),
+            padding: new EdgeInsets.only(
+                left: 3.5 + comment.depth * 3.5,
+                right: 0.5,
+                top: comment.depth == 0 ? 2.0 : 0.1,
+                bottom: 0.0)),
+        onTapUp: (TapUpDetails details){
+          bloc.changeVisibility(i-1);
+        },
+      );
+    }else if(comment is moreC){
+      return new GestureDetector(
+        child: Container(
+          child: new Text(
+            "Load more comments (${comment.count})",
+            style: TextStyle(
+                color: colorList[0]
+            ),
+          ),
+          padding: EdgeInsets.only(
+            left: 4.5 + comment.depth * 3.5,
+            right: 0.5,
+            top: 2.5,
+            bottom: 2.5,
+          ),
+        ),
+        onTapUp: (TapUpDetails details){
+          setState(() {
+            //bloc.getComments(comment.id,i-1,comment.depth);
+            bloc.getB(comment,i-1,comment.depth);
+          });
+        },
+      );
+    }
+  }
+
   Widget getCommentsPage(AsyncSnapshot<CommentM> snapshot) {
     var comments = snapshot.data.results;
     return new ListView.builder(
@@ -170,79 +248,10 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
                         left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)));
           } else {
             var comment = comments[i-1];
-            if(comment is commentC){
-              return new GestureDetector(
-                child: new Container(
-                  child: new Container(
-                    decoration: BoxDecoration(
-                        border: Border(
-                            left: BorderSide(
-                                color: getColor(comment.depth),
-                                width: 3.5
-                            )
-                        ),
-                    ),
-                    child: new Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          new Padding(
-                              child: new Text(
-                                  "\u{1F44D} ${comment.points}    \u{1F60F} ${comment.author}",
-                                  textAlign: TextAlign.right,
-                                  textScaleFactor: 1.0,
-                                  style: new TextStyle(
-                                      color: Colors.white.withOpacity(0.6))),
-                              padding: const EdgeInsets.only(
-                                  left: 16.0, right: 16.0, top: 16.0)),
-                          new Padding(
-                              child: new Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  new MarkdownBody(
-                                    data: convertToMarkdown(comment.text),
-                                  )
-                                ],
-                              ),
-                              padding: const EdgeInsets.only(
-                                  left: 16.0,
-                                  right: 16.0,
-                                  top: 16.0,
-                                  bottom: 16.0))
-                        ]),
-                  ),
-                  padding: new EdgeInsets.only(
-                      left: 3.5 + comment.depth * 3.5,
-                      right: 0.5,
-                      top: comment.depth == 0 ? 2.0 : 0.1,
-                      bottom: 0.0)),
-              );
-            }else if(comment is moreC){
-              return new GestureDetector(
-                child: Container(
-                  child: new Text(
-                    "Load more comments (${comment.count})",
-                    style: TextStyle(
-                      color: colorList[0]
-                    ),
-                  ),
-                  padding: EdgeInsets.only(
-                    left: 4.5 + comment.depth * 3.5,
-                    right: 0.5,
-                    top: 2.5,
-                    bottom: 2.5,
-                  ),
-                ),
-                onTapUp: (TapUpDetails details){
-                  setState(() {
-                    //bloc.getComments(comment.id,i-1,comment.depth);
-                    bloc.getB(comment,i-1,comment.depth);
-                  });
-                },
-              );
-            }
-
+            return Visibility(
+                child: getCommentWidget(comment, i),
+                visible: comment.visible,
+            );
           }
         });
   }

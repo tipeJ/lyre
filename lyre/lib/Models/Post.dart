@@ -1,4 +1,5 @@
 class Post {
+  String _selftext;
   String _title;
   String _author;
   String _url;
@@ -17,7 +18,11 @@ class Post {
     _points = result['data']['score'];
     _comments = result['data']['num_comments'];
     _self = result['data']['is_self'];
+    _selftext = result['data']['selftext'];
   }
+
+
+  String get selftext => _selftext;
 
   String get author => _author;
 

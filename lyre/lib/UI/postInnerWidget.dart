@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:transparent_image/transparent_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:sqflite/sqflite.dart';
-import '../Models/item_model.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../Models/Post.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
+import '../utils/utils_html.dart';
 import 'interfaces/previewCallback.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,19 +28,19 @@ class postInnerWidget extends StatelessWidget {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
-              child: new GestureDetector(
-                child: new CachedNetworkImage(
-                  fit: BoxFit.fitWidth,
-                  fadeInDuration: Duration(milliseconds: 500),
-                  imageUrl: post.url,
-                ),
-                onLongPress: (){
-                  callBack.preview(post.url);
-                },
-                /*onLongPressUp: (){
+            child: new GestureDetector(
+              child: new CachedNetworkImage(
+                fit: BoxFit.fitWidth,
+                fadeInDuration: Duration(milliseconds: 500),
+                imageUrl: post.url,
+              ),
+              onLongPress: () {
+                callBack.preview(post.url);
+              },
+              /*onLongPressUp: (){
                   callBack.previewEnd();
                 },*/
-              ),
+            ),
             height: 400.0,
           ),
           new Positioned(
@@ -66,10 +64,11 @@ class postInnerWidget extends StatelessWidget {
     return new defaultColumn(post, callBack);
   }
 }
-class defaultColumn extends StatelessWidget{
 
+class defaultColumn extends StatelessWidget {
   final Post post;
   final PreviewCallback callback;
+
   defaultColumn(this.post, this.callback);
 
   @override
@@ -83,42 +82,68 @@ class defaultColumn extends StatelessWidget{
               child: new Text(
                 post.title.toString(),
                 style:
-                new TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
+                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
                 textScaleFactor: 1.0,
               ),
               padding:
-              const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0)),
+                  const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0)),
           const SizedBox(
             height: 3.5,
-          ),
+          ),(post.self && post.selftext != null)
+              ? Container(
+            child: ShaderMask(
+              child: Container(
+                child: MarkdownBody(
+                  data: convertToMarkdown(post.selftext),
+                ),
+
+              ),
+              shaderCallback: (Rect bounds) {
+                return LinearGradient(colors: [
+                  Colors.white,
+                  Theme.of(context).primaryColor,
+                ], stops: [
+                  0.0,
+                  1.0,
+                ], begin: Alignment.topCenter, end: Alignment.bottomCenter)
+                    .createShader(bounds);
+              },
+              blendMode: BlendMode.srcATop,
+            ),
+            padding: EdgeInsets.only(
+                left: 10.0, right: 10.0, top: 12.0, bottom: 8.0),
+            height: 175.0,
+          )
+              : Container(height: 0.0),
           new ButtonTheme.bar(
               child: new ButtonBar(children: <Widget>[
-                new Padding(
-                    child: new Text(
-                        "\u{1F44D} ${post.points}    \u{1F60F} ${post.author}",
-                        textAlign: TextAlign.right,
-                        textScaleFactor: 1.0,
-                        style: new TextStyle(color: Colors.black.withOpacity(0.6))),
-                    padding:
+            new Padding(
+                child: new Text(
+                    "\u{1F44D} ${post.points}    \u{1F60F} ${post.author}",
+                    textAlign: TextAlign.right,
+                    textScaleFactor: 1.0,
+                    style: new TextStyle(color: Colors.black.withOpacity(0.6))),
+                padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 0.0)),
-                new FlatButton(
-                    child: new Text("${post.comments} comments"),
-                    onPressed: () {
-                      currentPostId = post.id;
-                      showComments(context);
-                    }),
-                !post.self
-                    ? new FlatButton(
+            new FlatButton(
+                child: new Text("${post.comments} comments"),
+                onPressed: () {
+                  currentPostId = post.id;
+                  showComments(context);
+                }),
+            !post.self
+                ? new FlatButton(
                     child: new Text("\u{1F517} Open"),
                     onPressed: () {
                       if (!post.self) launch(post.url);
                     })
-                    : null
-              ]))
+                : null
+          ])),
         ]);
   }
+
   void showComments(BuildContext context) {
-    if(callback is comL){
+    if (callback is comL) {
       return;
     }
     Navigator.push(context, SlideRightRoute(widget: commentsList(post)));

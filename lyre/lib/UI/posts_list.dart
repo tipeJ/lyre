@@ -409,6 +409,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
   void showComments(BuildContext context, Post inside) {
     //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
     cPost = inside;
+    inside.expanded = true;
     Navigator.pushNamed(context, '/second');
   }
 

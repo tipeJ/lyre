@@ -89,30 +89,25 @@ class defaultColumn extends StatelessWidget {
                   const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0)),
           const SizedBox(
             height: 3.5,
-          ),(post.self && post.selftext != null)
+          ),(post.self && post.selftext != null && post.selftext.isNotEmpty)
               ? Container(
-            child: ShaderMask(
-              child: Container(
-                child: MarkdownBody(
-                  data: convertToMarkdown(post.selftext),
+            child: Container(
+              child: Text(
+                post.selftext,
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontFamily: "Roboto"
                 ),
-
+                overflow: TextOverflow.fade,
+                maxLines: post.expanded ? null : 5,
               ),
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(colors: [
-                  Colors.white,
-                  Theme.of(context).primaryColor,
-                ], stops: [
-                  0.0,
-                  1.0,
-                ], begin: Alignment.topCenter, end: Alignment.bottomCenter)
-                    .createShader(bounds);
-              },
-              blendMode: BlendMode.srcATop,
             ),
             padding: EdgeInsets.only(
-                left: 10.0, right: 10.0, top: 12.0, bottom: 8.0),
-            height: 175.0,
+              left: 8.0,
+              right: 8.0,
+              top: 12.0,
+              bottom: 6.0
+            ),
           )
               : Container(height: 0.0),
           new ButtonTheme.bar(
@@ -146,6 +141,7 @@ class defaultColumn extends StatelessWidget {
     if (callback is comL) {
       return;
     }
+    post.expanded = true;
     Navigator.push(context, SlideRightRoute(widget: commentsList(post)));
   }
 }

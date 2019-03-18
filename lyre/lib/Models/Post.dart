@@ -8,6 +8,7 @@ class Post {
   int _points;
   String _id;
   bool _self;
+  bool expanded = false;
 
   Post(result) {
     _id = result['data']['id'];

@@ -12,7 +12,7 @@ import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
 
-class commentsList extends StatefulWidget{
+class commentsList extends StatefulWidget {
   final Post post;
 
   commentsList(this.post);
@@ -20,22 +20,23 @@ class commentsList extends StatefulWidget{
   @override
   State<commentsList> createState() => new comL(post);
 }
-class comL extends State<commentsList> with SingleTickerProviderStateMixin, PreviewCallback{
 
+class comL extends State<commentsList>
+    with SingleTickerProviderStateMixin, PreviewCallback {
   List<Color> colorList = [
-      Color.fromARGB(255, 163, 255, 221),
-      Color.fromARGB(255, 255, 202, 130),
-      Color.fromARGB(255, 130, 255, 198),
-      Color.fromARGB(255, 239, 170, 255),
-      Color.fromARGB(255, 170, 182, 255),
-      Color.fromARGB(255, 247, 255, 170),
-      Color.fromARGB(255, 255, 140, 209),
-      Color.fromARGB(255, 140, 145, 255),
+    Color.fromARGB(255, 163, 255, 221),
+    Color.fromARGB(255, 255, 202, 130),
+    Color.fromARGB(255, 130, 255, 198),
+    Color.fromARGB(255, 239, 170, 255),
+    Color.fromARGB(255, 170, 182, 255),
+    Color.fromARGB(255, 247, 255, 170),
+    Color.fromARGB(255, 255, 140, 209),
+    Color.fromARGB(255, 140, 145, 255),
   ];
 
   @override
   void previewEnd() {
-    if(isPreviewing){
+    if (isPreviewing) {
       previewUrl = "";
       // previewController.reverse();
       hideOverlay();
@@ -43,13 +44,11 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
   }
 
   @override
-  void view(String s) {
-
-  }
+  void view(String s) {}
 
   @override
   void preview(String url) {
-    if(!isPreviewing){
+    if (!isPreviewing) {
       previewUrl = url;
       showOverlay();
       //previewController.forward();
@@ -65,49 +64,47 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
 
   OverlayState state;
   OverlayEntry entry;
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     state = Overlay.of(context);
     entry = OverlayEntry(
         builder: (context) => new GestureDetector(
-          child: new Container(
-              width: 400.0,
-              height: 500.0,
-              child: new Opacity(
-                opacity: 1.0,
-                child: new Container(
-                  child: new CachedNetworkImage(
-                      imageUrl: previewUrl
-                  ),
-                  color: Color.fromARGB(200, 0, 0, 0),
-                ),
-              )
-          ),
-          onLongPressUp: (){
-            hideOverlay();
-          },
-        )
-    );
+              child: new Container(
+                  width: 400.0,
+                  height: 500.0,
+                  child: new Opacity(
+                    opacity: 1.0,
+                    child: new Container(
+                      child: new CachedNetworkImage(imageUrl: previewUrl),
+                      color: Color.fromARGB(200, 0, 0, 0),
+                    ),
+                  )),
+              onLongPressUp: () {
+                hideOverlay();
+              },
+            ));
   }
-  showOverlay(){
-    if(!isPreviewing){
+
+  showOverlay() {
+    if (!isPreviewing) {
       state.insert(entry);
       isPreviewing = true;
     }
-
   }
-  hideOverlay(){
-    if(isPreviewing){
+
+  hideOverlay() {
+    if (isPreviewing) {
       entry.remove();
       state.deactivate();
       isPreviewing = false;
     }
-
   }
+
   @override
   Widget build(BuildContext context) {
-    if(bloc.currentComments == null){
+    if (bloc.currentComments == null) {
       bloc.fetchComments();
     }
     return WillPopScope(
@@ -116,58 +113,75 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
               title: Text('Comments'),
             ),
             body: new Container(
-                child: new GestureDetector(
-                    child: new Stack(
-                      children: <Widget>[
-                        new StreamBuilder(
-                          stream: bloc.allComments,
-                          builder: (context, AsyncSnapshot<CommentM> snapshot) {
-                            if (snapshot.hasData) {
-                              return getCommentsPage(snapshot);
-                            } else if (snapshot.hasError) {
-                              return Text(snapshot.error.toString());
-                            }
-                            return Center(child: CircularProgressIndicator());
-                          },
-                        ),
-                      ],
-                    ),
-                    onTapUp: hideOverlay(),
-                    onHorizontalDragUpdate: (DragUpdateDetails details) {
-                      if (details.delta.direction < 1.0 && details.delta.dx > 30) {
-                        close(context);
-                      }
+              child: new GestureDetector(
+                  child: new CustomScrollView(
+                    slivers: <Widget>[
+                      new SliverToBoxAdapter(
+                        child: new Hero(
+                            tag: 'post_hero ${post.id}',
+                            child: new Container(
+                                child: new Card(
+                                    child: postInnerWidget(post, this)),
+                                padding: const EdgeInsets.only(
+                                    left: 0.0,
+                                    right: 0.0,
+                                    top: 8.0,
+                                    bottom: 0.0))),
+                      ),
+                      new StreamBuilder(
+                        stream: bloc.allComments,
+                        builder: (context, AsyncSnapshot<CommentM> snapshot) {
+                          if (snapshot.hasData) {
+                            return getCommentsPage(snapshot);
+                          } else if (snapshot.hasError) {
+                            return Text(snapshot.error.toString());
+                          }
+                          return SliverToBoxAdapter(
+                            child: Container(
+                              child: Center(child: CircularProgressIndicator()),
+                              padding: EdgeInsets.only(
+                                top: 3.5,
+                                bottom: 2.5
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  onTapUp: hideOverlay(),
+                  onHorizontalDragUpdate: (DragUpdateDetails details) {
+                    if (details.delta.direction < 1.0 &&
+                        details.delta.dx > 30) {
+                      close(context);
                     }
-                )
-            )
-        ),
-        onWillPop: requestPop
-    );
+                  }),
+            )),
+        onWillPop: requestPop);
   }
-  Future<bool> requestPop(){
+
+  Future<bool> requestPop() {
     bloc.currentComments = null;
     return new Future.value(true);
   }
-  Color getColor(int depth){
-    if(depth >= 0 && depth <= colorList.length-1){
+
+  Color getColor(int depth) {
+    if (depth >= 0 && depth <= colorList.length - 1) {
       return colorList[depth];
     }
-    int remain = depth%colorList.length;
+    int remain = depth % colorList.length;
     return colorList[remain];
   }
 
-  Widget getCommentWidget(commentResult comment, int i){
-    if(comment is commentC){
+  Widget getCommentWidget(commentResult comment, int i) {
+    if (comment is commentC) {
       return new GestureDetector(
         child: new Container(
             child: new Container(
               decoration: BoxDecoration(
                 border: Border(
-                    left: BorderSide(
-                        color: getColor(comment.depth),
-                        width: 3.5
-                    )
-                ),
+                    left:
+                        BorderSide(color: getColor(comment.depth), width: 3.5)),
               ),
               child: new Column(
                   mainAxisSize: MainAxisSize.max,
@@ -193,10 +207,7 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
                           ],
                         ),
                         padding: const EdgeInsets.only(
-                            left: 16.0,
-                            right: 16.0,
-                            top: 16.0,
-                            bottom: 16.0))
+                            left: 16.0, right: 16.0, top: 16.0, bottom: 16.0))
                   ]),
             ),
             padding: new EdgeInsets.only(
@@ -204,18 +215,16 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
                 right: 0.5,
                 top: comment.depth == 0 ? 2.0 : 0.1,
                 bottom: 0.0)),
-        onTapUp: (TapUpDetails details){
-          bloc.changeVisibility(i-1);
+        onTapUp: (TapUpDetails details) {
+          bloc.changeVisibility(i - 1);
         },
       );
-    }else if(comment is moreC){
+    } else if (comment is moreC) {
       return new GestureDetector(
         child: Container(
           child: new Text(
             "Load more comments (${comment.count})",
-            style: TextStyle(
-                color: colorList[0]
-            ),
+            style: TextStyle(color: colorList[0]),
           ),
           padding: EdgeInsets.only(
             left: 4.5 + comment.depth * 3.5,
@@ -224,10 +233,10 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
             bottom: 2.5,
           ),
         ),
-        onTapUp: (TapUpDetails details){
+        onTapUp: (TapUpDetails details) {
           setState(() {
             //bloc.getComments(comment.id,i-1,comment.depth);
-            bloc.getB(comment,i-1,comment.depth);
+            bloc.getB(comment, i - 1, comment.depth);
           });
         },
       );
@@ -236,16 +245,25 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
 
   Widget getCommentsPage(AsyncSnapshot<CommentM> snapshot) {
     var comments = snapshot.data.results;
-    return new ListView.builder(
+    return new SliverList(
+      delegate: SliverChildBuilderDelegate((BuildContext context, int i) {
+        if (i == 0) {
+          return new Container(
+            height: 0.0,
+          );
+        } else {
+          var comment = comments[i - 1];
+          return Visibility(
+            child: getCommentWidget(comment, i),
+            visible: comment.visible,
+          );
+        }
+      },childCount: comments.length+1),
+      /*
         itemCount: comments.length + 1,
         itemBuilder: (BuildContext context, int i) {
           if (i == 0) {
-            return new Hero(
-                tag: 'post_hero ${post.id}',
-                child: new Container(
-                    child: new Card(child: postInnerWidget(post, this)),
-                    padding: const EdgeInsets.only(
-                        left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)));
+            return new Container(height: 0.0,);
           } else {
             var comment = comments[i-1];
             return Visibility(
@@ -253,10 +271,12 @@ class comL extends State<commentsList> with SingleTickerProviderStateMixin, Prev
                 visible: comment.visible,
             );
           }
-        });
-  }
-  void close(BuildContext context){
-    Navigator.pop(context);
+        }*/
+    );
   }
 
+  void close(BuildContext context) {
+    post.expanded = false;
+    Navigator.pop(context);
+  }
 }

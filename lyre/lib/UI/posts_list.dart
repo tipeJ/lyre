@@ -13,14 +13,14 @@ import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import 'comments_list.dart';
 
-class lyApp extends StatefulWidget{
+class lyApp extends StatefulWidget {
   State<lyApp> createState() => new PostsList();
 }
 
-class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallback {
+class PostsList extends State<lyApp>
+    with TickerProviderStateMixin, PreviewCallback {
   var titletext = "Lyre for Reddit";
   var currentSub = "";
-
 
   Tween heightTween = new Tween<double>(begin: 0.0, end: 0.0);
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
@@ -34,7 +34,7 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
   Animation<double> roundAnimation;
   Animation<double> edgeAnimation;
 
-  Tween opacityTween = new Tween<double>(begin: 0.0,end: 1.0);
+  Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
   Animation<double> opacityAnimation;
   AnimationController previewController;
 
@@ -45,10 +45,9 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
   bool isPreviewing = false;
   var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
 
-
   @override
   void preview(String url) {
-    if(!isPreviewing){
+    if (!isPreviewing) {
       previewUrl = url;
       showOverlay();
       //previewController.forward();
@@ -56,15 +55,13 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
   }
 
   @override
-  void view(String url) {
-
-  }
+  void view(String url) {}
 
   @override
-  void previewEnd(){
-    if(isPreviewing){
+  void previewEnd() {
+    if (isPreviewing) {
       previewUrl = "";
-     // previewController.reverse();
+      // previewController.reverse();
       hideOverlay();
     }
   }
@@ -97,7 +94,8 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
         parent: controller,
         curve: Curves.easeIn,
         reverseCurve: Curves.easeOut));
-    opacityAnimation = opacityTween.animate(CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
+    opacityAnimation = opacityTween.animate(
+        CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
     heightAnimation.addListener(() {
       setState(() {});
     });
@@ -131,201 +129,247 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
     state = Overlay.of(context);
     entry = OverlayEntry(
         builder: (context) => new GestureDetector(
-          child: new Container(
-              width: 400.0,
-              height: 500.0,
-              child: new Opacity(
-                opacity: 1.0,
-                child: new Container(
-                  child: new CachedNetworkImage(
-                      imageUrl: previewUrl
-                  ),
-                  color: Color.fromARGB(200, 0, 0, 0),
-                ),
-              )
-          ),
-          onLongPressUp: (){
-            hideOverlay();
-          },
-        )
-    );
+              child: new Container(
+                  width: 400.0,
+                  height: 500.0,
+                  child: new Opacity(
+                    opacity: 1.0,
+                    child: new Container(
+                      child: new CachedNetworkImage(imageUrl: previewUrl),
+                      color: Color.fromARGB(200, 0, 0, 0),
+                    ),
+                  )),
+              onLongPressUp: () {
+                hideOverlay();
+              },
+            ));
   }
 
   String searchQuery = "";
 
   OverlayState state;
   OverlayEntry entry;
-  showOverlay(){
-    if(!isPreviewing){
+
+  showOverlay() {
+    if (!isPreviewing) {
       state.insert(entry);
       isPreviewing = true;
     }
-
   }
-  hideOverlay(){
-    if(isPreviewing){
+
+  hideOverlay() {
+    if (isPreviewing) {
       entry.remove();
       state.deactivate();
       isPreviewing = false;
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
-    if(bloc.latestModel == null){
+    if (bloc.latestModel == null) {
       bloc.fetchAllPosts();
     }
-    return Scaffold(
-        resizeToAvoidBottomPadding: true,
-        drawer: new Drawer(
-            child: new Container(
-              padding: EdgeInsets.only(
-                top: 200
-              ),
+    return new WillPopScope(
+        child: Scaffold(
+            resizeToAvoidBottomPadding: true,
+            drawer: new Drawer(
+                child: new Container(
+              padding: EdgeInsets.only(top: 200),
               child: new Column(
                 children: <Widget>[
-                  Text(
-                      "Auto-load more posts"
-                  ),
+                  Text("Auto-load more posts"),
                   Switch(
                     value: autoLoad,
-                    onChanged: (bool newValue){
+                    onChanged: (bool newValue) {
                       autoLoad = newValue;
                     },
                   )
                 ],
               ),
             )),
-        body: new Container(
-          child: new GestureDetector(
-            child: new Stack(
-              children: <Widget>[
-                new StreamBuilder(
-                  stream: bloc.allPosts,
-                  builder: (context, AsyncSnapshot<ItemModel> snapshot) {
-                    if (snapshot.hasData) {
-                      return buildList(snapshot);
-                    } else if (snapshot.hasError) {
-                      return Text(snapshot.error.toString());
-                    }
-                    return Center(child: CircularProgressIndicator());
-                  },
-                ),
-                new Container(
-                  alignment: Alignment.bottomCenter,
-                  padding: new EdgeInsets.only(
-                      bottom: (padAnimation != null) ? padAnimation.value : 0.0,
-                      right: (edgeAnimation != null) ? edgeAnimation.value : 0.0,
-                      left: (edgeAnimation != null) ? edgeAnimation.value : 0.0,),
-                  child: new Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      new AnimatedContainer(
-                        child: new Card(
-                          color: Color.fromARGB(255, 70, 64, 66),
-                          elevation: 4.0,
-                          shape: BeveledRectangleBorder(
-                              borderRadius:
-                              BorderRadius.all(Radius.circular(10.0))),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.max,
-                            children: <Widget>[
-                              new GestureDetector(
-                                  onVerticalDragUpdate:
-                                      (DragUpdateDetails details) {
-                                    if (details.delta.direction < 1.0 &&
-                                        !isElevated) {
-                                      initV(context);
-                                      controller.forward();
-                                      isElevated = true;
-                                    } else if (details.delta.direction > 1.0 &&
-                                        isElevated) {
-                                      reverse(context);
-                                    }
-                                  },
-                                  child: new Container(
-                                    child: new Stack(
-                                      children: <Widget>[
-                                        new AnimatedOpacity(
-                                          opacity: !isElevated ? 1.0 : 0.0,
-                                          duration: Duration(milliseconds: 200),
-                                          curve: Curves.easeInQuad,
-                                          child: new Text(
-                                            currentSubreddit,
-                                            style: TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 35.0,
-                                            ),
-                                            textAlign: TextAlign.left,
-                                          ),
-                                        ),
-                                        new AnimatedOpacity(
-                                            opacity: isElevated ? 1.0 : 0.0,
-                                            duration: Duration(milliseconds: 200),
-                                            curve: Curves.easeInQuad,
-                                            child: new Container(
-                                              child: new TextField(
-                                                enabled: isElevated,
-                                                onChanged: (String s) {
-                                                  searchQuery = s;
-                                                  sub_bloc.fetchSubs(s);
-                                                },
-                                                onEditingComplete: () {
-                                                  currentSubreddit =
-                                                  "/r/${searchQuery}";
-                                                  reverse(context);
-                                                  bloc.fetchAllPosts();
-                                                  scontrol.animateTo(0.0,
-                                                      duration: Duration(
-                                                          milliseconds: 400),
-                                                      curve: Curves.decelerate);
-                                                },
-                                              ),
-                                              color: Colors.black54,
-                                            ))
-                                      ],
-                                    ),
-                                    width: MediaQuery.of(context).size.width,
-                                  )),
-                              new Container(
-                                height: (height2Animation != null) ? height2Animation.value : 0.0,
-                                child: new StreamBuilder(
-                                  stream: sub_bloc.getSubs,
-                                  builder: (context,
-                                      AsyncSnapshot<SubredditM> snapshot) {
-                                    if (snapshot.hasData) {
-                                      return buildSubsList(snapshot);
-                                    } else if (snapshot.hasError) {
-                                      return Text(snapshot.error.toString());
-                                    }
-                                    return Center(
-                                        child: CircularProgressIndicator());
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        duration: Duration(milliseconds: 325),
-                        height: (heightAnimation != null) ? heightAnimation.value : 0.0,
-                        curve: Curves.fastOutSlowIn,
-                        width: MediaQuery.of(context).size.width,
-                      )
-                    ],
+            body: new Container(
+                child: new GestureDetector(
+              child: new Stack(
+                children: <Widget>[
+                  new StreamBuilder(
+                    stream: bloc.allPosts,
+                    builder: (context, AsyncSnapshot<ItemModel> snapshot) {
+                      if (snapshot.hasData) {
+                        return buildList(snapshot);
+                      } else if (snapshot.hasError) {
+                        return Text(snapshot.error.toString());
+                      }
+                      return Center(child: CircularProgressIndicator());
+                    },
                   ),
-                ),
-              ],
-            ),
-            onLongPressUp: (){
-              hideOverlay();
-            },
-          )
-        ));
+                  new Container(
+                    alignment: Alignment.bottomCenter,
+                    padding: new EdgeInsets.only(
+                      bottom: (padAnimation != null) ? padAnimation.value : 0.0,
+                      right:
+                          (edgeAnimation != null) ? edgeAnimation.value : 0.0,
+                      left: (edgeAnimation != null) ? edgeAnimation.value : 0.0,
+                    ),
+                    child: new Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        new AnimatedContainer(
+                          child: new Container(
+                            decoration: BoxDecoration(
+                                color: Color.fromARGB(255, 70, 64, 66),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(25.0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black,
+                                    offset: new Offset(0.0, 5.5),
+                                    blurRadius: 20.0,
+                                  )
+                                ]),
+                            child: ClipRRect(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: <Widget>[
+                                    new GestureDetector(
+                                        onVerticalDragUpdate:
+                                            (DragUpdateDetails details) {
+                                          if (details.delta.direction < 1.0 &&
+                                              !isElevated) {
+                                            initV(context);
+                                            controller.forward();
+                                            isElevated = true;
+                                          } else if (details.delta.direction >
+                                                  1.0 &&
+                                              isElevated) {
+                                            reverse(context);
+                                          }
+                                        },
+                                        child: new Container(
+                                          child: new Stack(
+                                            children: <Widget>[
+                                              new AnimatedOpacity(
+                                                opacity:
+                                                    !isElevated ? 1.0 : 0.0,
+                                                duration:
+                                                    Duration(milliseconds: 200),
+                                                curve: Curves.easeInQuad,
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5.0),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: <Widget>[
+                                                      new Text(
+                                                        currentSubreddit,
+                                                        style: TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 35.0,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                      ),
+                                                      new Icon(
+                                                        Icons.list,
+                                                        color: Theme.of(context)
+                                                            .accentColor,
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              new AnimatedOpacity(
+                                                  opacity:
+                                                      isElevated ? 1.0 : 0.0,
+                                                  duration: Duration(
+                                                      milliseconds: 200),
+                                                  curve: Curves.easeInQuad,
+                                                  child: new Container(
+                                                    decoration: BoxDecoration(),
+                                                    child: new TextField(
+                                                      enabled: isElevated,
+                                                      onChanged: (String s) {
+                                                        searchQuery = s;
+                                                        sub_bloc.fetchSubs(s);
+                                                      },
+                                                      onEditingComplete: () {
+                                                        currentSubreddit =
+                                                            "/r/${searchQuery}";
+                                                        reverse(context);
+                                                        bloc.fetchAllPosts();
+                                                        scontrol.animateTo(0.0,
+                                                            duration: Duration(
+                                                                milliseconds:
+                                                                    400),
+                                                            curve: Curves
+                                                                .decelerate);
+                                                      },
+                                                    ),
+                                                    color: Colors.black54,
+                                                  ))
+                                            ],
+                                          ),
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                        )),
+                                    new Container(
+                                      height: (height2Animation != null)
+                                          ? height2Animation.value
+                                          : 0.0,
+                                      child: new StreamBuilder(
+                                        stream: sub_bloc.getSubs,
+                                        builder: (context,
+                                            AsyncSnapshot<SubredditM>
+                                                snapshot) {
+                                          if (snapshot.hasData) {
+                                            return buildSubsList(snapshot);
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                                snapshot.error.toString());
+                                          }
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(25.0)),
+                          ),
+                          duration: Duration(milliseconds: 325),
+                          height: (heightAnimation != null)
+                              ? heightAnimation.value
+                              : 0.0,
+                          curve: Curves.fastOutSlowIn,
+                          width: MediaQuery.of(context).size.width,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              onLongPressUp: () {
+                hideOverlay();
+              },
+            ))),
+        onWillPop: _willPop);
+  }
+
+  Future<bool> _willPop(){
+    if(isElevated){
+      reverse(context);
+      return new Future.value(false);
+    }
+    return new Future.value(true);
   }
 
   Widget buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
@@ -358,8 +402,9 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
   Widget buildList(AsyncSnapshot<ItemModel> snapshot) {
     var posts = snapshot.data.results;
     return new NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo){
-        if(autoLoad && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
+      onNotification: (ScrollNotification scrollInfo) {
+        if (autoLoad &&
+            scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
           bloc.fetchMore();
         }
       },
@@ -367,40 +412,40 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
           controller: scontrol,
           itemCount: posts.length + 1,
           itemBuilder: (BuildContext context, int i) {
-            return (i == posts.length) ?
-            Container(
-              color: Colors.blueGrey,
-              child: FlatButton(
-                  onPressed: (){
-                    setState(() {
-                      bloc.fetchMore();
-                    });
-                  },
-                  child: Text("Load more")
-              ),
-            )
+            return (i == posts.length)
+                ? Container(
+                    color: Colors.blueGrey,
+                    child: FlatButton(
+                        onPressed: () {
+                          setState(() {
+                            bloc.fetchMore();
+                          });
+                        },
+                        child: Text("Load more")),
+                  )
                 : GestureDetector(
-              onHorizontalDragUpdate: (DragUpdateDetails details) {
-                if (details.delta.direction > 1.0 && details.delta.dx < -25) {
-                  currentPostId = posts[i].id;
-                  showComments(context, posts[i]);
-                }
-              }, //TODO: Add a new fling animation for vertical scrolling
-              child: new Hero(
-                tag: 'post_hero ${posts[i].id}',
-                child: new Container(
-                    child: new Card(
-                        child: postInnerWidget(posts[i],this)),
-                    padding: const EdgeInsets.only(
-                        left: 0.0, right: 0.0, top: 8.0, bottom: 0.0))
-                ,
-              ),
-            );
+                    onHorizontalDragUpdate: (DragUpdateDetails details) {
+                      if (details.delta.direction > 1.0 &&
+                          details.delta.dx < -25) {
+                        currentPostId = posts[i].id;
+                        showComments(context, posts[i]);
+                      }
+                    }, //TODO: Add a new fling animation for vertical scrolling
+                    child: new Hero(
+                      tag: 'post_hero ${posts[i].id}',
+                      child: new Container(
+                          child:
+                              new Card(child: postInnerWidget(posts[i], this)),
+                          padding: const EdgeInsets.only(
+                              left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)),
+                    ),
+                  );
           }),
     );
   }
+
   @override
-  void dispose(){
+  void dispose() {
     controller?.dispose();
     previewController?.dispose();
     super.dispose();
@@ -410,7 +455,6 @@ class PostsList extends State<lyApp> with TickerProviderStateMixin, PreviewCallb
     //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
     cPost = inside;
     inside.expanded = true;
-    Navigator.pushNamed(context, '/second');
+    Navigator.of(context).pushNamed('/second');
   }
-
 }

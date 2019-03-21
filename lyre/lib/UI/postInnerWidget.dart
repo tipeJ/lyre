@@ -142,6 +142,6 @@ class defaultColumn extends StatelessWidget {
       return;
     }
     post.expanded = true;
-    Navigator.push(context, SlideRightRoute(widget: commentsList(post)));
+    Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
   }
 }

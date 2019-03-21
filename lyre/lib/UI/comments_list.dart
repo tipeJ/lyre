@@ -106,6 +106,8 @@ class comL extends State<commentsList>
   Widget build(BuildContext context) {
     if (bloc.currentComments == null) {
       bloc.fetchComments();
+    }else{
+      print("WTW:" + bloc.currentComments.results.length.toString());
     }
     return WillPopScope(
         child: Scaffold(
@@ -135,6 +137,8 @@ class comL extends State<commentsList>
                             return getCommentsPage(snapshot);
                           } else if (snapshot.hasError) {
                             return Text(snapshot.error.toString());
+                          }else{
+                            print("WTFF");
                           }
                           return SliverToBoxAdapter(
                             child: Container(
@@ -153,7 +157,7 @@ class comL extends State<commentsList>
                   onHorizontalDragUpdate: (DragUpdateDetails details) {
                     if (details.delta.direction < 1.0 &&
                         details.delta.dx > 30) {
-                      close(context);
+                      Navigator.of(context).maybePop();
                     }
                   }),
             )),
@@ -161,6 +165,7 @@ class comL extends State<commentsList>
   }
 
   Future<bool> requestPop() {
+    post.expanded = false;
     bloc.currentComments = null;
     return new Future.value(true);
   }
@@ -276,7 +281,6 @@ class comL extends State<commentsList>
   }
 
   void close(BuildContext context) {
-    post.expanded = false;
     Navigator.pop(context);
   }
 }

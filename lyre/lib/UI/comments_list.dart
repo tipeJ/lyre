@@ -137,8 +137,6 @@ class comL extends State<commentsList>
                             return getCommentsPage(snapshot);
                           } else if (snapshot.hasError) {
                             return Text(snapshot.error.toString());
-                          }else{
-                            print("WTFF");
                           }
                           return SliverToBoxAdapter(
                             child: Container(

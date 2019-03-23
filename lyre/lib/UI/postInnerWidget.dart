@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../Models/Post.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
-import '../utils/utils_html.dart';
 import 'interfaces/previewCallback.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class postInnerWidget extends StatelessWidget {
   bool isIntended = true;
@@ -130,7 +128,7 @@ class defaultColumn extends StatelessWidget {
                 ? new FlatButton(
                     child: new Text("\u{1F517} Open"),
                     onPressed: () {
-                      if (!post.self) launch(post.url);
+                      if (!post.self) _launchURL(context,post.url);
                     })
                 : null
           ])),
@@ -143,5 +141,32 @@ class defaultColumn extends StatelessWidget {
     }
     post.expanded = true;
     Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
+  }
+  void _launchURL(BuildContext context, String url) async {
+    try{
+      await launch(
+          url,
+          option: new CustomTabsOption(
+            toolbarColor: Theme.of(context).primaryColor,
+            enableDefaultShare: true,
+            enableUrlBarHiding: true,
+            showPageTitle: true,
+            animation: new CustomTabsAnimation(
+              startEnter: 'slide_up',
+              startExit: 'android:anim/fade_out',
+              endEnter: 'android:anim/fade_in',
+              endExit: 'slide_down',
+            ),
+            extraCustomTabs: <String>[
+              // ref. https://play.google.com/store/apps/details?id=org.mozilla.firefox
+              'org.mozilla.firefox',
+              // ref. https://play.google.com/store/apps/details?id=com.microsoft.emmx
+              'com.microsoft.emmx',
+            ]
+          )
+      );
+    }catch(e){
+      debugPrint(e.toString());
+    }
   }
 }

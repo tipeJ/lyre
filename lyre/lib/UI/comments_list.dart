@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Models/item_model.dart';
 import '../Blocs/comments_bloc.dart';
-import 'posts_list.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'CustomExpansionTile.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -134,7 +133,7 @@ class comL extends State<commentsList>
                         stream: bloc.allComments,
                         builder: (context, AsyncSnapshot<CommentM> snapshot) {
                           if (snapshot.hasData) {
-                            return getCommentsPage(snapshot);
+                            return getCommentsExpandablePage(snapshot);
                           } else if (snapshot.hasError) {
                             return Text(snapshot.error.toString());
                           }
@@ -218,9 +217,7 @@ class comL extends State<commentsList>
                 right: 0.5,
                 top: comment.depth == 0 ? 2.0 : 0.1,
                 bottom: 0.0)),
-        onTapUp: (TapUpDetails details) {
-          bloc.changeVisibility(i - 1);
-        },
+
       );
     } else if (comment is moreC) {
       return new GestureDetector(
@@ -238,6 +235,7 @@ class comL extends State<commentsList>
         ),
         onTapUp: (TapUpDetails details) {
           setState(() {
+            print("ID: : " + (comment as moreC).id);
             //bloc.getComments(comment.id,i-1,comment.depth);
             bloc.getB(comment, i - 1, comment.depth);
           });
@@ -277,8 +275,70 @@ class comL extends State<commentsList>
         }*/
     );
   }
+  Widget getCommentsExpandableSingle(commentTest parent){
+    if(parent.children == null || parent.children.isEmpty){
+      return new ListTile(
+        title: getCommentWidget(parent.result, parent.position),
+      );
+    }
+    var post_children = new List<Widget>();
+    parent.children.forEach((child) => {
+        post_children.add(getCommentsExpandableSingle(child))
+    });
+    return new CustomExpansionTile(
+      title: getCommentWidget(parent.result, parent.position),
+      children: post_children,
+      initiallyExpanded: !preCollapsed,
+      key: new PageStorageKey(parent.position),
+      trailing: Container(width: 0.0,height: 0.0,),
+    );
+  }
+  Widget getCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot){
+    var comments = snapshot.data.results;
+    var xList = List<commentTest>();
+    for(int i = 0; i < comments.length; i++){
+      if(comments[i].depth == 0){
+        var test = new commentTest(i,comments[i],clist(comments,i));
+        xList.add(test);
+      }
+    }
+    return new SliverList(
+        delegate: SliverChildBuilderDelegate((BuildContext context, int i){
+          if (i == 0) {
+            return new Container(
+              height: 0.0,
+            );
+          } else {
+            return getCommentsExpandableSingle(xList[i-1]);
+          }
+
+        }, childCount: xList.length)
+    );
+  }
+  List<commentTest> clist(List<commentResult> results, int index){
+    var list = List<commentTest>();
+    var firstR = results[index];
+    if(index == results.length-1 || results[index+1].depth == results[index].depth) return null;
+    for(int i = index + 1; true; i++){
+      if(i == results.length || results[i].depth == firstR.depth){
+        break;
+      }else if(results[i].depth == firstR.depth+1){
+        var test = new commentTest(i,results[i],clist(results,i));
+        list.add(test);
+      }
+    }
+    return list;
+  }
 
   void close(BuildContext context) {
     Navigator.pop(context);
   }
+}
+class commentTest{
+  int position;
+  List<commentTest> children;
+  commentResult result;
+
+  commentTest(this.position, this.result, [this.children = const <commentTest>[]]);
+
 }

@@ -43,26 +43,30 @@ class CommentsBloc {
       return;
     }
     print("FGEWFWE:" + more.children.length.toString());
-    var resultList = new List<commentResult>();
+    var resultList = "";
     for(int i = 0; i < more.children.length; i++){
-      var v = await _repository.fetchComment(more.children[i]);
-      print("CLENGTH:" + v.results.length.toString());
-      resultList.add(v.results.first);
+      //var v = await _repository.fetchComment(more.children[i]);
+      if(i != 0){
+        resultList += "+";
+      }
+      resultList+=(more.children[i]);
       /*v.results.forEach((result) =>(){
         resultList.add(result);
       });*/
     }
-    for(int i = 0; i < resultList.length; i++){
-      if(resultList[i] is commentC){
-        (resultList[i] as commentC).depth = depth;
-      }else if(resultList[i] is moreC){
-        (resultList[i] as moreC).depth = depth;
+    var x = await _repository.fetchComment(resultList);
+    print("FF:$resultList");
+    for(int i = 0; i < x.results.length; i++){
+      if(x.results[i] is commentC){
+        (x.results[i] as commentC).depth = depth;
+      }else if(x.results[i] is moreC){
+        (x.results[i] as moreC).depth = depth;
       }
     }
     print("LEHGTH:" + resultList.length.toString());
     print("BEFIRE:" + currentComments.results.length.toString());
     currentComments.results.removeAt(location);
-    currentComments.results.insertAll(location, resultList);
+    currentComments.results.insertAll(location, x.results);
     print("AFTERR:" + currentComments.results.length.toString());
     _commentsFetcher.sink.add(currentComments);
   }

@@ -4,7 +4,7 @@ import '../Models/Post.dart';
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
-String currentSubreddit = "/r/relationships";
+String currentSubreddit = "/r/all";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',
@@ -35,5 +35,6 @@ int currentCount = 0;
 String lastPost = "";
 
 bool autoLoad = false;
+bool preCollapsed = false;
 
 Post cPost;

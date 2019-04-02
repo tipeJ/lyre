@@ -31,7 +31,7 @@ String currentPostId = "";
 String appName = "Lyre";
 String appVersion = "0.1";
 
-String youtubeApiKey = "AIzaSyCORqnYdJn6vG1gZOG_4Z2x-GEKmH6gYKM";
+String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
 
 int perPage = 25;
 int currentCount = 0;

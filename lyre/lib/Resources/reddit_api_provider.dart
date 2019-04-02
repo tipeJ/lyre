@@ -36,6 +36,8 @@ class PostsProvider {
     print('comment ' + id + ' fetched');
     Map<String, String> headers = new Map<String, String>();
 
+
+
     var response = await client.get("https://www.reddit.com/api/info.json?id=t1_" + id, headers: headers);
     if(response.statusCode == 200){
       var v = CommentM.fromJson(json.decode(response.body)["data"]["children"]);

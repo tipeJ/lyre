@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../Models/item_model.dart';
 import '../Blocs/comments_bloc.dart';
 import 'CustomExpansionTile.dart';
+import 'CustomListTile.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -277,7 +277,7 @@ class comL extends State<commentsList>
   }
   Widget getCommentsExpandableSingle(commentTest parent){
     if(parent.children == null || parent.children.isEmpty){
-      return new ListTile(
+      return new CustomListTile(
         title: getCommentWidget(parent.result, parent.position),
       );
     }

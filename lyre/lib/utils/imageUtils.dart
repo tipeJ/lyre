@@ -5,3 +5,6 @@ final supportedFormats = [
   "webp",
   "bmp"
 ];
+String getYoutubeThumbnailFromId(String id){
+  return "https://img.youtube.com/vi/$id/hqdefault.jpg";
+}

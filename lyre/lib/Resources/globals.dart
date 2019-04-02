@@ -4,7 +4,7 @@ import '../Models/Post.dart';
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
-String currentSubreddit = "/r/all";
+String currentSubreddit = "/r/videos";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',
@@ -25,10 +25,13 @@ List<String> subreddits = [
   '/r/Movies',
 
 ];
+
 String currentPostId = "";
 
 String appName = "Lyre";
 String appVersion = "0.1";
+
+String youtubeApiKey = "AIzaSyCORqnYdJn6vG1gZOG_4Z2x-GEKmH6gYKM";
 
 int perPage = 25;
 int currentCount = 0;

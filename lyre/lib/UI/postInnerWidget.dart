@@ -5,9 +5,11 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../Models/Post.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
+import '../utils/urlUtils.dart';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
 import 'interfaces/previewCallback.dart';
+import '../Resources/MediaProvider.dart';
 
 class postInnerWidget extends StatelessWidget {
   bool isIntended = true;
@@ -20,24 +22,32 @@ class postInnerWidget extends StatelessWidget {
     if (post.self) {
       return new defaultColumn(post, callBack);
     }
-    var divided = post.url.split(".");
-    var last = divided.last;
-    if (supportedFormats.contains(last)) {
+    LinkType type = getLinkType(post.url);
+    if (type == LinkType.DirectImage || type == LinkType.YouTube) {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
             child: new GestureDetector(
-              child: new CachedNetworkImage(
-                fit: BoxFit.fitWidth,
-                fadeInDuration: Duration(milliseconds: 500),
-                imageUrl: post.url,
+              child: OverflowBox(
+                child: new CachedNetworkImage(
+                  fit: BoxFit.cover,
+                  fadeInDuration: Duration(milliseconds: 500),
+                  //TODO: make this more elegant ffs
+                  imageUrl: (type == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                ),
+                minHeight: 0.0,
+                minWidth: 0.0,
+                maxHeight: double.infinity,
               ),
-              onLongPress: () {
+              onTap: () {
                 callBack.preview(post.url);
               },
-              /*onLongPressUp: (){
+              onLongPress: (){
+                callBack.preview(post.url);
+              },
+              onLongPressUp: (){
                   callBack.previewEnd();
-                },*/
+                },
             ),
             height: 400.0,
           ),
@@ -77,11 +87,21 @@ class defaultColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           new Padding(
-              child: new Text(
-                post.title.toString(),
-                style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-                textScaleFactor: 1.0,
+              child: GestureDetector(
+                child: new Text(
+                  post.title.toString(),
+                  style:
+                  new TextStyle(fontWeight: FontWeight.normal, fontSize: 12.0),
+                  textScaleFactor: 1.0,
+                ),
+                onTap: (){
+                  var url = post.url;
+                  if(!post.self){
+                    if(url.contains("youtube.com") || url.contains("youtu.be")){
+                      playYouTube(url);
+                    }
+                  }
+                },
               ),
               padding:
                   const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0)),
@@ -109,28 +129,38 @@ class defaultColumn extends StatelessWidget {
           )
               : Container(height: 0.0),
           new ButtonTheme.bar(
-              child: new ButtonBar(children: <Widget>[
-            new Padding(
-                child: new Text(
-                    "\u{1F44D} ${post.points}    \u{1F60F} ${post.author}",
-                    textAlign: TextAlign.right,
-                    textScaleFactor: 1.0,
-                    style: new TextStyle(color: Colors.black.withOpacity(0.6))),
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, top: 0.0)),
-            new FlatButton(
-                child: new Text("${post.comments} comments"),
-                onPressed: () {
-                  currentPostId = post.id;
-                  showComments(context);
-                }),
-            !post.self
-                ? new FlatButton(
-                    child: new Text("\u{1F517} Open"),
-                    onPressed: () {
-                      if (!post.self) _launchURL(context,post.url);
-                    })
-                : null
+              child: new ButtonBar(
+                  alignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    new Padding(
+                        child: new Text(
+                            "\u{1F44D} ${post.points}    \u{1F60F} ${post.author}",
+                            textAlign: TextAlign.right,
+                            textScaleFactor: 1.0,
+                            style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
+                        padding:
+                            const EdgeInsets.only(left: 16.0, right: 16.0, top: 0.0)),
+                    new FlatButton(
+                        child: new Text("${post.comments} comments"
+                            ,style: TextStyle(
+                            fontSize: 9.0
+                          ),
+                        ),
+                        onPressed: () {
+                          currentPostId = post.id;
+                          showComments(context);
+                        }),
+                    !post.self
+                        ? new FlatButton(
+                            child: new Text("\u{1F517} Open"
+                              ,style: TextStyle(
+                                  fontSize: 9.0
+                              )
+                            ),
+                            onPressed: () {
+                              if (!post.self) _launchURL(context,post.url);
+                            })
+                        : null
           ])),
         ]);
   }

@@ -4,6 +4,7 @@ class Post {
   String _author;
   String _url;
   String _permalink;
+  String _subreddit;
   int _comments;
   int _points;
   String _id;
@@ -20,8 +21,10 @@ class Post {
     _comments = result['data']['num_comments'];
     _self = result['data']['is_self'];
     _selftext = result['data']['selftext'];
+    _subreddit = result['data']['subreddit'];
   }
 
+  String get subreddit => _subreddit;
 
   String get selftext => _selftext;
 

@@ -191,14 +191,25 @@ class comL extends State<commentsList>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     new Padding(
-                        child: new Text(
-                            "\u{1F44D} ${comment.points}    \u{1F60F} ${comment.author}",
-                            textAlign: TextAlign.right,
-                            textScaleFactor: 1.0,
-                            style: new TextStyle(
-                                color: Colors.white.withOpacity(0.6))),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              "${comment.points} ",
+                              textAlign: TextAlign.left,
+                              textScaleFactor: 0.65,
+                              style: new TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white.withOpacity(0.9))),
+                            Text(
+                              "● u/${comment.author}",
+                              textScaleFactor: 0.7,
+                              style: new TextStyle(
+                                  color: Colors.white.withOpacity(0.6)),
+                            )  
+                          ],
+                        ),
                         padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 16.0)),
+                            left: 16.0, right: 16.0, top: 6.0)),
                     new Padding(
                         child: new Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -209,7 +220,7 @@ class comL extends State<commentsList>
                           ],
                         ),
                         padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 16.0, bottom: 16.0))
+                            left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
                   ]),
             ),
             padding: new EdgeInsets.only(

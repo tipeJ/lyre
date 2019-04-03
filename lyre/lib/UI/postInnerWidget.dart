@@ -30,14 +30,14 @@ class postInnerWidget extends StatelessWidget {
             child: new GestureDetector(
               child: OverflowBox(
                 child: new CachedNetworkImage(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   fadeInDuration: Duration(milliseconds: 500),
                   //TODO: make this more elegant ffs
                   imageUrl: (type == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
                 ),
                 minHeight: 0.0,
                 minWidth: 0.0,
-                maxHeight: double.infinity,
+                maxWidth: double.infinity,
               ),
               onTap: () {
                 callBack.preview(post.url);
@@ -60,7 +60,7 @@ class postInnerWidget extends StatelessWidget {
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(100, 0, 0, 0),
+                  color: Color.fromARGB(155, 0, 0, 0),
                   child: new defaultColumn(post, callBack),
                 ),
               ))
@@ -104,16 +104,15 @@ class defaultColumn extends StatelessWidget {
                 },
               ),
               padding:
-                  const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0)),
-          const SizedBox(
-            height: 3.5,
-          ),(post.self && post.selftext != null && post.selftext.isNotEmpty)
+                  const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
+          (post.self && post.selftext != null && post.selftext.isNotEmpty)
               ? Container(
             child: Container(
               child: Text(
                 post.selftext,
                 style: TextStyle(
-                  fontSize: 16.0,
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 11.0,
                   fontFamily: "Roboto"
                 ),
                 overflow: TextOverflow.fade,
@@ -123,33 +122,51 @@ class defaultColumn extends StatelessWidget {
             padding: EdgeInsets.only(
               left: 8.0,
               right: 8.0,
-              top: 12.0,
-              bottom: 6.0
+              top: 8.0,
+              bottom: 8.0
             ),
           )
-              : Container(height: 0.0),
+              : Container(height: 3.5),
           new ButtonTheme.bar(
-              child: new ButtonBar(
-                  alignment: MainAxisAlignment.start,
+              child: new Row(
                   children: <Widget>[
                     new Padding(
                         child: new Text(
-                            "\u{1F44D} ${post.points}    \u{1F60F} ${post.author}",
-                            textAlign: TextAlign.right,
+                            "${post.points}",
+                            textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
-                            style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
+                            style: new TextStyle(color: Colors.amberAccent, fontSize: 9.0)),
                         padding:
-                            const EdgeInsets.only(left: 16.0, right: 16.0, top: 0.0)),
-                    new FlatButton(
-                        child: new Text("${post.comments} comments"
+                            const EdgeInsets.only(left: 6.0, right: 4.0, top: 0.0)),
+                    new Padding(
+                        child: new Text(
+                            "u/${post.author}",
+                            textAlign: TextAlign.left,
+                            textScaleFactor: 1.0,
+                            style: new TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9.0)),
+                        padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                    new Padding(
+                        child: new Text(
+                            "r/${post.subreddit}",
+                            textAlign: TextAlign.left,
+                            textScaleFactor: 1.0,
+                            style: new TextStyle(color: Colors.lightBlue.withOpacity(0.6), fontSize: 9.0)),
+                        padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                    new GestureDetector(
+                      child: new Text("${post.comments} comments"
                             ,style: TextStyle(
-                            fontSize: 9.0
+                            fontSize: 9.0,
+                            color: Colors.white.withOpacity(0.9)
                           ),
                         ),
-                        onPressed: () {
-                          currentPostId = post.id;
+                        onTap: (){
                           showComments(context);
-                        }),
+                        },
+                    )
+                    
+                        /*
                     !post.self
                         ? new FlatButton(
                             child: new Text("\u{1F517} Open"
@@ -160,8 +177,11 @@ class defaultColumn extends StatelessWidget {
                             onPressed: () {
                               if (!post.self) _launchURL(context,post.url);
                             })
-                        : null
+                        : null*/
           ])),
+          const SizedBox(
+            height: 3.5,
+          )
         ]);
   }
 

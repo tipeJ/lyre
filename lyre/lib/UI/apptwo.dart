@@ -9,7 +9,16 @@ class App extends StatelessWidget {
     // TODO: implement build
     return MaterialApp(
       initialRoute: '/',
-      theme: ThemeData.dark(),
+      theme: ThemeData(
+        accentColor: Colors.lightBlue[800],
+        primaryColor: Colors.cyan[600],
+        backgroundColor: Colors.black12,
+
+        brightness: Brightness.dark,
+        fontFamily: 'Roboto',
+
+        
+      ),
       routes: {
         '/': (context) => lyApp(),
         '/second': (context) => commentsList(cPost),

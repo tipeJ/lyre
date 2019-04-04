@@ -5,6 +5,7 @@ var supportedYoutubeUrls = [
     "youtu.be"
 ];
 enum LinkType{
+  Self,
   Default,
   YouTube,
   DirectImage,

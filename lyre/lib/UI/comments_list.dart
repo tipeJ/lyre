@@ -119,15 +119,9 @@ class comL extends State<commentsList>
                     slivers: <Widget>[
                       new SliverToBoxAdapter(
                         child: new Hero(
-                            tag: 'post_hero ${post.id}',
-                            child: new Container(
-                                child: new Card(
-                                    child: postInnerWidget(post, this)),
-                                padding: const EdgeInsets.only(
-                                    left: 0.0,
-                                    right: 0.0,
-                                    top: 8.0,
-                                    bottom: 0.0))),
+                      tag: 'post_hero ${post.id}',
+                      child: new postInnerWidget(post, this),
+                    ),
                       ),
                       new StreamBuilder(
                         stream: bloc.allComments,

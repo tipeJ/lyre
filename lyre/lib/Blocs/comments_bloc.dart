@@ -54,6 +54,7 @@ class CommentsBloc {
         resultList.add(result);
       });*/
     }
+    /*
     var x = await _repository.fetchComment(resultList);
     print("FF:$resultList");
     for(int i = 0; i < x.results.length; i++){
@@ -63,10 +64,12 @@ class CommentsBloc {
         (x.results[i] as moreC).depth = depth;
       }
     }
+    */
+    var model = await _repository.fetchComment2(resultList, more.id);
     print("LEHGTH:" + resultList.length.toString());
     print("BEFIRE:" + currentComments.results.length.toString());
     currentComments.results.removeAt(location);
-    currentComments.results.insertAll(location, x.results);
+    currentComments.results.insertAll(location, model.results);
     print("AFTERR:" + currentComments.results.length.toString());
     _commentsFetcher.sink.add(currentComments);
   }

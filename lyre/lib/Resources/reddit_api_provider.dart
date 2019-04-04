@@ -6,6 +6,7 @@ import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
+import 'package:uuid/uuid.dart';
 
 class PostsProvider {
   Client client = Client();
@@ -30,7 +31,24 @@ class PostsProvider {
   }
 
   Future<Reddit> getRed() async {
-    return await Reddit.createReadOnlyInstance();
+    return await Reddit.createReadOnlyInstance(
+      userAgent: "$appName $appVersion",
+      clientId: "6sQY26tkKTP99w",
+      clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
+    );
+  }
+  Future<CommentM> getC2(String ids, String fullname) async {
+    print('2comment ' + ids + ' fetched');
+    Map<String, String> headers = new Map<String, String>();
+      headers["children"] = "ids";
+      headers["link_id"] = "t1_$fullname";
+      headers["sort"] = "confidence";
+      headers["limit_children"] = "false";
+      headers["api_type"] = "json";
+    var r = await getRed();
+    var x = await r.post("http://oauth.reddit.com/api/morechildren", headers);
+    var b = await CommentM.fromJson(json.decode(x.body));
+    return b;
   }
   Future<CommentM> getC(String id) async {
     print('comment ' + id + ' fetched');
@@ -68,7 +86,7 @@ class PostsProvider {
       print('comments succ');
       return CommentM.fromJson(json.decode(response.body)[1]["data"]["children"]);
     } else {
-      throw Exception('Failed to load comments');
+      throw Exception('Failed to load comments, statuscode: ' + response.statusCode.toString());
     }
   }
 

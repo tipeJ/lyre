@@ -1,3 +1,5 @@
+import '../utils/urlUtils.dart';
+
 class Post {
   String _selftext;
   String _title;
@@ -11,6 +13,8 @@ class Post {
   bool _self;
   bool expanded = false;
 
+  LinkType _linkType;
+
   Post(result) {
     _id = result['data']['id'];
     _title = result['data']['title'];
@@ -22,7 +26,11 @@ class Post {
     _self = result['data']['is_self'];
     _selftext = result['data']['selftext'];
     _subreddit = result['data']['subreddit'];
+
+    _linkType = _self ? LinkType.Self : getLinkType(_url);
   }
+
+  LinkType get linkType => _linkType;
 
   String get subreddit => _subreddit;
 

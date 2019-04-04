@@ -18,12 +18,11 @@ class postInnerWidget extends StatelessWidget {
 
   postInnerWidget(this.post, this.callBack);
 
-  Widget build(BuildContext context) {
+  Widget getWidget(BuildContext context){
     if (post.self) {
       return new defaultColumn(post, callBack);
     }
-    LinkType type = getLinkType(post.url);
-    if (type == LinkType.DirectImage || type == LinkType.YouTube) {
+    if (post.linkType == LinkType.DirectImage || post.linkType == LinkType.YouTube) {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
@@ -33,7 +32,7 @@ class postInnerWidget extends StatelessWidget {
                   fit: BoxFit.contain,
                   fadeInDuration: Duration(milliseconds: 500),
                   //TODO: make this more elegant ffs
-                  imageUrl: (type == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                  imageUrl: (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
                 ),
                 minHeight: 0.0,
                 minWidth: 0.0,
@@ -49,6 +48,7 @@ class postInnerWidget extends StatelessWidget {
                   callBack.previewEnd();
                 },
             ),
+            //The fixed height of the post image:
             height: 400.0,
           ),
           new Positioned(
@@ -71,6 +71,23 @@ class postInnerWidget extends StatelessWidget {
     }
     return new defaultColumn(post, callBack);
   }
+
+  Widget build(BuildContext context) {
+    return Container(
+      child: ClipRRect(
+        child: Container(
+          child: getWidget(context),
+          color: Colors.black38,
+        ),
+        //The circular radius for post widgets. Set 0.0 for rectangular.
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.only(
+        //The gap bewtween the widgets.
+        bottom: 5.0
+      ),
+    );
+  }
 }
 
 class defaultColumn extends StatelessWidget {
@@ -81,7 +98,8 @@ class defaultColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Column(
+    return new InkWell(
+      child: new Column(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,11 +113,15 @@ class defaultColumn extends StatelessWidget {
                   textScaleFactor: 1.0,
                 ),
                 onTap: (){
-                  var url = post.url;
-                  if(!post.self){
-                    if(url.contains("youtube.com") || url.contains("youtu.be")){
-                      playYouTube(url);
-                    }
+                  switch (post.linkType) {
+                    case LinkType.YouTube:
+                      playYouTube(post.url);
+                      break;
+                    case LinkType.Default:
+                      _launchURL(context, post.url);
+                      break;
+                    default:
+                      break;
                   }
                 },
               ),
@@ -151,7 +173,7 @@ class defaultColumn extends StatelessWidget {
                             "r/${post.subreddit}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
-                            style: new TextStyle(color: Colors.lightBlue.withOpacity(0.6), fontSize: 9.0)),
+                            style: new TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new GestureDetector(
@@ -165,24 +187,15 @@ class defaultColumn extends StatelessWidget {
                           showComments(context);
                         },
                     )
-                    
-                        /*
-                    !post.self
-                        ? new FlatButton(
-                            child: new Text("\u{1F517} Open"
-                              ,style: TextStyle(
-                                  fontSize: 9.0
-                              )
-                            ),
-                            onPressed: () {
-                              if (!post.self) _launchURL(context,post.url);
-                            })
-                        : null*/
           ])),
           const SizedBox(
             height: 3.5,
           )
-        ]);
+        ]),
+        onTap: (){
+          showComments(context);
+        },
+    );
   }
 
   void showComments(BuildContext context) {

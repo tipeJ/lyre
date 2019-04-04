@@ -464,11 +464,7 @@ class PostsList extends State<lyApp>
                     }, //TODO: Add a new fling animation for vertical scrolling
                     child: new Hero(
                       tag: 'post_hero ${posts[i].id}',
-                      child: new Container(
-                          child:
-                              new Card(child: postInnerWidget(posts[i], this)),
-                          padding: const EdgeInsets.only(
-                              left: 0.0, right: 0.0, top: 8.0, bottom: 0.0)),
+                      child: new postInnerWidget(posts[i], this),
                     ),
                   );
           }),

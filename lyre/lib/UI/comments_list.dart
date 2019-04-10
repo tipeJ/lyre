@@ -168,7 +168,63 @@ class comL extends State<commentsList>
     int remain = depth % colorList.length;
     return colorList[remain];
   }
+  /*
+  Widget getCommentWidget2(Comment comment){
+    return new GestureDetector(
+        child: new Container(
+            child: new Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left:
+                        BorderSide(color: getColor(comment.depth), width: 3.5)),
+              ),
+              child: new Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    new Padding(
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              "${comment.score} ",
+                              textAlign: TextAlign.left,
+                              textScaleFactor: 0.65,
+                              style: new TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white.withOpacity(0.9))),
+                            Text(
+                              "● u/${comment.author}",
+                              textScaleFactor: 0.7,
+                              style: new TextStyle(
+                                  color: Colors.white.withOpacity(0.6)),
+                            )  
+                          ],
+                        ),
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 6.0)),
+                    new Padding(
+                        child: new Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            new MarkdownBody(
+                              data: convertToMarkdown(comment.body),
+                            )
+                          ],
+                        ),
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
+                  ]),
+            ),
+            padding: new EdgeInsets.only(
+                left: 3.5 + comment.depth * 3.5,
+                right: 0.5,
+                top: comment.depth == 0 ? 2.0 : 0.1,
+                bottom: 0.0)),
 
+      );
+  }
+*/
   Widget getCommentWidget(commentResult comment, int i) {
     if (comment is commentC) {
       return new GestureDetector(
@@ -227,22 +283,32 @@ class comL extends State<commentsList>
     } else if (comment is moreC) {
       return new GestureDetector(
         child: Container(
-          child: new Text(
-            "Load more comments (${comment.count})",
-            style: TextStyle(color: colorList[0]),
+          child: Container(
+            child: new Text(
+              "Load more comments (${comment.count})",
+              style: TextStyle(color: colorList[0]),
+            ),
+            decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: getColor(comment.depth),
+                width: 3.5
+              )
+            )
+          )
           ),
           padding: EdgeInsets.only(
             left: 4.5 + comment.depth * 3.5,
             right: 0.5,
-            top: 2.5,
-            bottom: 2.5,
+            top: 0.5,
+            bottom: 0.5,
           ),
         ),
         onTapUp: (TapUpDetails details) {
           setState(() {
             print("ID: : " + (comment as moreC).id);
             //bloc.getComments(comment.id,i-1,comment.depth);
-            bloc.getB(comment, i - 1, comment.depth);
+            bloc.getB(comment, i, comment.depth, post.id);
           });
         },
       );

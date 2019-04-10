@@ -36,20 +36,20 @@ class CommentsBloc {
     _commentsFetcher.sink.add(currentComments);
     print("ENDED");
   }
-  getB(moreC more, int location, int depth) async {
+  getB(moreC more, int location, int depth, String link_id) async {
     print("STARTED MOREC");
     if(more.children == null || more.children.isEmpty){
       print("Nothing fetched from moreComments");
       return;
     }
     print("FGEWFWE:" + more.children.length.toString());
-    var resultList = "";
+    String resultList = "";
     for(int i = 0; i < more.children.length; i++){
       //var v = await _repository.fetchComment(more.children[i]);
       if(i != 0){
-        resultList += "+";
+        resultList = resultList + ",";
       }
-      resultList+=(more.children[i]);
+      resultList = resultList + more.children[i];
       /*v.results.forEach((result) =>(){
         resultList.add(result);
       });*/
@@ -65,8 +65,7 @@ class CommentsBloc {
       }
     }
     */
-    var model = await _repository.fetchComment2(resultList, more.id);
-    print("LEHGTH:" + resultList.length.toString());
+    var model = await _repository.fetchComment2(resultList, link_id);
     print("BEFIRE:" + currentComments.results.length.toString());
     currentComments.results.removeAt(location);
     currentComments.results.insertAll(location, model.results);

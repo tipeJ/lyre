@@ -193,6 +193,7 @@ class defaultColumn extends StatelessWidget {
           )
         ]),
         onTap: (){
+          currentPostId = post.id;
           showComments(context);
         },
     );

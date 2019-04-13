@@ -26,6 +26,27 @@ List<String> subreddits = [
 
 ];
 
+List<String> sortTypes = [
+  "hot",
+  "top",
+  "controversial",
+  "new",
+  "rising"
+];
+List<String> sortTimes = [
+  "24h",
+  "week",
+  "month",
+  "year",
+  "time"
+];
+
+String defaultSortType = "hot";
+String defaultSortTime = sortTimes[0];
+
+String currentSortType = defaultSortType;
+String currentSortTime = defaultSortTime;
+
 String currentPostId = "";
 
 String appName = "Lyre";

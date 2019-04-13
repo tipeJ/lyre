@@ -45,6 +45,12 @@ class PostsList extends State<lyApp>
   bool isPreviewing = false;
   var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
 
+  Tween paramsHeightTween = new Tween<double>(begin: 0.0,end: 25.0);
+  AnimationController paramsController;
+  Animation<double> paramsHeightAnimation;
+
+  bool paramsExpanded = false;
+
   @override
   void preview(String url) {
     if (!isPreviewing) {
@@ -96,6 +102,14 @@ class PostsList extends State<lyApp>
         reverseCurve: Curves.easeOut));
     opacityAnimation = opacityTween.animate(
         CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
+
+    paramsHeightAnimation = paramsHeightTween.animate(
+        CurvedAnimation(parent: paramsController, curve: Curves.ease) 
+    );
+    paramsHeightAnimation.addListener((){
+      setState(() { 
+      });
+    });
     heightAnimation.addListener(() {
       setState(() {});
     });
@@ -113,6 +127,7 @@ class PostsList extends State<lyApp>
     });
     controller.reset();
     previewController.reset();
+    paramsController.reset();
   }
 
   @override
@@ -122,6 +137,8 @@ class PostsList extends State<lyApp>
         vsync: this, duration: const Duration(milliseconds: 325));
     previewController = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 50));
+    paramsController = new AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 325));
 
     new Future.delayed(Duration.zero, () {
       initV(context);
@@ -165,7 +182,54 @@ class PostsList extends State<lyApp>
     }
   }
 
-  String currentValue = "one";
+
+  void _showDialog(){
+    showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog(
+          content: Column(
+            children: <Widget>[
+              DropdownButton<String>(
+                items: sortTypes.map((String value){
+                  return new DropdownMenuItem<String>(
+                    child: Text(value),
+                    value: value,
+                    );
+                }).toList(),
+                onChanged: (value){
+                  setState(() {
+                   currentSortType = value; 
+                  });
+                },
+              ),
+              DropdownButton<String>(
+                items: sortTimes.map((String value){
+                  return new DropdownMenuItem<String>(
+                    child: Text(value),
+                    value: value,
+                    );
+                }).toList(),
+                onChanged: (value){
+                  setState(() {
+                   currentSortTime = value; 
+                  });
+                },
+              )
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  List<Widget> _createParams(){
+    return (bloc.isParamsType)? new List<Widget>.generate(sortTypes.length, (int index){
+      return Text(sortTypes[index]);
+    }) : new List<Widget>.generate(sortTimes.length, (int index){
+      return Text(sortTimes[index]);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -241,6 +305,17 @@ class PostsList extends State<lyApp>
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.max,
                                     children: <Widget>[
+                                      new Container(
+                                        height: (paramsHeightAnimation != null) ? paramsHeightAnimation.value : 0.0,
+                                        color: Colors.blue,
+                                        child: Padding(
+                                          child: Row(
+                                            children: _createParams(),
+                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                          ),
+                                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                                        ),
+                                      ),
                                       new GestureDetector(
                                           onVerticalDragUpdate:
                                               (DragUpdateDetails details) {
@@ -253,6 +328,15 @@ class PostsList extends State<lyApp>
                                                 1.0 &&
                                                 isElevated) {
                                               reverse(context);
+                                            }
+                                          },
+                                          onTap: (){
+                                            if(paramsExpanded){
+                                              paramsController.reverse();
+                                              paramsExpanded = false;
+                                            }else{
+                                              paramsController.forward();
+                                              paramsExpanded = true;
                                             }
                                           },
                                           child: new Container(
@@ -280,11 +364,18 @@ class PostsList extends State<lyApp>
                                                           ),
                                                           textAlign: TextAlign.left,
                                                         ),
-                                                        /*new Icon(
+                                                        InkWell(
+                                                          child: new Icon(
                                                               Icons.list,
                                                               color: Theme.of(context)
                                                                   .accentColor,
-                                                            ),*/
+                                                            ),
+                                                            onTap: (){
+                                                              _showDialog();
+                                                            },
+                                                        )
+                                                        
+                                                        
                                                         /*new DropdownButton<String>(
                                                               value: currentValue,
                                                                 items: <String>['one','two']
@@ -359,7 +450,7 @@ class PostsList extends State<lyApp>
                             ),
                             duration: Duration(milliseconds: 325),
                             height: (heightAnimation != null)
-                                ? heightAnimation.value
+                                ? heightAnimation.value+paramsHeightAnimation.value
                                 : 0.0,
                             curve: Curves.fastOutSlowIn,
                             width: MediaQuery.of(context).size.width,

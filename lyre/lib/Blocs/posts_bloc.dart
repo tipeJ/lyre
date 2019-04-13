@@ -33,6 +33,12 @@ class PostsBloc {
     _postsFetcher.close();
   }
 
+  void resetFilters(){
+    
+  }
+  //True for types (controversia, hot, etc.), False for periods (last 24 hours, all time, etc..)
+  bool isParamsType = false;
+
 }
 
 final bloc = PostsBloc();

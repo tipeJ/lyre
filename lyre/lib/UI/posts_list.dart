@@ -225,13 +225,30 @@ class PostsList extends State<lyApp>
       return InkWell(
         child: Text(sortTypes[index]),
         onTap: (){
-          _changeTypeVisibility();
+          var q = sortTypes[index];
+          if(q == "hot" || q == "new" || q == "rising"){
+            currentSortType = q;
+            currentSortTime = "";
+            bloc.fetchAllPosts();
+            bloc.resetFilters();
+            _changeParamsVisibility();
+          }else{
+            bloc.tempType = q;
+            _changeTypeVisibility();
+          }
         },
       );
     }) : new List<Widget>.generate(sortTimes.length, (int index){
       return InkWell(
         child: Text(sortTimes[index]),
         onTap: (){
+          if(bloc.tempType != ""){
+            currentSortType = bloc.tempType;
+            currentSortTime = sortTimes[index];
+            bloc.fetchAllPosts();
+            bloc.resetFilters();
+            bloc.tempType = "";
+          }
           _changeTypeVisibility();
           _changeParamsVisibility();
         },
@@ -240,6 +257,8 @@ class PostsList extends State<lyApp>
   }
 
   _changeParamsVisibility(){
+    //Resets the bloc:s tempType filter in case of continuity errors.
+    bloc.tempType = "";
     setState(() {
       if(paramsExpanded){
       paramsHeight = 0.0;
@@ -370,6 +389,7 @@ class PostsList extends State<lyApp>
                                                           ),
                                                           textAlign: TextAlign.left,
                                                         ),
+                                                        /*
                                                         InkWell(
                                                           child: new Icon(
                                                               Icons.list,
@@ -379,7 +399,7 @@ class PostsList extends State<lyApp>
                                                             onTap: (){
                                                               _showDialog();
                                                             },
-                                                        )
+                                                        )*/
                                                       ],
                                                     ),
                                                   ),
@@ -402,6 +422,7 @@ class PostsList extends State<lyApp>
                                                           searchQuery;
                                                           reverse(context);
                                                           bloc.fetchAllPosts();
+                                                          bloc.resetFilters();
                                                           scontrol.animateTo(0.0,
                                                               duration: Duration(
                                                                   milliseconds:
@@ -526,6 +547,7 @@ class PostsList extends State<lyApp>
                 reverse(context);
                 subsListHeight = 50.0;
                 bloc.fetchAllPosts();
+                bloc.resetFilters();
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),
                     curve: Curves.decelerate);

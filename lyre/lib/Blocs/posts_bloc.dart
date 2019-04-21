@@ -34,16 +34,15 @@ class PostsBloc {
   }
 
   void resetFilters(){
-    
+    currentSortTime = defaultSortTime;
+    currentSortType = defaultSortType;
   }
 
   void changeParams(String newType, String newTime){
 
   }
 
-  String temp_type = "";
-  //True for types (controversia, hot, etc.), False for periods (last 24 hours, all time, etc..)
-  bool isParamsType = false;
+  String tempType = "";
 
 }
 

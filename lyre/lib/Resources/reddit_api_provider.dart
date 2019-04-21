@@ -62,32 +62,30 @@ class PostsProvider {
     if(loadMore)headers["after"]="t3_$lastPost";
 
     headers["limit"] = "25";
-
-    if(typeFilter == "hot"){
-      
-    }else if(typeFilter == "new"){
-      
+    if(timeFilter == ""){
+      switch (typeFilter){
+            case "hot":
+              var v = await r.subreddit(currentSubreddit).hot(params: headers).toList();
+              return ItemModel.fromApi(v);
+            case "new":
+              var v = await r.subreddit(currentSubreddit).newest(params: headers).toList();
+              return ItemModel.fromApi(v);
+            case "rising":
+              var v = await r.subreddit(currentSubreddit).rising(params: headers).toList();
+              return ItemModel.fromApi(v);
+        }
+    }else{
+      var filter = parseTimeFilter(timeFilter);
+      switch (typeFilter){
+            case "controversial":
+              var v = await r.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+              return ItemModel.fromApi(v);
+            case "top":
+              var v = await r.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+              return ItemModel.fromApi(v);
+        }
     }
-    switch (typeFilter){
-      case "hot":
-        var v = await r.subreddit(currentSubreddit).hot(params: headers).toList();
-        print("v.length:" + v.length.toString());
-        var b = ItemModel.fromApi(v);
-        print("b.length:" + b.results.length.toString());
-        return b;
-        break;
-      case "new":
-        var v = await r.subreddit(currentSubreddit).newest(params: headers).toList();
-        return ItemModel.fromApi(v);
-        break;
-      case "rising":
-        var v = await r.subreddit(currentSubreddit).rising(params: headers).toList();
-        return ItemModel.fromApi(v);
-        break;
-      default:
-
-        break;
-    }
+    
     return null;
   }
   Future<CommentM> fetchCommentsList() async {
@@ -116,6 +114,26 @@ class PostsProvider {
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');
+    }
+  }
+
+  TimeFilter parseTimeFilter(String query){
+    switch (query) {
+      case "hour":
+        return TimeFilter.hour;
+      case "24h":
+        return TimeFilter.day;
+      case "week":
+        return TimeFilter.week;
+      case "month":
+        return TimeFilter.month;
+      case "year":
+        return TimeFilter.year;
+      case "all time":
+        return TimeFilter.all;
+      default:
+      //SHOULD NOT HAPPEN:
+        return TimeFilter.day;
     }
   }
 }

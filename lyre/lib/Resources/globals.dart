@@ -34,6 +34,7 @@ List<String> sortTypes = [
   "controversial",
 ];
 List<String> sortTimes = [
+  "hour",
   "24h",
   "week",
   "month",
@@ -42,10 +43,10 @@ List<String> sortTimes = [
 ];
 
 String defaultSortType = "hot";
-String defaultSortTime = sortTimes[0];
+String defaultSortTime = sortTimes[1];
 
 String currentSortType = defaultSortType;
-String currentSortTime = defaultSortTime;
+String currentSortTime = "";
 
 String currentPostId = "";
 

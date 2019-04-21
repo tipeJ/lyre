@@ -38,12 +38,11 @@ class CommentM {
       debugPrint("ERROR: " + jsonData.toString());
     }
   }
-  Future<void> addComments2(List<dynamic> jsonData, Reddit r) {
+  void addComments2(List<dynamic> jsonData, Reddit r) {
     print("JSONDATA_LENGTH: " + jsonData.length.toString());
     debugPrint("TRIED: " + jsonData.toString());
     
       for (int i = 0; i < jsonData.length; i++) {
-        //Comment js = Comment.parse(r, jsonData[i]);
         var x = jsonData[i] as Comment;
         commentC result = commentC.fromC(jsonData[i]);
         _results.add(result);

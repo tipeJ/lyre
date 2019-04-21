@@ -184,7 +184,7 @@ class defaultColumn extends StatelessWidget {
                           ),
                         ),
                         onTap: (){
-                          showComments(context);
+                          //showComments(context);
                         },
                     )
           ])),

@@ -11,7 +11,6 @@ import '../Ui/Animations/slide_right_transition.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
-import 'comments_list.dart';
 
 class lyApp extends StatefulWidget {
   State<lyApp> createState() => new PostsList();
@@ -22,7 +21,6 @@ class PostsList extends State<lyApp>
   var titletext = "Lyre for Reddit";
   var currentSub = "";
 
-  Tween heightTween = new Tween<double>(begin: 0.0, end: 0.0);
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
   Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
   Tween roundTween = new Tween<double>(begin: 30.0, end: 0.0);
@@ -33,6 +31,8 @@ class PostsList extends State<lyApp>
   Animation<double> padAnimation;
   Animation<double> roundAnimation;
   Animation<double> edgeAnimation;
+
+  var subsListHeight = 50.0;
 
   Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
   Animation<double> opacityAnimation;
@@ -45,11 +45,9 @@ class PostsList extends State<lyApp>
   bool isPreviewing = false;
   var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
 
-  Tween paramsHeightTween = new Tween<double>(begin: 0.0,end: 25.0);
-  AnimationController paramsController;
-  Animation<double> paramsHeightAnimation;
-
   bool paramsExpanded = false;
+
+  var paramsHeight = 0.0;
 
   @override
   void preview(String url) {
@@ -77,13 +75,10 @@ class PostsList extends State<lyApp>
     controller.reverse();
     isElevated = false;
   }
+  
 
   void initV(BuildContext context) {
-    heightTween.begin = 50.0;
-    heightTween.end = 350.0;
 
-    heightAnimation = heightTween
-        .animate(CurvedAnimation(parent: controller, curve: Curves.ease));
     padAnimation = padTween.animate(CurvedAnimation(
         parent: controller,
         curve: Curves.easeIn,
@@ -103,16 +98,7 @@ class PostsList extends State<lyApp>
     opacityAnimation = opacityTween.animate(
         CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
 
-    paramsHeightAnimation = paramsHeightTween.animate(
-        CurvedAnimation(parent: paramsController, curve: Curves.ease) 
-    );
-    paramsHeightAnimation.addListener((){
-      setState(() { 
-      });
-    });
-    heightAnimation.addListener(() {
-      setState(() {});
-    });
+    ;
     height2Animation.addListener(() {
       setState(() {});
     });
@@ -127,7 +113,6 @@ class PostsList extends State<lyApp>
     });
     controller.reset();
     previewController.reset();
-    paramsController.reset();
   }
 
   @override
@@ -137,8 +122,6 @@ class PostsList extends State<lyApp>
         vsync: this, duration: const Duration(milliseconds: 325));
     previewController = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 50));
-    paramsController = new AnimationController(
-    vsync: this, duration: const Duration(milliseconds: 325));
 
     new Future.delayed(Duration.zero, () {
       initV(context);
@@ -223,13 +206,51 @@ class PostsList extends State<lyApp>
     );
   }
 
-  List<Widget> _createParams(){
-    return (bloc.isParamsType)? new List<Widget>.generate(sortTypes.length, (int index){
-      return Text(sortTypes[index]);
-    }) : new List<Widget>.generate(sortTimes.length, (int index){
-      return Text(sortTimes[index]);
+  var typeHeight = 25.0;
+  bool typeVisible = true;
+
+  _changeTypeVisibility(){
+    setState(() {
+      if(typeVisible){
+        typeHeight = 0.0;
+        typeVisible = false;
+      }else{
+        typeHeight = 25.0;
+        typeVisible = true;
+      }
     });
   }
+  List<Widget> _createParams(bool type){
+    return (type)? new List<Widget>.generate(sortTypes.length, (int index){
+      return InkWell(
+        child: Text(sortTypes[index]),
+        onTap: (){
+          _changeTypeVisibility();
+        },
+      );
+    }) : new List<Widget>.generate(sortTimes.length, (int index){
+      return InkWell(
+        child: Text(sortTimes[index]),
+        onTap: (){
+          _changeTypeVisibility();
+          _changeParamsVisibility();
+        },
+      );
+    });
+  }
+
+  _changeParamsVisibility(){
+    setState(() {
+      if(paramsExpanded){
+      paramsHeight = 0.0;
+      paramsExpanded = false;
+    }else{
+      paramsExpanded = true;
+      paramsHeight = 25.0;
+    }
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -301,21 +322,9 @@ class PostsList extends State<lyApp>
                                   ]),
                               child: ClipRRect(
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: <Widget>[
-                                      new Container(
-                                        height: (paramsHeightAnimation != null) ? paramsHeightAnimation.value : 0.0,
-                                        color: Colors.blue,
-                                        child: Padding(
-                                          child: Row(
-                                            children: _createParams(),
-                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          ),
-                                          padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                                        ),
-                                      ),
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[    
                                       new GestureDetector(
                                           onVerticalDragUpdate:
                                               (DragUpdateDetails details) {
@@ -323,23 +332,20 @@ class PostsList extends State<lyApp>
                                                 !isElevated) {
                                               initV(context);
                                               controller.forward();
+                                              subsListHeight = 350.0;
                                               isElevated = true;
                                             } else if (details.delta.direction >
                                                 1.0 &&
                                                 isElevated) {
                                               reverse(context);
+                                              subsListHeight = 50.0;
                                             }
                                           },
                                           onTap: (){
-                                            if(paramsExpanded){
-                                              paramsController.reverse();
-                                              paramsExpanded = false;
-                                            }else{
-                                              paramsController.forward();
-                                              paramsExpanded = true;
-                                            }
+                                            _changeParamsVisibility();
                                           },
                                           child: new Container(
+                                            height: 45.0,
                                             child: new Stack(
                                               children: <Widget>[
                                                 new AnimatedOpacity(
@@ -357,7 +363,7 @@ class PostsList extends State<lyApp>
                                                       CrossAxisAlignment.center,
                                                       children: <Widget>[
                                                         new Text(
-                                                          currentSubreddit,
+                                                          'r/$currentSubreddit',
                                                           style: TextStyle(
                                                             color: Colors.white70,
                                                             fontSize: 35.0,
@@ -374,21 +380,6 @@ class PostsList extends State<lyApp>
                                                               _showDialog();
                                                             },
                                                         )
-                                                        
-                                                        
-                                                        /*new DropdownButton<String>(
-                                                              value: currentValue,
-                                                                items: <String>['one','two']
-                                                                    .map<DropdownMenuItem<String>>((String value){
-                                                                      return DropdownMenuItem<String>(
-                                                                        value: value,
-                                                                        child: Text(value),
-                                                                      );
-                                                                }).toList(),
-                                                                onChanged: (String nweValue){
-                                                                currentValue = nweValue;
-                                                                }
-                                                            ),*/
                                                       ],
                                                     ),
                                                   ),
@@ -408,7 +399,7 @@ class PostsList extends State<lyApp>
                                                         },
                                                         onEditingComplete: () {
                                                           currentSubreddit =
-                                                          "/r/${searchQuery}";
+                                                          searchQuery;
                                                           reverse(context);
                                                           bloc.fetchAllPosts();
                                                           scontrol.animateTo(0.0,
@@ -425,6 +416,8 @@ class PostsList extends State<lyApp>
                                             width:
                                             MediaQuery.of(context).size.width,
                                           )),
+                                      
+                                      
                                       new Container(
                                         height: (height2Animation != null)
                                             ? height2Animation.value
@@ -433,7 +426,8 @@ class PostsList extends State<lyApp>
                                           stream: sub_bloc.getSubs,
                                           builder: (context,
                                               AsyncSnapshot<SubredditM> snapshot) {
-                                            if (snapshot.hasData) {
+                                            if(isElevated){
+                                              if (snapshot.hasData) {
                                               return buildSubsList(snapshot);
                                             } else if (snapshot.hasError) {
                                               return Text(
@@ -441,17 +435,50 @@ class PostsList extends State<lyApp>
                                             }
                                             return Center(
                                                 child: CircularProgressIndicator());
+                                            }else{
+                                              return Container(height: 0.0,);
+                                            }
                                           },
                                         ),
+                                      ),
+                                      new Visibility(
+                                        child: new Container(
+                                          height: 30.0,
+                                          color: Colors.blue,
+                                          child: Padding(
+                                            child: Column(
+                                              children: <Widget>[
+                                                AnimatedContainer(
+                                                  child: Row(
+                                                    children: _createParams(true),
+                                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                  ),
+                                                  duration: Duration(milliseconds: 150),
+                                                  height: typeHeight,
+                                                  curve: Curves.ease,
+                                                ),
+                                                AnimatedContainer(
+                                                  child: Row(
+                                                    children: _createParams(false),
+                                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                  ),
+                                                  duration: Duration(milliseconds: 150),
+                                                  height: 25.0-typeHeight,
+                                                  curve: Curves.ease,
+                                                )
+                                              ],
+                                            ),
+                                            padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                                            ),
+                                        ),
+                                        visible: !isElevated,
                                       ),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(25.0)),
                             ),
                             duration: Duration(milliseconds: 325),
-                            height: (heightAnimation != null)
-                                ? heightAnimation.value+paramsHeightAnimation.value
-                                : 0.0,
+                            height: subsListHeight + paramsHeight,
                             curve: Curves.fastOutSlowIn,
                             width: MediaQuery.of(context).size.width,
                           )
@@ -489,14 +516,15 @@ class PostsList extends State<lyApp>
         itemBuilder: (BuildContext context, int i) {
           return new ListTile(
               leading: const Icon(Icons.arrow_right),
-              title: new Text(subs[i].url,
+              title: new Text("r/" + subs[i].displayName,
                   textScaleFactor: 1.0,
                   style: DefaultTextStyle.of(context)
                       .style
                       .apply(fontSizeFactor: 1.5)),
               onTap: () {
-                currentSubreddit = subs[i].url;
+                currentSubreddit = subs[i].displayName;
                 reverse(context);
+                subsListHeight = 50.0;
                 bloc.fetchAllPosts();
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),

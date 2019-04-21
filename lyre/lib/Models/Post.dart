@@ -1,4 +1,5 @@
 import '../utils/urlUtils.dart';
+import 'package:draw/draw.dart';
 
 class Post {
   String _selftext;
@@ -26,6 +27,20 @@ class Post {
     _self = result['data']['is_self'];
     _selftext = result['data']['selftext'];
     _subreddit = result['data']['subreddit'];
+
+    _linkType = _self ? LinkType.Self : getLinkType(_url);
+  }
+  Post.fromApi(Submission s){
+    _id = s.id;
+    _title = s.title;
+    _author = s.author;
+    _url = s.url.toString();
+    _permalink = s.shortlink.toString();
+    _points = s.score;
+    _comments = s.numComments;
+    _self = s.isSelf;
+    _selftext = s.selftext;
+    _subreddit = s.subreddit.displayName;
 
     _linkType = _self ? LinkType.Self : getLinkType(_url);
   }

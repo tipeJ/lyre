@@ -49,46 +49,46 @@ class PostsProvider {
       headers["limit_children"] = "true";
       headers["api_type"] = "json";
     var r = await getRed();
-    var x = await r.post("/api/morechildren", headers);
-    var x2 = await r.get("/api/morechildren.json", params: headers);
+    var response = await r.get("/api/morechildren.json", params: headers);
     
-    var b2 = CommentM.fromJson2(x2, r);
+    var b2 = CommentM.fromJson2(response, r);
     return b2;
-    try{
-      
-    }catch(e){
-      print(e);
-      return null;
-    }
-  }
-  Future<CommentM> getC(String id) async {
-    print('comment ' + id + ' fetched');
-    Map<String, String> headers = new Map<String, String>();
-
-
-
-    var response = await client.get("https://www.reddit.com/api/info.json?id=t1_" + id, headers: headers);
-    if(response.statusCode == 200){
-      var v = CommentM.fromJson(json.decode(response.body)["data"]["children"]);
-      print('Hands Up for successful comment fetch');
-      return v;
-    } else {
-      throw Exception('Failed to load comments');
-    }
   }
 
-  Future<ItemModel> fetchUserContent() async {
+  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
     Reddit r = await getRed();
     Map<String, String> headers = new Map<String, String>();
-    headers["User-Agent"] = "$appName $appVersion";
 
-    var v = await r.subreddit(currentSubreddit).hot(params: headers).toList();
-    for(int i = 0; i < v.length; i++){
+    if(loadMore)headers["after"]="t3_$lastPost";
+
+    headers["limit"] = "25";
+
+    if(typeFilter == "hot"){
+      
+    }else if(typeFilter == "new"){
       
     }
-    
+    switch (typeFilter){
+      case "hot":
+        var v = await r.subreddit(currentSubreddit).hot(params: headers).toList();
+        print("v.length:" + v.length.toString());
+        var b = ItemModel.fromApi(v);
+        print("b.length:" + b.results.length.toString());
+        return b;
+        break;
+      case "new":
+        var v = await r.subreddit(currentSubreddit).newest(params: headers).toList();
+        return ItemModel.fromApi(v);
+        break;
+      case "rising":
+        var v = await r.subreddit(currentSubreddit).rising(params: headers).toList();
+        return ItemModel.fromApi(v);
+        break;
+      default:
 
-    return ItemModel.fromApi(v);
+        break;
+    }
+    return null;
   }
   Future<CommentM> fetchCommentsList() async {
     print('comments fetched');
@@ -103,18 +103,6 @@ class PostsProvider {
       throw Exception('Failed to load comments, statuscode: ' + response.statusCode.toString());
     }
   }
-  Future<Commenter> fetchCommentsListAPI() async {
-    print('comments fetched from API');
-    Map<String, String> headers = new Map<String, String>();
-    headers["before"] = "0";
-
-    var r = await getRed();
-
-    var sub = await SubmissionRef.withID(r, currentPostId).fetch();
-    var forest = await CommentForest(sub);
-    var comments = await forest.comments;
-    return Commenter.fromApi(comments);
-  }
 
   Future<SubredditM> fetchSubReddits(String query) async{
     query.replaceAll(" ", "+");
@@ -122,7 +110,7 @@ class PostsProvider {
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
-    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=${query}&include_over_18=on", headers: headers);
+    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
       print('successfully fetched subreddits');
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);

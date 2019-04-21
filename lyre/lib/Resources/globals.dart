@@ -4,7 +4,7 @@ import '../Models/Post.dart';
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
-String currentSubreddit = "/r/all";
+String currentSubreddit = "all";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',
@@ -28,17 +28,17 @@ List<String> subreddits = [
 
 List<String> sortTypes = [
   "hot",
+  "new",
+  "rising",
   "top",
   "controversial",
-  "new",
-  "rising"
 ];
 List<String> sortTimes = [
   "24h",
   "week",
   "month",
   "year",
-  "time"
+  "all time"
 ];
 
 String defaultSortType = "hot";

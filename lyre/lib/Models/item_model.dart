@@ -6,6 +6,7 @@ class ItemModel {
   int _total_results;
   int _total_pages;
   List<Post> _results = new List();
+  List<Submission> _resultsP = new List();
 
   ItemModel.fromJson(List<dynamic> parsedJson) {
     print(parsedJson.length);
@@ -20,11 +21,24 @@ class ItemModel {
     _results = temp;
   }
   ItemModel.fromApi(List<UserContent> list){
-    list.forEach((userContent) => () {
+    print("STARTED fromApi");
+    List<Post> temp = [];
+    for(int i = 0; i < list.length; i++){
+      var userContent = list[i];
       if(userContent is Submission){
-
+        print("IS SUB");
+        temp.add(Post.fromApi(userContent));
       }
-    });
+    }
+    /*list.forEach((userContent) => () {
+      print("STARTED IN USERCONTENT");
+      print(userContent);
+      if(userContent is Submission){
+        print("IS SUB");
+        temp.add(Post.fromApi(userContent));
+      }
+    });*/
+    _results = temp;
   }
 
   List<Post> get results => _results;

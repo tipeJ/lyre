@@ -284,10 +284,20 @@ class comL extends State<commentsList>
       return new GestureDetector(
         child: Container(
           child: Container(
-            child: new Text(
+            child: Row(children: <Widget>[
+              (comment.id == bloc.loadingMoreId) ? new Container(
+                padding: EdgeInsets.all(5.0),
+                child: SizedBox(
+                  child: CircularProgressIndicator(),
+                  height: 18.0,
+                  width: 18.0,
+                ),
+              ) : Container(),
+              new Text(
               "Load more comments (${comment.count})",
               style: TextStyle(color: colorList[0]),
-            ),
+              )
+            ],),
             decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
@@ -305,11 +315,12 @@ class comL extends State<commentsList>
           ),
         ),
         onTapUp: (TapUpDetails details) {
-          setState(() {
-            print("ID: : " + (comment as moreC).id);
-            //bloc.getComments(comment.id,i-1,comment.depth);
-            bloc.getB(comment, i, comment.depth, post.id);
-          });
+          if(comment.id != bloc.loadingMoreId){
+            setState(() {
+              bloc.loadingMoreId = comment.id;
+              bloc.getB(comment, i, comment.depth, post.id);
+            });
+          } 
         },
       );
     }

@@ -38,10 +38,6 @@ class PostsBloc {
     currentSortType = defaultSortType;
   }
 
-  void changeParams(String newType, String newTime){
-
-  }
-
   String tempType = "";
 
 }

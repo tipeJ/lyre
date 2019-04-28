@@ -34,9 +34,13 @@ dependencies:
   flutter_custom_tabs: ^0.6.0
   flutter_youtube: ^1.1.6
   uuid: ^2.0.0
+  flutter_advanced_networkimage: ^0.4.15
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+dependency_overrides:
+  http: ^0.12.0
 
 
 # For information on the generic Dart part of this file, see the

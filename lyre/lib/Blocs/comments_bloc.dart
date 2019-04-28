@@ -24,7 +24,6 @@ class CommentsBloc {
       print("Nothing fetched from moreComments");
       return;
     }
-    print("FGEWFWE:" + more.children.length.toString());
     String resultList = "";
     for(int i = 0; i < more.children.length; i++){
       if(i != 0){
@@ -38,6 +37,7 @@ class CommentsBloc {
     currentComments.results.insertAll(location, model.results);
     print("AFTERR:" + currentComments.results.length.toString());
     _commentsFetcher.sink.add(currentComments);
+    loadingMoreId = "";
   }
   void changeVisibility(int index){
     commentResult upperComment = currentComments.results[index] as commentC;
@@ -66,6 +66,8 @@ class CommentsBloc {
     }
     _commentsFetcher.sink.add(currentComments);
   }
+  bool isLoadingMore = false;
+  String loadingMoreId = "";
 
 }
 

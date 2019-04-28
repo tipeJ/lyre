@@ -7,7 +7,9 @@ import '../Blocs/posts_bloc.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
-import '../Ui/Animations/slide_right_transition.dart';
+import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_advanced_networkimage/transition.dart';
+import 'package:flutter_advanced_networkimage/zoomable.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
@@ -135,7 +137,13 @@ class PostsList extends State<lyApp>
                   child: new Opacity(
                     opacity: 1.0,
                     child: new Container(
-                      child: new CachedNetworkImage(imageUrl: previewUrl),
+                      child: Image(
+                        image: AdvancedNetworkImage(
+                          previewUrl, 
+                          useDiskCache: true,
+                          cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+                        )
+                        ),
                       color: Color.fromARGB(200, 0, 0, 0),
                     ),
                   )),
@@ -423,6 +431,7 @@ class PostsList extends State<lyApp>
                                                           reverse(context);
                                                           bloc.fetchAllPosts();
                                                           bloc.resetFilters();
+                                                          subsListHeight = 50.0;
                                                           scontrol.animateTo(0.0,
                                                               duration: Duration(
                                                                   milliseconds:

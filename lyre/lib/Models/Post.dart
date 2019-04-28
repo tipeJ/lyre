@@ -13,6 +13,7 @@ class Post {
   String _id;
   bool _self;
   bool expanded = false;
+  bool hasBeenViewed = false;
 
   LinkType _linkType;
 
@@ -44,7 +45,7 @@ class Post {
 
     _linkType = _self ? LinkType.Self : getLinkType(_url);
   }
-
+  
   LinkType get linkType => _linkType;
 
   String get subreddit => _subreddit;

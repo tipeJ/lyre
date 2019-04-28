@@ -10,6 +10,7 @@ import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
+import 'package:flutter_advanced_networkimage/provider.dart';
 
 class postInnerWidget extends StatelessWidget {
   bool isIntended = true;
@@ -26,28 +27,31 @@ class postInnerWidget extends StatelessWidget {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
-            child: new GestureDetector(
-              child: OverflowBox(
-                child: new CachedNetworkImage(
-                  fit: BoxFit.contain,
-                  fadeInDuration: Duration(milliseconds: 500),
-                  //TODO: make this more elegant ffs
-                  imageUrl: (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+            child: SizedBox.expand(
+              child: new GestureDetector(
+                child: Image(
+                  image: AdvancedNetworkImage(
+                    
+                    (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                    useDiskCache: true,
+                    cacheRule: CacheRule(maxAge: const Duration(days: 7))
+                  ),
+                  fit: BoxFit.cover,
                 ),
-                minHeight: 0.0,
-                minWidth: 0.0,
-                maxWidth: double.infinity,
-              ),
-              onTap: () {
-                callBack.preview(post.url);
-              },
-              onLongPress: (){
-                callBack.preview(post.url);
-              },
-              onLongPressUp: (){
-                  callBack.previewEnd();
+                
+                onTap: () {
+                  callBack.preview(post.url);
+                },
+                onLongPress: (){
+                  callBack.preview(post.url);
+                },
+                onLongPressUp: (){
+                    callBack.previewEnd();
                 },
             ),
+
+            ),
+            
             //The fixed height of the post image:
             height: 400.0,
           ),
@@ -203,6 +207,7 @@ class defaultColumn extends StatelessWidget {
     if (callback is comL) {
       return;
     }
+    post.hasBeenViewed = true;
     post.expanded = true;
     Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
   }
@@ -229,6 +234,7 @@ class defaultColumn extends StatelessWidget {
             ]
           )
       );
+      post.hasBeenViewed = true;
     }catch(e){
       debugPrint(e.toString());
     }

@@ -14,7 +14,7 @@ class PostsBloc {
   fetchAllPosts() async {
     ItemModel itemModel = await _repository.fetchPosts(false);
     latestModel = itemModel;
-    _postsFetcher.sink.add(latestModel);
+    _postsFetcher.add(latestModel);
     currentCount = 25;
   }
   fetchMore() async {
@@ -26,7 +26,7 @@ class PostsBloc {
       print("FETCH MORE ERROR: RESULTS WERE NULL");
     }
     latestModel.results.addAll(itemModel.results);
-    _postsFetcher.sink.add(latestModel);
+    _postsFetcher.add(latestModel);
   }
 
   dispose() {

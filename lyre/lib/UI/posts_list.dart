@@ -426,8 +426,7 @@ class PostsList extends State<lyApp>
                                                           sub_bloc.fetchSubs(s);
                                                         },
                                                         onEditingComplete: () {
-                                                          currentSubreddit =
-                                                          searchQuery;
+                                                          currentSubreddit = searchQuery;
                                                           reverse(context);
                                                           bloc.fetchAllPosts();
                                                           bloc.resetFilters();

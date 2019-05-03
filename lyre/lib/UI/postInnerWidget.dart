@@ -27,30 +27,31 @@ class postInnerWidget extends StatelessWidget {
       if (isIntended) {
         return new Stack(children: <Widget>[
           new Container(
-            child: SizedBox.expand(
-              child: new GestureDetector(
-                child: Image(
-                  image: AdvancedNetworkImage(
-                    
-                    (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
-                    useDiskCache: true,
-                    cacheRule: CacheRule(maxAge: const Duration(days: 7))
+            child: Stack(children: <Widget>[
+              SizedBox.expand(
+                child: new GestureDetector(
+                  child: Image(
+                    image: AdvancedNetworkImage(
+                      (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                      useDiskCache: true,
+                      cacheRule: CacheRule(maxAge: const Duration(days: 7))
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
+                  
+                  onTap: () {
+                    callBack.preview(post.url);
+                  },
+                  onLongPress: (){
+                    callBack.preview(post.url);
+                  },
+                  onLongPressUp: (){
+                      callBack.previewEnd();
+                  },
                 ),
-                
-                onTap: () {
-                  callBack.preview(post.url);
-                },
-                onLongPress: (){
-                  callBack.preview(post.url);
-                },
-                onLongPressUp: (){
-                    callBack.previewEnd();
-                },
-            ),
-
-            ),
+              ),
+              (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
+            ],),
             
             //The fixed height of the post image:
             height: 400.0,
@@ -74,6 +75,30 @@ class postInnerWidget extends StatelessWidget {
       }
     }
     return new defaultColumn(post, callBack);
+  }
+
+  Widget getCenteredIndicator(LinkType type){
+    return Center(
+      child: 
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white
+              ),
+            ),
+            child: getIndicator(type),
+          ),
+        
+      
+    );
+  }
+  Widget getIndicator(LinkType type){
+    if(type == LinkType.YouTube){
+      return Center(child: Icon(Icons.play_arrow, color: Colors.white,),);
+    }
   }
 
   Widget build(BuildContext context) {

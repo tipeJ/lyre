@@ -10,6 +10,10 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
+import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_advanced_networkimage/transition.dart';
+import 'package:flutter_advanced_networkimage/zoomable.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class commentsList extends StatefulWidget {
   final Post post;
@@ -76,7 +80,13 @@ class comL extends State<commentsList>
                   child: new Opacity(
                     opacity: 1.0,
                     child: new Container(
-                      child: new CachedNetworkImage(imageUrl: previewUrl),
+                      child: Image(
+                        image: AdvancedNetworkImage(
+                          previewUrl, 
+                          useDiskCache: true,
+                          cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+                        )
+                        ),
                       color: Color.fromARGB(200, 0, 0, 0),
                     ),
                   )),

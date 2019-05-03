@@ -1,6 +1,5 @@
 import '../Resources/repository.dart';
 import 'package:rxdart/rxdart.dart';
-import '../Models/item_model.dart';
 import '../Models/Comment.dart';
 
 class CommentsBloc {

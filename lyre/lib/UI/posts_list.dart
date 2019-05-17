@@ -554,8 +554,8 @@ class PostsList extends State<lyApp>
                 currentSubreddit = subs[i].displayName;
                 reverse(context);
                 subsListHeight = 50.0;
-                bloc.fetchAllPosts();
                 bloc.resetFilters();
+                bloc.fetchAllPosts();
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),
                     curve: Curves.decelerate);

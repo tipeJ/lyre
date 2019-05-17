@@ -40,10 +40,10 @@ class postInnerWidget extends StatelessWidget {
                   ),
                   
                   onTap: () {
-                    callBack.preview(post.url);
+                    handleClick(context);
                   },
                   onLongPress: (){
-                    callBack.preview(post.url);
+                    handlePress(context);
                   },
                   onLongPressUp: (){
                       callBack.previewEnd();
@@ -76,6 +76,24 @@ class postInnerWidget extends StatelessWidget {
     }
     return new defaultColumn(post, callBack);
   }
+  void handleClick(BuildContext context){
+    if(post.linkType == LinkType.YouTube){
+      _launchURL(context, post);
+    }else if(post.linkType == LinkType.DirectImage){
+      callBack.preview(post.url);
+    }
+  }
+
+  void handlePress(BuildContext context){
+    switch (post.linkType) {
+      case LinkType.YouTube:
+        callBack.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)));
+        break;
+      default :
+          callBack.preview(post.url);
+        break;
+    }
+  }
 
   Widget getCenteredIndicator(LinkType type){
     return Center(
@@ -86,7 +104,8 @@ class postInnerWidget extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white
+                color: Colors.white,
+                width: 2.0,
               ),
             ),
             child: getIndicator(type),
@@ -147,7 +166,7 @@ class defaultColumn extends StatelessWidget {
                       playYouTube(post.url);
                       break;
                     case LinkType.Default:
-                      _launchURL(context, post.url);
+                      _launchURL(context, post);
                       break;
                     default:
                       break;
@@ -236,7 +255,10 @@ class defaultColumn extends StatelessWidget {
     post.expanded = true;
     Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
   }
-  void _launchURL(BuildContext context, String url) async {
+  
+}
+void _launchURL(BuildContext context, Post post) async {
+    String url = post.url;
     try{
       await launch(
           url,
@@ -264,4 +286,3 @@ class defaultColumn extends StatelessWidget {
       debugPrint(e.toString());
     }
   }
-}

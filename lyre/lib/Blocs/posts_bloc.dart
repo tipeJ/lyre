@@ -13,8 +13,12 @@ class PostsBloc {
 
   fetchAllPosts() async {
     ItemModel itemModel = await _repository.fetchPosts(false);
+    if(itemModel == null){
+      print("NULLLLLLLL");
+    }
+    print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
     latestModel = itemModel;
-    _postsFetcher.add(latestModel);
+    _postsFetcher.sink.add(latestModel);
     currentCount = 25;
   }
   fetchMore() async {
@@ -26,7 +30,7 @@ class PostsBloc {
       print("FETCH MORE ERROR: RESULTS WERE NULL");
     }
     latestModel.results.addAll(itemModel.results);
-    _postsFetcher.add(latestModel);
+    _postsFetcher.sink.add(latestModel);
   }
 
   dispose() {

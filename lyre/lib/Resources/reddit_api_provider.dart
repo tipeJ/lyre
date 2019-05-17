@@ -61,7 +61,11 @@ class PostsProvider {
 
     if(loadMore)headers["after"]="t3_$lastPost";
 
-    headers["limit"] = "25";
+    headers["limit"] = perPage.toString();
+    if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
+      timeFilter = "";
+      //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
+    }
     if(timeFilter == ""){
       switch (typeFilter){
             case "hot":

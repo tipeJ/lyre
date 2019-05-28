@@ -233,17 +233,22 @@ class PostsList extends State<lyApp>
       return InkWell(
         child: Text(sortTypes[index]),
         onTap: (){
-          var q = sortTypes[index];
-          if(q == "hot" || q == "new" || q == "rising"){
-            currentSortType = q;
-            currentSortTime = "";
-            bloc.fetchAllPosts();
-            bloc.resetFilters();
-            _changeParamsVisibility();
-          }else{
-            bloc.tempType = q;
-            _changeTypeVisibility();
-          }
+            setState(() {
+              var q = sortTypes[index];
+              if(q == "hot" || q == "new" || q == "rising"){
+                currentSortType = q;
+                currentSortTime = "";
+                
+                bloc.fetchAllPosts();
+                bloc.resetFilters();
+                
+                _changeParamsVisibility();
+              }else{
+                bloc.tempType = q;
+                _changeTypeVisibility();
+              }
+          });
+          
         },
       );
     }) : new List<Widget>.generate(sortTimes.length, (int index){
@@ -252,7 +257,7 @@ class PostsList extends State<lyApp>
         onTap: (){
           if(bloc.tempType != ""){
             currentSortType = bloc.tempType;
-            currentSortTime = sortTimes[index];
+            currentSortTime = sortTimes[index];    
             bloc.fetchAllPosts();
             bloc.resetFilters();
             bloc.tempType = "";
@@ -383,20 +388,30 @@ class PostsList extends State<lyApp>
                                                   child: Container(
                                                     padding: EdgeInsets.all(5.0),
                                                     child: Row(
-                                                      mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
                                                       crossAxisAlignment:
                                                       CrossAxisAlignment.center,
                                                       children: <Widget>[
-                                                        new Text(
-                                                          'r/$currentSubreddit',
-                                                          style: TextStyle(
-                                                            color: Colors.white70,
-                                                            fontSize: 35.0,
+                                                        Column(children: <Widget>[
+                                                          new Text(
+                                                            'r/$currentSubreddit',
+                                                            style: TextStyle(
+                                                              color: Colors.white70,
+                                                              fontSize: 22.0,
+                                                            ),
+                                                            textAlign: TextAlign.start,
                                                           ),
-                                                          textAlign: TextAlign.left,
-                                                        ),
+                                                          new Text(
+                                                            bloc.getFilterString(),
+                                                            style: TextStyle(
+                                                              color: Colors.white54,
+                                                              fontSize: 14.0,
+                                                            ),
+                                                            textAlign: TextAlign.start,
+                                                          )
+                                                        ],
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        )
                                                         /*
                                                         InkWell(
                                                           child: new Icon(

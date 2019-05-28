@@ -2,7 +2,6 @@ import '../Resources/repository.dart';
 import '../Resources/globals.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
-import '../Models/Comment.dart';
 
 class PostsBloc {
   final _repository = Repository();
@@ -12,10 +11,9 @@ class PostsBloc {
   Observable<ItemModel> get allPosts => _postsFetcher.stream;
 
   fetchAllPosts() async {
+    temporaryType = currentSortType;
+    temporaryTime = currentSortTime;
     ItemModel itemModel = await _repository.fetchPosts(false);
-    if(itemModel == null){
-      print("NULLLLLLLL");
-    }
     print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
     latestModel = itemModel;
     _postsFetcher.sink.add(latestModel);
@@ -41,6 +39,15 @@ class PostsBloc {
     currentSortTime = defaultSortTime;
     currentSortType = defaultSortType;
   }
+  String getFilterString(){
+    if(temporaryType == "top" || temporaryType == "controversial"){
+      return temporaryType + " ● " + temporaryTime;
+    }else{
+      return temporaryType;
+    }
+  }
+  var temporaryType = currentSortType;
+  var temporaryTime = currentSortTime;
 
   String tempType = "";
 

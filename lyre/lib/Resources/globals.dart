@@ -4,7 +4,7 @@ import '../Models/Post.dart';
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
-String currentSubreddit = "videos";
+String currentSubreddit = "all";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',

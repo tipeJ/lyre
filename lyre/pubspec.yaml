@@ -35,6 +35,7 @@ dependencies:
   flutter_youtube: ^1.1.6
   uuid: ^2.0.0
   flutter_advanced_networkimage: ^0.4.15
+  path_provider: any
 
 
 dev_dependencies:

@@ -8,6 +8,7 @@ import '../Models/Subreddit.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'credential_loader.dart';
 
 class PostsProvider {
   static final PostsProvider _instance = new PostsProvider._internal();
@@ -57,7 +58,9 @@ class PostsProvider {
 
     await reddit.auth.authorize(code);
 
-    
+    var user = await reddit.user.me();
+
+    writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
   }
   Future<Stream<String>> _server() async {
     final StreamController<String> onCode = new StreamController();

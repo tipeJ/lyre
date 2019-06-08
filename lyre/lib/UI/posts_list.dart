@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import 'dart:math';
+import '../Resources/reddit_api_provider.dart';
 
 class lyApp extends StatefulWidget {
   State<lyApp> createState() => new PostsList();
@@ -343,6 +344,14 @@ class PostsList extends State<lyApp>
                   onChanged: (bool newValue) {
                     autoLoad = newValue;
                   },
+                ),
+                RaisedButton(
+                  child: const Text('Log in'),
+                  color: Theme.of(context).accentColor,
+                  onPressed: (){
+                    var pp = PostsProvider();
+                    pp.registerReddit();
+                  },
                 )
               ],
             ),
@@ -445,7 +454,8 @@ class PostsList extends State<lyApp>
                                                             ],
                                                             mainAxisAlignment: MainAxisAlignment.start,
                                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                                            )
+                                                            ),
+                                                            
                                                           ],
                                                         ),
                                                       ),

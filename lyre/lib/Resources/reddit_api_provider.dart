@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:http/http.dart' show Client;
 import 'dart:convert';
 import '../Models/item_model.dart';
@@ -7,11 +7,19 @@ import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
-import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PostsProvider {
+  static final PostsProvider _instance = new PostsProvider._internal();
+  PostsProvider._internal();
+
+  factory PostsProvider(){
+    return _instance;
+  }
+  
   Client client = Client();
   final _apiKey = 'your_api_key';
+  Reddit reddit;
 
   Future<ItemModel> fetchPostsList(bool loadMore) async {
     print("Posts fetched");
@@ -30,13 +38,55 @@ class PostsProvider {
       throw Exception('Failed to load post');
     }
   }
+  bool hasAccount = false;
+
+  void registerReddit() async {
+    var userAgent = "$appName $appVersion by u/tipezuke";
+    final configUri = Uri.parse('draw.ini');
+    var redirectUri = Uri.http("localhost:8080", "");
+    reddit = Reddit.createInstalledFlowInstance(
+      clientId: "JfjOgtm3pWG22g",
+      userAgent: userAgent,
+      configUri: configUri,
+      redirectUri: redirectUri,
+    );
+    Stream<String> onCode = await _server();
+    final auth_url = reddit.auth.url(['*'], userAgent);
+    launch(auth_url.toString());
+    final String code = await onCode.first;
+
+    await reddit.auth.authorize(code);
+
+    
+  }
+  Future<Stream<String>> _server() async {
+    final StreamController<String> onCode = new StreamController();
+    HttpServer server =
+      await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+    server.listen((HttpRequest request) async {
+      final String code = request.uri.queryParameters["code"];
+      request.response
+        ..statusCode = 200
+        ..headers.set("Content-Type", ContentType.HTML.mimeType)
+        ..write("<html><h1>You can now close this window</h1></html>");
+      await request.response.close();
+      await server.close(force: true);
+      onCode.add(code);
+      await onCode.close();
+    });
+    return onCode.stream;
+  }
 
   Future<Reddit> getRed() async {
-    return await Reddit.createReadOnlyInstance(
-      userAgent: "$appName $appVersion by u/tipezuke",
-      clientId: "6sQY26tkKTP99w",
-      clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
-    );
+    if(reddit == null){
+      return await Reddit.createReadOnlyInstance(
+        userAgent: "$appName $appVersion by u/tipezuke",
+        clientId: "6sQY26tkKTP99w",
+        clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
+      );
+    }else{
+      return reddit;
+    }
   }
   Future<CommentM> getC2(String ids, String fullname) async {
     

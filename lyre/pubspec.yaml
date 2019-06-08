@@ -36,6 +36,7 @@ dependencies:
   uuid: ^2.0.0
   flutter_advanced_networkimage: ^0.4.15
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

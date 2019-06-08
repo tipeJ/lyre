@@ -275,7 +275,7 @@ class comL extends State<commentsList>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             new MarkdownBody(
-                              data: convertToMarkdown(comment.text),
+                              data: comment.text,
                             )
                           ],
                         ),
@@ -352,19 +352,6 @@ class comL extends State<commentsList>
           );
         }
       },childCount: comments.length+1),
-      /*
-        itemCount: comments.length + 1,
-        itemBuilder: (BuildContext context, int i) {
-          if (i == 0) {
-            return new Container(height: 0.0,);
-          } else {
-            var comment = comments[i-1];
-            return Visibility(
-                child: getCommentWidget(comment, i),
-                visible: comment.visible,
-            );
-          }
-        }*/
     );
   }
   Widget getCommentsExpandableSingle(commentTest parent){

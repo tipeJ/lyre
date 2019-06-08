@@ -4,7 +4,6 @@ import 'package:http/http.dart' show Client;
 import 'dart:convert';
 import '../Models/item_model.dart';
 import '../Models/Comment.dart';
-import '../Models/Commenter.dart';
 import '../Models/Subreddit.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';

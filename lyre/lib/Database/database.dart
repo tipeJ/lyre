@@ -22,7 +22,7 @@ class DBProvider{
     }, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE User ("
           "username TEXT,"
-          "json TEXT"
+          "credentials TEXT"
           ")");
     });
   }

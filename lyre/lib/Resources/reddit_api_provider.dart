@@ -22,6 +22,11 @@ class PostsProvider {
   final _apiKey = 'your_api_key';
   Reddit reddit;
 
+  Future<bool> isLoggedIn() async {
+    var r = await getRed();
+    return r.readOnly ? false : true;
+  }
+
   Future<ItemModel> fetchPostsList(bool loadMore) async {
     print("Posts fetched");
     Map<String, String> headers = new Map<String, String>();
@@ -57,8 +62,10 @@ class PostsProvider {
     final String code = await onCode.first;
 
     await reddit.auth.authorize(code);
-
+    
     var user = await reddit.user.me();
+    
+    print("USERNAME: $user.displayName");
 
     writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
   }

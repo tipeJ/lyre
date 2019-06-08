@@ -135,6 +135,7 @@ class PostsList extends State<lyApp>
     new Future.delayed(Duration.zero, () {
       initV(context);
     });
+    getUserInfoW();
     state = Overlay.of(context);
     entry = OverlayEntry(
         builder: (context) => new GestureDetector(
@@ -323,6 +324,15 @@ class PostsList extends State<lyApp>
     else
       _controller.fling(velocity: _controller.value < 0.5 ? -2.0 : 2.0); //<-- or just continue to whichever edge is closer
   }
+  void getUserInfoW() async {
+    var b = await PostsProvider().isLoggedIn();
+    if(b){
+      var r = await PostsProvider().getRed();
+      var u = await r.user.me();
+      userInfo = u.displayName + " _ " + u.commentKarma.toString();
+    }
+  }
+  String userInfo = "";
   
 
   @override
@@ -352,7 +362,8 @@ class PostsList extends State<lyApp>
                     var pp = PostsProvider();
                     pp.registerReddit();
                   },
-                )
+                ),
+                Text(userInfo),
               ],
             ),
           )),

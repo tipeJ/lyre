@@ -15,6 +15,8 @@ class Post {
   bool expanded = false;
   bool hasBeenViewed = false;
 
+  SubmissionPreview _preview;
+
   LinkType _linkType;
 
   Post(result) {
@@ -43,8 +45,11 @@ class Post {
     _selftext = s.selftext;
     _subreddit = s.subreddit.displayName;
 
+    _preview = s.preview.first;
+
     _linkType = _self ? LinkType.Self : getLinkType(_url);
   }
+  SubmissionPreview get preview => _preview;
   
   LinkType get linkType => _linkType;
 

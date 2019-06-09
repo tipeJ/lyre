@@ -20,7 +20,8 @@ enum PostView{
 }
 
 class postInnerWidget extends StatelessWidget {
-  PostView viewSetting = PostView.Compact;
+  PostView viewSetting = PostView.ImagePreview;
+  bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
 
@@ -35,7 +36,7 @@ class postInnerWidget extends StatelessWidget {
       switch (viewSetting) {
         case PostView.IntendedPreview:
           return new Stack(children: <Widget>[
-            getImageWidget(context),
+            getExpandedImage(context),
             new Positioned(
                 bottom: 0.0,
                 child: new BackdropFilter(
@@ -54,7 +55,7 @@ class postInnerWidget extends StatelessWidget {
         case PostView.ImagePreview:
           return new Column(
             children: <Widget>[
-              getImageWidget(context),
+              getExpandedImage(context),
               defaultColumn(post, callBack)
             ],
           );
@@ -67,8 +68,8 @@ class postInnerWidget extends StatelessWidget {
                 child: defaultColumn(post, callBack),
                 width: MediaQuery.of(context).size.width * 0.9,
               ),
-              getSquaredImageWidget(context)
-          ],)
+              getSquaredImage(context)
+          ],);
           break;
         default:
           return new defaultColumn(post, callBack);
@@ -76,41 +77,21 @@ class postInnerWidget extends StatelessWidget {
     }
     return new defaultColumn(post, callBack);
   }
-  Widget getImageWidget(BuildContext context){
+  Widget getExpandedImage(BuildContext context){
+    var x = MediaQuery.of(context).size.width;
+    var y = 250.0;
+    if(post.preview.source.width >= x){
+      y = (x / post.preview.source.width)*post.preview.source.height;
+    }
     return new Container(
-      child: Stack(children: <Widget>[
-        SizedBox.expand(
-          child: new GestureDetector(
-            child: Image(
-              image: AdvancedNetworkImage(
-                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
-                useDiskCache: true,
-                cacheRule: CacheRule(maxAge: const Duration(days: 7))
-              ),
-              fit: BoxFit.cover,
-            ),
-            
-            onTap: () {
-              handleClick(context);
-            },
-            onLongPress: (){
-              handlePress(context);
-            },
-            onLongPressUp: (){
-                callBack.previewEnd();
-            },
-          ),
-        ),
-        (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
-      ],),
+      child: getImageWidget(context),
       
-      //The fixed height of the post image:
-      height: 400.0,
+      height: (isFullSize) ? y : 250.0,
+      width: x,
     );
   }
-  Widget getSquaredImageWidget(BuildContext context){
-    return new Container(
-      child: Stack(children: <Widget>[
+  Widget getImageWidget(BuildContext context){
+    return Stack(children: <Widget>[
         SizedBox.expand(
           child: new GestureDetector(
             child: Image(
@@ -119,7 +100,7 @@ class postInnerWidget extends StatelessWidget {
                 useDiskCache: true,
                 cacheRule: CacheRule(maxAge: const Duration(days: 7))
               ),
-              fit: BoxFit.cover,
+              fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
             ),
             
             onTap: () {
@@ -134,11 +115,14 @@ class postInnerWidget extends StatelessWidget {
           ),
         ),
         (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
-      ],),
-      
+      ],);
+  }
+  Widget getSquaredImage(BuildContext context){
+    return new Container(
+      child: getImageWidget(context),
       //The fixed height of the post image:
-      height: MediaQuery.of(context).size.width * 0.1,
-      width: MediaQuery.of(context).size.width * 0.1,
+      height: 40,
+      width: 40,
     );
   }
   void handleClick(BuildContext context){

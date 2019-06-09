@@ -127,6 +127,7 @@ class PostsList extends State<lyApp>
       vsync: this,
       duration: Duration(milliseconds: 600), 
     );
+    getUserInfoW();
     controller = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 325));
     previewController = new AnimationController(
@@ -135,7 +136,6 @@ class PostsList extends State<lyApp>
     new Future.delayed(Duration.zero, () {
       initV(context);
     });
-    getUserInfoW();
     state = Overlay.of(context);
     entry = OverlayEntry(
         builder: (context) => new GestureDetector(
@@ -329,8 +329,12 @@ class PostsList extends State<lyApp>
     if(b){
       var r = await PostsProvider().getRed();
       var u = await r.user.me();
-      userInfo = u.displayName + " _ " + u.commentKarma.toString();
+      setState(() {
+        userInfo = u.displayName + " _ " + u.commentKarma.toString();
+      });
+      
     }
+    userInfo = "Guest";
   }
   String userInfo = "";
   
@@ -340,17 +344,19 @@ class PostsList extends State<lyApp>
     if (bloc.latestModel == null) {
       bloc.fetchAllPosts();
     }
+    getUserInfoW();
     return new WillPopScope(
         child: Scaffold(
           resizeToAvoidBottomPadding: true,
           drawer: new Drawer(
               child: new Container(
-            padding: EdgeInsets.only(top: 200),
+            padding: EdgeInsets.only(top: 200, left: 25.0, right: 10.0),
             child: CustomScrollView(
               slivers: <Widget>[
-                SliverToBoxAdapter(
-                  child: new Column(
-                    children: <Widget>[
+                SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      Text(userInfo),
                       Text("Auto-load more posts"),
                       Switch(
                         value: autoLoad,
@@ -359,28 +365,17 @@ class PostsList extends State<lyApp>
                         },
                       ),
                       RaisedButton(
-                        child: const Text('Log in'),
+                        child: const Text('Add an account'),
                         color: Theme.of(context).accentColor,
                         onPressed: (){
                           var pp = PostsProvider();
                           pp.registerReddit();
                         },
                       ),
-                      Text(userInfo),
-                    ],
+                    ]
                   ),
                 ),
-                //StreamBuilder (is necessary?) of registered usernames from database
-                StreamBuilder(
-                  stream: bloc.registeredUsernames,
-                  builder: (context, AsyncSnapshot<List<String>> snapshot){
-                    if(snapshot.hasData){
-                      return getRegisteredUsernamesList(snapshot);
-                    }else{
-                      return Container(height: 5.0,width: 5.0,color: Colors.teal,);
-                    }
-                  },
-                )
+                getRegisteredUsernamesList(bloc.usernamesList),
               ],
             ),
           )),
@@ -420,7 +415,7 @@ class PostsList extends State<lyApp>
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
                                 new Container(
-                                  height: lerp(50.0, maxHeight) + paramsHeight,
+                                  height: lerp(45.0, maxHeight) + paramsHeight,
                                   decoration: BoxDecoration(
                                       color: Color.fromARGB(255, 70, 64, 66),
                                       borderRadius: BorderRadius.only(
@@ -797,12 +792,11 @@ class PostsList extends State<lyApp>
         ),
         onWillPop: _willPop);
   }
-  Widget getRegisteredUsernamesList(AsyncSnapshot<List<String>> snapshot){
-    var list = snapshot.data;
+  Widget getRegisteredUsernamesList(List<String> list){
     return new SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
         return Text(list[i]);
-      }),
+      }, childCount: list.length),
     );
   }
 

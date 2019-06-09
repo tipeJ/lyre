@@ -12,69 +12,134 @@ import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 
+enum PostView{
+  ImagePreview,
+  IntendedPreview,
+  Compact,
+  NoPreview
+}
+
 class postInnerWidget extends StatelessWidget {
-  bool isIntended = true;
+  PostView viewSetting = PostView.Compact;
   final Post post;
   final PreviewCallback callBack;
 
   postInnerWidget(this.post, this.callBack);
 
   Widget getWidget(BuildContext context){
+
     if (post.self) {
       return new defaultColumn(post, callBack);
     }
     if (post.linkType == LinkType.DirectImage || post.linkType == LinkType.YouTube) {
-      if (isIntended) {
-        return new Stack(children: <Widget>[
-          new Container(
-            child: Stack(children: <Widget>[
-              SizedBox.expand(
-                child: new GestureDetector(
-                  child: Image(
-                    image: AdvancedNetworkImage(
-                      (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
-                      useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: const Duration(days: 7))
-                    ),
-                    fit: BoxFit.cover,
+      switch (viewSetting) {
+        case PostView.IntendedPreview:
+          return new Stack(children: <Widget>[
+            getImageWidget(context),
+            new Positioned(
+                bottom: 0.0,
+                child: new BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 0.0,
+                    sigmaY: 0.0,
                   ),
-                  
-                  onTap: () {
-                    handleClick(context);
-                  },
-                  onLongPress: (){
-                    handlePress(context);
-                  },
-                  onLongPressUp: (){
-                      callBack.previewEnd();
-                  },
-                ),
+                  child: new Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Color.fromARGB(155, 0, 0, 0),
+                    child: new defaultColumn(post, callBack),
+                  ),
+                ))
+          ]);
+          break;
+        case PostView.ImagePreview:
+          return new Column(
+            children: <Widget>[
+              getImageWidget(context),
+              defaultColumn(post, callBack)
+            ],
+          );
+          break;
+        case PostView.Compact:
+          return new Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                child: defaultColumn(post, callBack),
+                width: MediaQuery.of(context).size.width * 0.9,
               ),
-              (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
-            ],),
-            
-            //The fixed height of the post image:
-            height: 400.0,
-          ),
-          new Positioned(
-              bottom: 0.0,
-              child: new BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 0.0,
-                  sigmaY: 0.0,
-                ),
-                child: new Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
-                  child: new defaultColumn(post, callBack),
-                ),
-              ))
-        ]);
-      } else {
-        return new defaultColumn(post, callBack);
+              getSquaredImageWidget(context)
+          ],)
+          break;
+        default:
+          return new defaultColumn(post, callBack);
       }
     }
     return new defaultColumn(post, callBack);
+  }
+  Widget getImageWidget(BuildContext context){
+    return new Container(
+      child: Stack(children: <Widget>[
+        SizedBox.expand(
+          child: new GestureDetector(
+            child: Image(
+              image: AdvancedNetworkImage(
+                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                useDiskCache: true,
+                cacheRule: CacheRule(maxAge: const Duration(days: 7))
+              ),
+              fit: BoxFit.cover,
+            ),
+            
+            onTap: () {
+              handleClick(context);
+            },
+            onLongPress: (){
+              handlePress(context);
+            },
+            onLongPressUp: (){
+                callBack.previewEnd();
+            },
+          ),
+        ),
+        (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
+      ],),
+      
+      //The fixed height of the post image:
+      height: 400.0,
+    );
+  }
+  Widget getSquaredImageWidget(BuildContext context){
+    return new Container(
+      child: Stack(children: <Widget>[
+        SizedBox.expand(
+          child: new GestureDetector(
+            child: Image(
+              image: AdvancedNetworkImage(
+                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                useDiskCache: true,
+                cacheRule: CacheRule(maxAge: const Duration(days: 7))
+              ),
+              fit: BoxFit.cover,
+            ),
+            
+            onTap: () {
+              handleClick(context);
+            },
+            onLongPress: (){
+              handlePress(context);
+            },
+            onLongPressUp: (){
+                callBack.previewEnd();
+            },
+          ),
+        ),
+        (post.linkType == LinkType.YouTube)? getCenteredIndicator(post.linkType) : Container(height: 0.0),
+      ],),
+      
+      //The fixed height of the post image:
+      height: MediaQuery.of(context).size.width * 0.1,
+      width: MediaQuery.of(context).size.width * 0.1,
+    );
   }
   void handleClick(BuildContext context){
     if(post.linkType == LinkType.YouTube){
@@ -148,7 +213,6 @@ class defaultColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return new InkWell(
       child: new Column(
-        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

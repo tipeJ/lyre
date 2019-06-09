@@ -53,26 +53,28 @@ class PostsProvider {
     var loadedCredentials = await readCredentials("tipezuke");
 
     if(loadedCredentials == null){ //IF null then create new flow instance
+      print("CREATED NEW FLOW INSTANCE");
       reddit = Reddit.createInstalledFlowInstance(
-      clientId: "JfjOgtm3pWG22g",
-      userAgent: userAgent,
-      configUri: configUri,
-      redirectUri: redirectUri,
-    );
-    Stream<String> onCode = await _server();
-    final auth_url = reddit.auth.url(['*'], userAgent);
-    launch(auth_url.toString());
-    final String code = await onCode.first;
+        clientId: "JfjOgtm3pWG22g",
+        userAgent: userAgent,
+        configUri: configUri,
+        redirectUri: redirectUri,
+      );
+      Stream<String> onCode = await _server();
+      final auth_url = reddit.auth.url(['*'], userAgent);
+      launch(auth_url.toString());
+      final String code = await onCode.first;
 
-    await reddit.auth.authorize(code);
+      await reddit.auth.authorize(code);
     }else{
+      print("RESTORED CREDENTIALS");
       reddit = await Reddit.restoreAuthenticatedInstance(loadedCredentials);
     }
     
     
     var user = await reddit.user.me();
     
-    print("USERNAME: $user.displayName");
+    print("USERNAME: " + user.displayName);
 
     writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
     

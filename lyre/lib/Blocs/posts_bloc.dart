@@ -1,14 +1,17 @@
 import '../Resources/repository.dart';
 import '../Resources/globals.dart';
+import '../Resources/credential_loader.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
 
 class PostsBloc {
   final _repository = Repository();
   final _postsFetcher = PublishSubject<ItemModel>();
+  final _usernamesFetcher = PublishSubject<List<String>>();
   ItemModel latestModel;
 
   Observable<ItemModel> get allPosts => _postsFetcher.stream;
+  Observable<List<String>> get registeredUsernames => _usernamesFetcher.stream;
 
   fetchAllPosts() async {
     temporaryType = currentSortType;
@@ -18,6 +21,10 @@ class PostsBloc {
     latestModel = itemModel;
     _postsFetcher.sink.add(latestModel);
     currentCount = 25;
+
+    //Currently refreshes list of registered usernames via refreshing list of posts.
+    var x = await readUsernames();
+    _usernamesFetcher.sink.add(x);
   }
   fetchMore() async {
     lastPost = latestModel.results.last.id;

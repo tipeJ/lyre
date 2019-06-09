@@ -346,24 +346,41 @@ class PostsList extends State<lyApp>
           drawer: new Drawer(
               child: new Container(
             padding: EdgeInsets.only(top: 200),
-            child: new Column(
-              children: <Widget>[
-                Text("Auto-load more posts"),
-                Switch(
-                  value: autoLoad,
-                  onChanged: (bool newValue) {
-                    autoLoad = newValue;
-                  },
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverToBoxAdapter(
+                  child: new Column(
+                    children: <Widget>[
+                      Text("Auto-load more posts"),
+                      Switch(
+                        value: autoLoad,
+                        onChanged: (bool newValue) {
+                          autoLoad = newValue;
+                        },
+                      ),
+                      RaisedButton(
+                        child: const Text('Log in'),
+                        color: Theme.of(context).accentColor,
+                        onPressed: (){
+                          var pp = PostsProvider();
+                          pp.registerReddit();
+                        },
+                      ),
+                      Text(userInfo),
+                    ],
+                  ),
                 ),
-                RaisedButton(
-                  child: const Text('Log in'),
-                  color: Theme.of(context).accentColor,
-                  onPressed: (){
-                    var pp = PostsProvider();
-                    pp.registerReddit();
+                //StreamBuilder (is necessary?) of registered usernames from database
+                StreamBuilder(
+                  stream: bloc.registeredUsernames,
+                  builder: (context, AsyncSnapshot<List<String>> snapshot){
+                    if(snapshot.hasData){
+                      return getRegisteredUsernamesList(snapshot);
+                    }else{
+                      return Container(height: 5.0,width: 5.0,color: Colors.teal,);
+                    }
                   },
-                ),
-                Text(userInfo),
+                )
               ],
             ),
           )),
@@ -779,6 +796,14 @@ class PostsList extends State<lyApp>
           )),
         ),
         onWillPop: _willPop);
+  }
+  Widget getRegisteredUsernamesList(AsyncSnapshot<List<String>> snapshot){
+    var list = snapshot.data;
+    return new SliverList(
+      delegate: SliverChildBuilderDelegate((BuildContext context, int i){
+        return Text(list[i]);
+      }),
+    );
   }
 
   Future<bool> _willPop() {

@@ -44,13 +44,16 @@ class PostsProvider {
       throw Exception('Failed to load post');
     }
   }
-  bool hasAccount = false;
 
   void registerReddit() async {
     var userAgent = "$appName $appVersion by u/tipezuke";
     final configUri = Uri.parse('draw.ini');
     var redirectUri = Uri.http("localhost:8080", "");
-    reddit = Reddit.createInstalledFlowInstance(
+    //To be changed to the last used account
+    var loadedCredentials = await readCredentials("tipezuke");
+
+    if(loadedCredentials == null){ //IF null then create new flow instance
+      reddit = Reddit.createInstalledFlowInstance(
       clientId: "JfjOgtm3pWG22g",
       userAgent: userAgent,
       configUri: configUri,
@@ -62,12 +65,17 @@ class PostsProvider {
     final String code = await onCode.first;
 
     await reddit.auth.authorize(code);
+    }else{
+      reddit = await Reddit.restoreAuthenticatedInstance(loadedCredentials);
+    }
+    
     
     var user = await reddit.user.me();
     
     print("USERNAME: $user.displayName");
 
     writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
+    
   }
   Future<Stream<String>> _server() async {
     final StreamController<String> onCode = new StreamController();

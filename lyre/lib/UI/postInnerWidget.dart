@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'Animations/OnSlide.dart';
+import 'ActionItems.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../Models/Post.dart';
 import '../Resources/globals.dart';
@@ -20,7 +21,7 @@ enum PostView{
 }
 
 class postInnerWidget extends StatelessWidget {
-  PostView viewSetting = PostView.ImagePreview;
+  PostView viewSetting = PostView.IntendedPreview;
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
@@ -47,7 +48,7 @@ class postInnerWidget extends StatelessWidget {
                   child: new Container(
                     width: MediaQuery.of(context).size.width,
                     color: Color.fromARGB(155, 0, 0, 0),
-                    child: new defaultColumn(post, callBack),
+                    child: getSlideColumn(),
                   ),
                 ))
           ]);
@@ -56,7 +57,7 @@ class postInnerWidget extends StatelessWidget {
           return new Column(
             children: <Widget>[
               getExpandedImage(context),
-              defaultColumn(post, callBack)
+              getSlideColumn()
             ],
           );
           break;
@@ -183,6 +184,32 @@ class postInnerWidget extends StatelessWidget {
         //The gap bewtween the widgets.
         bottom: 5.0
       ),
+    );
+  }
+  Widget getSlideColumn(){
+    return OnSlide(
+      items: <ActionItems>[
+        ActionItems(
+          icon: IconButton(icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},color: Colors.orange,),
+          onPress: (){
+
+          }
+        ),
+        ActionItems(
+          icon: IconButton(icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},color: Colors.purple,),
+          onPress: (){
+
+          }
+        ),
+        ActionItems(
+          icon: IconButton(icon: Icon(Icons.bookmark),onPressed: (){},color: Colors.yellow,),
+          onPress: (){
+
+          }
+        ),
+      ],
+      child: defaultColumn(post, callBack),
+      backgroundColor: Colors.transparent,
     );
   }
 }

@@ -27,24 +27,6 @@ class PostsProvider {
     return r.readOnly ? false : true;
   }
 
-  Future<ItemModel> fetchPostsList(bool loadMore) async {
-    print("Posts fetched");
-    Map<String, String> headers = new Map<String, String>();
-    headers["User-Agent"] = "$appName $appVersion";
-
-    var response = (loadMore) ?
-      await client.get("${BASE_URL}${currentSubreddit}/.json?count=$currentCount&after=t3_$lastPost", headers: headers)
-        : await client.get("${BASE_URL}${currentSubreddit}/.json", headers: headers);
-    if (response.statusCode == 200) {
-      print("succ");
-      // If the call to the server was successful, parse the JSON
-      return ItemModel.fromJson(json.decode(response.body)["data"]["children"]);
-    } else {
-      // If that call was not successful, throw an error.
-      throw Exception('Failed to load post');
-    }
-  }
-
   void registerReddit() async {
     var userAgent = "$appName $appVersion by u/tipezuke";
     final configUri = Uri.parse('draw.ini');
@@ -68,13 +50,11 @@ class PostsProvider {
       await reddit.auth.authorize(code);
     }else{
       print("RESTORED CREDENTIALS");
-      reddit = await Reddit.restoreAuthenticatedInstance(loadedCredentials);
+      reddit = await restoreAuth(loadedCredentials);
     }
     
     
     var user = await reddit.user.me();
-    
-    print("USERNAME: " + user.displayName);
 
     writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
     
@@ -123,8 +103,37 @@ class PostsProvider {
     var b2 = CommentM.fromJson2(response, r);
     return b2;
   }
+  checkForRefresh() async {
+    if(reddit.auth.credentials.isExpired){
+      var x = await reddit.auth.credentials.refresh();
+      var name = await reddit.user.me();
+      reddit = await restoreAuth(x.toJson());
+      updateCredentials(name.fullname, x.toJson());
+    }
+  }
+  
+  Future<Reddit> restoreAuth(String jsonCredentials) async {
+    final configUri = Uri.parse('draw.ini');
+    var userAgent = "$appName $appVersion by u/tipezuke";
+    return await Reddit.restoreAuthenticatedInstance(
+        jsonCredentials,
+        userAgent: userAgent,
+        configUri: configUri,
+        clientSecret: "",
+        clientId: "JfjOgtm3pWG22g"
+      );
+  }
 
   Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
+    if(true){
+      var loadedCredentials = await readCredentials("tipezuke");
+      if(loadedCredentials != null){
+        print("RETRIEVED CREDENTIALS: " + loadedCredentials);
+        reddit = await restoreAuth(loadedCredentials);
+      }else{
+        print("RUCMFKCKCK");
+      }
+    }
     Reddit r = await getRed();
     Map<String, String> headers = new Map<String, String>();
 

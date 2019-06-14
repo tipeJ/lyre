@@ -129,7 +129,7 @@ class comL extends State<commentsList>
                     slivers: <Widget>[
                       new SliverToBoxAdapter(
                         child: new Hero(
-                      tag: 'post_hero ${post.id}',
+                      tag: 'post_hero ${post.s.id}',
                       child: new postInnerWidget(post, this),
                     ),
                       ),
@@ -328,7 +328,7 @@ class comL extends State<commentsList>
           if(comment.id != bloc.loadingMoreId){
             setState(() {
               bloc.loadingMoreId = comment.id;
-              bloc.getB(comment, i, comment.depth, post.id);
+              bloc.getB(comment, i, comment.depth, post.s.id);
             });
           } 
         },

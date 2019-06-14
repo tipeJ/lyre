@@ -1,18 +1,35 @@
 import '../Database/database.dart';
 
-Future<void> writeCredentials(String credentials, String username) async {
+writeCredentials(String usern, String creds) async {
   final db = await DBProvider.db.database;
 
-  print("WTYFSAFASDF: $username,$credentials");
+  String lowercase = usern.toLowerCase();
+
+  print("WTYFSAFASDF: $usern,$creds");
   var res = await db.rawInsert(
-      "INSERT Into Client (username,credentials)"
-      " VALUES ($username,$credentials)");
+      "INSERT Into User (username,credentials) "
+      " VALUES(?, ?)",[
+        lowercase,
+        creds,
+      ]);
   return res;
 }
+updateCredentials(String user, String creds) async {
+  final db = await DBProvider.db.database;
+
+  var userLow = user.toLowerCase();
+  var res = await db.update("User", toJson(userLow, creds),
+  where: "username = ?", whereArgs: [userLow]);
+  return res;
+}
+Map<String, dynamic> toJson(String username, String credentials) => {
+  "username" : username,
+  "credentials" : credentials
+};
 Future<String> readCredentials(String username) async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User", where: "username = ?", whereArgs: [username]);
+  var res = await db.query("User", where: "username = ?", whereArgs: [username.toLowerCase()]);
   print(res.length.toString() + "EHEHEHEH");
   return res.isNotEmpty ? res.first["credentials"] : null;
 }

@@ -53,7 +53,7 @@ class _OnSlideState extends State<OnSlide>{
   }
 
   _scrollListener(){
-    
+    //changes the opacity of the items based on how much the animation has changed
     if(!controller.position.outOfRange){
       _opacity = (controller.offset / controller.position.maxScrollExtent);
       scheduleMicrotask((){
@@ -80,7 +80,7 @@ class _OnSlideState extends State<OnSlide>{
     List<Widget> above = <Widget>[new Container(
             width: childSize.width,
             height: childSize.height,
-            color: widget.backgroundColor,
+            color: Colors.transparent,
             child: widget.child,
         ),];
     List<Widget> under = <Widget>[];
@@ -89,7 +89,7 @@ class _OnSlideState extends State<OnSlide>{
             under.add(
                 new Container(
                     alignment: Alignment.center,
-                    color: item.backgroundColor,
+                    color: Colors.transparent,
                     width: 60.0,
                     height: childSize.height,
                     
@@ -115,7 +115,7 @@ class _OnSlideState extends State<OnSlide>{
       child: new Container(
             width: childSize.width,
             height: childSize.height,
-            color: widget.backgroundColor,
+            color: Colors.transparent,
             child: new Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: under,

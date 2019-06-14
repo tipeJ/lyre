@@ -370,6 +370,7 @@ class PostsList extends State<lyApp>
                         onPressed: (){
                           var pp = PostsProvider();
                           pp.registerReddit();
+                          bloc.fetchAllPosts();
                         },
                       ),
                     ]
@@ -879,12 +880,12 @@ class PostsList extends State<lyApp>
                     onHorizontalDragUpdate: (DragUpdateDetails details) {
                       if (details.delta.direction > 1.0 &&
                           details.delta.dx < -25) {
-                        currentPostId = posts[i].id;
+                        currentPostId = posts[i].s.id;
                         showComments(context, posts[i]);
                       }
                     }, //TODO: Add a new fling animation for vertical scrolling
                     child: new Hero(
-                      tag: 'post_hero ${posts[i].id}',
+                      tag: 'post_hero ${posts[i].s.id}',
                       child: new postInnerWidget(posts[i], this),
                     ),
                   );

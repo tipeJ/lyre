@@ -26,7 +26,7 @@ class PostsBloc {
     usernamesList = x;
   }
   fetchMore() async {
-    lastPost = latestModel.results.last.id;
+    lastPost = latestModel.results.last.s.id;
     currentCount += perPage;
     print("START FETCH MORE");
     ItemModel itemModel = await _repository.fetchPosts(true);

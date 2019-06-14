@@ -7,11 +7,13 @@ import '../Models/Post.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
+import 'package:draw/draw.dart';
 import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
+import '../Resources/RedditHandler.dart';
 
 enum PostView{
   ImagePreview,
@@ -30,7 +32,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getWidget(BuildContext context){
 
-    if (post.self) {
+    if (post.s.isSelf) {
       return new defaultColumn(post, callBack);
     }
     if (post.linkType == LinkType.DirectImage || post.linkType == LinkType.YouTube) {
@@ -97,7 +99,7 @@ class postInnerWidget extends StatelessWidget {
           child: new GestureDetector(
             child: Image(
               image: AdvancedNetworkImage(
-                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)) : post.url,
+                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.getUrl())) : post.getUrl(),
                 useDiskCache: true,
                 cacheRule: CacheRule(maxAge: const Duration(days: 7))
               ),
@@ -130,17 +132,17 @@ class postInnerWidget extends StatelessWidget {
     if(post.linkType == LinkType.YouTube){
       _launchURL(context, post);
     }else if(post.linkType == LinkType.DirectImage){
-      callBack.preview(post.url);
+      callBack.preview(post.getUrl());
     }
   }
 
   void handlePress(BuildContext context){
     switch (post.linkType) {
       case LinkType.YouTube:
-        callBack.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.url)));
+        callBack.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.getUrl())));
         break;
       default :
-          callBack.preview(post.url);
+          callBack.preview(post.getUrl());
         break;
     }
   }
@@ -190,19 +192,32 @@ class postInnerWidget extends StatelessWidget {
     return OnSlide(
       items: <ActionItems>[
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},color: Colors.orange,),
+          icon: IconButton(
+            icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
+            color: post.s.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: (){
-
+            changeVoteState(VoteState.upvoted, post.s);
           }
         ),
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},color: Colors.purple,),
+          icon: IconButton(
+            icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
+            color: post.s.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: (){
-
+            changeVoteState(VoteState.downvoted, post.s);
           }
         ),
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.bookmark),onPressed: (){},color: Colors.yellow,),
+          icon: IconButton(
+            icon: Icon(Icons.bookmark),onPressed: (){},
+            color: post.s.saved ? Colors.yellow : Colors.grey,),
+          onPress: (){
+            changeSave(post.s);
+            post.s.refresh();
+          }
+        ),
+        ActionItems(
+          icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
           onPress: (){
 
           }
@@ -230,7 +245,7 @@ class defaultColumn extends StatelessWidget {
           new Padding(
               child: GestureDetector(
                 child: new Text(
-                  post.title.toString(),
+                  post.s.title,
                   style:
                   new TextStyle(fontWeight: FontWeight.normal, fontSize: 12.0),
                   textScaleFactor: 1.0,
@@ -238,7 +253,7 @@ class defaultColumn extends StatelessWidget {
                 onTap: (){
                   switch (post.linkType) {
                     case LinkType.YouTube:
-                      playYouTube(post.url);
+                      playYouTube(post.getUrl());
                       break;
                     case LinkType.Default:
                       _launchURL(context, post);
@@ -250,11 +265,11 @@ class defaultColumn extends StatelessWidget {
               ),
               padding:
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
-          (post.self && post.selftext != null && post.selftext.isNotEmpty)
+          (post.s.isSelf && post.s.selftext != null && post.s.selftext.isNotEmpty)
               ? Container(
             child: Container(
               child: Text(
-                post.selftext,
+                post.s.selftext,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 11.0,
@@ -277,15 +292,17 @@ class defaultColumn extends StatelessWidget {
                   children: <Widget>[
                     new Padding(
                         child: new Text(
-                            "${post.points}",
+                            "${post.s.score}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
-                            style: new TextStyle(color: Colors.amberAccent, fontSize: 9.0)),
+                            style: new TextStyle(
+                              color: getScoreColor(),
+                              fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 6.0, right: 4.0, top: 0.0)),
                     new Padding(
                         child: new Text(
-                            "u/${post.author}",
+                            "u/${post.s.author}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
                             style: new TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9.0)),
@@ -293,14 +310,14 @@ class defaultColumn extends StatelessWidget {
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new Padding(
                         child: new Text(
-                            "r/${post.subreddit}",
+                            "r/${post.s.subreddit.displayName}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
                             style: new TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new GestureDetector(
-                      child: new Text("${post.comments} comments"
+                      child: new Text("${post.s.numComments} comments"
                             ,style: TextStyle(
                             fontSize: 9.0,
                             color: Colors.white.withOpacity(0.9)
@@ -316,10 +333,22 @@ class defaultColumn extends StatelessWidget {
           )
         ]),
         onTap: (){
-          currentPostId = post.id;
+          currentPostId = post.s.id;
           showComments(context);
         },
     );
+  }
+  Color getScoreColor(){
+    switch (post.s.vote) {
+      case VoteState.downvoted:
+        return Colors.purple;
+        break;
+      case VoteState.upvoted:
+        return Colors.amberAccent;
+        break;
+      default:
+        return Colors.blueGrey;
+    }
   }
 
   void showComments(BuildContext context) {
@@ -333,7 +362,7 @@ class defaultColumn extends StatelessWidget {
   
 }
 void _launchURL(BuildContext context, Post post) async {
-    String url = post.url;
+    String url = post.getUrl();
     try{
       await launch(
           url,

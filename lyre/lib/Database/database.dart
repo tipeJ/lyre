@@ -17,12 +17,13 @@ class DBProvider{
   }
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, "TestDB2.db");
+    String path = join(documentsDirectory.path, "RedditDatabase3.db");
     return await openDatabase(path, version: 1, onOpen: (db) {
     }, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE User ("
           "username TEXT,"
-          "credentials TEXT"
+          "credentials TEXT,"
+          "date INTEGER"
           ")");
     });
   }

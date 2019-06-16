@@ -127,7 +127,6 @@ class PostsList extends State<lyApp>
       vsync: this,
       duration: Duration(milliseconds: 600), 
     );
-    getUserInfoW();
     controller = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 325));
     previewController = new AnimationController(
@@ -324,19 +323,6 @@ class PostsList extends State<lyApp>
     else
       _controller.fling(velocity: _controller.value < 0.5 ? -2.0 : 2.0); //<-- or just continue to whichever edge is closer
   }
-  void getUserInfoW() async {
-    var b = await PostsProvider().isLoggedIn();
-    if(b){
-      var r = await PostsProvider().getRed();
-      var u = await r.user.me();
-      setState(() {
-        userInfo = u.displayName + " _ " + u.commentKarma.toString();
-      });
-      
-    }
-    userInfo = "Guest";
-  }
-  String userInfo = "";
   
 
   @override
@@ -344,19 +330,26 @@ class PostsList extends State<lyApp>
     if (bloc.latestModel == null) {
       bloc.fetchAllPosts();
     }
-    getUserInfoW();
     return new WillPopScope(
         child: Scaffold(
           resizeToAvoidBottomPadding: true,
           drawer: new Drawer(
               child: new Container(
-            padding: EdgeInsets.only(top: 200, left: 25.0, right: 10.0),
+            padding: EdgeInsets.only(top: 200, left: 20.0, right: 20.0),
             child: CustomScrollView(
               slivers: <Widget>[
+                SliverToBoxAdapter(
+                  child: Text(
+                    "Logged in as " + bloc.getCurrentUser().username,
+                    style: TextStyle(
+                      fontSize: 24.0
+                    ),
+                    ),
+                ),
+                getRegisteredUsernamesList(bloc.usernamesList),
                 SliverList(
                   delegate: SliverChildListDelegate(
                     [
-                      Text(userInfo),
                       Text("Auto-load more posts"),
                       Switch(
                         value: autoLoad,
@@ -369,14 +362,15 @@ class PostsList extends State<lyApp>
                         color: Theme.of(context).accentColor,
                         onPressed: (){
                           var pp = PostsProvider();
-                          pp.registerReddit();
-                          bloc.fetchAllPosts();
+                          setState(() {
+                            pp.registerReddit();
+                            bloc.fetchAllPosts();
+                          });
                         },
                       ),
                     ]
                   ),
                 ),
-                getRegisteredUsernamesList(bloc.usernamesList),
               ],
             ),
           )),
@@ -796,7 +790,21 @@ class PostsList extends State<lyApp>
   Widget getRegisteredUsernamesList(List<String> list){
     return new SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-        return Text(list[i]);
+        return InkWell(
+          child: Container(
+            child: Text(
+              list[i],
+              style: TextStyle(
+                fontSize: 18.0,
+                fontStyle: FontStyle.italic
+              ),),
+            margin: EdgeInsets.all(18.0),
+          ),
+          onTap: (){
+            PostsProvider().logIn(list[i]);
+            bloc.fetchAllPosts();
+          },
+        );
       }, childCount: list.length),
     );
   }

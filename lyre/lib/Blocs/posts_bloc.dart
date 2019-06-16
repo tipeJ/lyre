@@ -3,6 +3,8 @@ import '../Resources/globals.dart';
 import '../Resources/credential_loader.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
+import '../Models/User.dart';
+import '../Resources/reddit_api_provider.dart';
 
 class PostsBloc {
   final _repository = Repository();
@@ -11,6 +13,11 @@ class PostsBloc {
 
   Observable<ItemModel> get allPosts => _postsFetcher.stream;
   List<String> usernamesList = new List();
+  RedditUser currentUser;
+  
+  RedditUser getCurrentUser(){
+    return (currentUser != null) ? currentUser : RedditUser(username: "Guest", credentials: "", date: 0);
+  }
 
   fetchAllPosts() async {
     temporaryType = currentSortType;
@@ -24,6 +31,7 @@ class PostsBloc {
     //Currently refreshes list of registered usernames via refreshing list of posts.
     var x = await readUsernames();
     usernamesList = x;
+    currentUser = await PostsProvider().getLatestUser();
   }
   fetchMore() async {
     lastPost = latestModel.results.last.s.id;

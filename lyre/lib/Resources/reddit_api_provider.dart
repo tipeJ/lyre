@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../Models/item_model.dart';
 import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
+import '../Models/User.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,37 +27,79 @@ class PostsProvider {
     var r = await getRed();
     return r.readOnly ? false : true;
   }
+  Future<bool> logIn(String username) async{
+    var credentials = await readCredentials(username);
+    if(credentials != null){
+      reddit = await getRed();
+      var cUserDisplayname = "";
+      if(!reddit.readOnly){
+        var currentUser = await reddit.user.me();
+        cUserDisplayname = currentUser.displayName;
+      }
+      print("cuser:" + cUserDisplayname);
+      if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
+        //Prevent useless logins
+        reddit = await restoreAuth(credentials);
+        updateLogInDate(username);
+      }
+      return true;
+    }
+    return false;
+  }
+  Future<bool> logInToLatest() async {
+    var latestUser = await getLatestUser();
+    if(latestUser != null){
+      logIn(latestUser.username);
+      return true;
+    }else{
+      reddit = await getRed();
+      return false;
+    }
+  }
+  
+  Future<Reddit> restoreAuth(String jsonCredentials) async {
+    final configUri = Uri.parse('draw.ini');
+    var userAgent = "$appName $appVersion by u/tipezuke";
+    return await Reddit.restoreAuthenticatedInstance(
+        jsonCredentials,
+        userAgent: userAgent,
+        configUri: configUri,
+        clientSecret: "",
+        clientId: "JfjOgtm3pWG22g"
+      );
+  }
+  checkForRefresh() async {
+    if(reddit.auth.credentials.isExpired){
+      var x = await reddit.auth.credentials.refresh();
+      var name = await reddit.user.me();
+      reddit = await restoreAuth(x.toJson());
+      updateCredentials(name.fullname, x.toJson());
+    }
+  }
 
   void registerReddit() async {
     var userAgent = "$appName $appVersion by u/tipezuke";
     final configUri = Uri.parse('draw.ini');
     var redirectUri = Uri.http("localhost:8080", "");
-    //To be changed to the last used account
-    var loadedCredentials = await readCredentials("tipezuke");
 
-    if(loadedCredentials == null){ //IF null then create new flow instance
-      print("CREATED NEW FLOW INSTANCE");
+    reddit = await getRed();
+    print("CREATED NEW FLOW INSTANCE");
       reddit = Reddit.createInstalledFlowInstance(
         clientId: "JfjOgtm3pWG22g",
         userAgent: userAgent,
         configUri: configUri,
         redirectUri: redirectUri,
       );
-      Stream<String> onCode = await _server();
-      final auth_url = reddit.auth.url(['*'], userAgent);
-      launch(auth_url.toString());
-      final String code = await onCode.first;
+    Stream<String> onCode = await _server();
+    final auth_url = reddit.auth.url(['*'], userAgent);
+    launch(auth_url.toString());
+    final String code = await onCode.first;
 
-      await reddit.auth.authorize(code);
-    }else{
-      print("RESTORED CREDENTIALS");
-      reddit = await restoreAuth(loadedCredentials);
-    }
-    
+    await reddit.auth.authorize(code);
     
     var user = await reddit.user.me();
 
-    writeCredentials(reddit.auth.credentials.toJson(), user.fullname);
+    writeCredentials(user.displayName, reddit.auth.credentials.toJson());
     
   }
   Future<Stream<String>> _server() async {
@@ -76,7 +119,16 @@ class PostsProvider {
     });
     return onCode.stream;
   }
-
+  Future<RedditUser> getLatestUser() async {
+    var list = await getAllUsers();
+    if(list == null || list.isEmpty) return null;
+    list.sort((user1, user2) => user1.date.compareTo(user2.date));
+    print(list.last.username + " IS THE LATEST USER");
+    list.forEach((r)=>{
+      print(r.username + r.date.toString())
+    });
+    return list.last;
+  }
   Future<Reddit> getRed() async {
     if(reddit == null){
       return await Reddit.createReadOnlyInstance(
@@ -103,37 +155,9 @@ class PostsProvider {
     var b2 = CommentM.fromJson2(response, r);
     return b2;
   }
-  checkForRefresh() async {
-    if(reddit.auth.credentials.isExpired){
-      var x = await reddit.auth.credentials.refresh();
-      var name = await reddit.user.me();
-      reddit = await restoreAuth(x.toJson());
-      updateCredentials(name.fullname, x.toJson());
-    }
-  }
-  
-  Future<Reddit> restoreAuth(String jsonCredentials) async {
-    final configUri = Uri.parse('draw.ini');
-    var userAgent = "$appName $appVersion by u/tipezuke";
-    return await Reddit.restoreAuthenticatedInstance(
-        jsonCredentials,
-        userAgent: userAgent,
-        configUri: configUri,
-        clientSecret: "",
-        clientId: "JfjOgtm3pWG22g"
-      );
-  }
 
   Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
-    if(true){
-      var loadedCredentials = await readCredentials("tipezuke");
-      if(loadedCredentials != null){
-        print("RETRIEVED CREDENTIALS: " + loadedCredentials);
-        reddit = await restoreAuth(loadedCredentials);
-      }else{
-        print("RUCMFKCKCK");
-      }
-    }
+    var res = await logInToLatest();
     Reddit r = await getRed();
     Map<String, String> headers = new Map<String, String>();
 

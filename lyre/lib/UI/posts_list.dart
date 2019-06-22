@@ -225,7 +225,6 @@ class PostsList extends State<lyApp>
   bool typeVisible = true;
 
   _changeTypeVisibility(){
-    setState(() {
       if(typeVisible){
         typeHeight = 0.0;
         typeVisible = false;
@@ -233,7 +232,6 @@ class PostsList extends State<lyApp>
         typeHeight = 25.0;
         typeVisible = true;
       }
-    });
   }
   List<Widget> _createParams(bool type){
     return (type)? new List<Widget>.generate(sortTypes.length, (int index){
@@ -539,29 +537,37 @@ class PostsList extends State<lyApp>
                                           ),
                                           new Visibility(
                                             child: new Container(
-                                              height: 30.0,
+                                              height: 25.0,
                                               color: Colors.blue,
                                               child: Padding(
                                                 child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: <Widget>[
-                                                    AnimatedContainer(
-                                                      child: Row(
-                                                        children: _createParams(true),
-                                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                    AnimatedSize(
+                                                      child: Container(
+                                                        child: Row(
+                                                          children: _createParams(true),
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                        ),
+                                                        height: typeHeight
                                                       ),
                                                       duration: Duration(milliseconds: 150),
-                                                      height: typeHeight,
+                                                      vsync: this,
                                                       curve: Curves.ease,
                                                     ),
-                                                    AnimatedContainer(
-                                                      child: Row(
-                                                        children: _createParams(false),
-                                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                    AnimatedSize(
+                                                      child: Container(
+                                                        child: Row(
+                                                          children: _createParams(false),
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                        ),
+                                                        height: 25.0-typeHeight
                                                       ),
                                                       duration: Duration(milliseconds: 150),
-                                                      height: 25.0-typeHeight,
+                                                      vsync: this,
                                                       curve: Curves.ease,
-                                                    )
+                                                    ),
                                                   ],
                                                 ),
                                                 padding: EdgeInsets.only(left: 5.0, right: 5.0),
@@ -578,195 +584,7 @@ class PostsList extends State<lyApp>
                                         bottomRight: Radius.circular(25.0-lerp(0,25.0)),
                                       ),
                                 )
-                              ),/*
-                              new AnimatedContainer(
-                                child: new Container(
-                                  decoration: BoxDecoration(
-                                      color: Color.fromARGB(255, 70, 64, 66),
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(25.0)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black,
-                                          offset: new Offset(0.0, 5.5),
-                                          blurRadius: 20.0,
-                                        )
-                                      ]),
-                                  child: ClipRRect(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[    
-                                          new GestureDetector(
-                                              onVerticalDragUpdate:
-                                                  (DragUpdateDetails details) {
-                                                if (details.delta.direction < 1.0 &&
-                                                    !isElevated) {
-                                                  initV(context);
-                                                  controller.forward();
-                                                  subsListHeight = 350.0;
-                                                  isElevated = true;
-                                                } else if (details.delta.direction >
-                                                    1.0 &&
-                                                    isElevated) {
-                                                  reverse(context);
-                                                  subsListHeight = 50.0;
-                                                }
-                                              },
-                                              onTap: (){
-                                                _changeParamsVisibility();
-                                              },
-                                              child: new Container(
-                                                height: 45.0,
-                                                child: new Stack(
-                                                  children: <Widget>[
-                                                    new AnimatedOpacity(
-                                                      opacity: !isElevated ? 1.0 : 0.0,
-                                                      duration:
-                                                      Duration(milliseconds: 200),
-                                                      curve: Curves.easeInQuad,
-                                                      child: Container(
-                                                        padding: EdgeInsets.all(5.0),
-                                                        child: Row(
-                                                          crossAxisAlignment:
-                                                          CrossAxisAlignment.center,
-                                                          children: <Widget>[
-                                                            Column(children: <Widget>[
-                                                              new Text(
-                                                                'r/$currentSubreddit',
-                                                                style: TextStyle(
-                                                                  color: Colors.white70,
-                                                                  fontSize: 22.0,
-                                                                ),
-                                                                textAlign: TextAlign.start,
-                                                              ),
-                                                              new Text(
-                                                                bloc.getFilterString(),
-                                                                style: TextStyle(
-                                                                  color: Colors.white54,
-                                                                  fontSize: 14.0,
-                                                                ),
-                                                                textAlign: TextAlign.start,
-                                                              )
-                                                            ],
-                                                            mainAxisAlignment: MainAxisAlignment.start,
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            )
-                                                            /*
-                                                            InkWell(
-                                                              child: new Icon(
-                                                                  Icons.list,
-                                                                  color: Theme.of(context)
-                                                                      .accentColor,
-                                                                ),
-                                                                onTap: (){
-                                                                  _showDialog();
-                                                                },
-                                                            )*/
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    new AnimatedOpacity(
-                                                        opacity: isElevated ? 1.0 : 0.0,
-                                                        duration:
-                                                        Duration(milliseconds: 200),
-                                                        curve: Curves.easeInQuad,
-                                                        child: new Container(
-                                                          decoration: BoxDecoration(),
-                                                          child: new TextField(
-                                                            enabled: isElevated,
-                                                            onChanged: (String s) {
-                                                              searchQuery = s;
-                                                              sub_bloc.fetchSubs(s);
-                                                            },
-                                                            onEditingComplete: () {
-                                                              currentSubreddit = searchQuery;
-                                                              reverse(context);
-                                                              bloc.fetchAllPosts();
-                                                              bloc.resetFilters();
-                                                              subsListHeight = 50.0;
-                                                              scontrol.animateTo(0.0,
-                                                                  duration: Duration(
-                                                                      milliseconds:
-                                                                      400),
-                                                                  curve: Curves
-                                                                      .decelerate);
-                                                            },
-                                                          ),
-                                                        ))
-                                                  ],
-                                                ),
-                                                width:
-                                                MediaQuery.of(context).size.width,
-                                              )),
-                                          
-                                          
-                                          new Container(
-                                            height: (height2Animation != null)
-                                                ? height2Animation.value
-                                                : 0.0,
-                                            child: new StreamBuilder(
-                                              stream: sub_bloc.getSubs,
-                                              builder: (context,
-                                                  AsyncSnapshot<SubredditM> snapshot) {
-                                                if(isElevated){
-                                                  if (snapshot.hasData) {
-                                                  return buildSubsList(snapshot);
-                                                } else if (snapshot.hasError) {
-                                                  return Text(
-                                                      snapshot.error.toString());
-                                                }
-                                                return Center(
-                                                    child: CircularProgressIndicator());
-                                                }else{
-                                                  return Container(height: 0.0,);
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                          new Visibility(
-                                            child: new Container(
-                                              height: 30.0,
-                                              color: Colors.blue,
-                                              child: Padding(
-                                                child: Column(
-                                                  children: <Widget>[
-                                                    AnimatedContainer(
-                                                      child: Row(
-                                                        children: _createParams(true),
-                                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                      ),
-                                                      duration: Duration(milliseconds: 150),
-                                                      height: typeHeight,
-                                                      curve: Curves.ease,
-                                                    ),
-                                                    AnimatedContainer(
-                                                      child: Row(
-                                                        children: _createParams(false),
-                                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                      ),
-                                                      duration: Duration(milliseconds: 150),
-                                                      height: 25.0-typeHeight,
-                                                      curve: Curves.ease,
-                                                    )
-                                                  ],
-                                                ),
-                                                padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                                                ),
-                                            ),
-                                            visible: !isElevated,
-                                          ),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(25.0)),
-                                ),
-                                duration: Duration(milliseconds: 325),
-                                height: subsListHeight + paramsHeight,
-                                curve: Curves.fastOutSlowIn,
-                                width: MediaQuery.of(context).size.width,
-                              )
-                              */
+                              ),
                             ],
                           ),
                         ),
@@ -801,6 +619,9 @@ class PostsList extends State<lyApp>
             margin: EdgeInsets.all(18.0),
           ),
           onTap: (){
+            if(i == 0){
+              PostsProvider().logInAsGuest();
+            }
             PostsProvider().logIn(list[i]);
             bloc.fetchAllPosts();
           },

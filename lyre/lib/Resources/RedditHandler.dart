@@ -9,12 +9,12 @@ Future<void> changeSave(Submission s) async {
   }
 }
 Future<void> changeVoteState(VoteState state, Submission s) async {
-  if(state == VoteState.none) return; //For efficiency, to prevent unnecessary calls to the API
+  if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API
   if(state == s.vote){
-    s.clearVote();
+    return s.clearVote();
   }else if(state == VoteState.downvoted){
-    s.downvote();
+    return s.downvote();
   }else{
-    s.upvote();
+    return s.upvote();
   }
 }

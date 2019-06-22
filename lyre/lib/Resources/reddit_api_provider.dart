@@ -27,6 +27,9 @@ class PostsProvider {
     var r = await getRed();
     return r.readOnly ? false : true;
   }
+  Future<void> logInAsGuest() async {
+    reddit = await getReadOnlyReddit();
+  }
   Future<bool> logIn(String username) async{
     var credentials = await readCredentials(username);
     if(credentials != null){
@@ -131,14 +134,17 @@ class PostsProvider {
   }
   Future<Reddit> getRed() async {
     if(reddit == null){
-      return await Reddit.createReadOnlyInstance(
-        userAgent: "$appName $appVersion by u/tipezuke",
-        clientId: "6sQY26tkKTP99w",
-        clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
-      );
+      return getReadOnlyReddit();
     }else{
       return reddit;
     }
+  }
+  Future<Reddit> getReadOnlyReddit() async {
+    return Reddit.createReadOnlyInstance(
+      userAgent: "$appName $appVersion by u/tipezuke",
+        clientId: "6sQY26tkKTP99w",
+        clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
+    );
   }
   Future<CommentM> getC2(String ids, String fullname) async {
     
@@ -158,7 +164,6 @@ class PostsProvider {
 
   Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
     var res = await logInToLatest();
-    Reddit r = await getRed();
     Map<String, String> headers = new Map<String, String>();
 
     if(loadMore)headers["after"]="t3_$lastPost";
@@ -171,23 +176,23 @@ class PostsProvider {
     if(timeFilter == ""){
       switch (typeFilter){
             case "hot":
-              var v = await r.subreddit(currentSubreddit).hot(params: headers).toList();
+              var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
               return ItemModel.fromApi(v);
             case "new":
-              var v = await r.subreddit(currentSubreddit).newest(params: headers).toList();
+              var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
               return ItemModel.fromApi(v);
             case "rising":
-              var v = await r.subreddit(currentSubreddit).rising(params: headers).toList();
+              var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
               return ItemModel.fromApi(v);
         }
     }else{
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
             case "controversial":
-              var v = await r.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+              var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
               return ItemModel.fromApi(v);
             case "top":
-              var v = await r.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+              var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
               return ItemModel.fromApi(v);
         }
     }

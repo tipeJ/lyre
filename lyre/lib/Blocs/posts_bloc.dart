@@ -30,6 +30,7 @@ class PostsBloc {
 
     //Currently refreshes list of registered usernames via refreshing list of posts.
     var x = await readUsernames();
+    x.insert(0, "Guest");
     usernamesList = x;
     currentUser = await PostsProvider().getLatestUser();
   }

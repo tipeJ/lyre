@@ -12,7 +12,7 @@ class Post {
   Post.fromApi(Submission s){
     this.s = s;
 
-    _preview = s.preview.first;
+    _preview = (s != null && s.preview.isNotEmpty) ? s.preview.first : null;
 
     _linkType = s.isSelf ? LinkType.Self : getLinkType(s.url.toString());
   }

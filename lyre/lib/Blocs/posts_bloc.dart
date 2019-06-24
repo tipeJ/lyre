@@ -4,6 +4,7 @@ import '../Resources/credential_loader.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
 import '../Models/User.dart';
+import '../UI/posts_list.dart';
 import '../Resources/reddit_api_provider.dart';
 
 class PostsBloc {

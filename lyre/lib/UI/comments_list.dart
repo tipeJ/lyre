@@ -4,7 +4,6 @@ import 'CustomExpansionTile.dart';
 import 'CustomListTile.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/utils_html.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'postInnerWidget.dart';
@@ -13,7 +12,6 @@ import '../Models/Post.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class commentsList extends StatefulWidget {
   final Post post;

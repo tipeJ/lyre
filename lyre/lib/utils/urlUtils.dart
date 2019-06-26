@@ -31,6 +31,14 @@ LinkType getLinkType(String url){
     return LinkType.DirectImage;
   }else if(url.contains("youtube.com") || url.contains("youtu.be")){
     return LinkType.YouTube;
+  }else if(url.contains("gfycat.com")){
+    return LinkType.Gfycat;
   }
   return LinkType.Default;
+}
+
+String getGfyid(String url){
+  var divided = url.split("/");
+  var last = divided.last;
+  return last;
 }

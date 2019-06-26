@@ -23,4 +23,10 @@ class Post {
   String getUrl(){
     return s.url.toString();
   }
+  Uri getImageUrl(){
+    return (s.preview != null && s.preview.isNotEmpty) ? s.preview.first.source.url : null;
+  }
+  bool hasPreview(){
+    return (s.preview != null && s.preview.isNotEmpty);
+  }
 }

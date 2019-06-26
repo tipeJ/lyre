@@ -4,7 +4,12 @@ import '../Models/Post.dart';
 String BASE_URL = "https://www.reddit.com";
 String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
-String currentSubreddit = "all";
+
+String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
+String GFYCAT_CLIENT_ID = "2__lD9Ci";
+String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
+
+String currentSubreddit = "gifs";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',
@@ -60,6 +65,7 @@ int currentCount = 0;
 String lastPost = "";
 
 bool autoLoad = false;
+bool loopVideos = true;
 bool preCollapsed = false;
 
 Post cPost;

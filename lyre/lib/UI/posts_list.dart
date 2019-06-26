@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/item_model.dart';
 import '../Models/Post.dart';
@@ -10,12 +11,16 @@ import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
-
+import '../Resources/gfycat_provider.dart';
+import 'package:video_player/video_player.dart';
+enum PreviewType{
+    Image,
+    Video
+  }
 class lyApp extends StatefulWidget {
   State<lyApp> createState() => new PostsList();
 }
@@ -53,14 +58,33 @@ class PostsList extends State<lyApp>
 
   var paramsHeight = 0.0;
 
+  PreviewType previewType;
+
   @override
   void preview(String url) {
-    if (!isPreviewing) {
-      previewUrl = url;
-      showOverlay();
-      //previewController.forward();
+    var x = getLinkType(url);
+    if(x == LinkType.Gfycat){
+      if(!isPreviewing){
+          previewType = PreviewType.Video;
+          gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((onValue){
+          _videoController = VideoPlayerController.network(onValue);
+          _initializeVideoPlayerFuture = _videoController.initialize();
+          showVideoOverlay();
+          _videoController.setLooping(loopVideos);
+          _videoController.play();
+        });
+      }
+      
+    }else{
+      if (!isPreviewing) {
+        previewType = PreviewType.Image;
+        previewUrl = url;
+        showOverlay();
+        //previewController.forward();
+      }
     }
   }
+  Future<void> _initializeVideoPlayerFuture;
 
   @override
   void view(String url) {}
@@ -79,6 +103,8 @@ class PostsList extends State<lyApp>
     controller.reverse();
     isElevated = false;
   }
+  
+  VideoPlayerController _videoController;
   
 
   void initV(BuildContext context) {
@@ -122,7 +148,6 @@ class PostsList extends State<lyApp>
 
   @override
   void initState() {
-    super.initState();
     _controller = AnimationController( //<-- initialize a controller
       vsync: this,
       duration: Duration(milliseconds: 600), 
@@ -136,7 +161,7 @@ class PostsList extends State<lyApp>
       initV(context);
     });
     state = Overlay.of(context);
-    entry = OverlayEntry(
+    imageEntry = OverlayEntry(
         builder: (context) => new GestureDetector(
               child: new Container(
                   width: 400.0,
@@ -158,67 +183,67 @@ class PostsList extends State<lyApp>
                 hideOverlay();
               },
             ));
+            
+    videoEntry = OverlayEntry(
+      builder: (context) => new GestureDetector(
+        child: Container(
+          color: Color.fromARGB(200, 0, 0, 0),
+          child: FutureBuilder(
+              future: _initializeVideoPlayerFuture,
+              builder: (context, snapshot){
+                if(snapshot.connectionState == ConnectionState.done){
+                  return Center(
+                    child: Container(
+                      child: AspectRatio(
+                        child: VideoPlayer(_videoController),
+                        aspectRatio: _videoController.value.aspectRatio,
+                      ),
+                    ),
+                  );
+                }else{
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            )
+        ),
+        onTap: (){
+          hideOverlay();
+        },
+      )
+    );
+    super.initState();
   }
 
   String searchQuery = "";
 
   OverlayState state;
-  OverlayEntry entry;
+  OverlayEntry imageEntry;
+  OverlayEntry videoEntry;
 
   showOverlay() {
     if (!isPreviewing) {
-      state.insert(entry);
+      state.insert(imageEntry);
       isPreviewing = true;
     }
   }
+  showVideoOverlay(){
+    if(!isPreviewing){
+      state.insert(videoEntry);
+      isPreviewing = true;
+    }
+  }
+  
 
   hideOverlay() {
     if (isPreviewing) {
-      entry.remove();
+      if(previewType == PreviewType.Image){
+        imageEntry.remove();
+      }else if(previewType == PreviewType.Video){
+        videoEntry.remove();
+      }
       state.deactivate();
       isPreviewing = false;
     }
-  }
-
-
-  void _showDialog(){
-    showDialog(
-      context: context,
-      builder: (BuildContext context){
-        return AlertDialog(
-          content: Column(
-            children: <Widget>[
-              DropdownButton<String>(
-                items: sortTypes.map((String value){
-                  return new DropdownMenuItem<String>(
-                    child: Text(value),
-                    value: value,
-                    );
-                }).toList(),
-                onChanged: (value){
-                  setState(() {
-                   currentSortType = value; 
-                  });
-                },
-              ),
-              DropdownButton<String>(
-                items: sortTimes.map((String value){
-                  return new DropdownMenuItem<String>(
-                    child: Text(value),
-                    value: value,
-                    );
-                }).toList(),
-                onChanged: (value){
-                  setState(() {
-                   currentSortTime = value; 
-                  });
-                },
-              )
-            ],
-          ),
-        );
-      }
-    );
   }
 
   var typeHeight = 25.0;
@@ -526,12 +551,12 @@ class PostsList extends State<lyApp>
                                                       ),
                                                       onPressed: (){
                                                         final snackBar = SnackBar(
-                                                              content: Text('yayyy'),
+                                                              content: Text('Log in in order to post your submission'),
                                                             );
                                                         setState(() {
                                                          PostsProvider().isLoggedIn().then((onV) {
                                                            if(onV){
-
+                                                             
                                                            }else{
                                                              Scaffold.of(context).showSnackBar(snackBar);
                                                            }
@@ -645,7 +670,11 @@ class PostsList extends State<lyApp>
           ),
           onTap: (){
             if(i == 0){
-              PostsProvider().logInAsGuest();
+              PostsProvider().logInAsGuest().then((_){
+                setState(() {
+                  bloc.fetchAllPosts();
+                });
+              });
             }
             PostsProvider().logIn(list[i]);
             bloc.fetchAllPosts();
@@ -749,10 +778,11 @@ class PostsList extends State<lyApp>
 
   @override
   void dispose() {
-    _controller.dispose(); //<-- and remember to dispose it
+    super.dispose();
+    _controller.dispose();
+    _videoController.dispose();
     controller?.dispose();
     previewController?.dispose();
-    super.dispose();
   }
 
   void showComments(BuildContext context, Post inside) {

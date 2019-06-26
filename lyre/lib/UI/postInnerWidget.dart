@@ -14,6 +14,7 @@ import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
+import 'package:video_player/video_player.dart';
 
 enum PostView{
   ImagePreview,
@@ -21,21 +22,39 @@ enum PostView{
   Compact,
   NoPreview
 }
+class postInnerWidget extends StatefulWidget{
+  final Post post;
+  final PreviewCallback callBack;
 
-class postInnerWidget extends StatelessWidget {
+  postInnerWidget(this.post, this.callBack);
+
+  @override
+  innerWidgetState createState() => innerWidgetState(post, callBack);
+}
+
+class innerWidgetState extends State<postInnerWidget> {
   PostView viewSetting = PostView.IntendedPreview;
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
 
-  postInnerWidget(this.post, this.callBack);
+  innerWidgetState(this.post, this.callBack);
+
+
+  @override
+  void initState() {
+    super.initState();
+    
+    
+  }
+
 
   Widget getWidget(BuildContext context){
 
     if (post.s.isSelf) {
       return new defaultColumn(post, callBack);
     }
-    if (post.linkType == LinkType.DirectImage || post.linkType == LinkType.YouTube) {
+    if (post.hasPreview()) {
       switch (viewSetting) {
         case PostView.IntendedPreview:
           return new Stack(children: <Widget>[
@@ -78,7 +97,7 @@ class postInnerWidget extends StatelessWidget {
           return new defaultColumn(post, callBack);
       }
     }
-    return new defaultColumn(post, callBack);
+    return getSlideColumn();
   }
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
@@ -99,7 +118,7 @@ class postInnerWidget extends StatelessWidget {
           child: new GestureDetector(
             child: Image(
               image: AdvancedNetworkImage(
-                (post.linkType == LinkType.YouTube) ? getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.getUrl())) : post.getUrl(),
+                post.getImageUrl().toString(),
                 useDiskCache: true,
                 cacheRule: CacheRule(maxAge: const Duration(days: 7))
               ),
@@ -130,9 +149,12 @@ class postInnerWidget extends StatelessWidget {
   }
   void handleClick(BuildContext context){
     if(post.linkType == LinkType.YouTube){
+      //TODO: Implement YT plugin?
       _launchURL(context, post);
-    }else if(post.linkType == LinkType.DirectImage){
+    }else if(post.linkType == LinkType.DirectImage || post.linkType == LinkType.Gfycat){
       callBack.preview(post.getUrl());
+    }else{
+      _launchURL(context, post);
     }
   }
 
@@ -142,7 +164,7 @@ class postInnerWidget extends StatelessWidget {
         callBack.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(post.getUrl())));
         break;
       default :
-          callBack.preview(post.getUrl());
+        callBack.preview(post.getImageUrl().toString());
         break;
     }
   }
@@ -326,7 +348,15 @@ class defaultColumn extends StatelessWidget {
                         onTap: (){
                           //showComments(context);
                         },
-                    )
+                    ),
+                    new Padding(
+                        child: new Text(
+                            "r/${post.s.domain}",
+                            textAlign: TextAlign.left,
+                            textScaleFactor: 1.0,
+                            style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
+                        padding:
+                            const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
           ])),
           const SizedBox(
             height: 3.5,

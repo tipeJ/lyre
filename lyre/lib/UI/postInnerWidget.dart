@@ -351,7 +351,7 @@ class defaultColumn extends StatelessWidget {
                     ),
                     new Padding(
                         child: new Text(
-                            "r/${post.s.domain}",
+                            post.s.domain,
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
                             style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),

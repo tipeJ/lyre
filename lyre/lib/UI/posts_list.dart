@@ -146,8 +146,15 @@ class PostsList extends State<lyApp>
   }
   double get maxHeight => 400.0; //<-- Get max height of the screen
 
+  void refreshUser(){
+    setState(() {
+      
+    });
+    bloc.fetchAllPosts();
+  }
   @override
   void initState() {
+    currentUser.addListener(refreshUser);
     _controller = AnimationController( //<-- initialize a controller
       vsync: this,
       duration: Duration(milliseconds: 600), 
@@ -363,7 +370,7 @@ class PostsList extends State<lyApp>
               slivers: <Widget>[
                 SliverToBoxAdapter(
                   child: Text(
-                    "Logged in as " + bloc.getCurrentUser().username,
+                    "Logged in as " + currentUser.value,
                     style: TextStyle(
                       fontSize: 24.0
                     ),
@@ -745,6 +752,7 @@ class PostsList extends State<lyApp>
         }
       },
       child: new ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics (),
           controller: scontrol,
           itemCount: posts.length + 1,
           itemBuilder: (BuildContext context, int i) {

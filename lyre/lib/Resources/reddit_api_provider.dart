@@ -27,17 +27,20 @@ class PostsProvider {
     var r = await getRed();
     return r.readOnly ? false : true;
   }
-  Future<void> logInAsGuest() async {
+  logInAsGuest() async {
     reddit = await getReadOnlyReddit();
+    currentUser.value = "Guest";
   }
   Future<bool> logIn(String username) async{
     var credentials = await readCredentials(username);
     if(credentials != null){
+      print("CREDENTIALS WEREN'T NULL");
       reddit = await getRed();
       var cUserDisplayname = "";
       if(!reddit.readOnly){
-        var currentUser = await reddit.user.me();
-        cUserDisplayname = currentUser.displayName;
+        reddit.user.me().then((redditor){
+          cUserDisplayname = redditor.displayName;
+        });
       }
       print("cuser:" + cUserDisplayname);
       if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
@@ -45,19 +48,36 @@ class PostsProvider {
         reddit = await restoreAuth(credentials);
         updateLogInDate(username);
       }
+      if(reddit.readOnly){
+        currentUser.value = "Guest";
+      }else{
+        reddit.user.me().then((me){
+          currentUser.value = me.displayName;
+        });
+      }
       return true;
     }
+    print("CREDENTIALS WERE NULL");
     return false;
   }
   Future<bool> logInToLatest() async {
-    var latestUser = await getLatestUser();
-    if(latestUser != null){
-      logIn(latestUser.username);
+    if(reddit != null && !reddit.readOnly){
       return true;
-    }else{
-      reddit = await getRed();
-      return false;
     }
+    print("asasasas");
+    getLatestUser().then((latestUser){
+      if(latestUser != null){
+      logIn(latestUser.username).then((_){
+        return true;
+      });
+    }else{
+      getRed().then((r){
+        reddit = r;
+        return false;
+      });
+    }
+    });
+    return false;
   }
   
   Future<Reddit> restoreAuth(String jsonCredentials) async {
@@ -164,38 +184,75 @@ class PostsProvider {
 
   Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
     var res = await logInToLatest();
-    Map<String, String> headers = new Map<String, String>();
+    if(res){
+      Map<String, String> headers = new Map<String, String>();
 
-    if(loadMore)headers["after"]="t3_$lastPost";
+      if(loadMore)headers["after"]="t3_$lastPost";
 
-    headers["limit"] = perPage.toString();
-    if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
-      timeFilter = "";
-      //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
-    }
-    if(timeFilter == ""){
-      switch (typeFilter){
-            case "hot":
-              var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-              return ItemModel.fromApi(v);
-            case "new":
-              var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-              return ItemModel.fromApi(v);
-            case "rising":
-              var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
-              return ItemModel.fromApi(v);
-        }
+      headers["limit"] = perPage.toString();
+      if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
+        timeFilter = "";
+        //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
+      }
+      if(timeFilter == ""){
+        switch (typeFilter){
+              case "hot":
+                var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "new":
+                var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "rising":
+                var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+                return ItemModel.fromApi(v);
+          }
+      }else{
+        var filter = parseTimeFilter(timeFilter);
+        switch (typeFilter){
+              case "controversial":
+                var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "top":
+                var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+                return ItemModel.fromApi(v);
+          }
+      }
     }else{
-      var filter = parseTimeFilter(timeFilter);
-      switch (typeFilter){
-            case "controversial":
-              var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-              return ItemModel.fromApi(v);
-            case "top":
-              var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-              return ItemModel.fromApi(v);
-        }
+      reddit = await getRed();
+      Map<String, String> headers = new Map<String, String>();
+
+      if(loadMore)headers["after"]="t3_$lastPost";
+
+      headers["limit"] = perPage.toString();
+      if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
+        timeFilter = "";
+        //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
+      }
+      if(timeFilter == ""){
+        switch (typeFilter){
+              case "hot":
+                var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "new":
+                var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "rising":
+                var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+                return ItemModel.fromApi(v);
+          }
+      }else{
+        var filter = parseTimeFilter(timeFilter);
+        switch (typeFilter){
+              case "controversial":
+                var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+                return ItemModel.fromApi(v);
+              case "top":
+                var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+                return ItemModel.fromApi(v);
+          }
+      }
     }
+    
     
     return null;
   }

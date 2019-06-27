@@ -19,6 +19,19 @@ class PostsBloc {
   RedditUser getCurrentUser(){
     return (currentUser != null) ? currentUser : RedditUser(username: "Guest", credentials: "", date: 0);
   }
+  Future<String> cplas;
+  Future<String> getCUserName() async {
+    PostsProvider().isLoggedIn().then((loggedIn){
+           if(loggedIn){
+             PostsProvider().reddit.user.me().then((redditor){
+               return redditor.displayName;
+             });
+           }else{
+             return "Guest";
+           }
+    });
+    
+  }
 
   fetchAllPosts() async {
     temporaryType = currentSortType;

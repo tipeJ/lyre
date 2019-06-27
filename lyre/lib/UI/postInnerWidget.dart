@@ -22,31 +22,13 @@ enum PostView{
   Compact,
   NoPreview
 }
-class postInnerWidget extends StatefulWidget{
-  final Post post;
-  final PreviewCallback callBack;
-
-  postInnerWidget(this.post, this.callBack);
-
-  @override
-  innerWidgetState createState() => innerWidgetState(post, callBack);
-}
-
-class innerWidgetState extends State<postInnerWidget> {
+class postInnerWidget extends StatelessWidget {
   PostView viewSetting = PostView.IntendedPreview;
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
 
-  innerWidgetState(this.post, this.callBack);
-
-
-  @override
-  void initState() {
-    super.initState();
-    
-    
-  }
+  postInnerWidget(this.post, this.callBack);
 
 
   Widget getWidget(BuildContext context){

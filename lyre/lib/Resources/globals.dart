@@ -1,4 +1,6 @@
 library lyre.globals;
+import 'package:flutter/foundation.dart';
+
 import '../Models/Post.dart';
 
 String BASE_URL = "https://www.reddit.com";
@@ -9,7 +11,7 @@ String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
-String currentSubreddit = "gifs";
+String currentSubreddit = "all";
 List<String> subreddits = [
   '/r/AskReddit',
   '/r/Science',
@@ -54,6 +56,8 @@ String currentSortType = defaultSortType;
 String currentSortTime = "";
 
 String currentPostId = "";
+
+final currentUser = ValueNotifier("");
 
 String appName = "Lyre";
 String appVersion = "0.1";

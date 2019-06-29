@@ -362,7 +362,7 @@ class PostsList extends State<lyApp>
     }
     return new WillPopScope(
         child: Scaffold(
-          resizeToAvoidBottomPadding: true,
+          resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
             padding: EdgeInsets.only(top: 200, left: 20.0, right: 20.0),
@@ -422,9 +422,9 @@ class PostsList extends State<lyApp>
                     getFloatingNavBar()
                   ],
                 ),
-            onLongPressUp: () {
-              hideOverlay();
-            },
+              onLongPressUp: () {
+                hideOverlay();
+              },
           )),
         ),
         onWillPop: _willPop);
@@ -563,9 +563,10 @@ class PostsList extends State<lyApp>
                                                         setState(() {
                                                          PostsProvider().isLoggedIn().then((onV) {
                                                            if(onV){
-                                                             
+                                                             showSubmit(context);
                                                            }else{
-                                                             Scaffold.of(context).showSnackBar(snackBar);
+                                                             showSubmit(context);
+                                                             //Scaffold.of(context).showSnackBar(snackBar);
                                                            }
                                                          });
                                                         });
@@ -797,6 +798,9 @@ class PostsList extends State<lyApp>
     //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
     cPost = inside;
     inside.expanded = true;
-    Navigator.of(context).pushNamed('/second');
+    Navigator.of(context).pushNamed('/comments');
+  }
+  void showSubmit(BuildContext context){
+    Navigator.of(context).pushNamed('/submit');
   }
 }

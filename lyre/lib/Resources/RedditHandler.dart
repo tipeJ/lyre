@@ -18,3 +18,9 @@ Future<void> changeVoteState(VoteState state, Submission s) async {
     return s.upvote();
   }
 }
+Future<Submission> submitSelf(String sub, String title, String text) async {
+  var r = await PostsProvider().getRed();
+  var subRef = SubredditRef.name(r, sub);
+  var submission = await subRef.submit(title, selftext: text);
+  return submission;
+}

@@ -79,12 +79,11 @@ class comL extends State<commentsList>
                     opacity: 1.0,
                     child: new Container(
                       child: Image(
-                        image: AdvancedNetworkImage(
-                          previewUrl, 
-                          useDiskCache: true,
-                          cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-                        )
-                        ),
+                          image: AdvancedNetworkImage(
+                        previewUrl,
+                        useDiskCache: true,
+                        cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+                      )),
                       color: Color.fromARGB(200, 0, 0, 0),
                     ),
                   )),
@@ -113,7 +112,7 @@ class comL extends State<commentsList>
   Widget build(BuildContext context) {
     if (bloc.currentComments == null) {
       bloc.fetchComments();
-    }else{
+    } else {
       print("WTW:" + bloc.currentComments.results.length.toString());
     }
     return WillPopScope(
@@ -127,9 +126,9 @@ class comL extends State<commentsList>
                     slivers: <Widget>[
                       new SliverToBoxAdapter(
                         child: new Hero(
-                      tag: 'post_hero ${post.s.id}',
-                      child: new postInnerWidget(post, this),
-                    ),
+                          tag: 'post_hero ${post.s.id}',
+                          child: new postInnerWidget(post, this),
+                        ),
                       ),
                       new StreamBuilder(
                         stream: bloc.allComments,
@@ -142,10 +141,7 @@ class comL extends State<commentsList>
                           return SliverToBoxAdapter(
                             child: Container(
                               child: Center(child: CircularProgressIndicator()),
-                              padding: EdgeInsets.only(
-                                top: 3.5,
-                                bottom: 2.5
-                              ),
+                              padding: EdgeInsets.only(top: 3.5, bottom: 2.5),
                             ),
                           );
                         },
@@ -176,6 +172,7 @@ class comL extends State<commentsList>
     int remain = depth % colorList.length;
     return colorList[remain];
   }
+
   /*
   Widget getCommentWidget2(Comment comment){
     return new GestureDetector(
@@ -251,19 +248,18 @@ class comL extends State<commentsList>
                     new Padding(
                         child: Row(
                           children: <Widget>[
-                            Text(
-                              "${comment.points} ",
-                              textAlign: TextAlign.left,
-                              textScaleFactor: 0.65,
-                              style: new TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white.withOpacity(0.9))),
+                            Text("${comment.points} ",
+                                textAlign: TextAlign.left,
+                                textScaleFactor: 0.65,
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white.withOpacity(0.9))),
                             Text(
                               "● u/${comment.author}",
                               textScaleFactor: 0.7,
                               style: new TextStyle(
                                   color: Colors.white.withOpacity(0.6)),
-                            )  
+                            )
                           ],
                         ),
                         padding: const EdgeInsets.only(
@@ -286,35 +282,33 @@ class comL extends State<commentsList>
                 right: 0.5,
                 top: comment.depth == 0 ? 2.0 : 0.1,
                 bottom: 0.0)),
-
       );
     } else if (comment is moreC) {
       return new GestureDetector(
         child: Container(
           child: Container(
-            child: Row(children: <Widget>[
-              (comment.id == bloc.loadingMoreId) ? new Container(
-                padding: EdgeInsets.all(5.0),
-                child: SizedBox(
-                  child: CircularProgressIndicator(),
-                  height: 18.0,
-                  width: 18.0,
-                ),
-              ) : Container(),
-              new Text(
-              "Load more comments (${comment.count})",
-              style: TextStyle(color: colorList[0]),
-              )
-            ],),
-            decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
-                color: getColor(comment.depth),
-                width: 3.5
-              )
-            )
-          )
-          ),
+              child: Row(
+                children: <Widget>[
+                  (comment.id == bloc.loadingMoreId)
+                      ? new Container(
+                          padding: EdgeInsets.all(5.0),
+                          child: SizedBox(
+                            child: CircularProgressIndicator(),
+                            height: 18.0,
+                            width: 18.0,
+                          ),
+                        )
+                      : Container(),
+                  new Text(
+                    "Load more comments (${comment.count})",
+                    style: TextStyle(color: colorList[0]),
+                  )
+                ],
+              ),
+              decoration: BoxDecoration(
+                  border: Border(
+                      left: BorderSide(
+                          color: getColor(comment.depth), width: 3.5)))),
           padding: EdgeInsets.only(
             left: 4.5 + comment.depth * 3.5,
             right: 0.5,
@@ -323,12 +317,12 @@ class comL extends State<commentsList>
           ),
         ),
         onTapUp: (TapUpDetails details) {
-          if(comment.id != bloc.loadingMoreId){
+          if (comment.id != bloc.loadingMoreId) {
             setState(() {
               bloc.loadingMoreId = comment.id;
               bloc.getB(comment, i, comment.depth, post.s.id);
             });
-          } 
+          }
         },
       );
     }
@@ -349,58 +343,62 @@ class comL extends State<commentsList>
             visible: comment.visible,
           );
         }
-      },childCount: comments.length+1),
+      }, childCount: comments.length + 1),
     );
   }
-  Widget getCommentsExpandableSingle(commentTest parent){
-    if(parent.children == null || parent.children.isEmpty){
+
+  Widget getCommentsExpandableSingle(commentTest parent) {
+    if (parent.children == null || parent.children.isEmpty) {
       return new CustomListTile(
         title: getCommentWidget(parent.result, parent.position),
       );
     }
     var post_children = new List<Widget>();
-    parent.children.forEach((child) => {
-        post_children.add(getCommentsExpandableSingle(child))
-    });
+    parent.children.forEach(
+        (child) => {post_children.add(getCommentsExpandableSingle(child))});
     return new CustomExpansionTile(
       title: getCommentWidget(parent.result, parent.position),
       children: post_children,
       initiallyExpanded: !preCollapsed,
       key: new PageStorageKey(parent.position),
-      trailing: Container(width: 0.0,height: 0.0,),
+      trailing: Container(
+        width: 0.0,
+        height: 0.0,
+      ),
     );
   }
-  Widget getCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot){
+
+  Widget getCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot) {
     var comments = snapshot.data.results;
     var xList = List<commentTest>();
-    for(int i = 0; i < comments.length; i++){
-      if(comments[i].depth == 0){
-        var test = new commentTest(i,comments[i],clist(comments,i));
+    for (int i = 0; i < comments.length; i++) {
+      if (comments[i].depth == 0) {
+        var test = new commentTest(i, comments[i], clist(comments, i));
         xList.add(test);
       }
     }
     return new SliverList(
-        delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-          if (i == 0) {
-            return new Container(
-              height: 0.0,
-            );
-          } else {
-            return getCommentsExpandableSingle(xList[i-1]);
-          }
-
-        }, childCount: xList.length)
-    );
+        delegate: SliverChildBuilderDelegate((BuildContext context, int i) {
+      if (i == 0) {
+        return new Container(
+          height: 0.0,
+        );
+      } else {
+        return getCommentsExpandableSingle(xList[i - 1]);
+      }
+    }, childCount: xList.length));
   }
-  List<commentTest> clist(List<commentResult> results, int index){
+
+  List<commentTest> clist(List<commentResult> results, int index) {
     var list = List<commentTest>();
     var firstR = results[index];
-    if(index == results.length-1 || results[index+1].depth == results[index].depth) return null;
-    for(int i = index + 1; true; i++){
-      if(i == results.length || results[i].depth == firstR.depth){
+    if (index == results.length - 1 ||
+        results[index + 1].depth == results[index].depth) return null;
+    for (int i = index + 1; true; i++) {
+      if (i == results.length || results[i].depth == firstR.depth) {
         break;
-      }else if(results[i].depth == firstR.depth+1){
-        var test = new commentTest(i,results[i],clist(results,i));
+      } else if (results[i].depth == firstR.depth + 1) {
+        var test = new commentTest(i, results[i], clist(results, i));
         list.add(test);
       }
     }
@@ -411,11 +409,12 @@ class comL extends State<commentsList>
     Navigator.pop(context);
   }
 }
-class commentTest{
+
+class commentTest {
   int position;
   List<commentTest> children;
   commentResult result;
 
-  commentTest(this.position, this.result, [this.children = const <commentTest>[]]);
-
+  commentTest(this.position, this.result,
+      [this.children = const <commentTest>[]]);
 }

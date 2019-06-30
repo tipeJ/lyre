@@ -14,7 +14,7 @@ class Post {
 
     _preview = (s != null && s.preview.isNotEmpty) ? s.preview.first : null;
 
-    _linkType = s.isSelf ? LinkType.Self : getLinkType(s.url.toString());
+    _linkType = (s.isSelf == null || s.isSelf) ? LinkType.Self : getLinkType(s.url.toString());
   }
   SubmissionPreview get preview => _preview;
   

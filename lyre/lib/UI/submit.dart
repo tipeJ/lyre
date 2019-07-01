@@ -8,12 +8,19 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../Resources/globals.dart';
 
+enum SubmitType{
+  Selftext,
+  Link,
+  Image,
+  Video
+}
+
 class SubmitWindow extends StatefulWidget{
 
   State<SubmitWindow> createState() => new SubmitWidgetState();
 }
 
-class SubmitWidgetState extends State<SubmitWindow>{
+class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderStateMixin{
   String subReddit = currentSubreddit;
   bool popReady = true;
 
@@ -27,12 +34,33 @@ class SubmitWidgetState extends State<SubmitWindow>{
     });
   }
   
+  SubmitType _submitType;
 
   @override void initState() {
     _subredditController  = TextEditingController();
     _subredditController.text = subReddit;
 
     _titleController = TextEditingController();
+
+    _urlController = TextEditingController();
+
+    _tabController = new TabController(vsync: this, length: 4);
+    _tabController.addListener((){
+      switch (_tabController.index) {
+        case 1:
+          _submitType = SubmitType.Link;
+          break;
+        case 2:
+          _submitType = SubmitType.Image;
+          break;
+        case 3:
+          _submitType = SubmitType.Video;
+          break;
+        default:
+          _submitType = SubmitType.Selftext;
+      }
+    });
+    _tabController.index = 0;
 
     /*
     _focusNode = new FocusNode();
@@ -58,10 +86,16 @@ class SubmitWidgetState extends State<SubmitWindow>{
     return Future.value(false);
   }
   
+  TextEditingController _urlController;
   TextEditingController _subredditController;
   TextEditingController _titleController;
 
+  bool send_replies = true;
+  bool is_nsfw = false;
+
   String markdownData = "";
+
+  TabController _tabController;
 
   @override
   Widget build(BuildContext context){
@@ -100,9 +134,27 @@ class SubmitWidgetState extends State<SubmitWindow>{
                 child: InkWell(
                   child: Icon(Icons.send),
                   onTap: (){
-                    submitSelf(_subredditController.text, _titleController.text, markdownData).then((sub){
-                      showComments(context, sub);
-                    });
+
+                    switch (_submitType) {
+                      case SubmitType.Selftext:
+                        submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
+                          print(sub.id);
+                          print(sub.title);
+                          print(sub.selftext);
+                          showComments(context, sub);
+                        });
+                        break;
+                      case  SubmitType.Link:
+                        submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((sub){
+                          print(sub.id);
+                          print(sub.title);
+                          print(sub.selftext);
+                          showComments(context, sub);
+                        });
+                        break;
+                      default:
+                    }
+                    
                   },
                 ),
               ),
@@ -115,85 +167,96 @@ class SubmitWidgetState extends State<SubmitWindow>{
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              TextField(
-                textInputAction: TextInputAction.send,
-                decoration: InputDecoration(
-                  helperText: "Write your title here"
-                ),
-                controller: _titleController,
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  helperText: "Choose your subreddit",
-                ),
-                controller: _subredditController,
-              ),
-              DefaultTabController(
-                length: 4,
-                child: Column(
-                    children: <Widget>[
-                      TabBar(
-                        tabs: <Widget>[
-                          Tab(
-                            icon: Padding(
-                              padding: EdgeInsets.all(6.0),
-                              child: Icon(Icons.text_fields),
-                            ),
-                          ),
-                          Tab(
-                            icon: Padding(
-                              padding: EdgeInsets.all(6.0),
-                              child: Icon(Icons.link),
-                            ),
-                          ),
-                          Tab(
-                            icon: Padding(
-                              padding: EdgeInsets.all(6.0),
-                              child: Icon(Icons.image)
-                            ),
-                          ),
-                          Tab(
-                            icon: Padding(
-                              padding: EdgeInsets.all(6.0),
-                              child: Icon(Icons.videocam),
-                            ),
-                          ),
-                        ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width/2,
+                    child: TextField(
+                      textInputAction: TextInputAction.send,
+                      decoration: InputDecoration(
+                        helperText: "Write your title here"
                       ),
-                      SizedBox(
-                        height: 500.0,
-                        child: TabBarView(
-                          children: <Widget>[
-                            SelftextInputWidget(),
-                            LinkInputWidget(),
-                            ImageInputWidget(),
-                            Container(
-                              color: Colors.purple,
-                            ),
-                          ],
-                        ),
-                      ),
-                      /*
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          RaisedButton(
-                            child: Text('Cancel'),
-                            onPressed: (){
-
-                            },
-                          ),
-                          RaisedButton(
-                            child: Text('Submit'),
-                            onPressed: (){
-                              
-                            },
-                          ),
-                        ],
-                      )
-                      */
-                    ],
+                      controller: _titleController,
+                    ),
                   ),
+                  Row(children: <Widget>[
+                    Text('Send replies:'),
+                    Switch.adaptive(
+                      value: send_replies,
+                      onChanged: (_){
+                        send_replies = _;
+                      },
+                    )
+                  ],)
+                 
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width/2,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        helperText: "Choose your subreddit",
+                      ),
+                      controller: _subredditController,
+                    ),
+                  ),
+                  Row(children: <Widget>[
+                    Text('NSFW:'),
+                    Switch.adaptive(
+                      value: is_nsfw,
+                      onChanged: (_){
+                        is_nsfw = _;
+                      },
+                    )
+                  ],)
+                ],
+              ),
+              TabBar(
+                controller: _tabController,
+                tabs: <Widget>[
+                  Tab(
+                    icon: Padding(
+                      padding: EdgeInsets.all(6.0),
+                      child: Icon(Icons.text_fields),
+                    ),
+                  ),
+                  Tab(
+                    icon: Padding(
+                      padding: EdgeInsets.all(6.0),
+                      child: Icon(Icons.link),
+                    ),
+                  ),
+                  Tab(
+                    icon: Padding(
+                      padding: EdgeInsets.all(6.0),
+                      child: Icon(Icons.image)
+                    ),
+                  ),
+                  Tab(
+                    icon: Padding(
+                      padding: EdgeInsets.all(6.0),
+                      child: Icon(Icons.videocam),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 500.0,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: <Widget>[
+                    SelftextInputWidget(),
+                    LinkInputWidget(),
+                    ImageInputWidget(),
+                    Container(
+                      color: Colors.purple,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -204,6 +267,7 @@ class SubmitWidgetState extends State<SubmitWindow>{
   void showComments(BuildContext context, Submission sub) {
     Post inside = Post.fromApi(sub);
     cPost = inside;
+    currentPostId = sub.id;
     inside.expanded = true;
     Navigator.of(context).pushNamed('/comments');
   }
@@ -243,6 +307,7 @@ class SubmitWidgetState extends State<SubmitWindow>{
   Widget LinkInputWidget(){
     return Container(
       child: TextField(
+        controller: _urlController,
         decoration: InputDecoration(
           helperText: 'Source URL of link'
         ),

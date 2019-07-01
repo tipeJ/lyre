@@ -112,8 +112,6 @@ class comL extends State<commentsList>
   Widget build(BuildContext context) {
     if (bloc.currentComments == null) {
       bloc.fetchComments();
-    } else {
-      print("WTW:" + bloc.currentComments.results.length.toString());
     }
     return WillPopScope(
         child: Scaffold(

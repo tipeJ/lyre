@@ -257,13 +257,11 @@ class PostsProvider {
     return null;
   }
   Future<CommentM> fetchCommentsList() async {
-    print('comments fetched');
     Map<String, String> headers = new Map<String, String>();
     headers["before"] = "0";
 
     var response = await client.get("${COMMENTS_BASE_URL}${currentPostId}/.json", headers: headers);
     if(response.statusCode == 200){
-      print('comments succ');
       return CommentM.fromJson(json.decode(response.body)[1]["data"]["children"]);
     } else {
       throw Exception('Failed to load comments, statuscode: ' + response.statusCode.toString());

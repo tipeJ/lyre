@@ -18,9 +18,26 @@ Future<void> changeVoteState(VoteState state, Submission s) async {
     return s.upvote();
   }
 }
-Future<Submission> submitSelf(String sub, String title, String text) async {
+//---SUBMISSIONS---
+Future<Submission> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
-  var submission = await subRef.submit(title, selftext: text);
-  return submission;
+  var x = await subRef.submit(
+    title,
+    selftext: text,
+    nsfw: isNsfw,
+    sendReplies: sendReplies
+     );
+  return r.submission(id: x.id).populate();
+}
+Future<Submission> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
+  var r = await PostsProvider().getRed();
+  var subRef = SubredditRef.name(r, sub);
+  var x = await subRef.submit(
+    title,
+    url: url,
+    nsfw: isNsfw,
+    sendReplies: sendReplies
+     );
+  return r.submission(id: x.id).populate();
 }

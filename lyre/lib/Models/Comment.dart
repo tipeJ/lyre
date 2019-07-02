@@ -7,44 +7,47 @@ class CommentM {
     _results  = new List();
     addComments(parsedJson);
   }
-  CommentM.fromJson2(List<dynamic> parsedJson, Reddit r) {
+  CommentM.fromJson2(List<dynamic> parsedJson) {
     _results  = new List();
-    addComments2(parsedJson, r);
+    addComments2(parsedJson);
   }
   
 
   List<commentResult> get results => _results;
-
   void addComments(List<dynamic> jsonData){
     try {
       for (int i = 0; i < jsonData.length; i++) {
-        if(jsonData[i]["kind"] == "t1"){
-          commentC result = commentC(jsonData[i], false);
+        var x = jsonData[i];
+        if(x is Comment){
+          commentC result = commentC.fromC(x);
+          result.c = x as Comment;
           _results.add(result);
-          if(jsonData[i]["data"].containsKey("replies") && jsonData[i]["data"]["replies"] != "") {
-            var replies = jsonData[i]["data"]["replies"]["data"]["children"];
-            addComments(replies);
+          if(x.replies != null && x.replies.comments.isNotEmpty) {
+            addComments(x.replies.comments);
           }
-        }else if(jsonData[i]["kind"] == "more"){
-          moreC c = new moreC(jsonData[i]);
+        }else if(x is MoreComments){
+          var z = x as MoreComments;
+          moreC c = new moreC(z.data);
           _results.add(c);
         }else{
-          commentC c = commentC(jsonData[i], false);
-          _results.add(c);
+          commentC result = commentC.fromC(x);
+          result.c = x as Comment;
+          _results.add(result);
         }
       }
     } catch(e) {
       debugPrint("ERRORSTRING: " + e.toString());
-      debugPrint("ERROR: " + jsonData.toString());
+      //debugPrint("ERROR: " + jsonData.toString());
     }
   }
-  void addComments2(List<dynamic> jsonData, Reddit r) {
+  void addComments2(List<dynamic> jsonData) {
     print("JSONDATA_LENGTH: " + jsonData.length.toString());
     debugPrint("TRIED: " + jsonData.toString());
     
       for (int i = 0; i < jsonData.length; i++) {
         var x = jsonData[i] as Comment;
         commentC result = commentC.fromC(jsonData[i]);
+        result.c = x;
         _results.add(result);
         print("LENGTHAESFASDF: " + _results.length.toString());
       }
@@ -70,30 +73,27 @@ class moreC extends commentResult{
   moreC(result){
     if(result == null){
       print('result is null');
-    } else if(result["data"]["children"] == null){
-      print('children is null');
-    }
-    if(result.containsKey("data")){
-      if(result["data"].containsKey("count")){
-        count = result['data']['count'];
+    } 
+    if(result.containsKey("count")){
+        count = result['count'];
       }
-      if(result["data"].containsKey("id")){
-        id = result['data']['id'];
+      if(result.containsKey("id")){
+        id = result['id'];
       }
-      if(result["data"].containsKey("depth")){
-        depth = result['data']['depth'];
+      if(result.containsKey("depth")){
+        depth = result['depth'];
       }
-      if(result["data"].containsKey("children")){
-        var chi = result['data']['children'];
+      if(result.containsKey("children")){
+        var chi = result['children'];
         for(int i = 0; i < chi.length; i++){
           children.add(chi[i]);
         }
       }
-    }
   }
 
 }
 class commentC extends commentResult{
+  Comment c;
   String _text = "";
   String _id = "";
   String _parent_id = "";

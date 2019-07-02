@@ -178,7 +178,7 @@ class PostsProvider {
     var r = await getRed();
     var response = await r.get("/api/morechildren.json", params: headers);
     
-    var b2 = CommentM.fromJson2(response, r);
+    var b2 = CommentM.fromJson2(response);
     return b2;
   }
 
@@ -261,11 +261,20 @@ class PostsProvider {
     headers["before"] = "0";
 
     var response = await client.get("${COMMENTS_BASE_URL}${currentPostId}/.json", headers: headers);
-    if(response.statusCode == 200){
-      return CommentM.fromJson(json.decode(response.body)[1]["data"]["children"]);
-    } else {
-      throw Exception('Failed to load comments, statuscode: ' + response.statusCode.toString());
+    var r = await getRed();
+    var s = await r.submission(id: currentPostId).populate();
+    return CommentM.fromJson(s.comments.comments);
+  }
+  List<dynamic> getData(List<dynamic> data){
+    List<dynamic> result = List();
+    for(int i = 0; i < data.length; i++){
+      var x = data[i];
+      result.add(x);
+      if(x is Comment && x.replies != null && x.replies.comments.isNotEmpty){
+        result.addAll(getData(x.replies.comments));
+      }
     }
+    return result;
   }
 
   Future<SubredditM> fetchSubReddits(String query) async{

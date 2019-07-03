@@ -13,6 +13,8 @@ import '../Models/Post.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
+import 'Animations/OnSlide.dart';
+import 'ActionItems.dart';
 
 class commentsList extends StatefulWidget {
   final Post post;
@@ -348,9 +350,7 @@ class comL extends State<commentsList>
 
   Widget getCommentsExpandableSingle(commentTest parent) {
     if (parent.children == null || parent.children.isEmpty) {
-      return new CustomListTile(
-        title: getCommentWidget(parent.result, parent.position),
-      );
+      return getCommentWidget(parent.result, parent.position);
     }
     var post_children = new List<Widget>();
     parent.children.forEach(
@@ -360,10 +360,6 @@ class comL extends State<commentsList>
       children: post_children,
       initiallyExpanded: !preCollapsed,
       key: new PageStorageKey(parent.position),
-      trailing: Container(
-        width: 0.0,
-        height: 0.0,
-      ),
     );
   }
 

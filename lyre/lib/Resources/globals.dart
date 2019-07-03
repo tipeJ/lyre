@@ -70,6 +70,6 @@ String lastPost = "";
 
 bool autoLoad = false;
 bool loopVideos = true;
-bool preCollapsed = false;
+bool preCollapsed = true;
 
 Post cPost;

@@ -5,8 +5,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'CustomListTile.dart';
+import 'Animations/OnSlide.dart';
+import 'ActionItems.dart';
 
-const Duration _kExpand = Duration(milliseconds: 200);
+const Duration _kExpand = Duration(milliseconds: 350);
 
 /// A single-line [ListTile] with a trailing button that expands or collapses
 /// the tile to reveal or hide the [children].
@@ -34,7 +36,6 @@ class CustomExpansionTile extends StatefulWidget {
     this.backgroundColor,
     this.onExpansionChanged,
     this.children = const <Widget>[],
-    this.trailing,
     this.initiallyExpanded = false,
   }) : assert(initiallyExpanded != null),
         super(key: key);
@@ -63,9 +64,6 @@ class CustomExpansionTile extends StatefulWidget {
 
   /// The color to display behind the sublist when expanded.
   final Color backgroundColor;
-
-  /// A widget to display instead of a rotating arrow icon.
-  final Widget trailing;
 
   /// Specifies if the list tile is initially expanded (true) or collapsed (false, the default).
   final bool initiallyExpanded;
@@ -162,14 +160,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
             ),
             dense: true,
             child: InkWell(
-              child: CustomListTile(
-                leading: widget.leading,
-                title: widget.title,
-                trailing: widget.trailing ?? RotationTransition(
-                  turns: _iconTurns,
-                  child: const Icon(Icons.expand_more),
-                ),
-              ),
+              child: widget.title,
               onTap: _handleTap,
             ),
           ),

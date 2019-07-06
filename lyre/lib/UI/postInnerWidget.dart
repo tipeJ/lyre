@@ -34,7 +34,7 @@ class postInnerWidget extends StatelessWidget {
   Widget getWidget(BuildContext context){
 
     if (post.s.isSelf) {
-      return new defaultColumn(post, callBack);
+      return getSlideColumn();
     }
     if (post.hasPreview()) {
       switch (viewSetting) {
@@ -193,7 +193,7 @@ class postInnerWidget extends StatelessWidget {
     );
   }
   Widget getSlideColumn(){
-    return OnSlide(
+    return new OnSlide(
       items: <ActionItems>[
         ActionItems(
           icon: IconButton(
@@ -233,6 +233,8 @@ class postInnerWidget extends StatelessWidget {
   }
 }
 
+bool notNull(Object o) => o != null;
+
 class defaultColumn extends StatelessWidget {
   final Post post;
   final PreviewCallback callback;
@@ -251,7 +253,13 @@ class defaultColumn extends StatelessWidget {
                 child: new Text(
                   post.s.title,
                   style:
-                  new TextStyle(fontWeight: FontWeight.normal, fontSize: 12.0),
+                  new TextStyle(
+                    fontWeight: FontWeight.normal, 
+                    fontSize: 12.0,
+                    color: (post.s.stickied)
+                      ? Color.fromARGB(255, 0, 200, 53)
+                      : Colors.white
+                    ),
                   textScaleFactor: 1.0,
                 ),
                 onTap: (){
@@ -331,6 +339,7 @@ class defaultColumn extends StatelessWidget {
                           //showComments(context);
                         },
                     ),
+                    post.s.isSelf ? null :
                     new Padding(
                         child: new Text(
                             post.s.domain,
@@ -339,7 +348,8 @@ class defaultColumn extends StatelessWidget {
                             style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-          ])),
+          ].where(notNull).toList()
+          )),
           const SizedBox(
             height: 3.5,
           )

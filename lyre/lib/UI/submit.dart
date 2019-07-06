@@ -3,10 +3,14 @@ import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import '../Models/Post.dart';
 import '../Resources/RedditHandler.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../Resources/globals.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:markdown/markdown.dart' as prefix0;
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:retrofit/dio.dart';
+import 'package:retrofit/http.dart';
 
 enum SubmitType{
   Selftext,
@@ -62,11 +66,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
     });
     _tabController.index = 0;
 
-    /*
-    _focusNode = new FocusNode();
-    final document = new NotusDocument();
-    _zefyrController = new ZefyrController(document);
-    */
     _xControl.addListener((){
       setState(() {
         markdownData = _xControl.text;
@@ -134,7 +133,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                 child: InkWell(
                   child: Icon(Icons.send),
                   onTap: (){
-
                     switch (_submitType) {
                       case SubmitType.Selftext:
                         submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
@@ -154,7 +152,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                         break;
                       default:
                     }
-                    
                   },
                 ),
               ),
@@ -200,6 +197,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                     child: TextField(
                       decoration: InputDecoration(
                         helperText: "Choose your subreddit",
+                        prefixText: 'r/'
                       ),
                       controller: _subredditController,
                     ),
@@ -281,6 +279,9 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
             keyboardType: TextInputType.multiline,
             controller: _xControl,
           ),
+          HtmlWidget(
+            prefix0.markdownToHtml(markdownData)
+          ),
           Container(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -293,14 +294,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
           
         ],
       ),
-      /*
-      ZefyrScaffold(
-        child: ZefyrEditor(
-          controller: _zefyrController,
-          focusNode: _focusNode,
-        ),
-      ),
-      */
     );
   }
   

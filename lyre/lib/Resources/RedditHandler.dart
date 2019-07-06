@@ -1,14 +1,23 @@
 import 'package:draw/draw.dart';
 import 'reddit_api_provider.dart';
 
-Future<void> changeSave(Submission s) async {
+//---CHANGING SAVES, VOTING, ETC----
+Future<void> changeSubmissionSave(Submission s) async {
   if(s.saved){
     return s.unsave();
   }else{
     return s.save();
   }
 }
-Future<void> changeVoteState(VoteState state, Submission s) async {
+Future<void> changeCommentSave(Comment c) async {
+  if(c.saved){
+    return c.unsave();
+  }else{
+    return c.save();
+  }
+}
+
+Future<void> changeSubmissionVoteState(VoteState state, Submission s) async {
   if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API
   if(state == s.vote){
     return s.clearVote();
@@ -16,6 +25,16 @@ Future<void> changeVoteState(VoteState state, Submission s) async {
     return s.downvote();
   }else{
     return s.upvote();
+  }
+}
+Future<void> changeCommentVoteState(VoteState state, Comment c) async {
+  if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API (shouldn't even happen, ever)
+  if(state == c.vote){
+    return c.clearVote();
+  }else if(state == VoteState.downvoted){
+    return c.downvote();
+  }else{
+    return c.upvote();
   }
 }
 //---SUBMISSIONS---

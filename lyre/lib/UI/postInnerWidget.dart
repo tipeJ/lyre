@@ -14,7 +14,7 @@ import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
-import 'package:video_player/video_player.dart';
+import '../utils/redditUtils.dart';
 
 enum PostView{
   ImagePreview,
@@ -200,7 +200,7 @@ class postInnerWidget extends StatelessWidget {
             icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
             color: post.s.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: (){
-            changeVoteState(VoteState.upvoted, post.s);
+            changeSubmissionVoteState(VoteState.upvoted, post.s);
           }
         ),
         ActionItems(
@@ -208,7 +208,7 @@ class postInnerWidget extends StatelessWidget {
             icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
             color: post.s.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: (){
-            changeVoteState(VoteState.downvoted, post.s);
+            changeSubmissionVoteState(VoteState.downvoted, post.s);
           }
         ),
         ActionItems(
@@ -216,7 +216,7 @@ class postInnerWidget extends StatelessWidget {
             icon: Icon(Icons.bookmark),onPressed: (){},
             color: post.s.saved ? Colors.yellow : Colors.grey,),
           onPress: (){
-            changeSave(post.s);
+            changeSubmissionSave(post.s);
             post.s.refresh();
           }
         ),
@@ -300,7 +300,7 @@ class defaultColumn extends StatelessWidget {
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
                             style: new TextStyle(
-                              color: getScoreColor(),
+                              color: getScoreColor(post.s),
                               fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 6.0, right: 4.0, top: 0.0)),
@@ -349,18 +349,6 @@ class defaultColumn extends StatelessWidget {
           showComments(context);
         },
     );
-  }
-  Color getScoreColor(){
-    switch (post.s.vote) {
-      case VoteState.downvoted:
-        return Colors.purple;
-        break;
-      case VoteState.upvoted:
-        return Colors.amberAccent;
-        break;
-      default:
-        return Colors.blueGrey;
-    }
   }
 
   void showComments(BuildContext context) {

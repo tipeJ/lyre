@@ -4,11 +4,8 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
-import 'CustomListTile.dart';
-import 'Animations/OnSlide.dart';
-import 'ActionItems.dart';
 
-const Duration _kExpand = Duration(milliseconds: 350);
+const Duration _kExpand = Duration(milliseconds: 225);
 
 /// A single-line [ListTile] with a trailing button that expands or collapses
 /// the tile to reveal or hide the [children].

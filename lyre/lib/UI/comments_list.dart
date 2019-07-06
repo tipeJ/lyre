@@ -2,10 +2,10 @@ import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import '../Blocs/comments_bloc.dart';
 import 'CustomExpansionTile.dart';
-import 'CustomListTile.dart';
+import '../Resources/RedditHandler.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
-import '../utils/utils_html.dart';
+import '../utils/redditUtils.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
@@ -233,7 +233,61 @@ class comL extends State<commentsList>
 */
   Widget getCommentWidget(commentResult comment, int i) {
     if (comment is commentC) {
-      return new GestureDetector(
+      return new OnSlide(
+        key: PageStorageKey(comment.hashCode),
+        items: <ActionItems>[
+          ActionItems(
+            icon: IconButton(
+              icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
+              color: comment.c.vote == prefix0.VoteState.upvoted ? Colors.amber : Colors.grey,),
+            onPress: (){
+              changeCommentVoteState(prefix0.VoteState.upvoted, comment.c).then((_){
+                setState(() {
+                  
+                });
+              });
+            }
+          ),
+          ActionItems(
+            icon: IconButton(
+              icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
+              color: comment.c.vote == prefix0.VoteState.downvoted ? Colors.purple : Colors.grey,),
+            onPress: (){
+              changeCommentVoteState(prefix0.VoteState.downvoted, comment.c).then((_){
+                setState((){
+
+                });
+              });
+            }
+          ),
+          ActionItems(
+            icon: IconButton(
+              icon: Icon(Icons.bookmark),onPressed: (){},
+              color: comment.c.saved ? Colors.yellow : Colors.grey,),
+            onPress: (){
+              changeCommentSave(comment.c);
+              comment.c.refresh().then((_){
+                setState(() {
+                  
+                });
+              });
+            }
+          ),
+          ActionItems(
+            icon: IconButton(
+              icon: Icon(Icons.reply),onPressed: (){},
+              color: Colors.grey,),
+            onPress: (){
+              //TODO: IMPLEMENT REPLY
+            }
+          ),
+          ActionItems(
+            icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
+            onPress: (){
+
+            }
+          ),
+        ],
         child: new Container(
             child: new Container(
               decoration: BoxDecoration(
@@ -249,14 +303,14 @@ class comL extends State<commentsList>
                     new Padding(
                         child: Row(
                           children: <Widget>[
-                            Text("${comment.points} ",
+                            Text("${comment.c.score} ",
                                 textAlign: TextAlign.left,
                                 textScaleFactor: 0.65,
                                 style: new TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white.withOpacity(0.9))),
+                                    color: getScoreColor(comment.c))),
                             Text(
-                              "● u/${comment.author}",
+                              "● u/${comment.c.author}",
                               textScaleFactor: 0.7,
                               style: new TextStyle(
                                   color: Colors.white.withOpacity(0.6)),

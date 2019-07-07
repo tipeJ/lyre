@@ -250,18 +250,18 @@ class defaultColumn extends StatelessWidget {
         children: <Widget>[
           new Padding(
               child: GestureDetector(
-                child: new Text(
-                  post.s.title,
-                  style:
-                  new TextStyle(
-                    fontWeight: FontWeight.normal, 
-                    fontSize: 12.0,
-                    color: (post.s.stickied)
-                      ? Color.fromARGB(255, 0, 200, 53)
-                      : Colors.white
-                    ),
-                  textScaleFactor: 1.0,
-                ),
+                child: Text(
+                    post.s.title,
+                    style:
+                    new TextStyle(
+                      fontWeight: FontWeight.normal, 
+                      fontSize: 12.0,
+                      color: (post.s.stickied)
+                        ? Color.fromARGB(255, 0, 200, 53)
+                        : Colors.white
+                      ),
+                    textScaleFactor: 1.0,
+                  ),
                 onTap: (){
                   switch (post.linkType) {
                     case LinkType.YouTube:

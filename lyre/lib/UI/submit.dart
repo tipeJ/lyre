@@ -267,7 +267,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
     cPost = inside;
     currentPostId = sub.id;
     inside.expanded = true;
-    Navigator.of(context).pushNamed('/comments');
+    Navigator.of(context).pushReplacementNamed('/comments');
   }
   var _xControl = TextEditingController();
   Widget SelftextInputWidget(){

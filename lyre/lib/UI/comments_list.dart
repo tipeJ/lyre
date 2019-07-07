@@ -1,12 +1,13 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
+import 'package:lyre/UI/comment.dart';
+import 'package:lyre/UI/reply.dart';
 import '../Blocs/comments_bloc.dart';
 import 'CustomExpansionTile.dart';
 import '../Resources/RedditHandler.dart';
 import '../Resources/globals.dart';
 import '../Models/Comment.dart';
-import '../utils/redditUtils.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'Animations/slide_right_transition.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
@@ -173,67 +174,10 @@ class comL extends State<commentsList>
     int remain = depth % colorList.length;
     return colorList[remain];
   }
-
-  /*
-  Widget getCommentWidget2(Comment comment){
-    return new GestureDetector(
-        child: new Container(
-            child: new Container(
-              decoration: BoxDecoration(
-                border: Border(
-                    left:
-                        BorderSide(color: getColor(comment.depth), width: 3.5)),
-              ),
-              child: new Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    new Padding(
-                        child: Row(
-                          children: <Widget>[
-                            Text(
-                              "${comment.score} ",
-                              textAlign: TextAlign.left,
-                              textScaleFactor: 0.65,
-                              style: new TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white.withOpacity(0.9))),
-                            Text(
-                              "● u/${comment.author}",
-                              textScaleFactor: 0.7,
-                              style: new TextStyle(
-                                  color: Colors.white.withOpacity(0.6)),
-                            )  
-                          ],
-                        ),
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 6.0)),
-                    new Padding(
-                        child: new Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            new MarkdownBody(
-                              data: convertToMarkdown(comment.body),
-                            )
-                          ],
-                        ),
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
-                  ]),
-            ),
-            padding: new EdgeInsets.only(
-                left: 3.5 + comment.depth * 3.5,
-                right: 0.5,
-                top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0)),
-
-      );
-  }
-*/
   Widget getCommentWidget(commentResult comment, int i) {
     if (comment is commentC) {
       return new OnSlide(
+        backgroundColor: Colors.transparent,
         key: PageStorageKey(comment.hashCode),
         items: <ActionItems>[
           ActionItems(
@@ -278,7 +222,7 @@ class comL extends State<commentsList>
               icon: Icon(Icons.reply),onPressed: (){},
               color: Colors.grey,),
             onPress: (){
-              //TODO: IMPLEMENT REPLY
+              Navigator.push(context, SlideRightRoute(widget: replyWindow(comment.c)));
             }
           ),
           ActionItems(
@@ -295,42 +239,10 @@ class comL extends State<commentsList>
                     left:
                         BorderSide(color: getColor(comment.depth), width: 3.5)),
               ),
-              child: new Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    new Padding(
-                        child: Row(
-                          children: <Widget>[
-                            Text("${comment.c.score} ",
-                                textAlign: TextAlign.left,
-                                textScaleFactor: 0.65,
-                                style: new TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: getScoreColor(comment.c))),
-                            Text(
-                              "● u/${comment.c.author}",
-                              textScaleFactor: 0.7,
-                              style: new TextStyle(
-                                  color: Colors.white.withOpacity(0.6)),
-                            )
-                          ],
-                        ),
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 6.0)),
-                    new Padding(
-                        child: new Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            new MarkdownBody(
-                              data: comment.text,
-                            )
-                          ],
-                        ),
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
-                  ]),
+              child: Hero(
+                child: new CommentWidget(comment.c),
+                tag: 'comment_hero ${comment.id}',
+              ),
             ),
             padding: new EdgeInsets.only(
                 left: 3.5 + comment.depth * 3.5,

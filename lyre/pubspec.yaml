@@ -54,7 +54,6 @@ dependency_overrides:
   path_provider: ^1.1.0
   url_launcher: ^4.0.0
   html: ^0.14.0+2
-  image_picker: ^0.4.5
 
 
 # For information on the generic Dart part of this file, see the

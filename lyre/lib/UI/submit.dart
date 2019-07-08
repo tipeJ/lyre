@@ -277,6 +277,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
         children: <Widget>[
           TextField(
             keyboardType: TextInputType.multiline,
+            maxLines: null,
             controller: _xControl,
           ),
           HtmlWidget(

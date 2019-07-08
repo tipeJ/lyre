@@ -1,16 +1,15 @@
 # lyre
 
-A flutter application for Reddit
+A Flutter application for Reddit
 
-## Getting Started
+## What is this?
 
-This project is a starting point for a Flutter application.
+A reddit application built with [Flutter](https://flutter.io). Uses the Dart reddit Api wrapper [DRAW](https://github.com/draw-dev/DRAW).
 
-A few resources to get you started if this is your first Flutter project:
+## Release date?
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
+Currently only has basic functionality, with some unresolved UI issues that need to be fixed before initial launch in Play Store.
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+## Cross-platform?
+
+Currently developed and tested on android devices. When the basic functionality is up the application will be added to App Store. When (if) Flutter support for desktop environments becomes reality the app will be ported to Windows, macOS and Linux. Web support might or might not be added sometime in the distant future.

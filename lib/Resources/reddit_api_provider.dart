@@ -31,6 +31,10 @@ class PostsProvider {
     reddit = await getReadOnlyReddit();
     currentUser.value = "Guest";
   }
+  Future<Redditor> getRedditor(String fullname) async {
+    var r = await getRed();
+    return r.redditor(fullname).populate();
+  }
   Future<bool> logIn(String username) async{
     var credentials = await readCredentials(username);
     if(credentials != null){

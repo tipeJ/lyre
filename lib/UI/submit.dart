@@ -272,29 +272,36 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
   var _xControl = TextEditingController();
   Widget SelftextInputWidget(){
     return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          TextField(
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
-            controller: _xControl,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverToBoxAdapter(
+            child: TextField(
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              controller: _xControl,
           ),
-          HtmlWidget(
-            prefix0.markdownToHtml(markdownData)
           ),
-          Container(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: new Row(
-                children: getInputOptions(),
-              ),
+          /*
+          USELESS FOR NOW
+          SliverToBoxAdapter(
+            child: HtmlWidget(
+              prefix0.markdownToHtml(markdownData)
             ),
-            color: Colors.black45,
           ),
-          
+          */
+          SliverToBoxAdapter(
+            child: Container(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: new Row(
+                  children: getInputOptions(),
+                ),
+              ),
+              color: Colors.black45,
+            ),
+          )
         ],
-      ),
+      )
     );
   }
   

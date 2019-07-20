@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyre/UI/profile.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';
@@ -34,7 +35,7 @@ class postInnerWidget extends StatelessWidget {
   Widget getWidget(BuildContext context){
 
     if (post.s.isSelf) {
-      return getSlideColumn();
+      return getSlideColumn(context);
     }
     if (post.hasPreview()) {
       switch (viewSetting) {
@@ -51,7 +52,7 @@ class postInnerWidget extends StatelessWidget {
                   child: new Container(
                     width: MediaQuery.of(context).size.width,
                     color: Color.fromARGB(155, 0, 0, 0),
-                    child: getSlideColumn(),
+                    child: getSlideColumn(context),
                   ),
                 ))
           ]);
@@ -60,7 +61,7 @@ class postInnerWidget extends StatelessWidget {
           return new Column(
             children: <Widget>[
               getExpandedImage(context),
-              getSlideColumn()
+              getSlideColumn(context)
             ],
           );
           break;
@@ -79,7 +80,7 @@ class postInnerWidget extends StatelessWidget {
           return new defaultColumn(post, callBack);
       }
     }
-    return getSlideColumn();
+    return getSlideColumn(context);
   }
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
@@ -192,7 +193,7 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
-  Widget getSlideColumn(){
+  Widget getSlideColumn(BuildContext context){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
@@ -218,6 +219,12 @@ class postInnerWidget extends StatelessWidget {
           onPress: (){
             changeSubmissionSave(post.s);
             post.s.refresh();
+          }
+        ),
+        ActionItems(
+          icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+          onPress: (){
+            Navigator.push(context, SlideRightRoute(widget: UserView(post.s.author)));
           }
         ),
         ActionItems(

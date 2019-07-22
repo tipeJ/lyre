@@ -349,6 +349,24 @@ class comL extends State<commentsList>
       }
     }, childCount: xList.length));
   }
+  Widget getImprovedCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot){
+    var comments = snapshot.data.results;
+    return new SliverList(
+      delegate: SliverChildBuilderDelegate((BuildContext context, int i){
+        if(i == 0){
+          return new Container(height: 0.0,);
+        }else{
+          return AnimatedContainer(
+            child: getCommentWidget(comments[i], i),
+            duration: Duration(milliseconds: 150),
+            constraints: BoxConstraints(
+              maxHeight: comments[i].visible ? double.infinity : 0.0
+            ),
+          );
+        }
+      }),
+    );
+  }
 
   List<commentTest> clist(List<commentResult> results, int index) {
     var list = List<commentTest>();

@@ -11,6 +11,7 @@ import 'Animations/slide_right_transition.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import '../Models/Post.dart';
+import 'profile.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
@@ -223,6 +224,12 @@ class comL extends State<commentsList>
               color: Colors.grey,),
             onPress: (){
               Navigator.push(context, SlideRightRoute(widget: replyWindow(comment.c)));
+            }
+          ),
+          ActionItems(
+            icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+            onPress: (){
+              Navigator.push(context, SlideRightRoute(widget: UserView(comment.c.author)));
             }
           ),
           ActionItems(

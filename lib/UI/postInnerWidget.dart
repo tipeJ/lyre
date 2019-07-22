@@ -346,6 +346,39 @@ class defaultColumn extends StatelessWidget {
                           //showComments(context);
                         },
                     ),
+
+                    post.s.gold >= 1 ?
+                    new Padding(
+                      child: Text(
+                        "★",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 223, 0)
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(right: 4.0),
+                    ) : null,
+
+                    post.s.silver >= 1 ?
+                    new Padding(
+                      child: Text(
+                        "⃝",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 192, 192, 192)
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(right: 4.0),
+                    ) : null,
+
+                    post.s.platinum >= 1 ?
+                    new Padding(
+                      child: Text(
+                        "🥇",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 229, 228, 226)
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(right: 4.0),
+                    ) : null,
                     post.s.isSelf ? null :
                     new Padding(
                         child: new Text(

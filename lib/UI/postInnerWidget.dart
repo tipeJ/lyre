@@ -346,39 +346,6 @@ class defaultColumn extends StatelessWidget {
                           //showComments(context);
                         },
                     ),
-
-                    post.s.gold >= 1 ?
-                    new Padding(
-                      child: Text(
-                        "★",
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 223, 0)
-                        ),
-                      ),
-                      padding: const EdgeInsets.only(right: 4.0),
-                    ) : null,
-
-                    post.s.silver >= 1 ?
-                    new Padding(
-                      child: Text(
-                        "⃝",
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 192, 192, 192)
-                        ),
-                      ),
-                      padding: const EdgeInsets.only(right: 4.0),
-                    ) : null,
-
-                    post.s.platinum >= 1 ?
-                    new Padding(
-                      child: Text(
-                        "🥇",
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 229, 228, 226)
-                        ),
-                      ),
-                      padding: const EdgeInsets.only(right: 4.0),
-                    ) : null,
                     post.s.isSelf ? null :
                     new Padding(
                         child: new Text(
@@ -387,7 +354,48 @@ class defaultColumn extends StatelessWidget {
                             textScaleFactor: 1.0,
                             style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
                         padding:
-                            const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
+                            const EdgeInsets.only(left: 4.0)),
+
+                    post.s.gold != null && post.s.gold >= 1 ?
+                    new Padding(
+                      child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color.fromARGB(255, 255, 223, 0),
+                          ),
+                          width: 8.0,
+                          height: 8.0
+                        ),
+                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                    ) : null,
+
+                    post.s.silver != null && post.s.silver >= 1 ?
+                    new Padding(
+                      child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color.fromARGB(255, 192, 192, 192),
+                          ),
+                          width: 8.0,
+                          height: 8.0
+                        ),
+                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                    ) : null,
+
+
+                    post.s.platinum != null && post.s.platinum >= 1 ?
+                    new Padding(
+                      child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color.fromARGB(255, 229, 228, 226),
+                          ),
+                          width: 8.0,
+                          height: 8.0
+                        ),
+                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                    ) : null,
+                    
           ].where(notNull).toList()
           )),
           const SizedBox(

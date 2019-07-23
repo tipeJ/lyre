@@ -34,7 +34,8 @@ class CommentWidget extends StatelessWidget {
                             style: new TextStyle(
                                 color: Colors.white.withOpacity(0.6)),
                           ),
-                          )
+                          ),
+                          
                           
                         ],
                       ),

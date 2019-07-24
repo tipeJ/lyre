@@ -255,7 +255,7 @@ class comL extends State<commentsList>
                 left: 3.5 + comment.depth * 3.5,
                 right: 0.5,
                 top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0)),
+                bottom: 0.0))
       );
     } else if (comment is moreC) {
       return new GestureDetector(
@@ -363,12 +363,16 @@ class comL extends State<commentsList>
         if(i == 0){
           return new Container(height: 0.0,);
         }else{
-          return AnimatedContainer(
-            child: getCommentWidget(comments[i], i),
-            duration: Duration(milliseconds: 150),
-            constraints: BoxConstraints(
-              maxHeight: comments[i].visible ? double.infinity : 0.0
+          return Visibility(
+            child: GestureDetector(
+              child: getCommentWidget(comments[i], i),
+              onTap: (){
+                setState(() {
+                  bloc.changeVisibility(i);
+                });
+              },
             ),
+            visible: comments[i].visible,
           );
         }
       }),

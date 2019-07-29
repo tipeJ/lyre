@@ -136,19 +136,16 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                     switch (_submitType) {
                       case SubmitType.Selftext:
                         submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
-                          print(sub.id);
-                          print(sub.title);
-                          print(sub.selftext);
                           showComments(context, sub);
                         });
                         break;
                       case  SubmitType.Link:
                         submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((sub){
-                          print(sub.id);
-                          print(sub.title);
-                          print(sub.selftext);
                           showComments(context, sub);
                         });
+                        break;
+                      case SubmitType.Image:
+                        submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image);
                         break;
                       default:
                     }

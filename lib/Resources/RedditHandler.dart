@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:draw/draw.dart';
 import 'reddit_api_provider.dart';
+import '../UploadUtils/ImgurAPI.dart';
 
 //---CHANGING SAVES, VOTING, ETC----
 Future<void> changeSubmissionSave(Submission s) async {
@@ -59,4 +62,8 @@ Future<Submission> submitLink(String sub, String title, String url, bool isNsfw,
     sendReplies: sendReplies
      );
   return r.submission(id: x.id).populate();
+}
+Future<Submission> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile){
+  ImgurAPI().uploadImage(imageFile, title);
+  print('tried uploading');
 }

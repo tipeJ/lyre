@@ -71,8 +71,8 @@ class PostsProvider {
     print("asasasas");
     getLatestUser().then((latestUser){
       if(latestUser != null){
-      logIn(latestUser.username).then((_){
-        return true;
+        logIn(latestUser.username).then((_){
+          return true;
       });
     }else{
       getRed().then((r){
@@ -105,7 +105,7 @@ class PostsProvider {
   }
 
   void registerReddit() async {
-    var userAgent = "$appName $appVersion by u/tipezuke";
+    var userAgent = "$appName $appVersion by the developer u/tipezuke";
     final configUri = Uri.parse('draw.ini');
     var redirectUri = Uri.http("localhost:8080", "");
 
@@ -119,6 +119,8 @@ class PostsProvider {
       );
     Stream<String> onCode = await _server();
     final auth_url = reddit.auth.url(['*'], userAgent);
+
+    print("TOS: " + auth_url.toString());
     launch(auth_url.toString());
     final String code = await onCode.first;
 

@@ -9,8 +9,8 @@ import '../Resources/globals.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:markdown/markdown.dart' as prefix0;
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:retrofit/dio.dart';
-import 'package:retrofit/http.dart';
+import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
+
 
 enum SubmitType{
   Selftext,
@@ -112,9 +112,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                       builder: (BuildContext context){
                         return AlertDialog(
                           title: Text(_titleController.text),
-                          content: MarkdownBody(
-                                data: markdownData,
-                              ),
+                          content: getPreviewWidget(),
                           actions: <Widget>[
                             FlatButton(
                               child: Text('Close'),
@@ -259,6 +257,24 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
       ),
     );
   }
+  Widget getPreviewWidget(){
+    switch (_submitType) {
+      case SubmitType.Selftext:
+        return MarkdownBody(
+          data: markdownData,
+        ); 
+        break;
+      case SubmitType.Link:
+        return InAppWebView(
+            initialUrl: _urlController.text
+          );
+        break;
+      case SubmitType.Image:
+        return _image != null ? Image.file(_image) : Container();
+      default:
+        return Container();
+    }
+  }
   void showComments(BuildContext context, Submission sub) {
     Post inside = Post.fromApi(sub);
     cPost = inside;
@@ -309,7 +325,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
         decoration: InputDecoration(
           helperText: 'Source URL of link'
         ),
-      ),
+      )
     );
   }
 

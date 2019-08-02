@@ -118,7 +118,7 @@ class PostsProvider {
         redirectUri: redirectUri,
       );
     Stream<String> onCode = await _server();
-    final auth_url = reddit.auth.url(['*'], userAgent);
+    final auth_url = reddit.auth.url(['*'], userAgent, compactLogin: true);
 
     print("TOS: " + auth_url.toString());
     launch(auth_url.toString());

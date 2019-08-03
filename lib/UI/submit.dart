@@ -137,8 +137,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                     child: InkWell(
                       child: Icon(Icons.send),
                       onTap: (){
-                        PostsProvider().isLoggedIn().then((loggedIn){
-                          if(loggedIn){
+                          if(PostsProvider().isLoggedIn()){
                             switch (_submitType) {
                               case SubmitType.Selftext:
                                 submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
@@ -178,7 +177,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                           );
                           Scaffold.of(context).showSnackBar(snackBar);
                         }
-                      });
                       },
                     ),
                   );
@@ -328,14 +326,6 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
               controller: _xControl,
           ),
           ),
-          /*
-          USELESS FOR NOW
-          SliverToBoxAdapter(
-            child: HtmlWidget(
-              prefix0.markdownToHtml(markdownData)
-            ),
-          ),
-          */
           SliverToBoxAdapter(
             child: Container(
               child: SingleChildScrollView(

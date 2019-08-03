@@ -375,7 +375,7 @@ class comL extends State<commentsList>
             visible: comments[i].visible,
           );
         }
-      }),
+      }, childCount: comments.length),
     );
   }
 

@@ -23,9 +23,17 @@ class PostsProvider {
   final _apiKey = 'your_api_key';
   Reddit reddit;
 
-  Future<bool> isLoggedIn() async {
-    var r = await getRed();
-    return r.readOnly ? false : true;
+  Future<Redditor> getLoggedInUser(){
+    if(reddit == null){
+      return null;
+    }
+    return reddit.user.me();
+  }
+  bool isLoggedIn() {
+    if(reddit == null){
+      return false;
+    }
+    return reddit.readOnly ? false : true;
   }
   logInAsGuest() async {
     reddit = await getReadOnlyReddit();

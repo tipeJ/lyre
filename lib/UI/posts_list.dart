@@ -1,3 +1,4 @@
+import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
@@ -17,6 +18,7 @@ import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 import '../Resources/gfycat_provider.dart';
 import 'package:video_player/video_player.dart';
+import 'CustomExpansionTile.dart';
 
 enum PreviewType { Image, Video }
 
@@ -366,40 +368,89 @@ class PostsList extends State<lyApp>
           resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
-            padding: EdgeInsets.only(top: 200, left: 20.0, right: 20.0),
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverToBoxAdapter(
-                  child: Text(
-                    "Logged in as " + currentUser.value,
-                    style: TextStyle(fontSize: 24.0),
-                  ),
-                ),
-                getRegisteredUsernamesList(bloc.usernamesList),
-                SliverList(
-                  delegate: SliverChildListDelegate([
-                    Text("Auto-load more posts"),
-                    Switch(
-                      value: autoLoad,
-                      onChanged: (bool newValue) {
-                        autoLoad = newValue;
+                padding: EdgeInsets.only(top: 200, left: 20.0, right: 20.0),
+                child: CustomScrollView(
+                  slivers: <Widget>[
+                    SliverToBoxAdapter(
+                      child: ExpansionTile(
+                        title: Text(
+                          currentUser.value,
+                          style: TextStyle(fontSize: 24.0),
+                        ),
+                        children: getRegisteredUsernamesList(bloc.usernamesList),
+                      ),
+                    ),
+                    PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
+                      child: FutureBuilder(
+                      future: PostsProvider().getLoggedInUser(),
+                      builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.none:
+                          case ConnectionState.active:
+                          case ConnectionState.waiting:
+                            return Container();
+                            break;
+                          case ConnectionState.done:
+                            if(snapshot.hasError){
+                              return Text('Error loading user data');
+                            }
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Column(children: <Widget>[
+                                  Text(
+                                    snapshot.data.commentKarma.toString(),
+                                    style: TextStyle(fontSize: 18.0),
+                                  ),
+                                  Text(
+                                    'Comment karma',
+                                    style: TextStyle(fontSize: 18.0),
+                                  )
+                                ],),
+                                Spacer(),
+                                VerticalDivider(),
+                                Spacer(),
+                                Column(children: <Widget>[
+                                  Text(
+                                    snapshot.data.linkKarma.toString(),
+                                    style: TextStyle(fontSize: 18.0),
+                                  ),
+                                  Text(
+                                    'Link karma',
+                                    style: TextStyle(fontSize: 18.0),
+                                  )
+                                ],)
+                              ],
+                            );
+                          default:
+                        }
                       },
                     ),
-                    RaisedButton(
-                      child: const Text('Add an account'),
-                      color: Theme.of(context).accentColor,
-                      onPressed: () {
-                        var pp = PostsProvider();
-                        setState(() {
-                          pp.registerReddit();
-                          bloc.fetchAllPosts();
-                        });
-                      },
+                    ) : null,
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        Text("Auto-load more posts"),
+                        Switch(
+                          value: autoLoad,
+                          onChanged: (bool newValue) {
+                            autoLoad = newValue;
+                          },
+                        ),
+                        RaisedButton(
+                          child: const Text('Add an account'),
+                          color: Theme.of(context).accentColor,
+                          onPressed: () {
+                            var pp = PostsProvider();
+                            setState(() {
+                              pp.registerReddit();
+                              bloc.fetchAllPosts();
+                            });
+                          },
+                        ),
+                      ]),
                     ),
-                  ]),
+                  ].where(notNull).toList(),
                 ),
-              ],
-            ),
           )),
           body: new Container(
               child: new GestureDetector(
@@ -563,16 +614,12 @@ class PostsList extends State<lyApp>
                                                           'Log in in order to post your submission'),
                                                     );
                                                     setState(() {
-                                                      PostsProvider()
-                                                          .isLoggedIn()
-                                                          .then((onV) {
-                                                        if (onV) {
-                                                          showSubmit(context);
-                                                        } else {
+                                                      if(PostsProvider().isLoggedIn()){
+                                                        showSubmit(context);
+                                                      }else{
                                                           showSubmit(context);
                                                           //Scaffold.of(context).showSnackBar(snackBar);
-                                                        }
-                                                      });
+                                                      }
                                                     });
                                                   },
                                                 )
@@ -667,10 +714,10 @@ class PostsList extends State<lyApp>
     );
   }
 
-  Widget getRegisteredUsernamesList(List<String> list) {
-    return new SliverList(
-      delegate: SliverChildBuilderDelegate((BuildContext context, int i) {
-        return InkWell(
+  List<Widget> getRegisteredUsernamesList(List<String> list) {
+    List<Widget> widgets = [];
+    for(int i = 0; i < list.length; i++){
+      widgets.add(InkWell(
           child: Container(
             child: Text(
               list[i],
@@ -689,9 +736,9 @@ class PostsList extends State<lyApp>
             PostsProvider().logIn(list[i]);
             bloc.fetchAllPosts();
           },
-        );
-      }, childCount: list.length),
-    );
+        ));
+    }
+    return widgets;
   }
 
   Future<bool> _willPop() {

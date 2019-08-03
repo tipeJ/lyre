@@ -21,15 +21,13 @@ class PostsBloc {
   }
   Future<String> cplas;
   Future<String> getCUserName() async {
-    PostsProvider().isLoggedIn().then((loggedIn){
-           if(loggedIn){
-             PostsProvider().reddit.user.me().then((redditor){
-               return redditor.displayName;
-             });
-           }else{
-             return "Guest";
-           }
-    });
+    if(PostsProvider().isLoggedIn()){
+      PostsProvider().reddit.user.me().then((redditor){
+        return redditor.displayName;
+      });
+    }else{
+      return "Guest";
+    }
     
   }
 

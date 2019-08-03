@@ -63,7 +63,7 @@ Future<Submission> submitLink(String sub, String title, String url, bool isNsfw,
      );
   return r.submission(id: x.id).populate();
 }
-Future<Submission> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile){
-  ImgurAPI().uploadImage(imageFile, title);
-  print('tried uploading');
+Future<Submission> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile) async {
+  var url = await ImgurAPI().uploadImage(imageFile, title);
+  return submitLink(sub, title, url, isNsfw, sendReplies);
 }

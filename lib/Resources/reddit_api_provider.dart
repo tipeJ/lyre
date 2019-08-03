@@ -68,7 +68,10 @@ class PostsProvider {
     if(reddit != null && !reddit.readOnly){
       return true;
     }
-    print("asasasas");
+    //TODO: FIX (THIS IS NOT GOOD)
+    if(currentUser.value == "Guest"){
+      return true;
+    }
     getLatestUser().then((latestUser){
       if(latestUser != null){
         logIn(latestUser.username).then((_){

@@ -10,6 +10,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:markdown/markdown.dart' as prefix0;
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
+import '../Resources/reddit_api_provider.dart';
 
 
 enum SubmitType{
@@ -31,7 +32,10 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
   File _image;
 
   Future getImage(ImageSource source) async {
-    var image = await ImagePicker.pickImage(source: source);
+    var image = await ImagePicker.pickImage(
+      source: source,
+      imageQuality: 75
+      );
 
     setState(() {
      _image = image; 
@@ -126,30 +130,60 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                     );
                   },
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 15.0),
-                child: InkWell(
-                  child: Icon(Icons.send),
-                  onTap: (){
-                    switch (_submitType) {
-                      case SubmitType.Selftext:
-                        submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
-                          showComments(context, sub);
-                        });
-                        break;
-                      case  SubmitType.Link:
-                        submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((sub){
-                          showComments(context, sub);
-                        });
-                        break;
-                      case SubmitType.Image:
-                        submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image);
-                        break;
-                      default:
-                    }
-                  },
-                ),
-              ),
+              Builder(
+                builder: (BuildContext context){
+                  return Container(
+                    padding: EdgeInsets.symmetric(horizontal: 15.0),
+                    child: InkWell(
+                      child: Icon(Icons.send),
+                      onTap: (){
+                        PostsProvider().isLoggedIn().then((loggedIn){
+                          if(loggedIn){
+                            switch (_submitType) {
+                              case SubmitType.Selftext:
+                                submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
+                                  showComments(context, sub);
+                                });
+                                break;
+                              case SubmitType.Link:
+                                submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
+                                  showComments(context, submission);
+                                });
+                                break;
+                              case SubmitType.Image:
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context){
+                                    return AlertDialog(
+                                        title: Text('Uploading image'),
+                                        content: Container(
+                                            width: 25.0,
+                                            height: 25.0,
+                                            child: Center(
+                                              child: CircularProgressIndicator()
+                                            )
+                                          )
+                                      );
+                                  }
+                                );
+                                submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
+                                  showComments(context, submission);
+                                });
+                                break;
+                              default:
+                          }
+                        }else{
+                          final snackBar = SnackBar(
+                            content: Text('Log in to create submissions'),
+                          );
+                          Scaffold.of(context).showSnackBar(snackBar);
+                        }
+                      });
+                      },
+                    ),
+                  );
+                },
+              )
           ],
         ),
         resizeToAvoidBottomInset: true,
@@ -275,10 +309,10 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
         return Container();
     }
   }
-  void showComments(BuildContext context, Submission sub) {
-    Post inside = Post.fromApi(sub);
+  void showComments(BuildContext context, Submission submission) {
+    Post inside = Post.fromApi(submission);
     cPost = inside;
-    currentPostId = sub.id;
+    currentPostId = submission.id;
     inside.expanded = true;
     Navigator.of(context).pushReplacementNamed('/comments');
   }

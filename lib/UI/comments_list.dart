@@ -137,7 +137,7 @@ class comL extends State<commentsList>
                         stream: bloc.allComments,
                         builder: (context, AsyncSnapshot<CommentM> snapshot) {
                           if (snapshot.hasData) {
-                            return getCommentsExpandablePage(snapshot);
+                            return getImprovedCommentsExpandablePage(snapshot);
                           } else if (snapshot.hasError) {
                             return Text(snapshot.error.toString());
                           }

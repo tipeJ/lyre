@@ -29,11 +29,11 @@ class ImgurAPI {
             Callback<ImageResponse> cb
   );
   */
-  Future<void> uploadImage(File imageFile, String title) async {
+  Future<String> uploadImage(File imageFile, String title) async {
     final response = await http.post(
       imageUploadUrl,
       headers: {
-        "Authorization": 'Client-ID {{${client_id}}}'
+        "Authorization": 'Client-ID ${client_id}'
       },
       body: {
         'image': imageFile != null ? base64Encode(imageFile.readAsBytesSync()) : '',
@@ -41,8 +41,7 @@ class ImgurAPI {
       }
     );
     final responseJson = json.decode(response.body);
-
-    print("IMAGE_TEST_RESPONSE: " + responseJson.toString());
+    return responseJson['data']['link'];
   }
   
 }

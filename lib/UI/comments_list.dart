@@ -360,9 +360,7 @@ class comL extends State<commentsList>
     var comments = snapshot.data.results;
     return new SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-        if(i == 0){
-          return new Container(height: 0.0,);
-        }else{
+        
           return Visibility(
             child: GestureDetector(
               child: getCommentWidget(comments[i], i),
@@ -374,7 +372,7 @@ class comL extends State<commentsList>
             ),
             visible: comments[i].visible,
           );
-        }
+        
       }, childCount: comments.length),
     );
   }

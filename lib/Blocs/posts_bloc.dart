@@ -31,15 +31,20 @@ class PostsBloc {
     
   }
 
-  fetchAllPosts() async {
+  fetchAllPosts({String redditor = "", ContentSource source = ContentSource.Subreddit}) async {
     temporaryType = currentSortType;
     temporaryTime = currentSortTime;
-    ItemModel itemModel = await _repository.fetchPosts(false);
+    ItemModel itemModel;
+    if(source == ContentSource.Subreddit){
+      itemModel = await _repository.fetchPostsFromSubreddit(false);
+    }else if(source == ContentSource.Redditor){
+      itemModel = await _repository.fetchPostsFromRedditor(false, redditor);
+    }
+
     print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
     latestModel = itemModel;
     _postsFetcher.sink.add(latestModel);
     currentCount = 25;
-
     //Currently refreshes list of registered usernames via refreshing list of posts.
     var x = await readUsernames();
     x.insert(0, "Guest");
@@ -50,7 +55,7 @@ class PostsBloc {
     lastPost = latestModel.results.last.s.id;
     currentCount += perPage;
     print("START FETCH MORE");
-    ItemModel itemModel = await _repository.fetchPosts(true);
+    ItemModel itemModel = await _repository.fetchPostsFromSubreddit(true);
     if(latestModel.results == null || latestModel == null){
       print("FETCH MORE ERROR: RESULTS WERE NULL");
     }

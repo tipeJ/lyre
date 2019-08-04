@@ -3,8 +3,13 @@ import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'postInnerWidget.dart';
+import '../Blocs/posts_bloc.dart';
+import '../Resources/globals.dart';
+import '../Models/item_model.dart';
 
 class UserView extends StatefulWidget {
+  PostsBloc bloc;
   final String fullname;
 
   UserView(this.fullname);
@@ -31,7 +36,17 @@ class _UserViewState extends State<UserView> {
             if(snapshot.connectionState == ConnectionState.done){
                 var data = snapshot.data;
                 if(data is Redditor){
-                  return getSpaciousUserColumn(data);
+                  return StreamBuilder(
+                    stream: bloc.allPosts,
+                    builder: (context, AsyncSnapshot<ItemModel> snapshot) {
+                    if (snapshot.hasData) {
+                      return null;
+                    } else if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    }
+                    return Center(child: CircularProgressIndicator());
+                  },
+                  );
                 }else{
                   print('smth went horribly wrong here');
                 }

@@ -11,6 +11,11 @@ import 'package:draw/draw.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'credential_loader.dart';
 
+enum ContentSource{
+  Subreddit,
+  Redditor
+}
+
 class PostsProvider {
   static final PostsProvider _instance = new PostsProvider._internal();
   PostsProvider._internal();
@@ -199,78 +204,62 @@ class PostsProvider {
     return b2;
   }
 
-  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore) async {
+  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore, {String redditor = "", ContentSource source = ContentSource.Subreddit}) async {
     var res = await logInToLatest();
-    if(res){
-      Map<String, String> headers = new Map<String, String>();
+    reddit = await getRed();
 
-      if(loadMore)headers["after"]="t3_$lastPost";
+    Map<String, String> headers = new Map<String, String>();
 
-      headers["limit"] = perPage.toString();
-      if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
-        timeFilter = "";
-        //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
-      }
-      if(timeFilter == ""){
-        switch (typeFilter){
-              case "hot":
-                var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "new":
-                var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "rising":
-                var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
-                return ItemModel.fromApi(v);
-          }
-      }else{
-        var filter = parseTimeFilter(timeFilter);
-        switch (typeFilter){
-              case "controversial":
-                var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "top":
-                var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-                return ItemModel.fromApi(v);
-          }
-      }
-    }else{
-      reddit = await getRed();
-      Map<String, String> headers = new Map<String, String>();
+    if(loadMore)headers["after"]="t3_$lastPost";
 
-      if(loadMore)headers["after"]="t3_$lastPost";
-
-      headers["limit"] = perPage.toString();
-      if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
-        timeFilter = "";
-        //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
-      }
-      if(timeFilter == ""){
-        switch (typeFilter){
-              case "hot":
-                var v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "new":
-                var v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "rising":
-                var v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
-                return ItemModel.fromApi(v);
-          }
-      }else{
-        var filter = parseTimeFilter(timeFilter);
-        switch (typeFilter){
-              case "controversial":
-                var v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-                return ItemModel.fromApi(v);
-              case "top":
-                var v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-                return ItemModel.fromApi(v);
-          }
-      }
+    headers["limit"] = perPage.toString();
+    if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
+      timeFilter = "";
+      //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
-    
-    
+    List<UserContent> v;
+    if(timeFilter == ""){
+      switch (typeFilter){
+            case "hot":
+              if(source == ContentSource.Subreddit){
+                v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+              }else if(source == ContentSource.Redditor){
+                v = await reddit.redditor(redditor).hot(params: headers).toList();
+              }
+              break;
+            case "new":
+              if(source == ContentSource.Subreddit){
+                v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+              }else if(source == ContentSource.Redditor){
+                v = await reddit.redditor(redditor).newest(params: headers).toList();
+              }
+              break;
+            case "rising":
+              if(source == ContentSource.Subreddit){
+                v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+              }
+              break;
+        }
+    }else{
+      var filter = parseTimeFilter(timeFilter);
+      switch (typeFilter){
+            case "controversial":
+              if(source == ContentSource.Subreddit){
+                  v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+              }else if(source == ContentSource.Redditor){
+                v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
+              }
+              break;
+            case "top":
+              if(source == ContentSource.Subreddit){
+                  v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+              }else if(source == ContentSource.Redditor){
+                v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
+              }
+              break;
+        }
+    }
+    return ItemModel.fromApi(v);
     return null;
   }
   Future<CommentM> fetchCommentsList() async {

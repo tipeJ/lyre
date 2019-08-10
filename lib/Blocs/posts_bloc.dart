@@ -55,9 +55,7 @@ class PostsBloc {
     if(contentSource == ContentSource.Subreddit){
       itemModel = await _repository.fetchPostsFromSubreddit(false);
     }else if(contentSource == ContentSource.Redditor){
-      print("STARTED ITM");
       itemModel = await _repository.fetchPostsFromRedditor(false, redditor);
-      print("ITEMMODEL DATA LENGTH" + itemModel.results.length.toString());
     }
 
     print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
@@ -74,9 +72,11 @@ class PostsBloc {
     lastPost = latestModel.results.last.s.id;
     currentCount += perPage;
     print("START FETCH MORE");
-    ItemModel itemModel = await _repository.fetchPostsFromSubreddit(true);
-    if(latestModel.results == null || latestModel == null){
-      print("FETCH MORE ERROR: RESULTS WERE NULL");
+    ItemModel itemModel;
+    if(contentSource == ContentSource.Subreddit){
+      itemModel = await _repository.fetchPostsFromSubreddit(true);
+    }else if(contentSource == ContentSource.Redditor){
+      itemModel = await _repository.fetchPostsFromRedditor(true, redditor);
     }
     latestModel.results.addAll(itemModel.results);
     _postsFetcher.sink.add(latestModel);

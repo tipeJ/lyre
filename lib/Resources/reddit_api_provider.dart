@@ -223,12 +223,8 @@ class PostsProvider {
             case "hot":
               if(source == ContentSource.Subreddit){
                 v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-                print("SUV V L: " + v.length.toString());
               }else if(source == ContentSource.Redditor){
-                print('blblblblblblblbl' + redditor);
                 v = await reddit.redditor(redditor).hot(params: headers).toList();
-                                print("RED V L: " + v.length.toString());
-
               }
               break;
             case "new":

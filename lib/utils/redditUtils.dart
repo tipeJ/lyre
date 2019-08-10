@@ -13,3 +13,6 @@ Color getScoreColor(VoteableMixin m){
         return Colors.blueGrey;
     }
 }
+Duration getSubmissionAge(DateTime submittedAt){
+  return DateTime.now().difference(submittedAt);
+}

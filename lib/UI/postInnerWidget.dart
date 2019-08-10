@@ -337,15 +337,26 @@ class defaultColumn extends StatelessWidget {
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new GestureDetector(
-                      child: new Text("${post.s.numComments} comments"
-                            ,style: TextStyle(
-                            fontSize: 9.0,
-                            color: Colors.white.withOpacity(0.9)
-                          ),
+                      child: new Text(
+                            "${post.s.numComments} comments",
+                            style: TextStyle(
+                              fontSize: 9.0,
+                              color: Colors.white.withOpacity(0.9)
+                            ),
                         ),
                         onTap: (){
                           //showComments(context);
                         },
+                    ),
+                    new Padding(
+                      child: new Text(
+                        getSubmissionAge(post.s.createdUtc).inHours.toString() + ' hours ago',
+                        style: TextStyle(
+                              fontSize: 9.0,
+                              color: Colors.white.withOpacity(0.9)
+                        ),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 4.0),
                     ),
                     post.s.isSelf ? null :
                     new Padding(

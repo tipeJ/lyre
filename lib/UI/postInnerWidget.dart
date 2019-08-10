@@ -340,7 +340,7 @@ class defaultColumn extends StatelessWidget {
                       child: new Text(
                             "${post.s.numComments} comments",
                             style: TextStyle(
-                              fontSize: 9.0,
+                              fontSize: 10.0,
                               color: Colors.white.withOpacity(0.9)
                             ),
                         ),
@@ -352,7 +352,7 @@ class defaultColumn extends StatelessWidget {
                       child: new Text(
                         getSubmissionAge(post.s.createdUtc).inHours.toString() + ' hours ago',
                         style: TextStyle(
-                              fontSize: 9.0,
+                              fontSize: 10.0,
                               color: Colors.white.withOpacity(0.9)
                         ),
                       ),

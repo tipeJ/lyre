@@ -204,7 +204,7 @@ class PostsProvider {
     return b2;
   }
 
-  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore, {String redditor = "", ContentSource source = ContentSource.Subreddit}) async {
+  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore, {String redditor, ContentSource source}) async {
     var res = await logInToLatest();
     reddit = await getRed();
 
@@ -217,14 +217,18 @@ class PostsProvider {
       timeFilter = "";
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
-    List<UserContent> v;
+    List<UserContent> v = [];
     if(timeFilter == ""){
       switch (typeFilter){
             case "hot":
               if(source == ContentSource.Subreddit){
                 v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+                print("SUV V L: " + v.length.toString());
               }else if(source == ContentSource.Redditor){
+                print('blblblblblblblbl' + redditor);
                 v = await reddit.redditor(redditor).hot(params: headers).toList();
+                                print("RED V L: " + v.length.toString());
+
               }
               break;
             case "new":
@@ -260,7 +264,6 @@ class PostsProvider {
         }
     }
     return ItemModel.fromApi(v);
-    return null;
   }
   Future<CommentM> fetchCommentsList() async {
     Map<String, String> headers = new Map<String, String>();

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../Resources/repository.dart';
 import '../Resources/globals.dart';
 import '../Resources/credential_loader.dart';
@@ -31,14 +33,31 @@ class PostsBloc {
     
   }
 
-  fetchAllPosts({String redditor = "", ContentSource source = ContentSource.Subreddit}) async {
+  var contentSource = ContentSource.Subreddit;
+  
+  String redditor = "";
+
+  String getSourceString(){
+    switch (contentSource) {
+      case ContentSource.Subreddit:
+        return 'r/$currentSubreddit';
+      case ContentSource.Redditor:
+        return 'u/$redditor';
+      default:
+        break;
+    }
+  }
+
+  fetchAllPosts() async {
     temporaryType = currentSortType;
     temporaryTime = currentSortTime;
     ItemModel itemModel;
-    if(source == ContentSource.Subreddit){
+    if(contentSource == ContentSource.Subreddit){
       itemModel = await _repository.fetchPostsFromSubreddit(false);
-    }else if(source == ContentSource.Redditor){
+    }else if(contentSource == ContentSource.Redditor){
+      print("STARTED ITM");
       itemModel = await _repository.fetchPostsFromRedditor(false, redditor);
+      print("ITEMMODEL DATA LENGTH" + itemModel.results.length.toString());
     }
 
     print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
@@ -84,5 +103,3 @@ class PostsBloc {
   String tempType = "";
 
 }
-
-final bloc = PostsBloc();

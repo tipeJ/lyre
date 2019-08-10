@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/profile.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -224,7 +225,7 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
           onPress: (){
-            Navigator.push(context, SlideRightRoute(widget: UserView(post.s.author)));
+            Navigator.push(context, SlideRightRoute(widget: PostsView(post.s.author)));
           }
         ),
         ActionItems(

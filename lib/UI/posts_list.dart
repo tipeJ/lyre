@@ -22,14 +22,26 @@ import 'CustomExpansionTile.dart';
 
 enum PreviewType { Image, Video }
 
-class lyApp extends StatefulWidget {
-  State<lyApp> createState() => new PostsList();
+class PostsView extends StatefulWidget {
+  final String redditor;
+  PostsView(this.redditor);
+  State<PostsView> createState() => new PostsList(redditor: this.redditor);
 }
 
-class PostsList extends State<lyApp>
+class PostsList extends State<PostsView>
     with TickerProviderStateMixin, PreviewCallback {
   var titletext = "Lyre for Reddit";
   var currentSub = "";
+
+  final bloc = PostsBloc();
+
+  PostsList({String redditor}){
+    print("CURRENT REDDITOR: $redditor");
+    if(redditor != ""){
+      bloc.contentSource = ContentSource.Redditor;
+      bloc.redditor = redditor;
+    }
+  }
 
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
   Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
@@ -60,6 +72,8 @@ class PostsList extends State<lyApp>
   var paramsHeight = 0.0;
 
   PreviewType previewType;
+
+  
 
   @override
   void preview(String url) {
@@ -127,7 +141,6 @@ class PostsList extends State<lyApp>
     opacityAnimation = opacityTween.animate(
         CurvedAnimation(parent: previewController, curve: Curves.easeInSine));
 
-    ;
     height2Animation.addListener(() {
       setState(() {});
     });
@@ -150,6 +163,7 @@ class PostsList extends State<lyApp>
     setState(() {});
     bloc.fetchAllPosts();
   }
+
 
   @override
   void initState() {
@@ -357,6 +371,7 @@ class PostsList extends State<lyApp>
               ? -2.0
               : 2.0); //<-- or just continue to whichever edge is closer
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -423,6 +438,8 @@ class PostsList extends State<lyApp>
                               ],
                             );
                           default:
+                            return Container();
+                            break;
                         }
                       },
                     ),
@@ -456,9 +473,10 @@ class PostsList extends State<lyApp>
               child: new GestureDetector(
             child: new Stack(
               children: <Widget>[
-                new StreamBuilder(
+                bloc.contentSource == ContentSource.Subreddit
+                ? new StreamBuilder(
                   stream: bloc.allPosts,
-                  builder: (context, AsyncSnapshot<ItemModel> snapshot) {
+                  builder: (BuildContext context, AsyncSnapshot<ItemModel> snapshot) {
                     if (snapshot.hasData) {
                       return buildList(snapshot);
                     } else if (snapshot.hasError) {
@@ -466,9 +484,25 @@ class PostsList extends State<lyApp>
                     }
                     return Center(child: CircularProgressIndicator());
                   },
-                ),
+                )
+                : StreamBuilder(
+                    stream: bloc.allPosts,
+                    builder: (BuildContext context, AsyncSnapshot<ItemModel> postSnapshot) {
+                      if(postSnapshot == null){
+                        print("FUCK THIS SHIT");
+                      }
+                      if (postSnapshot.hasData) {
+                        print("POST RETURING");
+                        return buildList(postSnapshot);
+                      } else if (postSnapshot.hasError) {
+                        print("POST ERRORS");
+                        return Text(postSnapshot.error.toString());
+                      }
+                      return Center(child: CircularProgressIndicator());
+                    },
+                  ),
                 getFloatingNavBar()
-              ],
+              ].where(notNull).toList(),
             ),
             onLongPressUp: () {
               hideOverlay();
@@ -578,7 +612,7 @@ class PostsList extends State<lyApp>
                                                   child: Column(
                                                     children: <Widget>[
                                                       new Text(
-                                                        'r/$currentSubreddit',
+                                                        bloc.getSourceString(),
                                                         style: TextStyle(
                                                           color: Colors.white70,
                                                           fontSize: 22.0,
@@ -618,7 +652,7 @@ class PostsList extends State<lyApp>
                                                         showSubmit(context);
                                                       }else{
                                                           showSubmit(context);
-                                                          //Scaffold.of(context).showSnackBar(snackBar);
+                                                          Scaffold.of(context).showSnackBar(snackBar);
                                                       }
                                                     });
                                                   },
@@ -788,7 +822,7 @@ class PostsList extends State<lyApp>
           bloc.fetchMore();
         }
         if (scrollInfo is ScrollUpdateNotification) {
-          var sc = scrollInfo as ScrollUpdateNotification;
+          var sc = scrollInfo;
           if (sc.scrollDelta >= 10.0 && visible && !isElevated) {
             setState(() {
               visible = false;
@@ -799,37 +833,110 @@ class PostsList extends State<lyApp>
             });
           }
         }
+        return true;
       },
       child: new ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
-          itemCount: posts.length + 1,
+          itemCount: bloc.contentSource == ContentSource.Subreddit ? posts.length + 1 : posts.length + 2,
           itemBuilder: (BuildContext context, int i) {
-            return (i == posts.length)
-                ? Container(
-                    color: Colors.blueGrey,
-                    child: FlatButton(
-                        onPressed: () {
-                          setState(() {
-                            bloc.fetchMore();
-                          });
-                        },
-                        child: Text("Load more")),
-                  )
-                : GestureDetector(
-                    onHorizontalDragUpdate: (DragUpdateDetails details) {
-                      if (details.delta.direction > 1.0 &&
-                          details.delta.dx < -25) {
-                        currentPostId = posts[i].s.id;
-                        showComments(context, posts[i]);
-                      }
-                    }, //TODO: Add a new fling animation for vertical scrolling
-                    child: new Hero(
-                      tag: 'post_hero ${posts[i].s.id}',
-                      child: new postInnerWidget(posts[i], this),
-                    ),
-                  );
+            var finalIndex = bloc.contentSource == ContentSource.Subreddit ? posts.length : posts.length + 1;
+            if(i == finalIndex){
+              return Container(
+                color: Colors.blueGrey,
+                child: FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        bloc.fetchMore();
+                      });
+                    },
+                    child: Text("Load more")),
+              );
+            } else if(bloc.contentSource == ContentSource.Redditor && i == 0){
+              if(headerWidget == null){
+                headerWidget = FutureBuilder(
+                  future: PostsProvider().getRedditor(bloc.redditor),
+                  builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                    if(snapshot.connectionState == ConnectionState.done){
+                      return getSpaciousUserColumn(snapshot.data);
+                    }else{
+                      return Padding(
+                        child: Center(
+                          child: Container(
+                            child: CircularProgressIndicator(),
+                            height: 25.0,
+                            width: 25.0
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 10.0)
+                      );
+                    }
+                  },
+                );
+              }
+              return headerWidget;
+            } else {
+              int index = bloc.contentSource == ContentSource.Subreddit ? i : i - 1;
+              print('index: ' + index.toString() + ' ö ' + posts.length.toString());
+              return GestureDetector(
+                onHorizontalDragUpdate: (DragUpdateDetails details) {
+                  if (details.delta.direction > 1.0 &&
+                      details.delta.dx < -25) {
+                    currentPostId = posts[index].s.id;
+                    showComments(context, posts[index]);
+                  }
+                }, //TODO: Add a new fling animation for vertical scrolling
+                child: new Hero(
+                  tag: 'post_hero ${posts[index].s.id}',
+                  child: new postInnerWidget(posts[index], this),
+                ),
+              );
+            }
           }),
+    );
+  }
+  //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
+  Widget headerWidget;
+
+  Widget getSpaciousUserColumn(prefix0.Redditor redditor){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          child: ClipOval(
+            child: Image(
+              image: AdvancedNetworkImage(
+                redditor.data['icon_img'],
+                useDiskCache: true,
+                cacheRule: CacheRule(maxAge: const Duration(days: 7))
+              ),
+            ),
+          ),
+          width: 120,
+          height: 120,
+        ),
+        Divider(),
+        Text(
+          'u/${redditor.fullname}',
+          style: TextStyle(
+            fontSize: 25.0,
+          ),
+          ),
+        Divider(),
+        Padding(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Text('Post karma: ${redditor.linkKarma}',
+                style: TextStyle(color: Colors.white60)),
+              Text('Comment karma: ${redditor.commentKarma}',
+                style: TextStyle(color: Colors.white60))
+            ],
+          ),
+        padding: EdgeInsets.only(bottom: 10.0),)
+      ],
     );
   }
 

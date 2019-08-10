@@ -9,7 +9,6 @@ import '../Resources/globals.dart';
 import '../Models/item_model.dart';
 
 class UserView extends StatefulWidget {
-  PostsBloc bloc;
   final String fullname;
 
   UserView(this.fullname);
@@ -21,6 +20,7 @@ class _UserViewState extends State<UserView> {
   final String fullname;
   _UserViewState(this.fullname);
 
+  final bloc = PostsBloc();
   @override
   Widget build(BuildContext context) {
     return Scaffold(

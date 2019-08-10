@@ -12,7 +12,7 @@ class App extends StatelessWidget {
       initialRoute: '/',
       theme: ThemeData.dark(),
       routes: {
-        '/': (context) => lyApp(),
+        '/': (context) => PostsView(""),
         '/comments': (context) => commentsList(cPost),
         '/submit': (context) => SubmitWindow(),
       },

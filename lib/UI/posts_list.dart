@@ -386,7 +386,7 @@ class PostsList extends State<PostsView>
           resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
-                padding: EdgeInsets.only(top: 200, left: 20.0, right: 20.0),
+                padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
                 child: CustomScrollView(
                   slivers: <Widget>[
                     SliverToBoxAdapter(

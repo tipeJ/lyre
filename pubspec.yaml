@@ -15,13 +15,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_bloc: ^0.20.0
+  equatable: ^0.4.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   http: '>=0.11.3+14'
   url_launcher: ^5.0.1
-  rxdart: ^0.18.0
+  rxdart: ^0.22.0
   draw: ^0.5.0
   swipedetector: ^1.2.0
   html2md: ^0.3.0

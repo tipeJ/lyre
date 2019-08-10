@@ -1,5 +1,7 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/item_model.dart';
@@ -18,7 +20,8 @@ import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 import '../Resources/gfycat_provider.dart';
 import 'package:video_player/video_player.dart';
-import 'CustomExpansionTile.dart';
+import '../Themes/bloc/theme_event.dart';
+import '../Themes/bloc/theme_bloc.dart';
 
 enum PreviewType { Image, Video }
 
@@ -397,50 +400,50 @@ class PostsList extends State<PostsView>
                     ),
                     PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
                       child: FutureBuilder(
-                      future: PostsProvider().getLoggedInUser(),
-                      builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.none:
-                          case ConnectionState.active:
-                          case ConnectionState.waiting:
-                            return Container();
-                            break;
-                          case ConnectionState.done:
-                            if(snapshot.hasError){
-                              return Text('Error loading user data');
-                            }
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Column(children: <Widget>[
-                                  Text(
-                                    snapshot.data.commentKarma.toString(),
-                                    style: TextStyle(fontSize: 18.0),
-                                  ),
-                                  Text(
-                                    'Comment karma',
-                                    style: TextStyle(fontSize: 18.0),
-                                  )
-                                ],),
-                                Spacer(),
-                                VerticalDivider(),
-                                Spacer(),
-                                Column(children: <Widget>[
-                                  Text(
-                                    snapshot.data.linkKarma.toString(),
-                                    style: TextStyle(fontSize: 18.0),
-                                  ),
-                                  Text(
-                                    'Link karma',
-                                    style: TextStyle(fontSize: 18.0),
-                                  )
-                                ],)
-                              ],
-                            );
-                          default:
-                            return Container();
-                            break;
-                        }
+                        future: PostsProvider().getLoggedInUser(),
+                        builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                          switch (snapshot.connectionState) {
+                            case ConnectionState.none:
+                            case ConnectionState.active:
+                            case ConnectionState.waiting:
+                              return Container();
+                              break;
+                            case ConnectionState.done:
+                              if(snapshot.hasError){
+                                return Text('Error loading user data');
+                              }
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Column(children: <Widget>[
+                                    Text(
+                                      snapshot.data.commentKarma.toString(),
+                                      style: TextStyle(fontSize: 18.0),
+                                    ),
+                                    Text(
+                                      'Comment karma',
+                                      style: TextStyle(fontSize: 18.0),
+                                    )
+                                  ],),
+                                  Spacer(),
+                                  VerticalDivider(),
+                                  Spacer(),
+                                  Column(children: <Widget>[
+                                    Text(
+                                      snapshot.data.linkKarma.toString(),
+                                      style: TextStyle(fontSize: 18.0),
+                                    ),
+                                    Text(
+                                      'Link karma',
+                                      style: TextStyle(fontSize: 18.0),
+                                    )
+                                  ],)
+                                ],
+                              );
+                            default:
+                              return Container();
+                              break;
+                          }
                       },
                     ),
                     ) : null,
@@ -455,7 +458,7 @@ class PostsList extends State<PostsView>
                         ),
                         RaisedButton(
                           child: const Text('Add an account'),
-                          color: Theme.of(context).accentColor,
+                          color: Theme.of(context).primaryColor,
                           onPressed: () {
                             var pp = PostsProvider();
                             setState(() {
@@ -464,6 +467,9 @@ class PostsList extends State<PostsView>
                             });
                           },
                         ),
+                        Column(
+                          children: getThemeList(),
+                        )
                       ]),
                     ),
                   ].where(notNull).toList(),
@@ -512,6 +518,27 @@ class PostsList extends State<PostsView>
         onWillPop: _willPop);
   }
 
+  List<Widget> getThemeList(){
+    List<Widget> list = [];
+    LyreTheme.values.forEach((lyreAppTheme){
+      list.add(Card(
+        color: lyreThemeData[lyreAppTheme].primaryColor,
+        child: ListTile(
+          title: Text(
+            lyreAppTheme.toString(),
+            style: lyreThemeData[lyreAppTheme].textTheme.body1,
+          ),
+          onTap: (){
+            //Make the bloc output a new ThemeState
+            BlocProvider.of<ThemeBloc>(context)
+            .dispatch(ThemeChanged(theme: lyreAppTheme));
+          },
+        ),
+      ));
+    });
+    return list;
+  }
+
   Widget getFloatingNavBar() {
     return new IgnorePointer(
       child: AnimatedBuilder(
@@ -536,7 +563,7 @@ class PostsList extends State<PostsView>
                   new Container(
                       height: lerp(45.0, maxHeight) + paramsHeight,
                       decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 70, 64, 66),
+                          color: Theme.of(context).primaryColor,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(25.0),
                             topRight: Radius.circular(25.0),
@@ -614,7 +641,6 @@ class PostsList extends State<PostsView>
                                                       new Text(
                                                         bloc.getSourceString(),
                                                         style: TextStyle(
-                                                          color: Colors.white70,
                                                           fontSize: 22.0,
                                                         ),
                                                         textAlign:
@@ -623,7 +649,6 @@ class PostsList extends State<PostsView>
                                                       new Text(
                                                         bloc.getFilterString(),
                                                         style: TextStyle(
-                                                          color: Colors.white54,
                                                           fontSize: 14.0,
                                                         ),
                                                         textAlign:
@@ -691,7 +716,7 @@ class PostsList extends State<PostsView>
                             new Visibility(
                               child: new Container(
                                 height: 25.0,
-                                color: Colors.blue,
+                                color: Theme.of(context).primaryColorDark,
                                 child: Padding(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -877,7 +902,6 @@ class PostsList extends State<PostsView>
               return headerWidget;
             } else {
               int index = bloc.contentSource == ContentSource.Subreddit ? i : i - 1;
-              print('index: ' + index.toString() + ' ö ' + posts.length.toString());
               return GestureDetector(
                 onHorizontalDragUpdate: (DragUpdateDetails details) {
                   if (details.delta.direction > 1.0 &&
@@ -929,10 +953,8 @@ class PostsList extends State<PostsView>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              Text('Post karma: ${redditor.linkKarma}',
-                style: TextStyle(color: Colors.white60)),
-              Text('Comment karma: ${redditor.commentKarma}',
-                style: TextStyle(color: Colors.white60))
+              Text('Post karma: ${redditor.linkKarma}',),
+              Text('Comment karma: ${redditor.commentKarma}',)
             ],
           ),
         padding: EdgeInsets.only(bottom: 10.0),)

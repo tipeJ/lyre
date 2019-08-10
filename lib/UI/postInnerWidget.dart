@@ -316,7 +316,7 @@ class defaultColumn extends StatelessWidget {
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
                             style: new TextStyle(
-                              color: getScoreColor(post.s),
+                              color: getScoreColor(post.s, context),
                               fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 6.0, right: 4.0, top: 0.0)),

@@ -274,8 +274,7 @@ class comL extends State<commentsList>
                         )
                       : Container(),
                   new Text(
-                    "Load more comments (${comment.count})",
-                    style: TextStyle(color: colorList[0]),
+                    "Load more comments (${comment.count})"
                   )
                 ],
               ),

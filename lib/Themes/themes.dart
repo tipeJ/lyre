@@ -8,7 +8,8 @@ enum LyreTheme{
   DavyGrey,
   NavyPurple,
   WeldonBlue,
-  LemonMeringue
+  LemonMeringue,
+  LemonMeringue2
 }
 
 final lyreThemeData = {
@@ -63,6 +64,13 @@ final lyreThemeData = {
     brightness: Brightness.light,
     primaryColor: getC(192, 132, 151),
     primaryColorDark: darkenColor(192, 132, 151),
+    canvasColor: getC(243, 238, 195),
+    accentColor: getC(176, 208, 211)
+  ),
+  LyreTheme.LemonMeringue2: ThemeData(
+    brightness: Brightness.light,
+    primaryColor: getC(247, 175, 157),
+    primaryColorDark: darkenColor(247, 175, 157),
     canvasColor: getC(243, 238, 195),
     accentColor: getC(176, 208, 211)
   ),

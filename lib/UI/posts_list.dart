@@ -387,93 +387,113 @@ class PostsList extends State<PostsView>
           drawer: new Drawer(
               child: new Container(
                 padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
-                child: CustomScrollView(
-                  slivers: <Widget>[
-                    SliverToBoxAdapter(
-                      child: ExpansionTile(
-                        title: Text(
-                          currentUser.value,
-                          style: TextStyle(fontSize: 24.0),
+                child: Stack(
+                  children: <Widget>[
+                    CustomScrollView(
+                      slivers: <Widget>[
+                        SliverToBoxAdapter(
+                          child: ExpansionTile(
+                            title: Text(
+                              currentUser.value,
+                              style: TextStyle(fontSize: 24.0),
+                            ),
+                            children: getRegisteredUsernamesList(bloc.usernamesList),
+                          ),
                         ),
-                        children: getRegisteredUsernamesList(bloc.usernamesList),
-                      ),
-                    ),
-                    PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
-                      child: FutureBuilder(
-                        future: PostsProvider().getLoggedInUser(),
-                        builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                          switch (snapshot.connectionState) {
-                            case ConnectionState.none:
-                            case ConnectionState.active:
-                            case ConnectionState.waiting:
-                              return Container();
-                              break;
-                            case ConnectionState.done:
-                              if(snapshot.hasError){
-                                return Text('Error loading user data');
+                        PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
+                          child: FutureBuilder(
+                            future: PostsProvider().getLoggedInUser(),
+                            builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                              switch (snapshot.connectionState) {
+                                case ConnectionState.none:
+                                case ConnectionState.active:
+                                case ConnectionState.waiting:
+                                  return Container();
+                                  break;
+                                case ConnectionState.done:
+                                  if(snapshot.hasError){
+                                    return Text('Error loading user data');
+                                  }
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Column(children: <Widget>[
+                                        Text(
+                                          snapshot.data.commentKarma.toString(),
+                                          style: TextStyle(fontSize: 18.0),
+                                        ),
+                                        Text(
+                                          'Comment karma',
+                                          style: TextStyle(fontSize: 18.0),
+                                        )
+                                      ],),
+                                      Spacer(),
+                                      VerticalDivider(),
+                                      Spacer(),
+                                      Column(children: <Widget>[
+                                        Text(
+                                          snapshot.data.linkKarma.toString(),
+                                          style: TextStyle(fontSize: 18.0),
+                                        ),
+                                        Text(
+                                          'Link karma',
+                                          style: TextStyle(fontSize: 18.0),
+                                        )
+                                      ],)
+                                    ],
+                                  );
+                                default:
+                                  return Container();
+                                  break;
                               }
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Column(children: <Widget>[
-                                    Text(
-                                      snapshot.data.commentKarma.toString(),
-                                      style: TextStyle(fontSize: 18.0),
-                                    ),
-                                    Text(
-                                      'Comment karma',
-                                      style: TextStyle(fontSize: 18.0),
-                                    )
-                                  ],),
-                                  Spacer(),
-                                  VerticalDivider(),
-                                  Spacer(),
-                                  Column(children: <Widget>[
-                                    Text(
-                                      snapshot.data.linkKarma.toString(),
-                                      style: TextStyle(fontSize: 18.0),
-                                    ),
-                                    Text(
-                                      'Link karma',
-                                      style: TextStyle(fontSize: 18.0),
-                                    )
-                                  ],)
-                                ],
-                              );
-                            default:
-                              return Container();
-                              break;
-                          }
-                      },
-                    ),
-                    ) : null,
-                    SliverList(
-                      delegate: SliverChildListDelegate([
-                        Text("Auto-load more posts"),
-                        Switch(
-                          value: autoLoad,
-                          onChanged: (bool newValue) {
-                            autoLoad = newValue;
                           },
                         ),
-                        RaisedButton(
-                          child: const Text('Add an account'),
-                          color: Theme.of(context).primaryColor,
-                          onPressed: () {
-                            var pp = PostsProvider();
-                            setState(() {
-                              pp.registerReddit();
-                              bloc.fetchAllPosts();
-                            });
-                          },
+                        ) : null,
+                        SliverList(
+                          delegate: SliverChildListDelegate([
+                            Text("Auto-load more posts"),
+                            Switch(
+                              value: autoLoad,
+                              onChanged: (bool newValue) {
+                                autoLoad = newValue;
+                              },
+                            ),
+                            RaisedButton(
+                              child: const Text('Add an account'),
+                              color: Theme.of(context).primaryColor,
+                              onPressed: () {
+                                var pp = PostsProvider();
+                                setState(() {
+                                  pp.registerReddit();
+                                  bloc.fetchAllPosts();
+                                });
+                              },
+                            ),
+                          ]),
                         ),
-                        Column(
-                          children: getThemeList(),
-                        )
-                      ]),
+                      ].where(notNull).toList(),
                     ),
-                  ].where(notNull).toList(),
-                ),
+                    Positioned(
+                      bottom: 0.0,
+                      right: 0.0,
+                      child: Container(
+                        height: 50.0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Text(appName + ' v.' + appVersion),
+                            IconButton(
+                              icon: Icon(Icons.settings),
+                              onPressed: (){
+                                Navigator.of(context).pushNamed('/settings');
+                              },
+                            )
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                )
           )),
           body: new Container(
               child: new GestureDetector(

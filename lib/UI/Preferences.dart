@@ -38,7 +38,7 @@ class PreferencesView extends StatelessWidget {
             },
           )
       )
-    );
+    ));
   }
   List<Widget> getThemeList(BuildContext context){
     List<Widget> list = [];

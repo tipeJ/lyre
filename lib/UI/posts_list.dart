@@ -125,6 +125,7 @@ class PostsList extends State<PostsView>
   VideoPlayerController _videoController;
 
   void initV(BuildContext context) {
+    maxHeight = MediaQuery.of(context).size.height / 2.5;
     padAnimation = padTween.animate(CurvedAnimation(
         parent: controller,
         curve: Curves.easeIn,
@@ -160,7 +161,7 @@ class PostsList extends State<PostsView>
     previewController.reset();
   }
 
-  double get maxHeight => 400.0; //<-- Get max height of the screen
+  double maxHeight = 400.0; //<-- Get max height of the screen
 
   void refreshUser() {
     setState(() {});
@@ -170,6 +171,7 @@ class PostsList extends State<PostsView>
 
   @override
   void initState() {
+    maxHeight = 400.0;
     currentUser.addListener(refreshUser);
     _controller = AnimationController(
       //<-- initialize a controller
@@ -712,7 +714,8 @@ class PostsList extends State<PostsView>
                                   width: MediaQuery.of(context).size.width,
                                 )),
                             new Container(
-                              height: lerp(0, 350),
+                              //Height for the expanding bottom nav bar
+                              height: lerp(0, maxHeight-50.0),
                               child: new StreamBuilder(
                                 stream: sub_bloc.getSubs,
                                 builder: (context,
@@ -724,7 +727,17 @@ class PostsList extends State<PostsView>
                                       return Text(snapshot.error.toString());
                                     }
                                     return Center(
-                                        child: CircularProgressIndicator());
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Icon(
+                                              Icons.search,
+                                              size: max(50.0, MediaQuery.of(context).size.width/7),
+                                              ),
+                                            Text('Search for subreddits')
+                                          ],
+                                        ));
                                   } else {
                                     return Container(
                                       height: 0.0,

@@ -45,7 +45,7 @@ class CustomExpansionTile extends StatefulWidget {
   /// The primary content of the list item.
   ///
   /// Typically a [Text] widget.
-  final Widget title;
+  final String title;
 
   /// Called when the tile expands or collapses.
   ///
@@ -145,6 +145,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
       ),*/
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           ListTileTheme.merge(
             iconColor: _iconColor.value,
@@ -157,7 +158,13 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
             ),
             dense: true,
             child: InkWell(
-              child: widget.title,
+              child: Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 25.0 * (_heightFactor.value * 0.1 + 1),
+                  color: _isExpanded ? Theme.of(context).primaryColor : Theme.of(context).primaryTextTheme
+                ),
+              ),
               onTap: _handleTap,
             ),
           ),

@@ -71,5 +71,6 @@ String lastPost = "";
 bool autoLoad = false;
 bool loopVideos = true;
 bool preCollapsed = false;
+bool showNSFWPreviews = false;
 
 Post cPost;

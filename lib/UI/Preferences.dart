@@ -23,8 +23,12 @@ class PreferencesView extends StatelessWidget {
                 return ListView(
                   children: <Widget>[
                     CustomExpansionTile(
-                      title: Text('Themes'),
+                      title: 'Themes',
                       children: getThemeList(context),
+                    ),
+                    CustomExpansionTile(
+                      title: 'Filters',
+                      children: getFiltersList(context),
                     )
                   ],
                 );
@@ -39,6 +43,18 @@ class PreferencesView extends StatelessWidget {
           )
       )
     ));
+  }
+  List<Widget> getFiltersList(BuildContext context){
+    return [
+      getSettingsTitleRow(
+        'Show NSFW Previews', 
+        Switch(
+          value: preferences.getBool('showNSFWPreviews') != null ? preferences.getBool('showNSFWPreviews') : false,
+          onChanged: (value){
+            preferences.setBool('showNSFWPreviews', value);
+          },)
+      )
+    ];
   }
   List<Widget> getThemeList(BuildContext context){
     List<Widget> list = [];
@@ -73,5 +89,19 @@ class PreferencesView extends StatelessWidget {
       ));
     });
     return list;
+  }
+  Row getSettingsTitleRow(String title, Widget leading){
+    return Row(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5.0),
+          child: Text(title),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5.0),
+          child: leading,
+        )
+      ],
+    );
   }
 }

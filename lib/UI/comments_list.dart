@@ -319,7 +319,7 @@ class comL extends State<commentsList>
       }, childCount: comments.length + 1),
     );
   }
-
+/*
   Widget getCommentsExpandableSingle(commentTest parent) {
     if (parent.children == null || parent.children.isEmpty) {
       return getCommentWidget(parent.result, parent.position);
@@ -355,6 +355,7 @@ class comL extends State<commentsList>
       }
     }, childCount: xList.length));
   }
+  */
   Widget getImprovedCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot){
     var comments = snapshot.data.results;
     return new SliverList(

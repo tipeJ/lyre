@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lyre/UI/posts_list.dart';
-import 'package:lyre/UI/profile.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';

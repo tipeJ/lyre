@@ -15,6 +15,8 @@ class App extends StatelessWidget {
       future: SharedPreferences.getInstance(),
       builder: (context, AsyncSnapshot<SharedPreferences> snapshot){
         if(snapshot.hasData){
+          final prefs = snapshot.data;
+          showNSFWPreviews = prefs.get('showNSFWPreviews') != null ? prefs.get('showNSFWPreviews') : false;
           return BlocProvider(
             builder: (context) => ThemeBloc(snapshot.data.get('currentTheme') == null ? "" : snapshot.data.get('currentTheme')),
             child: BlocBuilder<ThemeBloc, ThemeState>(

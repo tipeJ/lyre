@@ -75,7 +75,7 @@ class PreferencesView extends StatelessWidget {
         child: ListTile(
           title: Text(
             lyreAppTheme.toString(),
-            style: lyreThemeData[lyreAppTheme].textTheme.body1,
+            style: lyreThemeData[lyreAppTheme].textTheme.body1
           ),
           onTap: (){
             //Make the bloc output a new ThemeState

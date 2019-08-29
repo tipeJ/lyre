@@ -451,16 +451,8 @@ class PostsList extends State<PostsView>
                           },
                         ),
                         ) : null,
-                        SliverList(
-                          delegate: SliverChildListDelegate([
-                            Text("Auto-load more posts"),
-                            Switch(
-                              value: autoLoad,
-                              onChanged: (bool newValue) {
-                                autoLoad = newValue;
-                              },
-                            ),
-                            RaisedButton(
+                        SliverToBoxAdapter(
+                          child: RaisedButton(
                               child: const Text('Add an account'),
                               color: Theme.of(context).primaryColor,
                               onPressed: () {
@@ -471,8 +463,7 @@ class PostsList extends State<PostsView>
                                 });
                               },
                             ),
-                          ]),
-                        ),
+                        )
                       ].where(notNull).toList(),
                     ),
                     Positioned(
@@ -698,8 +689,7 @@ class PostsList extends State<PostsView>
                                                       if(PostsProvider().isLoggedIn()){
                                                         showSubmit(context);
                                                       }else{
-                                                          showSubmit(context);
-                                                          Scaffold.of(context).showSnackBar(snackBar);
+                                                        Scaffold.of(context).showSnackBar(snackBar);
                                                       }
                                                     });
                                                   },

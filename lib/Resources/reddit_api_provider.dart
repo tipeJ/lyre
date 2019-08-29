@@ -13,7 +13,37 @@ import 'credential_loader.dart';
 
 enum ContentSource{
   Subreddit,
-  Redditor
+  Redditor,
+  Self
+}
+
+enum SelfContentType{
+  Comments,
+  Submitted,
+  Upvoted,
+  Saved,
+  Hidden,
+  Watching
+}
+
+enum TypeFilters{
+  Best,
+  Hot,
+  New,
+  Rising,
+  Top,
+  Controversial,
+  Gilded,
+  Comments
+}
+
+enum TimeFilters{
+  Hour,
+  Day,
+  Week,
+  Month,
+  Year,
+  All
 }
 
 class PostsProvider {
@@ -265,7 +295,6 @@ class PostsProvider {
     Map<String, String> headers = new Map<String, String>();
     headers["before"] = "0";
 
-    var response = await client.get("${COMMENTS_BASE_URL}${currentPostId}/.json", headers: headers);
     var r = await getRed();
     var s = await r.submission(id: currentPostId).populate();
     return CommentM.fromJson(s.comments.comments);
@@ -297,6 +326,29 @@ class PostsProvider {
     }
   }
 
+  //* Profile data fetching:
+
+  Future<List<UserContent>> getSaved(SelfContentType contentType, [String sortType = "hot", String time_filter = ""]) async {
+    var r = await getRed();
+    var self = await r.user.me();
+    var timeFilter = parseTimeFilter(time_filter);
+    switch (contentType) {
+      case SelfContentType.Comments:
+        var comments = await self.comments;
+        switch (sortType) {
+          case "hot":
+            return comments.hot().toList();
+            break;
+          case "top":
+            return comments.controversial(timeFilter: timeFilter).toList();
+          default:
+        }
+        break;
+      default:
+    }
+  }
+
+  //* Utilities: 
   TimeFilter parseTimeFilter(String query){
     switch (query) {
       case "hour":

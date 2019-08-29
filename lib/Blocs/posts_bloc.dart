@@ -1,12 +1,9 @@
-import 'package:flutter/material.dart';
-
 import '../Resources/repository.dart';
 import '../Resources/globals.dart';
 import '../Resources/credential_loader.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
 import '../Models/User.dart';
-import '../UI/posts_list.dart';
 import '../Resources/reddit_api_provider.dart';
 
 class PostsBloc {
@@ -61,7 +58,7 @@ class PostsBloc {
     print("ITEMMODEL LENGTH: " + itemModel.results.length.toString());
     latestModel = itemModel;
     _postsFetcher.sink.add(latestModel);
-    currentCount = 25;
+    currentCount = latestModel.results.length;
     //Currently refreshes list of registered usernames via refreshing list of posts.
     var x = await readUsernames();
     x.insert(0, "Guest");
@@ -70,7 +67,6 @@ class PostsBloc {
   }
   fetchMore() async {
     lastPost = latestModel.results.last.s.id;
-    currentCount += perPage;
     print("START FETCH MORE");
     ItemModel itemModel;
     if(contentSource == ContentSource.Subreddit){
@@ -78,6 +74,7 @@ class PostsBloc {
     }else if(contentSource == ContentSource.Redditor){
       itemModel = await _repository.fetchPostsFromRedditor(true, redditor);
     }
+    currentCount += itemModel.results.length;
     latestModel.results.addAll(itemModel.results);
     _postsFetcher.sink.add(latestModel);
   }

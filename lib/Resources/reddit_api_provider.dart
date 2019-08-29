@@ -26,7 +26,7 @@ enum SelfContentType{
   Watching
 }
 
-enum TypeFilters{
+enum TypeFilter{
   Best,
   Hot,
   New,
@@ -35,15 +35,6 @@ enum TypeFilters{
   Controversial,
   Gilded,
   Comments
-}
-
-enum TimeFilters{
-  Hour,
-  Day,
-  Week,
-  Month,
-  Year,
-  All
 }
 
 class PostsProvider {
@@ -328,23 +319,51 @@ class PostsProvider {
 
   //* Profile data fetching:
 
-  Future<List<UserContent>> getSaved(SelfContentType contentType, [String sortType = "hot", String time_filter = ""]) async {
+  Future<List<UserContent>> getSelfUserContent(SelfContentType contentType, [TypeFilter typeFilter, String time_filter = ""]) async {
     var r = await getRed();
     var self = await r.user.me();
     var timeFilter = parseTimeFilter(time_filter);
     switch (contentType) {
       case SelfContentType.Comments:
-        var comments = await self.comments;
-        switch (sortType) {
-          case "hot":
-            return comments.hot().toList();
-            break;
-          case "top":
+        var comments = self.comments;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return comments.top(timeFilter: timeFilter).toList();
+          case TypeFilter.Controversial:
             return comments.controversial(timeFilter: timeFilter).toList();
+          case TypeFilter.New:
+            return comments.newest().toList();
           default:
+            //Default: Return hot
+            return comments.hot().toList();
         }
         break;
+      case SelfContentType.Hidden:
+        var hidden = self.hidden();
+        return hidden.toList();
+      case SelfContentType.Submitted:
+        var submitted = self.submissions;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return submitted.top(timeFilter: timeFilter).toList();
+          case TypeFilter.Controversial:
+            return submitted.controversial(timeFilter: timeFilter).toList();
+          case TypeFilter.New:
+            return submitted.newest().toList();
+          default:
+            //Default: Return hot
+            return submitted.hot().toList();
+        }
+        break;
+      case SelfContentType.Upvoted:
+        var upvoted = self.upvoted();
+        return upvoted.toList();
+      case SelfContentType.Saved:
+        return self.saved().toList();
+      case SelfContentType.Watching:
+        // ! API Doesn't support
       default:
+        return null; // Shouldn't happen
     }
   }
 

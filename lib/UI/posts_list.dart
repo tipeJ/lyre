@@ -551,14 +551,9 @@ class PostsListState extends State<PostsList>
                     : StreamBuilder(
                         stream: bloc.state,
                         builder: (BuildContext context, AsyncSnapshot<PostsState> postSnapshot) {
-                          if(postSnapshot == null){
-                            print("FUCK THIS SHIT");
-                          }
                           if (postSnapshot.hasData) {
-                            print("POST RETURING");
                             return buildList(postSnapshot);
                           } else if (postSnapshot.hasError) {
-                            print("POST ERRORS");
                             return Text(postSnapshot.error.toString());
                           }
                           return Center(child: CircularProgressIndicator());

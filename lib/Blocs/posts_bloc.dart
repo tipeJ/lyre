@@ -5,7 +5,7 @@ import 'package:rxdart/rxdart.dart';
 import '../Models/item_model.dart';
 import '../Models/User.dart';
 import '../Resources/reddit_api_provider.dart';
-
+/*
 class PostsBloc {
   final _repository = Repository();
   final _postsFetcher = PublishSubject<ItemModel>();
@@ -100,3 +100,4 @@ class PostsBloc {
   String tempType = "";
 
 }
+*/

@@ -225,7 +225,7 @@ class PostsProvider {
     return b2;
   }
 
-  Future<ItemModel> fetchUserContent(String typeFilter, String timeFilter, bool loadMore, {String redditor, ContentSource source}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
     var res = await logInToLatest();
     reddit = await getRed();
 
@@ -234,44 +234,59 @@ class PostsProvider {
     if(loadMore)headers["after"]="t3_$lastPost";
 
     headers["limit"] = perPage.toString();
-    if(typeFilter == "hot" || typeFilter == "new" || typeFilter == "rising"){
+
+    if([
+      TypeFilter.Hot,
+      TypeFilter.New,
+      TypeFilter.Rising,
+      TypeFilter.Gilded
+    ].contains(typeFilter)){
       timeFilter = "";
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
+
     List<UserContent> v = [];
     if(timeFilter == ""){
       switch (typeFilter){
-            case "hot":
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).hot(params: headers).toList();
-              }
-              break;
-            case "new":
+            case TypeFilter.New:
               if(source == ContentSource.Subreddit){
                 v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
               }else if(source == ContentSource.Redditor){
                 v = await reddit.redditor(redditor).newest(params: headers).toList();
               }
               break;
-            case "rising":
+            case TypeFilter.Rising:
               if(source == ContentSource.Subreddit){
                 v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+              }
+              break;
+            case TypeFilter.Gilded:
+              if(source == ContentSource.Subreddit){
+                // ! Implement?
+              }
+              break;
+            case TypeFilter.Comments:
+              // ! Implement?
+              break;
+            default: //Default to hot.
+              if(source == ContentSource.Subreddit){
+                v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+              }else if(source == ContentSource.Redditor){
+                v = await reddit.redditor(redditor).hot(params: headers).toList();
               }
               break;
         }
     }else{
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
-            case "controversial":
+            case TypeFilter.Controversial:
               if(source == ContentSource.Subreddit){
                   v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
               }else if(source == ContentSource.Redditor){
                 v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
               }
               break;
-            case "top":
+            default: //Default to top
               if(source == ContentSource.Subreddit){
                   v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
               }else if(source == ContentSource.Redditor){
@@ -280,7 +295,7 @@ class PostsProvider {
               break;
         }
     }
-    return ItemModel.fromApi(v);
+    return v;
   }
   Future<CommentM> fetchCommentsList() async {
     Map<String, String> headers = new Map<String, String>();
@@ -319,18 +334,18 @@ class PostsProvider {
 
   //* Profile data fetching:
 
-  Future<List<UserContent>> getSelfUserContent(SelfContentType contentType, [TypeFilter typeFilter, String time_filter = ""]) async {
+  Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
     var r = await getRed();
     var self = await r.user.me();
-    var timeFilter = parseTimeFilter(time_filter);
+    var filter = parseTimeFilter(timeFilter);
     switch (contentType) {
       case SelfContentType.Comments:
         var comments = self.comments;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return comments.top(timeFilter: timeFilter).toList();
+            return comments.top(timeFilter: filter).toList();
           case TypeFilter.Controversial:
-            return comments.controversial(timeFilter: timeFilter).toList();
+            return comments.controversial(timeFilter: filter).toList();
           case TypeFilter.New:
             return comments.newest().toList();
           default:
@@ -345,9 +360,9 @@ class PostsProvider {
         var submitted = self.submissions;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return submitted.top(timeFilter: timeFilter).toList();
+            return submitted.top(timeFilter: filter).toList();
           case TypeFilter.Controversial:
-            return submitted.controversial(timeFilter: timeFilter).toList();
+            return submitted.controversial(timeFilter: filter).toList();
           case TypeFilter.New:
             return submitted.newest().toList();
           default:

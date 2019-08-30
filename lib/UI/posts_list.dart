@@ -1,13 +1,12 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
-import '../Models/item_model.dart';
 import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
-import '../Blocs/posts_bloc.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
@@ -25,26 +24,41 @@ import '../Themes/bloc/theme_bloc.dart';
 
 enum PreviewType { Image, Video }
 
-class PostsView extends StatefulWidget {
-  final String redditor;
-  PostsView(this.redditor);
-  State<PostsView> createState() => new PostsList(redditor: this.redditor);
+class PostsView extends StatelessWidget {
+  ContentSource source;
+  String redditor;
+
+  final PostsBloc _postsBloc = PostsBloc();
+  PostsView(String redditor, [ContentSource source]){
+    this.source = redditor.isNotEmpty 
+      ? ContentSource.Redditor
+      : source;
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return BlocProvider(
+      builder: (context) => _postsBloc,
+      child: PostsList(redditor),
+    );
+  }
 }
 
-class PostsList extends State<PostsView>
+class PostsList extends StatefulWidget {
+  final String redditor;
+  PostsList(this.redditor);
+  State<PostsList> createState() => new PostsListState(this.redditor);
+}
+
+class PostsListState extends State<PostsList>
     with TickerProviderStateMixin, PreviewCallback {
   var titletext = "Lyre for Reddit";
   var currentSub = "";
+  final String redditor;
 
-  final bloc = PostsBloc();
+  PostsBloc bloc;
 
-  PostsList({String redditor}){
-    print("CURRENT REDDITOR: $redditor");
-    if(redditor != ""){
-      bloc.contentSource = ContentSource.Redditor;
-      bloc.redditor = redditor;
-    }
-  }
+  PostsListState(this.redditor);
 
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
   Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
@@ -163,16 +177,22 @@ class PostsList extends State<PostsView>
 
   double maxHeight = 400.0; //<-- Get max height of the screen
 
-  void refreshUser() {
+  /*void refreshUser() {
     setState(() {});
     bloc.fetchAllPosts();
   }
+  */
 
 
   @override
   void initState() {
     maxHeight = 400.0;
-    currentUser.addListener(refreshUser);
+    currentUser.addListener((){
+      setState(() {
+        
+      });
+      bloc.dispatch(PostsSourceChanged());
+    });
     _controller = AnimationController(
       //<-- initialize a controller
       vsync: this,
@@ -282,6 +302,8 @@ class PostsList extends State<PostsView>
     }
   }
 
+  String tempType = "";
+
   List<Widget> _createParams(bool type) {
     return (type)
         ? new List<Widget>.generate(sortTypes.length, (int index) {
@@ -291,15 +313,17 @@ class PostsList extends State<PostsView>
                 setState(() {
                   var q = sortTypes[index];
                   if (q == "hot" || q == "new" || q == "rising") {
-                    currentSortType = q;
+                    parseTypeFilter(q);
                     currentSortTime = "";
 
-                    bloc.fetchAllPosts();
-                    bloc.resetFilters();
+                    bloc.dispatch(PostsSourceChanged(
+                      
+                    ));
+                    //bloc.resetFilters();
 
                     _changeParamsVisibility();
                   } else {
-                    bloc.tempType = q;
+                    tempType = q;
                     _changeTypeVisibility();
                   }
                 });
@@ -310,12 +334,13 @@ class PostsList extends State<PostsView>
             return InkWell(
               child: Text(sortTimes[index]),
               onTap: () {
-                if (bloc.tempType != "") {
-                  currentSortType = bloc.tempType;
+                if (tempType != "") {
+                  parseTypeFilter(tempType);
                   currentSortTime = sortTimes[index];
-                  bloc.fetchAllPosts();
-                  bloc.resetFilters();
-                  bloc.tempType = "";
+                  bloc.dispatch(PostsSourceChanged(
+
+                  ));
+                  tempType = "";
                 }
                 _changeTypeVisibility();
                 _changeParamsVisibility();
@@ -326,7 +351,7 @@ class PostsList extends State<PostsView>
 
   _changeParamsVisibility() {
     //Resets the bloc:s tempType filter in case of continuity errors.
-    bloc.tempType = "";
+    tempType = "";
     setState(() {
       if (paramsExpanded) {
         paramsHeight = 0.0;
@@ -380,8 +405,9 @@ class PostsList extends State<PostsView>
 
   @override
   Widget build(BuildContext context) {
-    if (bloc.latestModel == null) {
-      bloc.fetchAllPosts();
+    bloc = BlocProvider.of<PostsBloc>(context);
+    if (bloc.currentState.userContent == null) {
+      bloc.dispatch(PostsSourceChanged());
     }
     return new WillPopScope(
         child: Scaffold(
@@ -394,13 +420,18 @@ class PostsList extends State<PostsView>
                     CustomScrollView(
                       slivers: <Widget>[
                         SliverToBoxAdapter(
-                          child: ExpansionTile(
-                            title: Text(
-                              currentUser.value,
-                              style: TextStyle(fontSize: 24.0),
-                            ),
-                            children: getRegisteredUsernamesList(bloc.usernamesList),
-                          ),
+                          child: BlocBuilder<PostsBloc, PostsState>(
+                            bloc: bloc,
+                            builder: (context, PostsState state){
+                              return ExpansionTile(
+                                title: Text(
+                                  currentUser.value,
+                                  style: TextStyle(fontSize: 24.0),
+                                ),
+                                children: getRegisteredUsernamesList(state.usernamesList),
+                              );
+                            },
+                          )
                         ),
                         PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
                           child: FutureBuilder(
@@ -459,7 +490,7 @@ class PostsList extends State<PostsView>
                                 var pp = PostsProvider();
                                 setState(() {
                                   pp.registerReddit();
-                                  bloc.fetchAllPosts();
+                                  bloc.dispatch(PostsSourceChanged());
                                 });
                               },
                             ),
@@ -490,39 +521,54 @@ class PostsList extends State<PostsView>
           )),
           body: new Container(
               child: new GestureDetector(
-            child: new Stack(
-              children: <Widget>[
-                bloc.contentSource == ContentSource.Subreddit
-                ? new StreamBuilder(
-                  stream: bloc.allPosts,
-                  builder: (BuildContext context, AsyncSnapshot<ItemModel> snapshot) {
-                    if (snapshot.hasData) {
-                      return buildList(snapshot);
-                    } else if (snapshot.hasError) {
-                      return Text(snapshot.error.toString());
-                    }
-                    return Center(child: CircularProgressIndicator());
-                  },
-                )
-                : StreamBuilder(
-                    stream: bloc.allPosts,
-                    builder: (BuildContext context, AsyncSnapshot<ItemModel> postSnapshot) {
-                      if(postSnapshot == null){
-                        print("FUCK THIS SHIT");
-                      }
-                      if (postSnapshot.hasData) {
-                        print("POST RETURING");
-                        return buildList(postSnapshot);
-                      } else if (postSnapshot.hasError) {
-                        print("POST ERRORS");
-                        return Text(postSnapshot.error.toString());
-                      }
-                      return Center(child: CircularProgressIndicator());
-                    },
-                  ),
-                getFloatingNavBar()
-              ].where(notNull).toList(),
-            ),
+                child: new Stack(
+                  children: <Widget>[
+                    bloc.currentState.contentSource == ContentSource.Subreddit
+                    ? new StreamBuilder(
+                      stream: bloc.state.takeWhile((PostsState s){
+                        return s.userContent != null;
+                      }),
+                      builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
+                        if(!snapshot.hasData){
+                          print('snapshot no data');
+                        }else{
+                          if(snapshot.data.userContent == null){
+                          print('snapshot null');
+                          }else{
+                            if(snapshot.data.userContent.isEmpty){
+                            print('snapshot empty');
+                          }
+                          }
+                          
+                        }
+                        
+                        if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
+                          return buildList(snapshot);
+                        } else if (snapshot.hasError) {
+                          return Text(snapshot.error.toString());
+                        }
+                        return Center(child: CircularProgressIndicator());
+                      },
+                    )
+                    : StreamBuilder(
+                        stream: bloc.state,
+                        builder: (BuildContext context, AsyncSnapshot<PostsState> postSnapshot) {
+                          if(postSnapshot == null){
+                            print("FUCK THIS SHIT");
+                          }
+                          if (postSnapshot.hasData) {
+                            print("POST RETURING");
+                            return buildList(postSnapshot);
+                          } else if (postSnapshot.hasError) {
+                            print("POST ERRORS");
+                            return Text(postSnapshot.error.toString());
+                          }
+                          return Center(child: CircularProgressIndicator());
+                        },
+                      ),
+                    getFloatingNavBar()
+                  ].where(notNull).toList(),
+                ),
             onLongPressUp: () {
               hideOverlay();
             },
@@ -622,8 +668,7 @@ class PostsList extends State<PostsView>
                                               onEditingComplete: () {
                                                 currentSubreddit = searchQuery;
                                                 _reverse();
-                                                bloc.fetchAllPosts();
-                                                bloc.resetFilters();
+                                                bloc.dispatch(PostsSourceChanged());
                                                 subsListHeight = 50.0;
                                                 scontrol.animateTo(0.0,
                                                     duration: Duration(
@@ -649,31 +694,35 @@ class PostsList extends State<PostsView>
                                               children: <Widget>[
                                                 Expanded(
                                                     child: InkWell(
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      new Text(
-                                                        bloc.getSourceString(),
-                                                        style: TextStyle(
-                                                          fontSize: 22.0,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.start,
+                                                      child: BlocBuilder<PostsBloc, PostsState>(
+                                                        builder: (context, PostsState state){
+                                                          return Column(
+                                                            children: <Widget>[
+                                                              new Text(
+                                                                state.getSourceString(),
+                                                                style: TextStyle(
+                                                                  fontSize: 22.0,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign.start,
+                                                              ),
+                                                              new Text(
+                                                                state.getFilterString(),
+                                                                style: TextStyle(
+                                                                  fontSize: 14.0,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign.start,
+                                                              )
+                                                            ],
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment.start,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                          );
+                                                        },
                                                       ),
-                                                      new Text(
-                                                        bloc.getFilterString(),
-                                                        style: TextStyle(
-                                                          fontSize: 14.0,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.start,
-                                                      )
-                                                    ],
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                  ),
                                                   onTap: () {
                                                     _changeParamsVisibility();
                                                   },
@@ -811,12 +860,12 @@ class PostsList extends State<PostsView>
             if (i == 0) {
               PostsProvider().logInAsGuest().then((_) {
                 setState(() {
-                  bloc.fetchAllPosts();
+                  bloc.dispatch(PostsSourceChanged());
                 });
               });
             }
             PostsProvider().logIn(list[i]);
-            bloc.fetchAllPosts();
+            bloc.dispatch(PostsSourceChanged());
           },
         ));
     }
@@ -849,8 +898,7 @@ class PostsList extends State<PostsView>
                 currentSubreddit = subs[i].displayName;
                 _reverse();
                 subsListHeight = 50.0;
-                bloc.resetFilters();
-                bloc.fetchAllPosts();
+                bloc.dispatch(PostsSourceChanged());
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),
                     curve: Curves.decelerate);
@@ -861,13 +909,14 @@ class PostsList extends State<PostsView>
   ScrollController scontrol = new ScrollController();
   bool visible = true;
 
-  Widget buildList(AsyncSnapshot<ItemModel> snapshot) {
-    var posts = snapshot.data.results;
+  Widget buildList(AsyncSnapshot<PostsState> snapshot) {
+    var state = snapshot.data;
+    var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
         if (autoLoad &&
             scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          bloc.fetchMore();
+          // ! bloc.fetchMore();
         }
         if (scrollInfo is ScrollUpdateNotification) {
           var sc = scrollInfo;
@@ -886,24 +935,24 @@ class PostsList extends State<PostsView>
       child: new ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
-          itemCount: bloc.contentSource == ContentSource.Subreddit ? posts.length + 1 : posts.length + 2,
+          itemCount: state.contentSource == ContentSource.Subreddit ? posts.length + 1 : posts.length + 2,
           itemBuilder: (BuildContext context, int i) {
-            var finalIndex = bloc.contentSource == ContentSource.Subreddit ? posts.length : posts.length + 1;
+            var finalIndex = state.contentSource == ContentSource.Subreddit ? posts.length : posts.length + 1;
             if(i == finalIndex){
               return Container(
                 color: Colors.blueGrey,
                 child: FlatButton(
                     onPressed: () {
                       setState(() {
-                        bloc.fetchMore();
+                        // ! bloc.fetchMore();
                       });
                     },
                     child: Text("Load more")),
               );
-            } else if(bloc.contentSource == ContentSource.Redditor && i == 0){
+            } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
                 headerWidget = FutureBuilder(
-                  future: PostsProvider().getRedditor(bloc.redditor),
+                  future: PostsProvider().getRedditor(state.targetRedditor),
                   builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
                     if(snapshot.connectionState == ConnectionState.done){
                       return getSpaciousUserColumn(snapshot.data);
@@ -924,18 +973,20 @@ class PostsList extends State<PostsView>
               }
               return headerWidget;
             } else {
-              int index = bloc.contentSource == ContentSource.Subreddit ? i : i - 1;
+              int index = state.contentSource == ContentSource.Subreddit ? i : i - 1;
               return GestureDetector(
                 onHorizontalDragUpdate: (DragUpdateDetails details) {
                   if (details.delta.direction > 1.0 &&
                       details.delta.dx < -25) {
-                    currentPostId = posts[index].s.id;
-                    showComments(context, posts[index]);
+                    currentPostId = (posts[index] as prefix0.Submission).id;
+                    showComments(context, (posts[index] as prefix0.Submission));
                   }
                 }, //TODO: Add a new fling animation for vertical scrolling
                 child: new Hero(
-                  tag: 'post_hero ${posts[index].s.id}',
-                  child: new postInnerWidget(posts[index], this),
+                  tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
+                  child: posts[index] is prefix0.Submission
+                    ? new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
+                    : Container() // ? Placeholder (for comment listing)
                 ),
               );
             }
@@ -994,10 +1045,11 @@ class PostsList extends State<PostsView>
     previewController?.dispose();
   }
 
-  void showComments(BuildContext context, Post inside) {
+  void showComments(BuildContext context, prefix0.Submission inside) {
     //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
-    cPost = inside;
-    inside.expanded = true;
+    cPost = Post.fromApi(inside);
+    // ! Might not work, previously inside.expanded = true
+    cPost.expanded = true;
     Navigator.of(context).pushNamed('/comments');
   }
 

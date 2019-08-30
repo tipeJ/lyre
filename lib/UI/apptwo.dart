@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +41,7 @@ class App extends StatelessWidget {
       title: 'Lyre',
       theme: themeState.themeData,
       routes: {
-        '/': (context) => PostsView(""),
+        '/': (context) => PostsView(''),
         '/comments': (context) => commentsList(cPost),
         '/submit': (context) => SubmitWindow(),
         '/settings': (context) => PreferencesView()

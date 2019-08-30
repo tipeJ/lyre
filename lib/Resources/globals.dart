@@ -1,6 +1,6 @@
 library lyre.globals;
 import 'package:flutter/foundation.dart';
-
+import 'reddit_api_provider.dart';
 import '../Models/Post.dart';
 
 String BASE_URL = "https://www.reddit.com";
@@ -49,11 +49,35 @@ List<String> sortTimes = [
   "all time"
 ];
 
-String defaultSortType = "hot";
-String defaultSortTime = sortTimes[1];
+ContentSource currentContentSource = ContentSource.Subreddit;
 
-String currentSortType = defaultSortType;
+final TypeFilter defaultSortType = TypeFilter.Hot;
+final String defaultSortTime = sortTimes[1];
+
+TypeFilter currentSortType = defaultSortType;
 String currentSortTime = "";
+
+void parseTypeFilter(String typeFilter){
+  switch (typeFilter) {
+    case 'hot':
+      currentSortType = TypeFilter.Hot;
+      break;
+    case 'new':
+      currentSortType = TypeFilter.New;
+      break;
+    case 'rising':
+      currentSortType = TypeFilter.Rising;
+      break;
+    case 'top':
+      currentSortType = TypeFilter.Top;
+      break;
+    case 'controversial':
+      currentSortType = TypeFilter.Controversial;
+      break;
+    
+    default:
+  }
+}
 
 String currentPostId = "";
 

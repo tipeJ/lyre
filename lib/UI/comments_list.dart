@@ -1,6 +1,7 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:lyre/UI/comment.dart';
+import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import '../Blocs/comments_bloc.dart';
 import 'CustomExpansionTile.dart';
@@ -229,7 +230,7 @@ class comL extends State<commentsList>
           ActionItems(
             icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
             onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: UserView(comment.c.author)));
+              Navigator.push(context, SlideRightRoute(widget: PostsList(comment.c.fullname)));
             }
           ),
           ActionItems(

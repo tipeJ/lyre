@@ -7,7 +7,7 @@ import 'postInnerWidget.dart';
 import '../Blocs/posts_bloc.dart';
 import '../Resources/globals.dart';
 import '../Models/item_model.dart';
-
+/*
 class UserView extends StatefulWidget {
   final String fullname;
 
@@ -104,3 +104,4 @@ class _UserViewState extends State<UserView> {
     );
   }
 }
+*/

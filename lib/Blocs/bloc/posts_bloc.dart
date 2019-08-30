@@ -6,12 +6,11 @@ import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/globals.dart' as prefix0;
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
-import '../../Resources/globals.dart';
 import './bloc.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: null, contentSource: ContentSource.Subreddit);
+  PostsState get initialState => PostsState(userContent: _userContent, contentSource : prefix0.currentContentSource, usernamesList: [],);
 
   final _repository = Repository();
 

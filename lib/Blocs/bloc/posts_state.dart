@@ -27,7 +27,7 @@ class PostsState extends Equatable {
   }) : super([userContent, usernamesList, currentUser, targetRedditor]);
 
   String getSourceString(){
-    switch (contentSource) {
+    switch (currentContentSource) {
       case ContentSource.Subreddit:
         return 'r/$currentSubreddit';
       case ContentSource.Redditor:

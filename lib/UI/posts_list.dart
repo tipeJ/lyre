@@ -406,7 +406,7 @@ class PostsListState extends State<PostsList>
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
-    if (bloc.currentState.userContent == null) {
+    if (bloc.currentState.userContent == null || bloc.currentState.userContent.isEmpty) {
       bloc.dispatch(PostsSourceChanged());
     }
     return new WillPopScope(
@@ -536,12 +536,10 @@ class PostsListState extends State<PostsList>
                           print('snapshot null');
                           }else{
                             if(snapshot.data.userContent.isEmpty){
-                            print('snapshot empty');
+                              print('snapshot empty');
+                            }
                           }
-                          }
-                          
                         }
-                        
                         if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
                           return buildList(snapshot);
                         } else if (snapshot.hasError) {
@@ -940,7 +938,7 @@ class PostsListState extends State<PostsList>
             var finalIndex = state.contentSource == ContentSource.Subreddit ? posts.length : posts.length + 1;
             if(i == finalIndex){
               return Container(
-                color: Colors.blueGrey,
+                color: Theme.of(context).primaryColor,
                 child: FlatButton(
                     onPressed: () {
                       setState(() {
@@ -973,7 +971,7 @@ class PostsListState extends State<PostsList>
               }
               return headerWidget;
             } else {
-              int index = state.contentSource == ContentSource.Subreddit ? i : i - 1;
+              int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
               return GestureDetector(
                 onHorizontalDragUpdate: (DragUpdateDetails details) {
                   if (details.delta.direction > 1.0 &&

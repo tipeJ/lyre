@@ -33,7 +33,7 @@ class PostsState extends Equatable {
       case ContentSource.Redditor:
         return 'u/${currentUser.username}';
       default:
-        return 'loading';
+        return '';
         break;
     }
   }

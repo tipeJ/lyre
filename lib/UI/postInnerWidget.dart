@@ -349,7 +349,7 @@ class defaultColumn extends StatelessWidget {
                     ),
                     new Padding(
                       child: new Text(
-                        getSubmissionAge(post.s.createdUtc).inHours.toString() + ' hours ago',
+                        getSubmissionAge(post.s.createdUtc),
                         style: TextStyle(
                               fontSize: 10.0,
                               color: Colors.white.withOpacity(0.9)

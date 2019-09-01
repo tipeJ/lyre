@@ -24,7 +24,7 @@ enum PostView{
   NoPreview
 }
 class postInnerWidget extends StatelessWidget {
-  PostView viewSetting = PostView.IntendedPreview;
+  PostView viewSetting = PostView.Compact;
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;

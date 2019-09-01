@@ -31,14 +31,14 @@ class PostsState extends Equatable {
       case ContentSource.Subreddit:
         return 'r/$currentSubreddit';
       case ContentSource.Redditor:
-        return 'u/${currentUser.username}';
+        return 'u/$targetRedditor';
       default:
         return '';
         break;
     }
   }
   String getFilterString(){
-    if(temporaryType == "top" || temporaryType == "controversial"){
+    if(temporaryType == TypeFilter.Top || temporaryType == TypeFilter.Controversial){
       return parseTypeFilter() + " ● " + temporaryTime;
     }else{
       return parseTypeFilter();

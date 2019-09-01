@@ -67,6 +67,7 @@ class PostsProvider {
   }
   Future<Redditor> getRedditor(String fullname) async {
     var r = await getRed();
+    print(fullname + " TARGER");
     return r.redditor(fullname).populate();
   }
   Future<bool> logIn(String username) async{

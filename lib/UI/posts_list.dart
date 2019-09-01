@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/UI/comment.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
+import '../Models/Comment.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
@@ -25,14 +27,16 @@ import '../Themes/bloc/theme_bloc.dart';
 enum PreviewType { Image, Video }
 
 class PostsView extends StatelessWidget {
-  ContentSource source;
   String redditor;
 
   final PostsBloc _postsBloc = PostsBloc();
-  PostsView(String redditor, [ContentSource source]){
-    this.source = redditor.isNotEmpty 
+  PostsView(String targetRedditor, [ContentSource source]){
+    this.redditor = targetRedditor;
+    currentContentSource = targetRedditor.isNotEmpty
       ? ContentSource.Redditor
-      : source;
+      : (source == null)
+        ? ContentSource.Subreddit
+        : source;
   }
 
   @override
@@ -47,7 +51,7 @@ class PostsView extends StatelessWidget {
 class PostsList extends StatefulWidget {
   final String redditor;
   PostsList(this.redditor);
-  State<PostsList> createState() => new PostsListState(this.redditor);
+  State<PostsList> createState() => new PostsListState(redditor);
 }
 
 class PostsListState extends State<PostsList>
@@ -407,7 +411,7 @@ class PostsListState extends State<PostsList>
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.currentState.userContent == null || bloc.currentState.userContent.isEmpty) {
-      bloc.dispatch(PostsSourceChanged());
+      bloc.dispatch(PostsSourceChanged(redditor: this.redditor));
     }
     return new WillPopScope(
         child: Scaffold(
@@ -519,11 +523,17 @@ class PostsListState extends State<PostsList>
                   ],
                 )
           )),
+          endDrawer: new Drawer(
+            child: Container(
+              padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
+              child: Text('End Drawer (To Be Implemented'),
+            ),
+          ),
           body: new Container(
               child: new GestureDetector(
                 child: new Stack(
                   children: <Widget>[
-                    bloc.currentState.contentSource == ContentSource.Subreddit
+                    currentContentSource == ContentSource.Subreddit
                     ? new StreamBuilder(
                       stream: bloc.state.takeWhile((PostsState s){
                         return s.userContent != null;
@@ -550,11 +560,11 @@ class PostsListState extends State<PostsList>
                     )
                     : StreamBuilder(
                         stream: bloc.state,
-                        builder: (BuildContext context, AsyncSnapshot<PostsState> postSnapshot) {
-                          if (postSnapshot.hasData) {
-                            return buildList(postSnapshot);
-                          } else if (postSnapshot.hasError) {
-                            return Text(postSnapshot.error.toString());
+                        builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
+                          if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty && snapshot.data.targetRedditor.isNotEmpty){
+                            return buildList(snapshot);
+                          } else if (snapshot.hasError) {
+                            return Text(snapshot.error.toString());
                           }
                           return Center(child: CircularProgressIndicator());
                         },
@@ -928,9 +938,9 @@ class PostsListState extends State<PostsList>
       child: new ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
-          itemCount: state.contentSource == ContentSource.Subreddit ? posts.length + 1 : posts.length + 2,
+          itemCount: currentContentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
           itemBuilder: (BuildContext context, int i) {
-            var finalIndex = state.contentSource == ContentSource.Subreddit ? posts.length : posts.length + 1;
+            var finalIndex = currentContentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
             if(i == finalIndex){
               return Container(
                 color: Theme.of(context).primaryColor,
@@ -942,7 +952,7 @@ class PostsListState extends State<PostsList>
                     },
                     child: Text("Load more")),
               );
-            } else if(state.contentSource == ContentSource.Redditor && i == 0){
+            } else if(currentContentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
                 headerWidget = FutureBuilder(
                   future: PostsProvider().getRedditor(state.targetRedditor),
@@ -975,12 +985,13 @@ class PostsListState extends State<PostsList>
                     showComments(context, (posts[index] as prefix0.Submission));
                   }
                 }, //TODO: Add a new fling animation for vertical scrolling
-                child: new Hero(
-                  tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                  child: posts[index] is prefix0.Submission
-                    ? new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
-                    : Container() // ? Placeholder (for comment listing)
-                ),
+                child: posts[index] is prefix0.Submission
+                    ? new Hero(
+                      tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
+                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
+                    )
+                    : new CommentWidget(posts[index] as prefix0.Comment)
+                
               );
             }
           }),

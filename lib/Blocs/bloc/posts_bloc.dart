@@ -10,7 +10,7 @@ import './bloc.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: _userContent, contentSource : prefix0.currentContentSource, usernamesList: [],);
+  PostsState get initialState => PostsState(userContent: _userContent, contentSource : prefix0.currentContentSource, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
 
@@ -21,12 +21,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
-    print('event mapped');
     var userNamesList = await readUsernames();
     userNamesList.insert(0, "Guest");
     RedditUser currentUser = await PostsProvider().getLatestUser();
+
     if(event is PostsSourceChanged){
-      ContentSource source = event.source == null ? _contentSource : event.source;
       switch (prefix0.currentContentSource) {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
@@ -38,8 +37,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSelf(false, event.selfContentType);
           break;
       }
-      print(_userContent.length.toString() + 'whhh');
-      yield PostsState(userContent: _userContent, contentSource : _contentSource, usernamesList: userNamesList, currentUser: currentUser);
+      yield PostsState(userContent: _userContent, contentSource : _contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor);
     }
   }
 }

@@ -58,7 +58,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       print("before" + currentState.userContent.length.toString());
       currentState.userContent.addAll(fetchedContent);
       print("after" + currentState.userContent.length.toString());
-      yield currentState;
+      yield PostsState(userContent: currentState.userContent, contentSource: _contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: currentState.targetRedditor);
     }
   }
 }

@@ -61,7 +61,7 @@ class PreferencesView extends StatelessWidget {
     LyreTheme.values.forEach((lyreAppTheme){
       list.add(Container(
         decoration: BoxDecoration(
-          color: lyreThemeData[lyreAppTheme].primaryColor,
+          color: lyreThemeData[lyreAppTheme].accentColor,
           shape: BoxShape.rectangle,
           borderRadius: BorderRadius.circular(8.0),
           border: preferences.get('currentTheme') == lyreAppTheme.toString()

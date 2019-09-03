@@ -15,8 +15,9 @@ enum LyreTheme{
 final lyreThemeData = {
   LyreTheme.DarkTeal: ThemeData(
     brightness: Brightness.dark,
-    primaryColor: Colors.teal[200],
-    primaryColorDark: Colors.teal[300],
+    primaryColor: getC(45,45,45),
+    primaryColorDark: darkenColor(45, 45, 45),
+    canvasColor: getC(15, 15, 15),
     accentColor: Colors.tealAccent
   ),
   LyreTheme.TerraCotta: ThemeData(
@@ -24,7 +25,7 @@ final lyreThemeData = {
     primaryColor: Colors.amber[200],
     primaryColorDark: Colors.amber[300],
     accentColor: getC(230, 95, 92),
-    canvasColor: getC(15, 3, 38)
+    canvasColor: getC(15, 15, 15),
   ),
   LyreTheme.LightBlue: ThemeData(
     brightness: Brightness.light,
@@ -48,10 +49,9 @@ final lyreThemeData = {
   ),
   LyreTheme.NavyPurple: ThemeData(
     brightness: Brightness.light,
-    primaryColor: getC(177, 74, 237),
-    primaryColorDark: darkenColor(177, 74, 237),
-    canvasColor: getC(225, 187, 201),
-    accentColor: getC(27, 31, 59)
+    primaryColor: getC(225, 187, 201),
+    primaryColorDark: darkenColor(225, 187, 201),
+    accentColor: getC(177, 74, 237)
   ),
   LyreTheme.WeldonBlue: ThemeData(
     brightness: Brightness.dark,

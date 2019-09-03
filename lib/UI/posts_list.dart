@@ -580,27 +580,6 @@ class PostsListState extends State<PostsList>
         onWillPop: _willPop);
   }
 
-  List<Widget> getThemeList(){
-    List<Widget> list = [];
-    LyreTheme.values.forEach((lyreAppTheme){
-      list.add(Card(
-        color: lyreThemeData[lyreAppTheme].primaryColor,
-        child: ListTile(
-          title: Text(
-            lyreAppTheme.toString(),
-            style: lyreThemeData[lyreAppTheme].textTheme.body1,
-          ),
-          onTap: (){
-            //Make the bloc output a new ThemeState
-            BlocProvider.of<ThemeBloc>(context)
-            .dispatch(ThemeChanged(theme: lyreAppTheme));
-          },
-        ),
-      ));
-    });
-    return list;
-  }
-
   Widget getFloatingNavBar() {
     return new IgnorePointer(
       child: AnimatedBuilder(
@@ -946,6 +925,7 @@ class PostsListState extends State<PostsList>
                 color: Theme.of(context).primaryColor,
                 child: FlatButton(
                     onPressed: () {
+                      bloc.dispatch(FetchMore());
                       setState(() {
                         // ! bloc.fetchMore();
                       });

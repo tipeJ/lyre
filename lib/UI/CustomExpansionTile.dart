@@ -162,7 +162,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
                 widget.title,
                 style: TextStyle(
                   fontSize: 25.0 /** (_heightFactor.value * 0.1 + 1)*/,
-                  color: _isExpanded ? Theme.of(context).primaryColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                  color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
                 ),
               ),
               onTap: _handleTap,

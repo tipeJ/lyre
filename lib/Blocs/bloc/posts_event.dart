@@ -28,3 +28,7 @@ class PostsSourceChanged extends PostsEvent {
     this.selfContentType
   });
 }
+
+class FetchMore extends PostsEvent {
+  
+}

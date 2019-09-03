@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix0;
 import 'package:lyre/UI/posts_list.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -24,10 +25,11 @@ enum PostView{
   NoPreview
 }
 class postInnerWidget extends StatelessWidget {
-  PostView viewSetting = PostView.Compact;
+  PostView viewSetting = PostView.IntendedPreview;
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
+  final double blurSigma = 15.0;
 
   postInnerWidget(this.post, this.callBack);
 
@@ -44,17 +46,24 @@ class postInnerWidget extends StatelessWidget {
             getExpandedImage(context),
             new Positioned(
                 bottom: 0.0,
-                child: new BackdropFilter(
+                child: !showNSFWPreviews && post.s.over18
+                  ? new BackdropFilter(
                   filter: ImageFilter.blur(
-                    sigmaX: 0.0,
-                    sigmaY: 0.0,
-                  ),
-                  child: new Container(
-                    width: MediaQuery.of(context).size.width,
-                    color: Color.fromARGB(155, 0, 0, 0),
-                    child: getSlideColumn(context),
-                  ),
-                ))
+                      sigmaX: blurSigma,
+                      sigmaY: blurSigma,
+                    ),
+                    child: new Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: Color.fromARGB(155, 0, 0, 0),
+                      child: getSlideColumn(context),
+                    ),
+                  )
+                  : new Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: Color.fromARGB(155, 0, 0, 0),
+                      child: getSlideColumn(context),
+                    ),
+                )
           ]);
           break;
         case PostView.ImagePreview:
@@ -182,7 +191,7 @@ class postInnerWidget extends StatelessWidget {
       child: ClipRRect(
         child: Container(
           child: getWidget(context),
-          color: Colors.black38,
+          color: Theme.of(context).primaryColor,
         ),
         //The circular radius for post widgets. Set 0.0 for rectangular.
         borderRadius: BorderRadius.circular(10.0),
@@ -309,6 +318,20 @@ class defaultColumn extends StatelessWidget {
           new ButtonTheme.bar(
               child: new Row(
                   children: <Widget>[
+                    post.s.over18
+                      ? Padding(
+                        padding: const EdgeInsets.only(left: 6.0, right: 4.0),
+                        child: Container(
+                          padding: EdgeInsets.all(2.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(3.5),
+                            color: Colors.red
+                          ),
+                          child: Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
+                        )
+                      )
+                      : null,
+                    
                     new Padding(
                         child: new Text(
                             "${post.s.score}",
@@ -318,7 +341,7 @@ class defaultColumn extends StatelessWidget {
                               color: getScoreColor(post.s, context),
                               fontSize: 9.0)),
                         padding:
-                            const EdgeInsets.only(left: 6.0, right: 4.0, top: 0.0)),
+                            const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
                     new Padding(
                         child: new Text(
                             "u/${post.s.author}",

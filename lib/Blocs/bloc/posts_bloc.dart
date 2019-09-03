@@ -38,6 +38,27 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           break;
       }
       yield PostsState(userContent: _userContent, contentSource : _contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor);
+    } else if(event is FetchMore){
+      prefix0.lastPost = currentState.userContent.last is Comment
+        ? (currentState.userContent.last as Comment).id
+        : (currentState.userContent.last as Submission).id;
+      
+      var fetchedContent = List<UserContent>();
+      switch (prefix0.currentContentSource) {
+        case ContentSource.Subreddit:
+          fetchedContent = await _repository.fetchPostsFromSubreddit(true);
+          break;
+        case ContentSource.Redditor:
+          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.currentState.targetRedditor);
+          break;
+        case ContentSource.Self:
+          fetchedContent = await _repository.fetchPostsFromSelf(false, this.currentState.selfContentType);
+          break;
+      }
+      print("before" + currentState.userContent.length.toString());
+      currentState.userContent.addAll(fetchedContent);
+      print("after" + currentState.userContent.length.toString());
+      yield currentState;
     }
   }
 }

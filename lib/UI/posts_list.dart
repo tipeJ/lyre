@@ -946,6 +946,7 @@ class PostsListState extends State<PostsList>
                 color: Theme.of(context).primaryColor,
                 child: FlatButton(
                     onPressed: () {
+                      bloc.dispatch(FetchMore());
                       setState(() {
                         // ! bloc.fetchMore();
                       });

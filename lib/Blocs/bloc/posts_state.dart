@@ -18,13 +18,16 @@ class PostsState extends Equatable {
 
   String targetRedditor;
 
+  SelfContentType selfContentType;
+
   PostsState({
     @required this.contentSource,
     @required this.userContent,
     this.usernamesList,
     this.currentUser,
-    this.targetRedditor
-  }) : super([userContent, usernamesList, currentUser, targetRedditor]);
+    this.targetRedditor,
+    this.selfContentType
+  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType]);
 
   String getSourceString(){
     switch (currentContentSource) {

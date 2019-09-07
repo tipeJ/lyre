@@ -11,7 +11,7 @@ import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
 import 'package:draw/draw.dart';
 import '../Ui/Animations/slide_right_transition.dart';
-import 'comments_list.dart';
+import 'Comments/comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';

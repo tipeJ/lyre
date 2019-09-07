@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
-import 'package:lyre/UI/comment.dart';
+import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/Post.dart';
@@ -216,17 +216,14 @@ class PostsListState extends State<PostsList>
               child: new Container(
                   width: 400.0,
                   height: 500.0,
-                  child: new Opacity(
-                    opacity: 1.0,
-                    child: new Container(
-                      child: Image(
-                          image: AdvancedNetworkImage(
-                        previewUrl,
-                        useDiskCache: true,
-                        cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-                      )),
-                      color: Color.fromARGB(200, 0, 0, 0),
-                    ),
+                  child: new Container(
+                    child: Image(
+                        image: AdvancedNetworkImage(
+                      previewUrl,
+                      useDiskCache: true,
+                      cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+                    )),
+                    color: Color.fromARGB(200, 0, 0, 0),
                   )),
               onLongPressUp: () {
                 hideOverlay();
@@ -970,7 +967,7 @@ class PostsListState extends State<PostsList>
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
                       child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
                     )
-                    : new CommentWidget(posts[index] as prefix0.Comment)
+                    : new CommentContent(posts[index] as prefix0.Comment)
                 
               );
             }

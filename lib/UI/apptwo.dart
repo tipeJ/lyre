@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'posts_list.dart';
 import 'submit.dart';
 import '../Resources/globals.dart';
-import 'comments_list.dart';
+import 'Comments/comments_list.dart';
 
 class App extends StatelessWidget {
   @override

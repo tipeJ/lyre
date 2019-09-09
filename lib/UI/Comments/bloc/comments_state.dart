@@ -1,9 +1,16 @@
+import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-abstract class CommentsState extends Equatable {
-  CommentsState([List props = const <dynamic>[]]) : super(props);
-}
+class CommentsState extends Equatable {
+  final CommentForest forest;
+  final Submission submission;
 
-class InitialCommentsState extends CommentsState {}
+  CommentsState({
+    @required
+    this.forest,
+    @required
+    this.submission
+  }) : super([forest, submission]);
+}

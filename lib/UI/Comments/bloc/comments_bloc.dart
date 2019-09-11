@@ -17,7 +17,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       yield new CommentsState(forest: commentForest, submission: event.submission);
     } else if(event is FetchMore){
       final forest = currentState.forest;
-      
     }
   }
 }

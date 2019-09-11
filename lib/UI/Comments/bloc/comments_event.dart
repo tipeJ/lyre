@@ -9,8 +9,9 @@ abstract class CommentsEvent extends Equatable {
 
 class SourceChanged extends CommentsEvent{
   final Submission submission;
+  final CommentSortType commentSortType;
 
-  SourceChanged(this.submission) : super([submission]);
+  SourceChanged(this.submission, this.commentSortType) : super([submission, commentSortType]);
 }
 class FetchMore extends CommentsEvent{
   final MoreComments moreComments;

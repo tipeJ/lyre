@@ -71,9 +71,7 @@ class comL extends State<commentsList>
               child: new Container(
                   width: 400.0,
                   height: 500.0,
-                  child: new Opacity(
-                    opacity: 1.0,
-                    child: new Container(
+                  child: new Container(
                       child: Image(
                           image: AdvancedNetworkImage(
                         previewUrl,
@@ -81,8 +79,7 @@ class comL extends State<commentsList>
                         cacheRule: CacheRule(maxAge: const Duration(days: 7)),
                       )),
                       color: Color.fromARGB(200, 0, 0, 0),
-                    ),
-                  )),
+                  ),),
               onLongPressUp: () {
                 hideOverlay();
               },

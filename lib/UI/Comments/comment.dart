@@ -183,16 +183,18 @@ class CommentContent extends StatelessWidget {
 }
 class MoreCommentsWidget extends StatefulWidget {
   final MoreComments moreComments;
+  final int index;
 
-  MoreCommentsWidget(this.moreComments);
+  MoreCommentsWidget(this.moreComments, this.index);
   @override
-  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState(moreComments);
+  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState(moreComments, index);
 }
 
 class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
   final MoreComments moreComments;
+  final int index;
 
-  _MoreCommentsWidgetState(this.moreComments);
+  _MoreCommentsWidgetState(this.moreComments, this.index);
 
   CommentsBloc bloc;
   
@@ -234,7 +236,7 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
           if (moreComments.id != bloc.loadingMoreId) {
             setState(() {
               bloc.loadingMoreId = moreComments.id;
-              bloc.dispatch(FetchMore(moreComments: moreComments, location: moreComments.currentIndex));
+              bloc.dispatch(FetchMore(moreComments: moreComments, location: index));
             });
           }
         },

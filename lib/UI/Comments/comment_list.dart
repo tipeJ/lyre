@@ -185,7 +185,7 @@ CommentsBloc bloc;
     if (comment is commentC) {
       return CommentWidget(comment);
     } else if (comment is MoreComments) {
-      return new MoreCommentsWidget(comment);
+      return new MoreCommentsWidget(comment, i);
     }
   }
 

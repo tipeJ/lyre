@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Models/Comment.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Animations/slide_right_transition.dart';
+import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import '../../utils/redditUtils.dart';
@@ -107,14 +109,16 @@ class _CommentWidgetState extends State<CommentWidget> {
                 bottom: 0.0))
       );
   }
-  Color getColor(int depth) {
+
+}
+Color getColor(int depth) {
     if (depth >= 0 && depth <= colorList.length - 1) {
       return colorList[depth];
     }
     int remain = depth % colorList.length;
     return colorList[remain];
   }
-}
+
 List<Color> colorList = [
     Color.fromARGB(255, 163, 255, 221),
     Color.fromARGB(255, 255, 202, 130),
@@ -175,5 +179,65 @@ class CommentContent extends StatelessWidget {
                   left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
         ]),
     );
+  }
+}
+class MoreCommentsWidget extends StatefulWidget {
+  final MoreComments moreComments;
+
+  MoreCommentsWidget(this.moreComments);
+  @override
+  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState(moreComments);
+}
+
+class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
+  final MoreComments moreComments;
+
+  _MoreCommentsWidgetState(this.moreComments);
+
+  CommentsBloc bloc;
+  
+  @override
+  Widget build(BuildContext context) {
+    bloc = BlocProvider.of<CommentsBloc>(context);
+    return new GestureDetector(
+        child: Container(
+          child: Container(
+              child: Row(
+                children: <Widget>[
+                  (bloc.loadingMoreId == moreComments.id)
+                      ? new Container(
+                          padding: EdgeInsets.all(5.0),
+                          child: SizedBox(
+                            child: CircularProgressIndicator(),
+                            height: 18.0,
+                            width: 18.0,
+                          ),
+                        )
+                      : Container(),
+                  new Text(
+                    "Load more comments (${moreComments.count})"
+                  )
+                ],
+              ),
+              decoration: BoxDecoration(
+                  border: Border(
+                      left: BorderSide(
+                          color: getColor(moreComments.data['depth'].depth), width: 3.5)))),
+          padding: EdgeInsets.only(
+            left: 4.5 + moreComments.data['depth'] * 3.5,
+            right: 0.5,
+            top: 0.5,
+            bottom: 0.5,
+          ),
+        ),
+        onTapUp: (TapUpDetails details) {
+          if (moreComments.id != bloc.loadingMoreId) {
+            setState(() {
+              bloc.loadingMoreId = moreComments.id;
+              bloc.dispatch(FetchMore(moreComments: moreComments, location: moreComments.currentIndex));
+            });
+          }
+        },
+      );
   }
 }

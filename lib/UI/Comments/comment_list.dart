@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Models/Comment.dart';
 import 'package:lyre/Models/Post.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
+import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
 
@@ -20,7 +22,7 @@ class CommentsList extends StatelessWidget{
     return BlocProvider(
       builder: (context) => bloc,
       child: CommentList(submission),
-    )
+    );
   }
 }
 
@@ -110,8 +112,8 @@ CommentsBloc bloc;
 @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.currentState.forest == null || bloc.currentState.submission == null){
-      bloc.dispatch(SourceChanged(submission, CommentSortType.best));
+    if(bloc.currentState == null){
+      bloc.dispatch(SortChanged(submission, CommentSortType.best));
     }
     return WillPopScope(
         child: Scaffold(
@@ -128,10 +130,10 @@ CommentsBloc bloc;
                           child: new postInnerWidget(Post.fromApi(submission), this),
                         ),
                       ),
-                      new BlocBuilder<CommentsBloc, CommentsState>(
+                      new BlocBuilder<CommentsBloc, List<dynamic>>(
                         bloc: bloc,
                         builder: (context, commentsState){
-                          return 
+                          return getCommentWidgets(context, commentsState);
                         },
                       )
                     ],
@@ -147,35 +149,52 @@ CommentsBloc bloc;
         onWillPop: requestPop);
   }
 
-  Widget getCommentWidgets(BuildContext context, CommentsState commentsState){
+  Widget getCommentWidgets(BuildContext context, List<dynamic> list){
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
           return prefix0.Visibility(
             child: GestureDetector(
-              child: getCommentWidget(comments[i], i),
-              onTap: (){
-                setState(() {
-                  bloc.changeVisibility(i);
-                });
-              },
+              child: getCommentWidget(list[i], i),
             ),
-            visible: commentsState.forest.,
+            visible: getWidgetVisibility(i),
           );
         
-      }, childCount: comments.length),
+      }, childCount: list.length),
     );
-    )
   }
-
-  bool getWidgetVisibility(dynamic comment){
-    if(comment is Comment){
-      return comment.coll
+  bool getWidgetVisibility(int index){
+    var item = bloc.currentState[index];
+    if(item is MoreComments){
+      return !getWidgetVisibility(index-1);
     }
+    var comment = item as Comment;
+    if(!comment.isRoot && comment.collapsed){
+      comment.parent().then((parent){
+        return !(parent as Comment).collapsed;
+      });
+    }
+    return true;
   }
 
   Future<bool> requestPop() {
     //post.expanded = false;
     return new Future.value(true);
+  }
+
+  Widget getCommentWidget(dynamic comment, int i) {
+    if (comment is commentC) {
+      return CommentWidget(comment);
+    } else if (comment is MoreComments) {
+      return new MoreCommentsWidget(comment);
+    }
+  }
+
+  Color getColor(int depth) {
+    if (depth >= 0 && depth <= colorList.length - 1) {
+      return colorList[depth];
+    }
+    int remain = depth % colorList.length;
+    return colorList[remain];
   }
 
   List<Color> colorList = [

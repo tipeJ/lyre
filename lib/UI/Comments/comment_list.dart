@@ -107,9 +107,9 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
     }
   }
 
-CommentsBloc bloc;
+  CommentsBloc bloc;
 
-@override
+  @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
     if(bloc.currentState == null || bloc.currentState.isEmpty){
@@ -130,10 +130,20 @@ CommentsBloc bloc;
                           child: new postInnerWidget(Post.fromApi(submission), this),
                         ),
                       ),
+                      
                       new StreamBuilder(
                         stream: bloc.state,
                         builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
-                          return getCommentWidgets(context, snapshot.data);
+                          if (snapshot.hasData) {
+                            return getCommentWidgets(context, snapshot.data);
+                          } else {
+                            return SliverToBoxAdapter(
+                              child: Container(
+                                child: Center(child: CircularProgressIndicator()),
+                                padding: EdgeInsets.only(top: 3.5, bottom: 2.5),
+                              ),
+                            );
+                          }
                         },
                       )
                     ],
@@ -150,13 +160,14 @@ CommentsBloc bloc;
   }
 
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
+    print("WWADWAD" + list.length.toString());
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
           return prefix0.Visibility(
             child: GestureDetector(
               child: getCommentWidget(list[i], i),
             ),
-            visible: getWidgetVisibility(i),
+            visible: true,
           );
         
       }, childCount: list.length),
@@ -183,8 +194,7 @@ CommentsBloc bloc;
   }
 
   Widget getCommentWidget(dynamic comment, int i) {
-    if (comment is commentC) {
-      return Text(comment.c.body);  
+    if (comment is Comment) {
       return CommentWidget(comment);
     } else if (comment is MoreComments) {
       return new MoreCommentsWidget(comment, i);

@@ -165,7 +165,7 @@ class comL extends State<commentsList>
   }
   Widget getCommentWidget(commentResult comment, int i) {
     if (comment is commentC) {
-      return CommentWidget(comment);
+      return CommentWidget(comment.c);
     } else if (comment is moreC) {
       return new GestureDetector(
         child: Container(
@@ -233,7 +233,6 @@ class comL extends State<commentsList>
     var comments = snapshot.data.results;
     return new SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-        
           return Visibility(
             child: GestureDetector(
               child: getCommentWidget(comments[i], i),

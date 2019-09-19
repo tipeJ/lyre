@@ -12,18 +12,17 @@ import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import '../../utils/redditUtils.dart';
 
-
-
 class CommentWidget extends StatefulWidget {
-  final commentC comment;
+  final Comment comment;
 
   CommentWidget(this.comment);
+  
   @override
-  _CommentWidgetState createState() => _CommentWidgetState(comment);
+  _CommentWidgetState createState() => _CommentWidgetState(this.comment);
 }
 
 class _CommentWidgetState extends State<CommentWidget> {
-  final commentC comment;
+  final Comment comment;
 
   _CommentWidgetState(this.comment);
   @override
@@ -35,9 +34,9 @@ class _CommentWidgetState extends State<CommentWidget> {
           ActionItems(
             icon: IconButton(
               icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
-              color: comment.c.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
+              color: comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
             onPress: (){
-              changeCommentVoteState(VoteState.upvoted, comment.c).then((_){
+              changeCommentVoteState(VoteState.upvoted, comment).then((_){
                 setState(() {
                   
                 });
@@ -47,9 +46,9 @@ class _CommentWidgetState extends State<CommentWidget> {
           ActionItems(
             icon: IconButton(
               icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
-              color: comment.c.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
+              color: comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
             onPress: (){
-              changeCommentVoteState(VoteState.downvoted, comment.c).then((_){
+              changeCommentVoteState(VoteState.downvoted, comment).then((_){
                 setState((){
 
                 });
@@ -59,10 +58,10 @@ class _CommentWidgetState extends State<CommentWidget> {
           ActionItems(
             icon: IconButton(
               icon: Icon(Icons.bookmark),onPressed: (){},
-              color: comment.c.saved ? Colors.yellow : Colors.grey,),
+              color: comment.saved ? Colors.yellow : Colors.grey,),
             onPress: (){
-              changeCommentSave(comment.c);
-              comment.c.refresh().then((_){
+              changeCommentSave(comment);
+              comment.refresh().then((_){
                 setState(() {
                   
                 });
@@ -74,13 +73,13 @@ class _CommentWidgetState extends State<CommentWidget> {
               icon: Icon(Icons.reply),onPressed: (){},
               color: Colors.grey,),
             onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: replyWindow(comment.c)));
+              Navigator.push(context, SlideRightRoute(widget: replyWindow(comment)));
             }
           ),
           ActionItems(
             icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
             onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: PostsList(comment.c.fullname)));
+              Navigator.push(context, SlideRightRoute(widget: PostsList(comment.fullname)));
             }
           ),
           ActionItems(
@@ -98,7 +97,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                         BorderSide(color: getColor(comment.depth), width: 3.5)),
               ),
               child: Hero(
-                child: new CommentContent(comment.c),
+                child: new CommentContent(comment),
                 tag: 'comment_hero ${comment.id}',
               ),
             ),
@@ -132,7 +131,7 @@ List<Color> colorList = [
 
 class CommentContent extends StatelessWidget {
   final Comment comment;
-  const CommentContent(this.comment);
+  CommentContent(this.comment);
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +223,7 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
               decoration: BoxDecoration(
                   border: Border(
                       left: BorderSide(
-                          color: getColor(moreComments.data['depth'].depth), width: 3.5)))),
+                          color: getColor(moreComments.data['depth']), width: 3.5)))),
           padding: EdgeInsets.only(
             left: 4.5 + moreComments.data['depth'] * 3.5,
             right: 0.5,

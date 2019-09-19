@@ -7,7 +7,7 @@ import './bloc.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   @override
-  List<commentResult> get initialState => [];
+  List<dynamic> get initialState => [];
 
   List<dynamic> comments = [];
   String loadingMoreId = "";
@@ -17,33 +17,36 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
     CommentsEvent event
   ) async* {
     if(event is SortChanged){
-      comments = []; //Removes previous items from the comment list
-      var forest = await event.submission.refreshComments(sort: event.commentSortType);
-      addCommentsFromForest(forest);
+        comments = []; //Removes previous items from the comment list
+        var forest = await event.submission.refreshComments(sort: event.commentSortType);
+        addCommentsFromForest(forest);
     } else if(event is FetchMore){
       var more = event.moreComments;
       if(more.children == null && more.children.isEmpty){
-        yield comments; //In case of an error, return the same list
+          yield comments; //In case of an error, return the same list
       }
       var results = await more.comments(update: true);
       comments.removeAt(event.location);
       var commentsList = List<dynamic>();
       results.forEach((comment){
-        commentsList.add(commentC.fromC(comment));
+      commentsList.add(commentC.fromC(comment));
       });
       comments.insertAll(event.location, commentsList);
-    }
-    print(comments.length.toString());
-    yield comments; //Return the updated list of dynamic comment objects.
-  }
+      }
+      print("COMMENTS LENGTH:");
+      print(comments.length.toString());
+      yield comments; //Return the updated list of dynamic comment objects.
+    }   
   //Recursing function that adds the comments to the list from a CommentForest
   void addCommentsFromForest(CommentForest forest){
     forest.comments.forEach((f){
       if(f is MoreComments){
-        comments.add(moreC(f.data));
+        comments.add(f);
       } else if(f is Comment){
-        comments.add(commentC.fromC(f));
-        addCommentsFromForest(f.replies);
+        comments.add(f);
+        if(f.replies != null && f.replies.comments.isNotEmpty){
+          addCommentsFromForest(f.replies);
+        }
       }
     });
   }

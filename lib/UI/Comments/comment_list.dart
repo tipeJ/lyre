@@ -13,7 +13,7 @@ import 'package:lyre/UI/postInnerWidget.dart';
 
 class CommentsList extends StatelessWidget{
   final Submission submission;
-  CommentsBloc bloc;
+  CommentsBloc bloc = CommentsBloc();
 
   CommentsList(this.submission);
 
@@ -112,10 +112,10 @@ CommentsBloc bloc;
 @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.currentState == null){
+    if(bloc.currentState == null || bloc.currentState.isEmpty){
       bloc.dispatch(SortChanged(submission, CommentSortType.best));
     }
-    return WillPopScope(
+    return new WillPopScope(
         child: Scaffold(
             appBar: AppBar(
               title: Text('Comments'),
@@ -130,10 +130,10 @@ CommentsBloc bloc;
                           child: new postInnerWidget(Post.fromApi(submission), this),
                         ),
                       ),
-                      new BlocBuilder<CommentsBloc, List<dynamic>>(
-                        bloc: bloc,
-                        builder: (context, commentsState){
-                          return getCommentWidgets(context, commentsState);
+                      new StreamBuilder(
+                        stream: bloc.state,
+                        builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
+                          return getCommentWidgets(context, snapshot.data);
                         },
                       )
                     ],
@@ -162,6 +162,7 @@ CommentsBloc bloc;
       }, childCount: list.length),
     );
   }
+  
   bool getWidgetVisibility(int index){
     var item = bloc.currentState[index];
     if(item is MoreComments){
@@ -183,6 +184,7 @@ CommentsBloc bloc;
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is commentC) {
+      return Text(comment.c.body);  
       return CommentWidget(comment);
     } else if (comment is MoreComments) {
       return new MoreCommentsWidget(comment, i);

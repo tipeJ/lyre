@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'posts_list.dart';
 import 'submit.dart';
 import '../Resources/globals.dart';
-import 'Comments/comments_list.dart';
 
 class App extends StatelessWidget {
   @override
@@ -42,7 +42,7 @@ class App extends StatelessWidget {
       theme: themeState.themeData,
       routes: {
         '/': (context) => PostsView(''),
-        '/comments': (context) => commentsList(cPost),
+        '/comments': (context) => CommentsList(cPost.s),
         '/submit': (context) => SubmitWindow(),
         '/settings': (context) => PreferencesView()
       },

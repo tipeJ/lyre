@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -10,7 +11,7 @@ import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
 import 'package:draw/draw.dart';
-import '../Ui/Animations/slide_right_transition.dart';
+import '../UI/Animations/slide_right_transition.dart';
 import 'Comments/comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
@@ -449,7 +450,7 @@ class defaultColumn extends StatelessWidget {
     }
     post.hasBeenViewed = true;
     post.expanded = true;
-    Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
+    Navigator.of(context).push(SlideRightRoute(widget: CommentsList(post.s)));
   }
   
 }

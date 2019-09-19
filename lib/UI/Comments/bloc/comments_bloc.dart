@@ -33,6 +33,7 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
       });
       comments.insertAll(event.location, commentsList);
     }
+    print(comments.length.toString());
     yield comments; //Return the updated list of dynamic comment objects.
   }
   //Recursing function that adds the comments to the list from a CommentForest

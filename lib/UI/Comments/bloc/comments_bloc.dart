@@ -2,15 +2,14 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
 import 'package:lyre/Models/Comment.dart';
-import 'package:lyre/Resources/reddit_api_provider.dart';
 import './bloc.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   @override
   List<dynamic> get initialState => [];
 
-  List<dynamic> comments = [];
-  String loadingMoreId = "";
+  List<dynamic> comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
+  String loadingMoreId = ""; //The ID of the currently loading MoreComments object
 
   @override
   Stream<List<dynamic>> mapEventToState(
@@ -26,15 +25,10 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
           yield comments; //In case of an error, return the same list
       }
       var results = await more.comments(update: true);
-      comments.removeAt(event.location);
-      var commentsList = List<dynamic>();
-      results.forEach((comment){
-      commentsList.add(commentC.fromC(comment));
-      });
-      comments.insertAll(event.location, commentsList);
+      comments.removeAt(event.location); //Removes the used MoreComments object
+      comments.insertAll(event.location, results); //Inserts the received objects into the comment list
       }
-      print("COMMENTS LENGTH:");
-      print(comments.length.toString());
+      loadingMoreId = ""; //Resets the loadingMoreId value.
       yield comments; //Return the updated list of dynamic comment objects.
     }   
   //Recursing function that adds the comments to the list from a CommentForest

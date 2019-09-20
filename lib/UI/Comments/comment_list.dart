@@ -160,7 +160,6 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
   }
 
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
-    print("WWADWAD" + list.length.toString());
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
           return prefix0.Visibility(
@@ -200,25 +199,5 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
       return new MoreCommentsWidget(comment, i);
     }
   }
-
-  Color getColor(int depth) {
-    if (depth >= 0 && depth <= colorList.length - 1) {
-      return colorList[depth];
-    }
-    int remain = depth % colorList.length;
-    return colorList[remain];
-  }
-
-  List<Color> colorList = [
-    Color.fromARGB(255, 163, 255, 221),
-    Color.fromARGB(255, 255, 202, 130),
-    Color.fromARGB(255, 130, 255, 198),
-    Color.fromARGB(255, 239, 170, 255),
-    Color.fromARGB(255, 170, 182, 255),
-    Color.fromARGB(255, 247, 255, 170),
-    Color.fromARGB(255, 255, 140, 209),
-    Color.fromARGB(255, 140, 145, 255),
-  ];
-
   
 }

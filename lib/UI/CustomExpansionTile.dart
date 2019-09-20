@@ -30,6 +30,7 @@ class CustomExpansionTile extends StatefulWidget {
     Key key,
     this.leading,
     @required this.title,
+    this.fontSize,
     this.backgroundColor,
     this.onExpansionChanged,
     this.children = const <Widget>[],
@@ -46,6 +47,8 @@ class CustomExpansionTile extends StatefulWidget {
   ///
   /// Typically a [Text] widget.
   final String title;
+
+  final int fontSize; //Font size of the Title text
 
   /// Called when the tile expands or collapses.
   ///
@@ -161,7 +164,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
               child: Text(
                 widget.title,
                 style: TextStyle(
-                  fontSize: 25.0 /** (_heightFactor.value * 0.1 + 1)*/,
+                  fontSize: widget.fontSize != null ? widget.fontSize : 25.0, //25.0 Is the default font size for this type of widget
                   color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
                 ),
               ),

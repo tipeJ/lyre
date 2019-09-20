@@ -2,13 +2,12 @@ import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
-import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/UI/Comments/comment.dart';
+import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
-import '../Models/Comment.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
@@ -21,8 +20,6 @@ import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 import '../Resources/gfycat_provider.dart';
 import 'package:video_player/video_player.dart';
-import '../Themes/bloc/theme_event.dart';
-import '../Themes/bloc/theme_bloc.dart';
 
 enum PreviewType { Image, Video }
 
@@ -424,11 +421,8 @@ class PostsListState extends State<PostsList>
                           child: BlocBuilder<PostsBloc, PostsState>(
                             bloc: bloc,
                             builder: (context, PostsState state){
-                              return ExpansionTile(
-                                title: Text(
-                                  currentUser.value,
-                                  style: TextStyle(fontSize: 24.0),
-                                ),
+                              return CustomExpansionTile(
+                                title: currentUser.value,
                                 children: getRegisteredUsernamesList(state.usernamesList),
                               );
                             },
@@ -439,46 +433,52 @@ class PostsListState extends State<PostsList>
                             future: PostsProvider().getLoggedInUser(),
                             builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
                               switch (snapshot.connectionState) {
-                                case ConnectionState.none:
-                                case ConnectionState.active:
-                                case ConnectionState.waiting:
-                                  return Container();
-                                  break;
                                 case ConnectionState.done:
                                   if(snapshot.hasError){
                                     return Text('Error loading user data');
                                   }
-                                  return Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  return CustomExpansionTile(
+                                    title: "Profile",
                                     children: <Widget>[
-                                      Column(children: <Widget>[
-                                        Text(
-                                          snapshot.data.commentKarma.toString(),
-                                          style: TextStyle(fontSize: 18.0),
-                                        ),
-                                        Text(
-                                          'Comment karma',
-                                          style: TextStyle(fontSize: 18.0),
-                                        )
-                                      ],),
-                                      Spacer(),
-                                      VerticalDivider(),
-                                      Spacer(),
-                                      Column(children: <Widget>[
-                                        Text(
-                                          snapshot.data.linkKarma.toString(),
-                                          style: TextStyle(fontSize: 18.0),
-                                        ),
-                                        Text(
-                                          'Link karma',
-                                          style: TextStyle(fontSize: 18.0),
-                                        )
-                                      ],)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Column(children: <Widget>[
+                                            Text(
+                                              snapshot.data.commentKarma.toString(),
+                                              style: TextStyle(fontSize: 18.0),
+                                            ),
+                                            Text(
+                                              'Comment karma',
+                                              style: TextStyle(fontSize: 18.0),
+                                            )
+                                          ],),
+                                          Spacer(),
+                                          VerticalDivider(),
+                                          Spacer(),
+                                          Column(children: <Widget>[
+                                            Text(
+                                              snapshot.data.linkKarma.toString(),
+                                              style: TextStyle(fontSize: 18.0),
+                                            ),
+                                            Text(
+                                              'Link karma',
+                                              style: TextStyle(fontSize: 18.0),
+                                            )
+                                          ],)
+                                        ],
+                                      ),
+                                      SelfContentTypeWidget("Comments"),
+                                      SelfContentTypeWidget("Submitted"),
+                                      SelfContentTypeWidget("Upvoted"),
+                                      SelfContentTypeWidget("Saved"),
+                                      SelfContentTypeWidget("Hidden"),
+                                      SelfContentTypeWidget("Watching"),
+                                      SelfContentTypeWidget("Friends")
                                     ],
                                   );
                                 default:
                                   return Container();
-                                  break;
                               }
                           },
                         ),
@@ -1036,5 +1036,61 @@ class PostsListState extends State<PostsList>
 
   void showSubmit(BuildContext context) {
     Navigator.of(context).pushNamed('/submit');
+  }
+}
+
+class SelfContentTypeWidget extends StatelessWidget {
+  final String contentType;
+  const SelfContentTypeWidget(this.contentType);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        color: Theme.of(context).primaryColorDark,
+        child: Text(contentType)
+      ),
+      onTap: (){
+        final bloc = BlocProvider.of<PostsBloc>(context);
+        switch (contentType) {
+          case "Comments":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Comments
+            ));
+            break;
+          case "Submitted":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Submitted
+            ));
+            break;
+          case "Upvoted":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Upvoted
+            ));
+            break;
+          case "Saved":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Saved
+            ));
+            break;
+          case "Hidden":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Hidden
+            ));
+            break;
+          case "Watching":
+            bloc.dispatch(PostsSourceChanged(
+              selfContentType: SelfContentType.Watching
+            ));
+            break;
+          //Non-Posts sources:
+          case "Friends":
+            // TODO: Implement
+            break;
+          default:
+        }
+      },
+    );
   }
 }

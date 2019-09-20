@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Models/Comment.dart';
 import 'package:lyre/Models/Post.dart';
+import 'package:lyre/UI/Animations/slide_right_transition.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
+import '../../Resources/globals.dart';
 
 class CommentsList extends StatelessWidget{
   final Submission submission;
@@ -119,6 +120,34 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
         child: Scaffold(
             appBar: AppBar(
               title: Text('Comments'),
+            ),
+            endDrawer: Drawer(
+              child: Container(
+                padding: EdgeInsets.all(10.0),
+                child: ListView.builder(
+                  itemBuilder: (context, i){
+                    return i == 0
+                      ? Text(
+                        "Recently Viewed",
+                        style: TextStyle(
+                          fontSize: 18.0
+                        ),
+                      )
+                      : InkWell(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                          child: Container(
+                            child: Text(recentlyViewed[i-1].title),
+                            padding: EdgeInsets.all(5.0),
+                          )
+                        ),
+                        onTap: (){
+                          Navigator.push(context, SlideRightRoute(widget: CommentsList(recentlyViewed[i-1]))); // ? Pushes a new CommentsList
+                        },
+                      );
+                  },
+                ),
+              ),
             ),
             body: new Container(
               child: new GestureDetector(

@@ -146,7 +146,7 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
                       new SliverToBoxAdapter(
                         child: new Hero(
                           tag: 'post_hero ${submission.id}',
-                          child: new postInnerWidget(Post.fromApi(submission), this),
+                          child: new postInnerWidget(Post.fromApi(submission), this, PostView.ImagePreview),
                         ),
                       ),
                       
@@ -213,10 +213,8 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
-      return Text(comment.body);
       return CommentWidget(comment);
     } else if (comment is MoreComments) {
-      return Text("morecomments object");
       return new MoreCommentsWidget(comment, i);
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'dart:ui';
@@ -232,7 +233,10 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
           onPress: (){
-            Navigator.of(context).pushNamed('posts', arguments: post.s.author);
+            Navigator.of(context).pushNamed('posts', arguments: {
+              'redditor'        : post.s.author,
+              'content_source'  : ContentSource.Redditor
+            });
           }
         ),
         ActionItems(

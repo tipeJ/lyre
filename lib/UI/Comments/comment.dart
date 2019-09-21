@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:lyre/Models/Comment.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
-import 'package:lyre/UI/Animations/slide_right_transition.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
-import 'package:lyre/UI/posts_list.dart';
-import 'package:lyre/UI/reply.dart';
 import 'package:markdown/markdown.dart' as prefix0;
 import '../../utils/redditUtils.dart';
 
@@ -28,6 +25,23 @@ class _CommentWidgetState extends State<CommentWidget> {
   _CommentWidgetState(this.comment);
   @override
   Widget build(BuildContext context) {
+    return new Container(
+            child: new Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left:
+                        BorderSide(color: getColor(comment.depth), width: 3.5)),
+              ),
+              child: Hero(
+                child: new CommentContent(comment),
+                tag: 'comment_hero ${comment.id}',
+              ),
+            ),
+            padding: new EdgeInsets.only(
+                left: 3.5 + comment.depth * 3.5,
+                right: 0.5,
+                top: comment.depth == 0 ? 2.0 : 0.1,
+                bottom: 0.0));
     return new OnSlide(
         backgroundColor: Colors.transparent,
         key: PageStorageKey(comment.hashCode),
@@ -80,7 +94,10 @@ class _CommentWidgetState extends State<CommentWidget> {
           ActionItems(
             icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
             onPress: (){
-              Navigator.pushNamed(context, 'posts', arguments: comment.author);
+              Navigator.pushNamed(context, 'posts', arguments: {
+                'redditor'        : comment.author,
+                'content_source'  : ContentSource.Redditor
+              });
             }
           ),
           ActionItems(

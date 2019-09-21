@@ -25,11 +25,12 @@ enum PreviewType { Image, Video }
 
 class PostsView extends StatelessWidget {
   String redditor;
+  ContentSource initialSource;
 
   final PostsBloc _postsBloc = PostsBloc();
   PostsView(String targetRedditor, [ContentSource source]){
     this.redditor = targetRedditor;
-    currentContentSource = targetRedditor.isNotEmpty
+    initialSource = targetRedditor.isNotEmpty
       ? ContentSource.Redditor
       : (source == null)
         ? ContentSource.Subreddit
@@ -40,15 +41,17 @@ class PostsView extends StatelessWidget {
   Widget build(BuildContext context){
     return BlocProvider(
       builder: (context) => _postsBloc,
-      child: PostsList(redditor),
+      child: PostsList(redditor, initialSource),
     );
   }
 }
 
 class PostsList extends StatefulWidget {
   final String redditor;
-  PostsList(this.redditor);
-  State<PostsList> createState() => new PostsListState(redditor);
+  final ContentSource initialSource;
+
+  PostsList(this.redditor, this.initialSource);
+  State<PostsList> createState() => new PostsListState(redditor, initialSource);
 }
 
 class PostsListState extends State<PostsList>
@@ -56,10 +59,11 @@ class PostsListState extends State<PostsList>
   var titletext = "Lyre for Reddit";
   var currentSub = "";
   final String redditor;
+  final ContentSource initialSource;
 
   PostsBloc bloc;
 
-  PostsListState(this.redditor);
+  PostsListState(this.redditor, this.initialSource);
 
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
   Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
@@ -192,7 +196,7 @@ class PostsListState extends State<PostsList>
       setState(() {
         
       });
-      bloc.dispatch(PostsSourceChanged());
+    bloc.dispatch(PostsSourceChanged());
     });
     _controller = AnimationController(
       //<-- initialize a controller
@@ -405,7 +409,7 @@ class PostsListState extends State<PostsList>
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.currentState.userContent == null || bloc.currentState.userContent.isEmpty) {
-      bloc.dispatch(PostsSourceChanged(redditor: this.redditor));
+      bloc.dispatch(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
     }
     return new WillPopScope(
         child: Scaffold(
@@ -530,42 +534,27 @@ class PostsListState extends State<PostsList>
               child: new GestureDetector(
                 child: new Stack(
                   children: <Widget>[
-                    currentContentSource == ContentSource.Subreddit
-                    ? new StreamBuilder(
+                    StreamBuilder(
                       stream: bloc.state.takeWhile((PostsState s){
                         return s.userContent != null;
                       }),
-                      builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
-                        if(!snapshot.hasData){
-                          print('snapshot no data');
-                        }else{
-                          if(snapshot.data.userContent == null){
-                          print('snapshot null');
-                          }else{
-                            if(snapshot.data.userContent.isEmpty){
-                              print('snapshot empty');
-                            }
-                          }
-                        }
-                        if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
-                          return buildList(snapshot);
-                        } else if (snapshot.hasError) {
-                          return Text(snapshot.error.toString());
-                        }
-                        return Center(child: CircularProgressIndicator());
-                      },
-                    )
-                    : StreamBuilder(
-                        stream: bloc.state,
-                        builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
-                          if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty && snapshot.data.targetRedditor.isNotEmpty){
+                      builder: (context, AsyncSnapshot<PostsState> snapshot){
+                        if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
+                          final state = snapshot.data;
+                          if(state.contentSource == ContentSource.Redditor){
+                            return snapshot.data.targetRedditor.isNotEmpty
+                              ? buildList(snapshot)
+                              : Center(child: CircularProgressIndicator());
+                          } else {
                             return buildList(snapshot);
-                          } else if (snapshot.hasError) {
-                            return Text(snapshot.error.toString());
                           }
+                        }else if (snapshot.hasError) {
+                          return Text(snapshot.error.toString());
+                        }else{
                           return Center(child: CircularProgressIndicator());
-                        },
-                      ),
+                        }
+                      },
+                    ),
                     getFloatingNavBar()
                   ].where(notNull).toList(),
                 ),
@@ -706,7 +695,7 @@ class PostsListState extends State<PostsList>
                                                     _changeParamsVisibility();
                                                   },
                                                 )),
-                                                (currentContentSource == ContentSource.Subreddit && currentSubreddit != "all")
+                                                (bloc.currentState != null && bloc.currentState.contentSource == ContentSource.Subreddit && currentSubreddit != "all")
                                                   ? IconButton(
                                                     icon: Icon(Icons.create),
                                                     onPressed: () {
@@ -916,9 +905,9 @@ class PostsListState extends State<PostsList>
       child: new ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
-          itemCount: currentContentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
+          itemCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
           itemBuilder: (BuildContext context, int i) {
-            var finalIndex = currentContentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
+            var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
             if(i == finalIndex){
               return Container(
                 color: Theme.of(context).primaryColor,
@@ -931,7 +920,7 @@ class PostsListState extends State<PostsList>
                     },
                     child: Text("Load more")),
               );
-            } else if(currentContentSource == ContentSource.Redditor && i == 0){
+            } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
                 headerWidget = FutureBuilder(
                   future: PostsProvider().getRedditor(state.targetRedditor),

@@ -1,6 +1,7 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
 import 'package:lyre/UI/posts_list.dart';
@@ -12,8 +13,13 @@ class Router {
     switch (settings.name) {
       case 'posts':
         String redditor = "";
-        if(settings.arguments != null) redditor = settings.arguments;
-        return MaterialPageRoute(builder: (_) => PostsView(redditor));
+        ContentSource source = ContentSource.Subreddit; //Default ContentSource
+        if(settings.arguments != null){
+          final args = settings.arguments as Map<String, Object>;
+          redditor = args['redditor'];
+          source = args['content_source'];
+        }
+        return MaterialPageRoute(builder: (_) => PostsView(redditor, source));
       case 'comments':
         Submission submission = settings.arguments as Submission;
         if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)

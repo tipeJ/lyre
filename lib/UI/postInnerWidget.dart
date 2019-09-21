@@ -10,7 +10,6 @@ import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
 import 'package:draw/draw.dart';
-import '../Ui/Animations/slide_right_transition.dart';
 import 'comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
@@ -233,7 +232,7 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
           onPress: (){
-            Navigator.push(context, SlideRightRoute(widget: PostsView(post.s.author)));
+            Navigator.of(context).pushNamed('posts', arguments: post.s.author);
           }
         ),
         ActionItems(
@@ -444,12 +443,7 @@ class defaultColumn extends StatelessWidget {
   }
 
   void showComments(BuildContext context) {
-    if (callback is comL) {
-      return;
-    }
-    post.hasBeenViewed = true;
-    post.expanded = true;
-    Navigator.of(context).push(SlideRightRoute(widget: commentsList(post)));
+    Navigator.of(context).pushNamed('comments', arguments: post.s);
   }
   
 }

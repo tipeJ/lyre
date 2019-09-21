@@ -1,23 +1,13 @@
-import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
-import 'package:lyre/UI/comment.dart';
-import 'package:lyre/UI/posts_list.dart';
-import 'package:lyre/UI/reply.dart';
-import '../Blocs/comments_bloc.dart';
-import 'CustomExpansionTile.dart';
-import '../Resources/RedditHandler.dart';
-import '../Resources/globals.dart';
-import '../Models/Comment.dart';
-import 'Animations/slide_right_transition.dart';
-import 'postInnerWidget.dart';
-import 'interfaces/previewCallback.dart';
-import '../Models/Post.dart';
-import 'profile.dart';
+import 'package:lyre/UI/Comments/comment.dart';
+import '../../Blocs/comments_bloc.dart';
+import '../../Models/Comment.dart';
+import '../postInnerWidget.dart';
+import '../interfaces/previewCallback.dart';
+import '../../Models/Post.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
-import 'Animations/OnSlide.dart';
-import 'ActionItems.dart';
 
 class commentsList extends StatefulWidget {
   final Post post;
@@ -81,9 +71,7 @@ class comL extends State<commentsList>
               child: new Container(
                   width: 400.0,
                   height: 500.0,
-                  child: new Opacity(
-                    opacity: 1.0,
-                    child: new Container(
+                  child: new Container(
                       child: Image(
                           image: AdvancedNetworkImage(
                         previewUrl,
@@ -91,8 +79,7 @@ class comL extends State<commentsList>
                         cacheRule: CacheRule(maxAge: const Duration(days: 7)),
                       )),
                       color: Color.fromARGB(200, 0, 0, 0),
-                    ),
-                  )),
+                  ),),
               onLongPressUp: () {
                 hideOverlay();
               },
@@ -178,86 +165,7 @@ class comL extends State<commentsList>
   }
   Widget getCommentWidget(commentResult comment, int i) {
     if (comment is commentC) {
-      return new OnSlide(
-        backgroundColor: Colors.transparent,
-        key: PageStorageKey(comment.hashCode),
-        items: <ActionItems>[
-          ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
-              color: comment.c.vote == prefix0.VoteState.upvoted ? Colors.amber : Colors.grey,),
-            onPress: (){
-              changeCommentVoteState(prefix0.VoteState.upvoted, comment.c).then((_){
-                setState(() {
-                  
-                });
-              });
-            }
-          ),
-          ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
-              color: comment.c.vote == prefix0.VoteState.downvoted ? Colors.purple : Colors.grey,),
-            onPress: (){
-              changeCommentVoteState(prefix0.VoteState.downvoted, comment.c).then((_){
-                setState((){
-
-                });
-              });
-            }
-          ),
-          ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.bookmark),onPressed: (){},
-              color: comment.c.saved ? Colors.yellow : Colors.grey,),
-            onPress: (){
-              changeCommentSave(comment.c);
-              comment.c.refresh().then((_){
-                setState(() {
-                  
-                });
-              });
-            }
-          ),
-          ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.reply),onPressed: (){},
-              color: Colors.grey,),
-            onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: replyWindow(comment.c)));
-            }
-          ),
-          ActionItems(
-            icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
-            onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: PostsList(comment.c.fullname)));
-            }
-          ),
-          ActionItems(
-            icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
-            onPress: (){
-
-            }
-          ),
-        ],
-        child: new Container(
-            child: new Container(
-              decoration: BoxDecoration(
-                border: Border(
-                    left:
-                        BorderSide(color: getColor(comment.depth), width: 3.5)),
-              ),
-              child: Hero(
-                child: new CommentWidget(comment.c),
-                tag: 'comment_hero ${comment.id}',
-              ),
-            ),
-            padding: new EdgeInsets.only(
-                left: 3.5 + comment.depth * 3.5,
-                right: 0.5,
-                top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0))
-      );
+      return CommentWidget(comment.c);
     } else if (comment is moreC) {
       return new GestureDetector(
         child: Container(
@@ -320,48 +228,11 @@ class comL extends State<commentsList>
       }, childCount: comments.length + 1),
     );
   }
-/*
-  Widget getCommentsExpandableSingle(commentTest parent) {
-    if (parent.children == null || parent.children.isEmpty) {
-      return getCommentWidget(parent.result, parent.position);
-    }
-    var post_children = new List<Widget>();
-    parent.children.forEach(
-        (child) => {post_children.add(getCommentsExpandableSingle(child))});
-    return new CustomExpansionTile(
-      title: getCommentWidget(parent.result, parent.position),
-      children: post_children,
-      initiallyExpanded: !preCollapsed,
-      key: new PageStorageKey(parent.position),
-    );
-  }
 
-  Widget getCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot) {
-    var comments = snapshot.data.results;
-    var xList = List<commentTest>();
-    for (int i = 0; i < comments.length; i++) {
-      if (comments[i].depth == 0) {
-        var test = new commentTest(i, comments[i], clist(comments, i));
-        xList.add(test);
-      }
-    }
-    return new SliverList(
-        delegate: SliverChildBuilderDelegate((BuildContext context, int i) {
-      if (i == 0) {
-        return new Container(
-          height: 0.0,
-        );
-      } else {
-        return getCommentsExpandableSingle(xList[i - 1]);
-      }
-    }, childCount: xList.length));
-  }
-  */
   Widget getImprovedCommentsExpandablePage(AsyncSnapshot<CommentM> snapshot){
     var comments = snapshot.data.results;
     return new SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-        
           return Visibility(
             child: GestureDetector(
               child: getCommentWidget(comments[i], i),

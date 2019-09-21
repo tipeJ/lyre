@@ -1,4 +1,5 @@
 library lyre.globals;
+import 'package:draw/draw.dart';
 import 'package:flutter/foundation.dart';
 import 'reddit_api_provider.dart';
 import '../Models/Post.dart';
@@ -30,7 +31,6 @@ List<String> subreddits = [
   '/r/Gaming',
   '/r/ShowerThoughts',
   '/r/Movies',
-
 ];
 
 List<String> sortTypes = [
@@ -98,3 +98,4 @@ bool preCollapsed = false;
 bool showNSFWPreviews = false;
 
 Post cPost;
+List<Submission> recentlyViewed = [];

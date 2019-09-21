@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -10,7 +11,6 @@ import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
 import 'package:draw/draw.dart';
-import 'comments_list.dart';
 import 'interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';

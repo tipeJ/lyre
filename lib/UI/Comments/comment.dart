@@ -73,13 +73,13 @@ class _CommentWidgetState extends State<CommentWidget> {
               icon: Icon(Icons.reply),onPressed: (){},
               color: Colors.grey,),
             onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: replyWindow(comment)));
+              Navigator.pushNamed(context, 'reply', arguments: comment);
             }
           ),
           ActionItems(
             icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
             onPress: (){
-              Navigator.push(context, SlideRightRoute(widget: PostsList(comment.fullname)));
+              Navigator.pushNamed(context, 'posts', arguments: comment.author);
             }
           ),
           ActionItems(

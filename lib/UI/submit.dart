@@ -308,11 +308,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
     }
   }
   void showComments(BuildContext context, Submission submission) {
-    Post inside = Post.fromApi(submission);
-    cPost = inside;
-    currentPostId = submission.id;
-    inside.expanded = true;
-    Navigator.of(context).pushReplacementNamed('/comments');
+    Navigator.of(context).pushReplacementNamed('comments', arguments: submission);
   }
   var _xControl = TextEditingController();
   Widget SelftextInputWidget(){

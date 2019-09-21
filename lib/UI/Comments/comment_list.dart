@@ -142,7 +142,7 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
                           )
                         ),
                         onTap: (){
-                          Navigator.push(context, SlideRightRoute(widget: CommentsList(recentlyViewed[i-1]))); // ? Pushes a new CommentsList
+                          Navigator.pushNamed(context, 'comments', arguments: recentlyViewed[i-1]); // ? Pushes a new CommentsList
                         },
                       );
                   },

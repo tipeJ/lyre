@@ -4,6 +4,7 @@ import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
+import 'package:lyre/UI/Router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'posts_list.dart';
 import 'submit.dart';
@@ -40,12 +41,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Lyre',
       theme: themeState.themeData,
-      routes: {
-        '/': (context) => PostsView(''),
-        '/comments': (context) => CommentsList(cPost.s),
-        '/submit': (context) => SubmitWindow(),
-        '/settings': (context) => PreferencesView()
-      },
+      initialRoute: 'posts',
+      onGenerateRoute: Router.generateRoute,
     );
   }
 

@@ -510,7 +510,7 @@ class PostsListState extends State<PostsList>
                             IconButton(
                               icon: Icon(Icons.settings),
                               onPressed: (){
-                                Navigator.of(context).pushNamed('/settings');
+                                Navigator.of(context).pushNamed('settings');
                               },
                             )
                           ],
@@ -1027,15 +1027,11 @@ class PostsListState extends State<PostsList>
   }
 
   void showComments(BuildContext context, prefix0.Submission inside) {
-    //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
-    cPost = Post.fromApi(inside);
-    // ! Might not work, previously inside.expanded = true
-    cPost.expanded = true;
-    Navigator.of(context).pushNamed('/comments');
+    Navigator.of(context).pushNamed('comments', arguments: inside);
   }
 
   void showSubmit(BuildContext context) {
-    Navigator.of(context).pushNamed('/submit');
+    Navigator.of(context).pushNamed('submit');
   }
 }
 

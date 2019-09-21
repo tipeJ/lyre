@@ -125,26 +125,16 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
               child: Container(
                 padding: EdgeInsets.all(10.0),
                 child: ListView.builder(
+                  itemCount: recentlyViewed.length+1,
                   itemBuilder: (context, i){
                     return i == 0
                       ? Text(
                         "Recently Viewed",
                         style: TextStyle(
-                          fontSize: 18.0
+                          fontSize: 26.0,
                         ),
                       )
-                      : InkWell(
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                          child: Container(
-                            child: Text(recentlyViewed[i-1].title),
-                            padding: EdgeInsets.all(5.0),
-                          )
-                        ),
-                        onTap: (){
-                          Navigator.pushNamed(context, 'comments', arguments: recentlyViewed[i-1]); // ? Pushes a new CommentsList
-                        },
-                      );
+                      : postInnerWidget(Post.fromApi(recentlyViewed[i-1]), this, PostView.Compact,);
                   },
                 ),
               ),
@@ -223,8 +213,10 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
+      return Text(comment.body);
       return CommentWidget(comment);
     } else if (comment is MoreComments) {
+      return Text("morecomments object");
       return new MoreCommentsWidget(comment, i);
     }
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Models/Comment.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/UI/ActionItems.dart';
@@ -10,6 +10,7 @@ import 'package:lyre/UI/Animations/slide_right_transition.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
+import 'package:markdown/markdown.dart' as prefix0;
 import '../../utils/redditUtils.dart';
 
 class CommentWidget extends StatefulWidget {
@@ -169,9 +170,7 @@ class CommentContent extends StatelessWidget {
               child: new Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  new MarkdownBody(
-                    data: comment.body,
-                  )
+                  new Html(data: prefix0.markdownToHtml(comment.body),)
                 ],
               ),
               padding: const EdgeInsets.only(

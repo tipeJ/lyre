@@ -1,5 +1,6 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
 import 'package:lyre/UI/posts_list.dart';
@@ -14,7 +15,10 @@ class Router {
         if(settings.arguments != null) redditor = settings.arguments;
         return MaterialPageRoute(builder: (_) => PostsView(redditor));
       case 'comments':
-        return MaterialPageRoute(builder: (_) => CommentsList(settings.arguments as Submission));
+        Submission submission = settings.arguments as Submission;
+        if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)
+        recentlyViewed.add(submission); //Adds the submission to the top of the recently viewed list
+        return MaterialPageRoute(builder: (_) => CommentsList(submission));
       case 'settings':
         return MaterialPageRoute(builder: (_) => PreferencesView());
       case 'submit':

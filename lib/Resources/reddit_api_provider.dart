@@ -67,13 +67,11 @@ class PostsProvider {
   }
   Future<Redditor> getRedditor(String fullname) async {
     var r = await getRed();
-    print(fullname + " TARGER");
     return r.redditor(fullname).populate();
   }
   Future<bool> logIn(String username) async{
     var credentials = await readCredentials(username);
     if(credentials != null){
-      print("CREDENTIALS WEREN'T NULL");
       reddit = await getRed();
       var cUserDisplayname = "";
       if(!reddit.readOnly){
@@ -81,7 +79,6 @@ class PostsProvider {
           cUserDisplayname = redditor.displayName;
         });
       }
-      print("cuser:" + cUserDisplayname);
       if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
         //Prevent useless logins
         reddit = await restoreAuth(credentials);
@@ -96,7 +93,6 @@ class PostsProvider {
       }
       return true;
     }
-    print("CREDENTIALS WERE NULL");
     return false;
   }
   Future<bool> logInToLatest() async {
@@ -148,8 +144,7 @@ class PostsProvider {
     var redirectUri = Uri.http("localhost:8080", "");
 
     reddit = await getRed();
-    print("CREATED NEW FLOW INSTANCE");
-      reddit = Reddit.createInstalledFlowInstance(
+    reddit = Reddit.createInstalledFlowInstance(
         clientId: "JfjOgtm3pWG22g",
         userAgent: userAgent,
         configUri: configUri,
@@ -158,7 +153,6 @@ class PostsProvider {
     Stream<String> onCode = await _server();
     final auth_url = reddit.auth.url(['*'], userAgent, compactLogin: true);
 
-    print("TOS: " + auth_url.toString());
     launch(auth_url.toString());
     final String code = await onCode.first;
 
@@ -190,10 +184,6 @@ class PostsProvider {
     var list = await getAllUsers();
     if(list == null || list.isEmpty) return null;
     list.sort((user1, user2) => user1.date.compareTo(user2.date));
-    print(list.last.username + " IS THE LATEST USER");
-    list.forEach((r)=>{
-      print(r.username + r.date.toString())
-    });
     return list.last;
   }
   Future<Reddit> getRed() async {
@@ -212,7 +202,6 @@ class PostsProvider {
   }
   Future<CommentM> getC2(String ids, String fullname) async {
     
-    print('2comment ' + ids + ' fetched');
     Map<String, String> headers = new Map<String, String>();
       headers["children"] = ids;
       headers["link_id"] = "t3_$fullname";
@@ -320,13 +309,11 @@ class PostsProvider {
 
   Future<SubredditM> fetchSubReddits(String query) async{
     query.replaceAll(" ", "+");
-    print('Subreddits fetched');
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
     var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
-      print('successfully fetched subreddits');
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');

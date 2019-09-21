@@ -706,23 +706,25 @@ class PostsListState extends State<PostsList>
                                                     _changeParamsVisibility();
                                                   },
                                                 )),
-                                                IconButton(
-                                                  icon: Icon(Icons.create),
-                                                  onPressed: () {
-                                                    final snackBar = SnackBar(
-                                                      content: Text(
-                                                          'Log in in order to post your submission'),
-                                                    );
-                                                    setState(() {
-                                                      if(PostsProvider().isLoggedIn()){
-                                                        showSubmit(context);
-                                                      }else{
-                                                        Scaffold.of(context).showSnackBar(snackBar);
-                                                      }
-                                                    });
-                                                  },
-                                                )
-                                              ],
+                                                (currentContentSource == ContentSource.Subreddit && currentSubreddit != "all")
+                                                  ? IconButton(
+                                                    icon: Icon(Icons.create),
+                                                    onPressed: () {
+                                                      final snackBar = SnackBar(
+                                                        content: Text(
+                                                            'Log in in order to post your submission'),
+                                                      );
+                                                      setState(() {
+                                                        if(PostsProvider().isLoggedIn()){
+                                                          showSubmit(context);
+                                                        }else{
+                                                          Scaffold.of(context).showSnackBar(snackBar);
+                                                        }
+                                                      });
+                                                    },
+                                                  )
+                                                  : null,
+                                              ].where(notNull).toList(),
                                             ),
                                           ),
                                         ),
@@ -954,22 +956,12 @@ class PostsListState extends State<PostsList>
               return headerWidget;
             } else {
               int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
-              return GestureDetector(
-                onHorizontalDragUpdate: (DragUpdateDetails details) {
-                  if (details.delta.direction > 1.0 &&
-                      details.delta.dx < -25) {
-                    currentPostId = (posts[index] as prefix0.Submission).id;
-                    showComments(context, (posts[index] as prefix0.Submission));
-                  }
-                }, //TODO: Add a new fling animation for vertical scrolling
-                child: posts[index] is prefix0.Submission
+              return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
+                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this, PostView.IntendedPreview)
                     )
-                    : new CommentContent(posts[index] as prefix0.Comment)
-                
-              );
+                    : new CommentContent(posts[index] as prefix0.Comment);
             }
           }),
     );

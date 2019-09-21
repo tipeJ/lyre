@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter_html/flutter_html.dart';
 import '../Models/Post.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,7 +9,6 @@ import 'dart:io';
 import '../Resources/globals.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:markdown/markdown.dart' as prefix0;
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import '../Resources/reddit_api_provider.dart';
 
@@ -95,6 +95,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
 
   bool send_replies = true;
   bool is_nsfw = false;
+  bool is_spoiler = true;
 
   String markdownData = "";
 
@@ -186,60 +187,65 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
         ),
         resizeToAvoidBottomInset: true,
         body: Container(
-          padding: EdgeInsets.symmetric(horizontal: 15.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
+              TextField(
+                textInputAction: TextInputAction.send,
+                decoration: InputDecoration(
+                  helperText: "  Write your title here",
+                ),
+                controller: _titleController,
+              ),
+
+              TextField(
+                decoration: InputDecoration(
+                  helperText: "  Choose your subreddit",
+                  prefixText: '  r/'
+                ),
+                controller: _subredditController,
+              ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Container(
-                    width: MediaQuery.of(context).size.width/2,
-                    child: TextField(
-                      textInputAction: TextInputAction.send,
-                      decoration: InputDecoration(
-                        helperText: "Write your title here"
-                      ),
-                      controller: _titleController,
-                    ),
-                  ),
-                  Row(children: <Widget>[
-                    Text('Send replies:'),
-                    Switch.adaptive(
-                      value: send_replies,
-                      onChanged: (_){
-                        send_replies = _;
-                      },
-                    )
-                  ],)
-                 
+                  Text("  NSFW"),
+                  Switch.adaptive(
+                    value: is_nsfw,
+                    onChanged: (_){
+                      is_nsfw = _;
+                    },
+                  )
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Container(
-                    width: MediaQuery.of(context).size.width/2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        helperText: "Choose your subreddit",
-                        prefixText: 'r/'
-                      ),
-                      controller: _subredditController,
-                    ),
-                  ),
-                  Row(children: <Widget>[
-                    Text('NSFW:'),
-                    Switch.adaptive(
-                      value: is_nsfw,
-                      onChanged: (_){
-                        is_nsfw = _;
-                      },
-                    )
-                  ],)
+                  Text("  Send replies"),
+                  Switch.adaptive(
+                    value: send_replies,
+                    onChanged: (_){
+                      send_replies = _;
+                    },
+                  )
                 ],
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("  Spoiler"),
+                  Switch.adaptive(
+                    value: is_spoiler,
+                    onChanged: (_){
+                      is_spoiler = _;
+                    },
+                  )
+                ],
+              ),
+
+              Divider(),
+              
               TabBar(
                 controller: _tabController,
                 tabs: <Widget>[
@@ -277,9 +283,9 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                     SelftextInputWidget(),
                     LinkInputWidget(),
                     ImageInputWidget(),
-                    Container(
-                      color: Colors.purple,
-                    ),
+                    Center(
+                      child: Text('To be implemented'),
+                    )
                   ],
                 ),
               ),
@@ -292,9 +298,8 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
   Widget getPreviewWidget(){
     switch (_submitType) {
       case SubmitType.Selftext:
-        return MarkdownBody(
-          data: markdownData,
-        ); 
+        return HtmlWidget(prefix0.markdownToHtml(markdownData, extensionSet: prefix0.ExtensionSet.gitHubFlavored,));
+        return Html(data: prefix0.markdownToHtml(markdownData, extensionSet: prefix0.ExtensionSet.gitHubFlavored,));
         break;
       case SubmitType.Link:
         return InAppWebView(
@@ -375,7 +380,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
               padding: EdgeInsets.symmetric(vertical: 15.0),
             ),
             _image == null
-            ? Text('No image selected.')
+            ? Center(child: Text('No image selected.'))
             : Image.file(_image)
           ]),
               )

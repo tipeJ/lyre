@@ -30,7 +30,7 @@ class postInnerWidget extends StatelessWidget {
   final PreviewCallback callBack;
   final double blurSigma = 15.0;
 
-  postInnerWidget(this.post, this.callBack);
+  postInnerWidget(this.post, this.callBack, [this.viewSetting]);
 
 
   Widget getWidget(BuildContext context){

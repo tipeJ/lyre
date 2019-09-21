@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 
 class replyWindow extends StatefulWidget {
@@ -58,9 +58,7 @@ class _replyWindowState extends State<replyWindow> {
                       context: context,
                       builder: (BuildContext context){
                         return AlertDialog(
-                          content: MarkdownBody(
-                                data: 'comment data',
-                              ),
+                          content: Html(data: '',),
                           actions: <Widget>[
                             FlatButton(
                               child: Text('Close'),

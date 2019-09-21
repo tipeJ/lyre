@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:lyre/UI/comment.dart';
+import 'package:lyre/UI/Comments/comment.dart';
 
 class replyWindow extends StatefulWidget {
   final Comment c;
@@ -29,7 +29,7 @@ class _replyWindowState extends State<replyWindow> {
     parentWidgets.add(
       Container(
         child: Hero(
-          child: CommentWidget(comment),
+          child: CommentContent(comment),
           tag: 'comment_hero ${comment.id}',
         ),
         color: Colors.black26,
@@ -117,7 +117,7 @@ class _replyWindowState extends State<replyWindow> {
     //Break the loop if comment is a root comment (parent is a submission, not a comment).
     if(c.isRoot)return;
     var parent = await c.parent() as Comment;
-    parentWidgets.add(CommentWidget(parent));
+    parentWidgets.add(CommentContent(parent));
     addParentComment(parent);
   }
 }

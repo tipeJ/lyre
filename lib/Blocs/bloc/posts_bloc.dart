@@ -10,12 +10,11 @@ import './bloc.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: _userContent, contentSource : prefix0.currentContentSource, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => PostsState(userContent: _userContent, contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
 
   List<UserContent> _userContent = [];
-  ContentSource _contentSource;
 
   @override
   Stream<PostsState> mapEventToState(
@@ -26,7 +25,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     RedditUser currentUser = await PostsProvider().getLatestUser();
 
     if(event is PostsSourceChanged){
-      switch (prefix0.currentContentSource) {
+      final source = event.source != null
+        ? event.source
+        : currentState.contentSource;
+      switch (source) {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
           break;
@@ -37,14 +39,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSelf(false, event.selfContentType);
           break;
       }
-      yield PostsState(userContent: _userContent, contentSource : _contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor);
+      yield PostsState(userContent: _userContent, contentSource : source, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor);
     } else if(event is FetchMore){
       prefix0.lastPost = currentState.userContent.last is Comment
         ? (currentState.userContent.last as Comment).id
         : (currentState.userContent.last as Submission).id;
       
       var fetchedContent = List<UserContent>();
-      switch (prefix0.currentContentSource) {
+      
+      switch (currentState.contentSource) {
         case ContentSource.Subreddit:
           fetchedContent = await _repository.fetchPostsFromSubreddit(true);
           break;
@@ -55,10 +58,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           fetchedContent = await _repository.fetchPostsFromSelf(false, this.currentState.selfContentType);
           break;
       }
-      print("before" + currentState.userContent.length.toString());
+      print("before: " + currentState.userContent.length.toString());
       currentState.userContent.addAll(fetchedContent);
-      print("after" + currentState.userContent.length.toString());
-      yield PostsState(userContent: currentState.userContent, contentSource: _contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: currentState.targetRedditor);
+      print("after: " + currentState.userContent.length.toString());
+      yield PostsState(userContent: currentState.userContent, contentSource: currentState.contentSource, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: currentState.targetRedditor);
     }
   }
 }

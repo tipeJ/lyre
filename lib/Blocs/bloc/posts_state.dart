@@ -30,14 +30,13 @@ class PostsState extends Equatable {
   }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType]);
 
   String getSourceString(){
-    switch (currentContentSource) {
+    switch (contentSource) {
       case ContentSource.Subreddit:
         return 'r/$currentSubreddit';
       case ContentSource.Redditor:
         return 'u/$targetRedditor';
       default:
         return '';
-        break;
     }
   }
   String getFilterString(){
@@ -68,5 +67,3 @@ class PostsState extends Equatable {
     }
   }
 }
-
-class InitialPostsState extends PostsState {}

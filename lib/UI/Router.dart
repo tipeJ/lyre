@@ -16,8 +16,8 @@ class Router {
         ContentSource source = ContentSource.Subreddit; //Default ContentSource
         if(settings.arguments != null){
           final args = settings.arguments as Map<String, Object>;
-          redditor = args['redditor'];
-          source = args['content_source'];
+          redditor = args['redditor'] as String;
+          source = args['content_source'] as ContentSource;
         }
         return MaterialPageRoute(builder: (_) => PostsView(redditor, source));
       case 'comments':

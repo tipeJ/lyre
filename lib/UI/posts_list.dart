@@ -28,7 +28,7 @@ class PostsView extends StatelessWidget {
   ContentSource initialSource;
 
   final PostsBloc _postsBloc = PostsBloc();
-  PostsView(String targetRedditor, [ContentSource source]){
+  PostsView(String targetRedditor, ContentSource source){
     this.redditor = targetRedditor;
     initialSource = targetRedditor.isNotEmpty
       ? ContentSource.Redditor
@@ -196,7 +196,6 @@ class PostsListState extends State<PostsList>
       setState(() {
         
       });
-    bloc.dispatch(PostsSourceChanged());
     });
     _controller = AnimationController(
       //<-- initialize a controller
@@ -662,33 +661,36 @@ class PostsListState extends State<PostsList>
                                               children: <Widget>[
                                                 Expanded(
                                                     child: InkWell(
-                                                      child: BlocBuilder<PostsBloc, PostsState>(
-                                                        builder: (context, PostsState state){
-                                                          return Column(
-                                                            children: <Widget>[
-                                                              new Text(
-                                                                state.getSourceString(),
-                                                                style: TextStyle(
-                                                                  fontSize: 22.0,
+                                                      child: StreamBuilder(
+                                                        stream: bloc.state,
+                                                        builder: (context, AsyncSnapshot<PostsState> snapshot){
+                                                          return snapshot.hasData && snapshot.data.userContent.isNotEmpty
+                                                          ? Column(
+                                                              children: <Widget>[
+                                                                new Text(
+                                                                  snapshot.data.getSourceString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 22.0,
+                                                                  ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
                                                                 ),
-                                                                textAlign:
-                                                                    TextAlign.start,
-                                                              ),
-                                                              new Text(
-                                                                state.getFilterString(),
-                                                                style: TextStyle(
-                                                                  fontSize: 14.0,
-                                                                ),
-                                                                textAlign:
-                                                                    TextAlign.start,
-                                                              )
-                                                            ],
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment.start,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                          );
+                                                                new Text(
+                                                                  snapshot.data.getFilterString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 14.0,
+                                                                  ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
+                                                                )
+                                                              ],
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment.start,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                            )
+                                                          : Container();
                                                         },
                                                       ),
                                                   onTap: () {

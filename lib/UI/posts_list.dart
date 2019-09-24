@@ -1,5 +1,6 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -415,16 +416,19 @@ class PostsListState extends State<PostsList>
           resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
-                padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Stack(
                   children: <Widget>[
                     CustomScrollView(
                       slivers: <Widget>[
                         SliverToBoxAdapter(
+                          child: Container(height: 150,),
+                        ),
+                        SliverToBoxAdapter(
                           child: BlocBuilder<PostsBloc, PostsState>(
-                            bloc: bloc,
                             builder: (context, PostsState state){
                               return CustomExpansionTile(
+                                fontSize: 32.0,
                                 title: currentUser.value,
                                 children: getRegisteredUsernamesList(state.usernamesList),
                               );
@@ -442,6 +446,7 @@ class PostsListState extends State<PostsList>
                                   }
                                   return CustomExpansionTile(
                                     title: "Profile",
+                                    fontSize: 32.0,
                                     children: <Widget>[
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
@@ -449,11 +454,11 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.commentKarma.toString(),
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 25.0),
                                             ),
                                             Text(
                                               'Comment karma',
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 25.0),
                                             )
                                           ],),
                                           Spacer(),
@@ -462,15 +467,16 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.linkKarma.toString(),
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 25.0),
                                             ),
                                             Text(
                                               'Link karma',
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 25.0),
                                             )
                                           ],)
                                         ],
                                       ),
+                                      Divider(),
                                       SelfContentTypeWidget("Comments"),
                                       SelfContentTypeWidget("Submitted"),
                                       SelfContentTypeWidget("Upvoted"),
@@ -836,8 +842,9 @@ class PostsListState extends State<PostsList>
                 });
               });
             }
-            PostsProvider().logIn(list[i]);
-            bloc.dispatch(PostsSourceChanged());
+            PostsProvider().logIn(list[i]).then((success){
+              if(success) bloc.dispatch(PostsSourceChanged());
+            });
           },
         ));
     }
@@ -1026,40 +1033,48 @@ class SelfContentTypeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       child: Container(
+        margin: EdgeInsets.all(5.0),
         width: MediaQuery.of(context).size.width,
-        color: Theme.of(context).primaryColorDark,
-        child: Text(contentType)
+        child: Text(contentType, style: prefix1.TextStyle(
+          fontSize: 22.0
+        ),)
       ),
       onTap: (){
         final bloc = BlocProvider.of<PostsBloc>(context);
         switch (contentType) {
           case "Comments":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Comments
             ));
             break;
           case "Submitted":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Submitted
             ));
             break;
           case "Upvoted":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Upvoted
             ));
             break;
           case "Saved":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Saved
             ));
             break;
           case "Hidden":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Hidden
             ));
             break;
           case "Watching":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Watching
             ));
             break;

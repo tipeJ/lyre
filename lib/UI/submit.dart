@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:lyre/UI/CustomExpansionTile.dart';
 import '../Models/Post.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
@@ -207,40 +208,45 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                 controller: _subredditController,
               ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              CustomExpansionTile(
+                title: "Options",
                 children: <Widget>[
-                  Text("  NSFW"),
-                  Switch.adaptive(
-                    value: is_nsfw,
-                    onChanged: (_){
-                      is_nsfw = _;
-                    },
-                  )
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("  Send replies"),
-                  Switch.adaptive(
-                    value: send_replies,
-                    onChanged: (_){
-                      send_replies = _;
-                    },
-                  )
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("  Spoiler"),
-                  Switch.adaptive(
-                    value: is_spoiler,
-                    onChanged: (_){
-                      is_spoiler = _;
-                    },
-                  )
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text("  NSFW"),
+                      Switch.adaptive(
+                        value: is_nsfw,
+                        onChanged: (_){
+                          is_nsfw = _;
+                        },
+                      )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text("  Send replies"),
+                      Switch.adaptive(
+                        value: send_replies,
+                        onChanged: (_){
+                          send_replies = _;
+                        },
+                      )
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text("  Spoiler"),
+                      Switch.adaptive(
+                        value: is_spoiler,
+                        onChanged: (_){
+                          is_spoiler = _;
+                        },
+                      )
+                    ],
+                  ),
                 ],
               ),
 

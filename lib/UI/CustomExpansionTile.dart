@@ -48,7 +48,7 @@ class CustomExpansionTile extends StatefulWidget {
   /// Typically a [Text] widget.
   final String title;
 
-  final int fontSize; //Font size of the Title text
+  final double fontSize; //Font size of the Title text
 
   /// Called when the tile expands or collapses.
   ///

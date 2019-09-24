@@ -35,16 +35,47 @@ class PostsState extends Equatable {
         return 'r/$currentSubreddit';
       case ContentSource.Redditor:
         return 'u/$targetRedditor';
+      case ContentSource.Self:
+        return currentUser.username;
       default:
         return '';
     }
   }
   String getFilterString(){
-    if(temporaryType == TypeFilter.Top || temporaryType == TypeFilter.Controversial){
-      return parseTypeFilter() + " ● " + temporaryTime;
-    }else{
-      return parseTypeFilter();
+    String filterString = "";
+
+    if(contentSource == ContentSource.Self){
+      switch (selfContentType) {
+        case SelfContentType.Comments:
+          filterString = "Comments";
+          break;
+        case SelfContentType.Hidden:
+          filterString = "Hidden";
+          break;
+        case SelfContentType.Saved:
+          filterString = "Saved";
+          break;
+        case SelfContentType.Submitted:
+          filterString = "Submitted";
+          break;
+        case SelfContentType.Upvoted:
+          filterString = "Upvoted";
+          break;
+        case SelfContentType.Watching:
+          filterString = "Watching";
+          break;
+        default:
+          break;
+      }
+      filterString += " ● ";
     }
+
+    if(temporaryType == TypeFilter.Top || temporaryType == TypeFilter.Controversial){
+      filterString += parseTypeFilter() + " ● " + temporaryTime;
+    }else{
+      filterString += parseTypeFilter();
+    }
+    return filterString;
   }
   String parseTypeFilter(){
     switch (temporaryType) {
@@ -64,6 +95,8 @@ class PostsState extends Equatable {
         return 'gilded';
       case TypeFilter.Best:
         return 'best';
+      default:
+        return ""; //Shouldn't happen
     }
   }
 }

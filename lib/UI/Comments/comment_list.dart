@@ -33,14 +33,14 @@ class CommentList extends StatefulWidget {
   CommentList(this.submission);
 
   @override
-  _CommentListState createState() => _CommentListState(this.submission);
+  CommentListState createState() => CommentListState(this.submission);
 }
 
 
-class _CommentListState extends State<CommentList> with SingleTickerProviderStateMixin, PreviewCallback{
+class CommentListState extends State<CommentList> with SingleTickerProviderStateMixin, PreviewCallback{
   final Submission submission;
 
-  _CommentListState(this.submission);
+  CommentListState(this.submission);
 
   bool isPreviewing = false;
   var previewUrl = "";

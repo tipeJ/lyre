@@ -27,10 +27,24 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
       var results = await more.comments(update: true);
       comments.removeAt(event.location); //Removes the used MoreComments object
       comments.insertAll(event.location, results); //Inserts the received objects into the comment list
+    } else if(event is Collapse){
+      var currentIndex = event.location;
+      while(true){
+        currentIndex++;
+        var c = comments[currentIndex];
+
+        if(currentIndex == comments.length - 1 || c.data['depth'] == event.depth) break; //When this occurs we've reached another comment of the same level or the end of the list
+
+        if(c is Comment){
+          c.collapse();
+        }
       }
-      loadingMoreId = ""; //Resets the loadingMoreId value.
-      yield comments; //Return the updated list of dynamic comment objects.
-    }   
+    }else if(event is CollapseX){
+      event.c.collapse();
+    }
+    loadingMoreId = ""; //Resets the loadingMoreId value.
+    yield comments; //Return the updated list of dynamic comment objects.
+    }
   //Recursing function that adds the comments to the list from a CommentForest
   void addCommentsFromForest(CommentForest forest){
     forest.comments.forEach((f){

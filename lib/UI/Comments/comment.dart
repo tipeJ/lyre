@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
@@ -25,24 +26,9 @@ class _CommentWidgetState extends State<CommentWidget> {
   _CommentWidgetState(this.comment);
   @override
   Widget build(BuildContext context) {
-    return new Container(
-            child: new Container(
-              decoration: BoxDecoration(
-                border: Border(
-                    left:
-                        BorderSide(color: getColor(comment.depth), width: 3.5)),
-              ),
-              child: Hero(
-                child: new CommentContent(comment),
-                tag: 'comment_hero ${comment.id}',
-              ),
-            ),
-            padding: new EdgeInsets.only(
-                left: 3.5 + comment.depth * 3.5,
-                right: 0.5,
-                top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0));
-    return new OnSlide(
+    return new prefix1.Visibility(
+      visible: !comment.collapsed,
+      child: OnSlide(
         backgroundColor: Colors.transparent,
         key: PageStorageKey(comment.hashCode),
         items: <ActionItems>[
@@ -107,6 +93,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             }
           ),
         ],
+        
         child: new Container(
             child: new Container(
               decoration: BoxDecoration(
@@ -114,17 +101,23 @@ class _CommentWidgetState extends State<CommentWidget> {
                     left:
                         BorderSide(color: getColor(comment.depth), width: 3.5)),
               ),
-              child: Hero(
-                child: new CommentContent(comment),
-                tag: 'comment_hero ${comment.id}',
-              ),
+              child: GestureDetector(
+                child:  Hero(
+                  child: new CommentContent(comment),
+                  tag: 'comment_hero ${comment.id}',
+                ),
+                onTap: (){
+                  BlocProvider.of<CommentsBloc>(context).dispatch(CollapseX(c: comment));
+                },
+              )
             ),
             padding: new EdgeInsets.only(
                 left: 3.5 + comment.depth * 3.5,
                 right: 0.5,
                 top: comment.depth == 0 ? 2.0 : 0.1,
                 bottom: 0.0))
-      );
+      ),
+    );
   }
 
 }

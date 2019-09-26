@@ -318,9 +318,7 @@ class PostsListState extends State<PostsList>
                     parseTypeFilter(q);
                     currentSortTime = "";
 
-                    bloc.dispatch(PostsSourceChanged(
-                      
-                    ));
+                    refreshList();
                     //bloc.resetFilters();
 
                     _changeParamsVisibility();
@@ -339,9 +337,7 @@ class PostsListState extends State<PostsList>
                 if (tempType != "") {
                   parseTypeFilter(tempType);
                   currentSortTime = sortTimes[index];
-                  bloc.dispatch(PostsSourceChanged(
-
-                  ));
+                  refreshList();
                   tempType = "";
                 }
                 _changeTypeVisibility();
@@ -454,11 +450,11 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.commentKarma.toString(),
-                                              style: TextStyle(fontSize: 25.0),
+                                              style: TextStyle(fontSize: 28.0),
                                             ),
                                             Text(
                                               'Comment karma',
-                                              style: TextStyle(fontSize: 25.0),
+                                              style: TextStyle(fontSize: 22.0),
                                             )
                                           ],),
                                           Spacer(),
@@ -467,23 +463,23 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.linkKarma.toString(),
-                                              style: TextStyle(fontSize: 25.0),
+                                              style: TextStyle(fontSize: 28.0),
                                             ),
                                             Text(
                                               'Link karma',
-                                              style: TextStyle(fontSize: 25.0),
+                                              style: TextStyle(fontSize: 22.0),
                                             )
                                           ],)
                                         ],
                                       ),
                                       Divider(),
-                                      SelfContentTypeWidget("Comments"),
-                                      SelfContentTypeWidget("Submitted"),
-                                      SelfContentTypeWidget("Upvoted"),
-                                      SelfContentTypeWidget("Saved"),
-                                      SelfContentTypeWidget("Hidden"),
-                                      SelfContentTypeWidget("Watching"),
-                                      SelfContentTypeWidget("Friends")
+                                      SelfContentTypeWidget("Comments", scontrol),
+                                      SelfContentTypeWidget("Submitted", scontrol),
+                                      SelfContentTypeWidget("Upvoted", scontrol),
+                                      SelfContentTypeWidget("Saved", scontrol),
+                                      SelfContentTypeWidget("Hidden", scontrol),
+                                      SelfContentTypeWidget("Watching", scontrol),
+                                      SelfContentTypeWidget("Friends", scontrol)
                                     ],
                                   );
                                 default:
@@ -500,7 +496,7 @@ class PostsListState extends State<PostsList>
                                 var pp = PostsProvider();
                                 setState(() {
                                   pp.registerReddit();
-                                  bloc.dispatch(PostsSourceChanged());
+                                  refreshList();
                                 });
                               },
                             ),
@@ -641,7 +637,7 @@ class PostsListState extends State<PostsList>
                                               onEditingComplete: () {
                                                 currentSubreddit = searchQuery;
                                                 _reverse();
-                                                bloc.dispatch(PostsSourceChanged());
+                                                refreshList();
                                                 subsListHeight = 50.0;
                                                 scontrol.animateTo(0.0,
                                                     duration: Duration(
@@ -838,12 +834,12 @@ class PostsListState extends State<PostsList>
             if (i == 0) {
               PostsProvider().logInAsGuest().then((_) {
                 setState(() {
-                  bloc.dispatch(PostsSourceChanged());
+                  refreshList();
                 });
               });
             }
             PostsProvider().logIn(list[i]).then((success){
-              if(success) bloc.dispatch(PostsSourceChanged());
+              if(success) refreshList();
             });
           },
         ));
@@ -877,7 +873,7 @@ class PostsListState extends State<PostsList>
                 currentSubreddit = subs[i].displayName;
                 _reverse();
                 subsListHeight = 50.0;
-                bloc.dispatch(PostsSourceChanged());
+                refreshList();
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),
                     curve: Curves.decelerate);
@@ -1013,7 +1009,9 @@ class PostsListState extends State<PostsList>
     _controller.dispose();
     _videoController.dispose();
     controller?.dispose();
+    scontrol.dispose();
     previewController?.dispose();
+    bloc.dispose();
   }
 
   void showComments(BuildContext context, prefix0.Submission inside) {
@@ -1023,11 +1021,17 @@ class PostsListState extends State<PostsList>
   void showSubmit(BuildContext context) {
     Navigator.of(context).pushNamed('submit');
   }
+
+  void refreshList(){
+    bloc.dispatch(PostsSourceChanged());
+    scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
+  }
 }
 
 class SelfContentTypeWidget extends StatelessWidget {
   final String contentType;
-  const SelfContentTypeWidget(this.contentType);
+  final ScrollController scontrol;
+  const SelfContentTypeWidget(this.contentType, this.scontrol);
 
   @override
   Widget build(BuildContext context) {
@@ -1084,6 +1088,7 @@ class SelfContentTypeWidget extends StatelessWidget {
             break;
           default:
         }
+        scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
       },
     );
   }

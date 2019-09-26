@@ -297,27 +297,27 @@ class defaultColumn extends StatelessWidget {
               padding:
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
           (post.s.isSelf && post.s.selftext != null && post.s.selftext.isNotEmpty)
-              ? Container(
-            child: Container(
-              child: Text(
-                post.s.selftext,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 11.0,
-                  fontFamily: "Roboto"
+            ? Container(
+              child: Container(
+                child: Text(
+                  post.s.selftext,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 11.0,
+                    fontFamily: "Roboto"
+                  ),
+                  overflow: TextOverflow.fade,
+                  maxLines: callback is CommentListState ? null : 5,
                 ),
-                overflow: TextOverflow.fade,
-                maxLines: post.expanded ? null : 5,
               ),
-            ),
-            padding: EdgeInsets.only(
-              left: 8.0,
-              right: 8.0,
-              top: 8.0,
-              bottom: 8.0
-            ),
-          )
-              : Container(height: 3.5),
+              padding: EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+            )
+          : Container(height: 3.5),
           new ButtonTheme.bar(
               child: new Row(
                   children: <Widget>[

@@ -23,15 +23,18 @@ class FetchMore extends CommentsEvent{
   }) : super([moreComments, location]);
 }
 class Collapse extends CommentsEvent{
-  final MoreComments moreComments;
   final int location;
   final int depth;
-  final String linkId;
   
   Collapse({
-    @required this.moreComments,
     @required this.location,
     @required this.depth,
-    @required this.linkId
-  }) : super([moreComments, location, depth, linkId]);
+  }) : super([location, depth]);
+}
+class CollapseX extends CommentsEvent{
+  final Comment c;
+  
+  CollapseX({
+    @required this.c,
+  }) : super([c]);
 }

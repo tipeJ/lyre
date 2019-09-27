@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'dart:ui';
@@ -30,7 +31,7 @@ class postInnerWidget extends StatelessWidget {
   final PreviewCallback callBack;
   final double blurSigma = 15.0;
 
-  postInnerWidget(this.post, this.callBack);
+  postInnerWidget(this.post, this.callBack, [this.viewSetting]);
 
 
   Widget getWidget(BuildContext context){
@@ -232,7 +233,10 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
           onPress: (){
-            Navigator.of(context).pushNamed('posts', arguments: post.s.author);
+            Navigator.of(context).pushNamed('posts', arguments: {
+              'redditor'        : post.s.author,
+              'content_source'  : ContentSource.Redditor
+            });
           }
         ),
         ActionItems(
@@ -293,27 +297,27 @@ class defaultColumn extends StatelessWidget {
               padding:
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
           (post.s.isSelf && post.s.selftext != null && post.s.selftext.isNotEmpty)
-              ? Container(
-            child: Container(
-              child: Text(
-                post.s.selftext,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 11.0,
-                  fontFamily: "Roboto"
+            ? Container(
+              child: Container(
+                child: Text(
+                  post.s.selftext,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 11.0,
+                    fontFamily: "Roboto"
+                  ),
+                  overflow: TextOverflow.fade,
+                  maxLines: callback is CommentListState ? null : 5,
                 ),
-                overflow: TextOverflow.fade,
-                maxLines: post.expanded ? null : 5,
               ),
-            ),
-            padding: EdgeInsets.only(
-              left: 8.0,
-              right: 8.0,
-              top: 8.0,
-              bottom: 8.0
-            ),
-          )
-              : Container(height: 3.5),
+              padding: EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+            )
+          : Container(height: 3.5),
           new ButtonTheme.bar(
               child: new Row(
                   children: <Widget>[

@@ -33,14 +33,14 @@ class CommentList extends StatefulWidget {
   CommentList(this.submission);
 
   @override
-  _CommentListState createState() => _CommentListState(this.submission);
+  CommentListState createState() => CommentListState(this.submission);
 }
 
 
-class _CommentListState extends State<CommentList> with SingleTickerProviderStateMixin, PreviewCallback{
+class CommentListState extends State<CommentList> with SingleTickerProviderStateMixin, PreviewCallback{
   final Submission submission;
 
-  _CommentListState(this.submission);
+  CommentListState(this.submission);
 
   bool isPreviewing = false;
   var previewUrl = "";
@@ -125,26 +125,16 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
               child: Container(
                 padding: EdgeInsets.all(10.0),
                 child: ListView.builder(
+                  itemCount: recentlyViewed.length+1,
                   itemBuilder: (context, i){
                     return i == 0
                       ? Text(
                         "Recently Viewed",
                         style: TextStyle(
-                          fontSize: 18.0
+                          fontSize: 26.0,
                         ),
                       )
-                      : InkWell(
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                          child: Container(
-                            child: Text(recentlyViewed[i-1].title),
-                            padding: EdgeInsets.all(5.0),
-                          )
-                        ),
-                        onTap: (){
-                          Navigator.push(context, SlideRightRoute(widget: CommentsList(recentlyViewed[i-1]))); // ? Pushes a new CommentsList
-                        },
-                      );
+                      : postInnerWidget(Post.fromApi(recentlyViewed[i-1]), this, PostView.Compact,);
                   },
                 ),
               ),
@@ -156,7 +146,7 @@ class _CommentListState extends State<CommentList> with SingleTickerProviderStat
                       new SliverToBoxAdapter(
                         child: new Hero(
                           tag: 'post_hero ${submission.id}',
-                          child: new postInnerWidget(Post.fromApi(submission), this),
+                          child: new postInnerWidget(Post.fromApi(submission), this, PostView.ImagePreview),
                         ),
                       ),
                       

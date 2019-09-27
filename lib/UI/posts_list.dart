@@ -1,5 +1,6 @@
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -25,11 +26,12 @@ enum PreviewType { Image, Video }
 
 class PostsView extends StatelessWidget {
   String redditor;
+  ContentSource initialSource;
 
   final PostsBloc _postsBloc = PostsBloc();
-  PostsView(String targetRedditor, [ContentSource source]){
+  PostsView(String targetRedditor, ContentSource source){
     this.redditor = targetRedditor;
-    currentContentSource = targetRedditor.isNotEmpty
+    initialSource = targetRedditor.isNotEmpty
       ? ContentSource.Redditor
       : (source == null)
         ? ContentSource.Subreddit
@@ -40,15 +42,17 @@ class PostsView extends StatelessWidget {
   Widget build(BuildContext context){
     return BlocProvider(
       builder: (context) => _postsBloc,
-      child: PostsList(redditor),
+      child: PostsList(redditor, initialSource),
     );
   }
 }
 
 class PostsList extends StatefulWidget {
   final String redditor;
-  PostsList(this.redditor);
-  State<PostsList> createState() => new PostsListState(redditor);
+  final ContentSource initialSource;
+
+  PostsList(this.redditor, this.initialSource);
+  State<PostsList> createState() => new PostsListState(redditor, initialSource);
 }
 
 class PostsListState extends State<PostsList>
@@ -56,10 +60,11 @@ class PostsListState extends State<PostsList>
   var titletext = "Lyre for Reddit";
   var currentSub = "";
   final String redditor;
+  final ContentSource initialSource;
 
   PostsBloc bloc;
 
-  PostsListState(this.redditor);
+  PostsListState(this.redditor, this.initialSource);
 
   Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
   Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
@@ -192,7 +197,6 @@ class PostsListState extends State<PostsList>
       setState(() {
         
       });
-      bloc.dispatch(PostsSourceChanged());
     });
     _controller = AnimationController(
       //<-- initialize a controller
@@ -314,9 +318,7 @@ class PostsListState extends State<PostsList>
                     parseTypeFilter(q);
                     currentSortTime = "";
 
-                    bloc.dispatch(PostsSourceChanged(
-                      
-                    ));
+                    refreshList();
                     //bloc.resetFilters();
 
                     _changeParamsVisibility();
@@ -335,9 +337,7 @@ class PostsListState extends State<PostsList>
                 if (tempType != "") {
                   parseTypeFilter(tempType);
                   currentSortTime = sortTimes[index];
-                  bloc.dispatch(PostsSourceChanged(
-
-                  ));
+                  refreshList();
                   tempType = "";
                 }
                 _changeTypeVisibility();
@@ -405,23 +405,26 @@ class PostsListState extends State<PostsList>
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.currentState.userContent == null || bloc.currentState.userContent.isEmpty) {
-      bloc.dispatch(PostsSourceChanged(redditor: this.redditor));
+      bloc.dispatch(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
     }
     return new WillPopScope(
         child: Scaffold(
           resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
-                padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Stack(
                   children: <Widget>[
                     CustomScrollView(
                       slivers: <Widget>[
                         SliverToBoxAdapter(
+                          child: Container(height: 150,),
+                        ),
+                        SliverToBoxAdapter(
                           child: BlocBuilder<PostsBloc, PostsState>(
-                            bloc: bloc,
                             builder: (context, PostsState state){
                               return CustomExpansionTile(
+                                fontSize: 32.0,
                                 title: currentUser.value,
                                 children: getRegisteredUsernamesList(state.usernamesList),
                               );
@@ -439,6 +442,7 @@ class PostsListState extends State<PostsList>
                                   }
                                   return CustomExpansionTile(
                                     title: "Profile",
+                                    fontSize: 32.0,
                                     children: <Widget>[
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
@@ -446,11 +450,11 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.commentKarma.toString(),
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 28.0),
                                             ),
                                             Text(
                                               'Comment karma',
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 22.0),
                                             )
                                           ],),
                                           Spacer(),
@@ -459,22 +463,23 @@ class PostsListState extends State<PostsList>
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.linkKarma.toString(),
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 28.0),
                                             ),
                                             Text(
                                               'Link karma',
-                                              style: TextStyle(fontSize: 18.0),
+                                              style: TextStyle(fontSize: 22.0),
                                             )
                                           ],)
                                         ],
                                       ),
-                                      SelfContentTypeWidget("Comments"),
-                                      SelfContentTypeWidget("Submitted"),
-                                      SelfContentTypeWidget("Upvoted"),
-                                      SelfContentTypeWidget("Saved"),
-                                      SelfContentTypeWidget("Hidden"),
-                                      SelfContentTypeWidget("Watching"),
-                                      SelfContentTypeWidget("Friends")
+                                      Divider(),
+                                      SelfContentTypeWidget("Comments", scontrol),
+                                      SelfContentTypeWidget("Submitted", scontrol),
+                                      SelfContentTypeWidget("Upvoted", scontrol),
+                                      SelfContentTypeWidget("Saved", scontrol),
+                                      SelfContentTypeWidget("Hidden", scontrol),
+                                      SelfContentTypeWidget("Watching", scontrol),
+                                      SelfContentTypeWidget("Friends", scontrol)
                                     ],
                                   );
                                 default:
@@ -491,7 +496,7 @@ class PostsListState extends State<PostsList>
                                 var pp = PostsProvider();
                                 setState(() {
                                   pp.registerReddit();
-                                  bloc.dispatch(PostsSourceChanged());
+                                  refreshList();
                                 });
                               },
                             ),
@@ -510,7 +515,7 @@ class PostsListState extends State<PostsList>
                             IconButton(
                               icon: Icon(Icons.settings),
                               onPressed: (){
-                                Navigator.of(context).pushNamed('/settings');
+                                Navigator.of(context).pushNamed('settings');
                               },
                             )
                           ],
@@ -530,42 +535,27 @@ class PostsListState extends State<PostsList>
               child: new GestureDetector(
                 child: new Stack(
                   children: <Widget>[
-                    currentContentSource == ContentSource.Subreddit
-                    ? new StreamBuilder(
+                    StreamBuilder(
                       stream: bloc.state.takeWhile((PostsState s){
                         return s.userContent != null;
                       }),
-                      builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
-                        if(!snapshot.hasData){
-                          print('snapshot no data');
-                        }else{
-                          if(snapshot.data.userContent == null){
-                          print('snapshot null');
-                          }else{
-                            if(snapshot.data.userContent.isEmpty){
-                              print('snapshot empty');
-                            }
-                          }
-                        }
-                        if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
-                          return buildList(snapshot);
-                        } else if (snapshot.hasError) {
-                          return Text(snapshot.error.toString());
-                        }
-                        return Center(child: CircularProgressIndicator());
-                      },
-                    )
-                    : StreamBuilder(
-                        stream: bloc.state,
-                        builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot) {
-                          if (snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty && snapshot.data.targetRedditor.isNotEmpty){
+                      builder: (context, AsyncSnapshot<PostsState> snapshot){
+                        if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
+                          final state = snapshot.data;
+                          if(state.contentSource == ContentSource.Redditor){
+                            return snapshot.data.targetRedditor.isNotEmpty
+                              ? buildList(snapshot)
+                              : Center(child: CircularProgressIndicator());
+                          } else {
                             return buildList(snapshot);
-                          } else if (snapshot.hasError) {
-                            return Text(snapshot.error.toString());
                           }
+                        }else if (snapshot.hasError) {
+                          return Text(snapshot.error.toString());
+                        }else{
                           return Center(child: CircularProgressIndicator());
-                        },
-                      ),
+                        }
+                      },
+                    ),
                     getFloatingNavBar()
                   ].where(notNull).toList(),
                 ),
@@ -647,7 +637,7 @@ class PostsListState extends State<PostsList>
                                               onEditingComplete: () {
                                                 currentSubreddit = searchQuery;
                                                 _reverse();
-                                                bloc.dispatch(PostsSourceChanged());
+                                                refreshList();
                                                 subsListHeight = 50.0;
                                                 scontrol.animateTo(0.0,
                                                     duration: Duration(
@@ -673,56 +663,61 @@ class PostsListState extends State<PostsList>
                                               children: <Widget>[
                                                 Expanded(
                                                     child: InkWell(
-                                                      child: BlocBuilder<PostsBloc, PostsState>(
-                                                        builder: (context, PostsState state){
-                                                          return Column(
-                                                            children: <Widget>[
-                                                              new Text(
-                                                                state.getSourceString(),
-                                                                style: TextStyle(
-                                                                  fontSize: 22.0,
+                                                      child: StreamBuilder(
+                                                        stream: bloc.state,
+                                                        builder: (context, AsyncSnapshot<PostsState> snapshot){
+                                                          return snapshot.hasData && snapshot.data.userContent.isNotEmpty
+                                                          ? Column(
+                                                              children: <Widget>[
+                                                                new Text(
+                                                                  snapshot.data.getSourceString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 22.0,
+                                                                  ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
                                                                 ),
-                                                                textAlign:
-                                                                    TextAlign.start,
-                                                              ),
-                                                              new Text(
-                                                                state.getFilterString(),
-                                                                style: TextStyle(
-                                                                  fontSize: 14.0,
-                                                                ),
-                                                                textAlign:
-                                                                    TextAlign.start,
-                                                              )
-                                                            ],
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment.start,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                          );
+                                                                new Text(
+                                                                  snapshot.data.getFilterString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 14.0,
+                                                                  ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
+                                                                )
+                                                              ],
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment.start,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                            )
+                                                          : Container();
                                                         },
                                                       ),
                                                   onTap: () {
                                                     _changeParamsVisibility();
                                                   },
                                                 )),
-                                                IconButton(
-                                                  icon: Icon(Icons.create),
-                                                  onPressed: () {
-                                                    final snackBar = SnackBar(
-                                                      content: Text(
-                                                          'Log in in order to post your submission'),
-                                                    );
-                                                    setState(() {
-                                                      if(PostsProvider().isLoggedIn()){
-                                                        showSubmit(context);
-                                                      }else{
-                                                        Scaffold.of(context).showSnackBar(snackBar);
-                                                      }
-                                                    });
-                                                  },
-                                                )
-                                              ],
+                                                (bloc.currentState != null && bloc.currentState.contentSource == ContentSource.Subreddit && currentSubreddit != "all")
+                                                  ? IconButton(
+                                                    icon: Icon(Icons.create),
+                                                    onPressed: () {
+                                                      final snackBar = SnackBar(
+                                                        content: Text(
+                                                            'Log in in order to post your submission'),
+                                                      );
+                                                      setState(() {
+                                                        if(PostsProvider().isLoggedIn()){
+                                                          showSubmit(context);
+                                                        }else{
+                                                          Scaffold.of(context).showSnackBar(snackBar);
+                                                        }
+                                                      });
+                                                    },
+                                                  )
+                                                  : null,
+                                              ].where(notNull).toList(),
                                             ),
                                           ),
                                         ),
@@ -839,12 +834,13 @@ class PostsListState extends State<PostsList>
             if (i == 0) {
               PostsProvider().logInAsGuest().then((_) {
                 setState(() {
-                  bloc.dispatch(PostsSourceChanged());
+                  refreshList();
                 });
               });
             }
-            PostsProvider().logIn(list[i]);
-            bloc.dispatch(PostsSourceChanged());
+            PostsProvider().logIn(list[i]).then((success){
+              if(success) refreshList();
+            });
           },
         ));
     }
@@ -877,7 +873,7 @@ class PostsListState extends State<PostsList>
                 currentSubreddit = subs[i].displayName;
                 _reverse();
                 subsListHeight = 50.0;
-                bloc.dispatch(PostsSourceChanged());
+                refreshList();
                 scontrol.animateTo(0.0,
                     duration: Duration(milliseconds: 400),
                     curve: Curves.decelerate);
@@ -914,9 +910,9 @@ class PostsListState extends State<PostsList>
       child: new ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
-          itemCount: currentContentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
+          itemCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
           itemBuilder: (BuildContext context, int i) {
-            var finalIndex = currentContentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
+            var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
             if(i == finalIndex){
               return Container(
                 color: Theme.of(context).primaryColor,
@@ -929,7 +925,7 @@ class PostsListState extends State<PostsList>
                     },
                     child: Text("Load more")),
               );
-            } else if(currentContentSource == ContentSource.Redditor && i == 0){
+            } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
                 headerWidget = FutureBuilder(
                   future: PostsProvider().getRedditor(state.targetRedditor),
@@ -954,22 +950,12 @@ class PostsListState extends State<PostsList>
               return headerWidget;
             } else {
               int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
-              return GestureDetector(
-                onHorizontalDragUpdate: (DragUpdateDetails details) {
-                  if (details.delta.direction > 1.0 &&
-                      details.delta.dx < -25) {
-                    currentPostId = (posts[index] as prefix0.Submission).id;
-                    showComments(context, (posts[index] as prefix0.Submission));
-                  }
-                }, //TODO: Add a new fling animation for vertical scrolling
-                child: posts[index] is prefix0.Submission
+              return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this)
+                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this, PostView.IntendedPreview)
                     )
-                    : new CommentContent(posts[index] as prefix0.Comment)
-                
-              );
+                    : new CommentContent(posts[index] as prefix0.Comment);
             }
           }),
     );
@@ -1023,64 +1009,76 @@ class PostsListState extends State<PostsList>
     _controller.dispose();
     _videoController.dispose();
     controller?.dispose();
+    scontrol.dispose();
     previewController?.dispose();
+    bloc.dispose();
   }
 
   void showComments(BuildContext context, prefix0.Submission inside) {
-    //Navigator.push(context, SlideRightRoute(widget: commentsList(inside)));
-    cPost = Post.fromApi(inside);
-    // ! Might not work, previously inside.expanded = true
-    cPost.expanded = true;
-    Navigator.of(context).pushNamed('/comments');
+    Navigator.of(context).pushNamed('comments', arguments: inside);
   }
 
   void showSubmit(BuildContext context) {
-    Navigator.of(context).pushNamed('/submit');
+    Navigator.of(context).pushNamed('submit');
+  }
+
+  void refreshList(){
+    bloc.dispatch(PostsSourceChanged());
+    scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
   }
 }
 
 class SelfContentTypeWidget extends StatelessWidget {
   final String contentType;
-  const SelfContentTypeWidget(this.contentType);
+  final ScrollController scontrol;
+  const SelfContentTypeWidget(this.contentType, this.scontrol);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       child: Container(
+        margin: EdgeInsets.all(5.0),
         width: MediaQuery.of(context).size.width,
-        color: Theme.of(context).primaryColorDark,
-        child: Text(contentType)
+        child: Text(contentType, style: prefix1.TextStyle(
+          fontSize: 22.0
+        ),)
       ),
       onTap: (){
         final bloc = BlocProvider.of<PostsBloc>(context);
         switch (contentType) {
           case "Comments":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Comments
             ));
             break;
           case "Submitted":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Submitted
             ));
             break;
           case "Upvoted":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Upvoted
             ));
             break;
           case "Saved":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Saved
             ));
             break;
           case "Hidden":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Hidden
             ));
             break;
           case "Watching":
             bloc.dispatch(PostsSourceChanged(
+              source: ContentSource.Self,
               selfContentType: SelfContentType.Watching
             ));
             break;
@@ -1090,6 +1088,7 @@ class SelfContentTypeWidget extends StatelessWidget {
             break;
           default:
         }
+        scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
       },
     );
   }

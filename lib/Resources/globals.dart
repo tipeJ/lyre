@@ -97,5 +97,4 @@ bool loopVideos = true;
 bool preCollapsed = false;
 bool showNSFWPreviews = false;
 
-Post cPost;
 List<Submission> recentlyViewed = [];

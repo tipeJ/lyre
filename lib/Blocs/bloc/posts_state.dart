@@ -7,18 +7,27 @@ import '../../Resources/globals.dart';
 
 @immutable
 class PostsState extends Equatable {
+
+  //CONTENT
   final List<UserContent> userContent;
   final ContentSource contentSource;
 
+  //SORTING
   TypeFilter temporaryType = currentSortType;
   String temporaryTime = currentSortTime;
 
+  //LOGGED IN USER INFORMATION
   List<String> usernamesList;
   RedditUser currentUser;
 
+  //WHEN TARGETING REDDITOR
   String targetRedditor;
 
+  //WHEN TARGETING SELF
   SelfContentType selfContentType;
+
+  //SIDEBAR (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
+  WikiPage sideBar;
 
   PostsState({
     @required this.contentSource,
@@ -26,7 +35,8 @@ class PostsState extends Equatable {
     this.usernamesList,
     this.currentUser,
     this.targetRedditor,
-    this.selfContentType
+    this.selfContentType,
+    this.sideBar,
   }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType]);
 
   String getSourceString(){

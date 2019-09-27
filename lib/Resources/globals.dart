@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'reddit_api_provider.dart';
 import '../Models/Post.dart';
 
-String BASE_URL = "https://www.reddit.com";
-String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
+String WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
+
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 
 String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";

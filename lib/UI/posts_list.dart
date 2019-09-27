@@ -2,6 +2,7 @@ import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
@@ -526,10 +527,28 @@ class PostsListState extends State<PostsList>
                 )
           )),
           endDrawer: new Drawer(
-            child: Container(
-              padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
-              child: Text('End Drawer (To Be Implemented'),
-            ),
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverToBoxAdapter(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(5.0),
+                      helperText: "Search"
+                    ),
+                  ),
+                ),
+                BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state){
+                    return notNull(state.sideBar)
+                      ? SliverToBoxAdapter(
+                        child: Html(data: state.sideBar.contentHtml),
+                      )
+                      : null;
+                  },
+                )
+              ].where((w) => notNull(w)).toList(),
+            )
           ),
           body: new Container(
               child: new GestureDetector(
@@ -559,7 +578,7 @@ class PostsListState extends State<PostsList>
                     getFloatingNavBar()
                   ].where(notNull).toList(),
                 ),
-            onLongPressUp: () {
+            onTapUp: (TapUpDetails details) {
               hideOverlay();
             },
           )),

@@ -23,6 +23,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     var userNamesList = await readUsernames();
     userNamesList.insert(0, "Guest");
     RedditUser currentUser = await PostsProvider().getLatestUser();
+    WikiPage sideBar;
 
     if(event is PostsSourceChanged){
       final source = event.source != null
@@ -31,6 +32,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       switch (source) {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
+          sideBar = await _repository.fetchWikiPage(prefix0.WIKI_SIDEBAR_ARGUMENTS);
           break;
         case ContentSource.Redditor:
           _userContent = await _repository.fetchPostsFromRedditor(false, event.redditor);
@@ -39,7 +41,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSelf(false, event.selfContentType);
           break;
       }
-      yield PostsState(userContent: _userContent, contentSource : source, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor);
+      yield PostsState(userContent: _userContent, contentSource : source, usernamesList: userNamesList, currentUser: currentUser, targetRedditor: event.redditor, sideBar: sideBar);
     } else if(event is FetchMore){
       prefix0.lastPost = currentState.userContent.last is Comment
         ? (currentState.userContent.last as Comment).id

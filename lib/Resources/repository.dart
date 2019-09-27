@@ -15,5 +15,6 @@ class Repository {
   Future<CommentM> fetchComments() => postsApiProvider.fetchCommentsList();
   Future<SubredditM> fetchSubs(String q) => postsApiProvider.fetchSubReddits(q);
   Future<CommentM> fetchComment(String id, String name) => postsApiProvider.getC2(id, name);
+  Future<WikiPage> fetchWikiPage(String args) => postsApiProvider.getWikiPage(args);
 
 }

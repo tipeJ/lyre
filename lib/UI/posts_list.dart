@@ -319,7 +319,7 @@ class PostsListState extends State<PostsList>
                     parseTypeFilter(q);
                     currentSortTime = "";
 
-                    refreshList();
+                    bloc.dispatch(ParamsChanged());
                     //bloc.resetFilters();
 
                     _changeParamsVisibility();
@@ -338,7 +338,7 @@ class PostsListState extends State<PostsList>
                 if (tempType != "") {
                   parseTypeFilter(tempType);
                   currentSortTime = sortTimes[index];
-                  refreshList();
+                  bloc.dispatch(ParamsChanged());
                   tempType = "";
                 }
                 _changeTypeVisibility();
@@ -529,12 +529,42 @@ class PostsListState extends State<PostsList>
           endDrawer: new Drawer(
             child: CustomScrollView(
               slivers: <Widget>[
+                SliverAppBar(
+                  expandedHeight: 125.0,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                  actions: <Widget>[Container()],
+                  leading: Container(),
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: false,
+                    title: Text(
+                      'r/' + currentSubreddit,
+                      style: prefix1.TextStyle(fontSize: 32.0),
+                      ),
+                    background: BlocBuilder<PostsBloc, PostsState>(
+                      builder: (context, state){
+                        return state.styleSheetImages.isNotEmpty
+                          ? prefix1.Image(
+                            image: AdvancedNetworkImage(
+                              state.styleSheetImages[0].url.toString(),
+                              useDiskCache: true,
+                              cacheRule: CacheRule(maxAge: const Duration(days: 28)),
+                            ),
+                            fit: BoxFit.fitHeight
+                          )
+                          : Container(); // TODO: Placeholder image
+                      },
+                    ),
+                  ),
+                ),
                 SliverToBoxAdapter(
                   child: TextField(
                     decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.all(5.0),
-                      helperText: "Search"
+                      helperText: "Search",
+                      helperStyle: prefix1.TextStyle(fontStyle: FontStyle.italic)
                     ),
                   ),
                 ),

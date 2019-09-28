@@ -12,26 +12,7 @@ String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
-String currentSubreddit = "all";
-List<String> subreddits = [
-  '/r/AskReddit',
-  '/r/Science',
-  '/r/Android',
-  '/r/Technology',
-  '/r/WorldNews',
-  '/r/Programming',
-  '/r/DartLang',
-  '/r/India',
-  '/r/Europe',
-  '/r/News',
-  '/r/Futurology',
-  '/r/IAmA',
-  '/r/TodayILearned',
-  '/r/Politics',
-  '/r/Gaming',
-  '/r/ShowerThoughts',
-  '/r/Movies',
-];
+String currentSubreddit = "dota2";
 
 List<String> sortTypes = [
   "hot",

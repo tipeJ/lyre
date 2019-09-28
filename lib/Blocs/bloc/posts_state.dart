@@ -26,8 +26,9 @@ class PostsState extends Equatable {
   //WHEN TARGETING SELF
   SelfContentType selfContentType;
 
-  //SIDEBAR (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
+  //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   WikiPage sideBar;
+  List<StyleSheetImage> styleSheetImages;
 
   PostsState({
     @required this.contentSource,
@@ -37,7 +38,8 @@ class PostsState extends Equatable {
     this.targetRedditor,
     this.selfContentType,
     this.sideBar,
-  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType]);
+    this.styleSheetImages
+  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages]);
 
   String getSourceString(){
     switch (contentSource) {

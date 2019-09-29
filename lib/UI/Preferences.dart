@@ -28,7 +28,7 @@ class _PreferencesViewState extends State<PreferencesView> {
             builder: (context, AsyncSnapshot<SharedPreferences> snapshot){
               if(snapshot.hasData){
                 preferences = snapshot.data;
-                blurLevel = preferences.getInt(IMAGE_BLUR_LEVEL).toDouble();
+                blurLevel = preferences.getInt(IMAGE_BLUR_LEVEL).toDouble() ?? 20.0;
                 return ListView(
                   children: <Widget>[
                     CustomExpansionTile(

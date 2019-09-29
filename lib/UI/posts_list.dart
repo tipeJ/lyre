@@ -219,29 +219,25 @@ class PostsListState extends State<PostsList>
         builder: (context) => new Container(
           width: 400.0,
           height: 500.0,
-          child: new BlocBuilder<PostsBloc, PostsState>(
-            builder: (context, state){
-              return new Container(
-                child: ZoomableWidget(
-                  onTap: (){
-                    hideOverlay();
-                  },
-                  enableRotate: state.preferences.getBool(IMAGE_ENABLE_ROTATION) ?? false,
-                  multiFingersPan: false,
-                  minScale: 1.0,
-                  maxScale: 5.0,
-                  panLimit: 0.8,
-                  child: Image(
-                    image: AdvancedNetworkImage(
-                      previewUrl,
-                      useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-                  )),
-                ),
-                color: Color.fromARGB(200, 0, 0, 0),
-              );
-            }
-          ),
+          child: new Container(
+            child: ZoomableWidget(
+              onTap: (){
+                hideOverlay();
+              },
+              enableRotate: false,
+              multiFingersPan: false,
+              minScale: 1.0,
+              maxScale: 5.0,
+              panLimit: 0.8,
+              child: Image(
+                image: AdvancedNetworkImage(
+                  previewUrl,
+                  useDiskCache: true,
+                  cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+              )),
+            ),
+            color: Color.fromARGB(200, 0, 0, 0),
+          )
         ),
     );
 

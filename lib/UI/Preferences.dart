@@ -27,6 +27,7 @@ class _PreferencesViewState extends State<PreferencesView> {
             builder: (context, AsyncSnapshot<SharedPreferences> snapshot){
               if(snapshot.hasData){
                 preferences = snapshot.data;
+                blurLevel = preferences.getInt(IMAGE_BLUR_LEVEL).toDouble();
                 return ListView(
                   children: <Widget>[
                     CustomExpansionTile(
@@ -112,6 +113,7 @@ class _PreferencesViewState extends State<PreferencesView> {
       ),
     ];
   }
+  double blurLevel = 20.0;
   List<Widget> getFiltersSettings(BuildContext context){
     return [
       SettingsTitleRow(
@@ -138,13 +140,13 @@ class _PreferencesViewState extends State<PreferencesView> {
               return Slider(
                 min: 5.0,
                 max: 100.0,
-                value: (preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                onChanged: (_){
+                value: blurLevel,
+                onChanged: (double newValue){
                   setState(() {
-                    
+                    blurLevel = newValue;
                   });
                 },
-                onChangeEnd: (value){
+                onChangeEnd: (double value){
                   preferences.setInt(IMAGE_BLUR_LEVEL, value >= 5.0 && value <= 100.0 ? value.round() : 20);
                 },
               );

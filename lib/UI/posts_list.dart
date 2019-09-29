@@ -1016,7 +1016,7 @@ class PostsListState extends State<PostsList>
               return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this, PostView.IntendedPreview)
+                      child: new postInnerWidget(posts[index] as prefix0.Submission, this, PostView.IntendedPreview)
                     )
                     : new CommentContent(posts[index] as prefix0.Comment);
             }

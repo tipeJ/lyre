@@ -29,6 +29,17 @@ List<String> sortTimes = [
   "year",
   "all time"
 ];
+List<String> commentSortTypes = [
+  "Best",
+  "Confidence",
+  "Controversial",
+  "New",
+  "Old",
+  "Q/A",
+  "Random",
+  "Top",
+  "Blank"
+];
 
 ContentSource currentContentSource = ContentSource.Subreddit;
 

@@ -1,8 +1,11 @@
 final CURRENT_THEME = "currentTheme";
-//SORTING
+//SUBMISSIONS
 final DEFAULT_SORT_TYPE = "defaultSortType";
 final DEFAULT_SORT_TIME = "defaultSortTime";
 final RESET_SORTING = "resetSortingWhenRefreshing";
+//COMMENTS
+final COMMENTS_DEFAULT_SORT = "defaultCommentsSort";
+final COMMENTS_PRECOLLAPSE = "preCollapse";
 //IMAGES AND VIDEOS
 final IMAGE_ENABLE_ROTATION = "enableImageRotation";
 final SHOW_NSFW_PREVIEWS = "showNSFWPreviews";

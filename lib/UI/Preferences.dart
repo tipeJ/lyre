@@ -1,3 +1,4 @@
+import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
@@ -32,8 +33,13 @@ class _PreferencesViewState extends State<PreferencesView> {
                   children: <Widget>[
                     CustomExpansionTile(
                       initiallyExpanded: true,
-                      title: 'Browsing',
-                      children: getBrowsingSettings(context),
+                      title: 'Submissions',
+                      children: getSubmissionSettings(context),
+                    ),
+                    CustomExpansionTile(
+                      initiallyExpanded: true,
+                      title: 'Comments',
+                      children: getCommentsSettings(context),
                     ),
                     CustomExpansionTile(
                       initiallyExpanded: true,
@@ -64,22 +70,28 @@ class _PreferencesViewState extends State<PreferencesView> {
       )
     ));
   }
-  List<Widget> getBrowsingSettings(BuildContext context){
+  List<Widget> getSubmissionSettings(BuildContext context){
     return [
-      SettingsTitleRow(
-        title: "Default sorting type",
-        leading: new DropdownButton<String>(
-          value: preferences.getString(DEFAULT_SORT_TYPE) != null ? preferences.getString(DEFAULT_SORT_TYPE) : sortTypes[0],
-          items: sortTypes.map((String value) {
-            return new DropdownMenuItem<String>(
-              value: value,
-              child: new Text(value),
-            );
-          }).toList(),
-          onChanged: (value) {
-            preferences.setString(DEFAULT_SORT_TYPE, value);
-          },
-        )
+      StatefulBuilder(
+        builder: (BuildContext context, setState) {
+          return SettingsTitleRow(
+            title: "Default sorting type",
+            leading: new DropdownButton<String>(
+              value: preferences.getString(DEFAULT_SORT_TYPE) != null ? preferences.getString(DEFAULT_SORT_TYPE) : sortTypes[0],
+              items: sortTypes.map((String value) {
+                return new DropdownMenuItem<String>(
+                  value: value,
+                  child: new Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                preferences.setString(DEFAULT_SORT_TYPE, value);
+                setState(() {
+                });
+              },
+            )
+          );
+        },
       ),
       StatefulBuilder(
         builder: (BuildContext context, setState) {
@@ -109,6 +121,39 @@ class _PreferencesViewState extends State<PreferencesView> {
           value: preferences.getBool(RESET_SORTING) != null ? preferences.getBool(RESET_SORTING) : true,
           onChanged: (value){
             preferences.setBool(RESET_SORTING, value);
+          },)
+      ),
+    ];
+  }
+  List<Widget> getCommentsSettings(BuildContext context){
+    return [
+      StatefulBuilder(
+        builder: (BuildContext context, setState) {
+          return SettingsTitleRow(
+            title: "Default Sorting",
+            leading: new DropdownButton<String>(
+              value: preferences.getString(COMMENTS_DEFAULT_SORT) != null ? preferences.getString(COMMENTS_DEFAULT_SORT) : sortTimes[1],
+              items: commentSortTypes.map((String value) {
+                return new DropdownMenuItem<String>(
+                  value: value,
+                  child: new Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                preferences.setString(COMMENTS_DEFAULT_SORT, value);
+                setState(() {
+                });
+              },
+            )
+          );
+        },
+      ),
+      SettingsTitleRow(
+        title: 'Precollapse Threads', 
+        leading: Switch(
+          value: preferences.getBool(COMMENTS_PRECOLLAPSE) != null ? preferences.getBool(COMMENTS_PRECOLLAPSE) : false,
+          onChanged: (value){
+            preferences.setBool(COMMENTS_PRECOLLAPSE, value);
           },)
       ),
     ];

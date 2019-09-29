@@ -226,7 +226,7 @@ class PostsListState extends State<PostsList>
                   onTap: (){
                     hideOverlay();
                   },
-                  enableRotate: state.preferences.getBool(IMAGE_ENABLE_ROTATION ?? false),
+                  enableRotate: state.preferences.getBool(IMAGE_ENABLE_ROTATION) ?? false,
                   multiFingersPan: false,
                   minScale: 1.0,
                   maxScale: 5.0,

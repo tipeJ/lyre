@@ -12,7 +12,7 @@ String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
-String currentSubreddit = "dota2";
+String currentSubreddit = "pics";
 
 List<String> sortTypes = [
   "hot",
@@ -76,6 +76,5 @@ String lastPost = "";
 bool autoLoad = false;
 bool loopVideos = true;
 bool preCollapsed = false;
-bool showNSFWPreviews = false;
 
 List<Submission> recentlyViewed = [];

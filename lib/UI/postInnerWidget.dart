@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Blocs/bloc/bloc.dart';
+import 'package:lyre/Blocs/bloc/posts_bloc.dart';
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
@@ -30,7 +34,6 @@ class postInnerWidget extends StatelessWidget {
   bool isFullSize = true;
   final Post post;
   final PreviewCallback callBack;
-  final double blurSigma = 15.0;
 
   postInnerWidget(this.post, this.callBack, [this.viewSetting]);
 
@@ -43,30 +46,35 @@ class postInnerWidget extends StatelessWidget {
     if (post.hasPreview()) {
       switch (viewSetting) {
         case PostView.IntendedPreview:
-          return new Stack(children: <Widget>[
-            getExpandedImage(context),
-            new Positioned(
-                bottom: 0.0,
-                child: !showNSFWPreviews && post.s.over18
-                  ? new BackdropFilter(
-                  filter: ImageFilter.blur(
-                      sigmaX: blurSigma,
-                      sigmaY: blurSigma,
-                    ),
-                    child: new Container(
-                      width: MediaQuery.of(context).size.width,
-                      color: Color.fromARGB(155, 0, 0, 0),
-                      child: getSlideColumn(context),
-                    ),
-                  )
-                  : new Container(
-                      width: MediaQuery.of(context).size.width,
-                      color: Color.fromARGB(155, 0, 0, 0),
-                      child: getSlideColumn(context),
-                    ),
+          return BlocBuilder<PostsBloc, PostsState>(
+            builder: (context, state){
+              return new Stack(children: <Widget>[
+                getExpandedImage(context),
+                new Positioned(
+                    bottom: 0.0,
+                    child: 
+                      (!(state.preferences.getBool(SHOW_NSFW_PREVIEWS) ?? false) && post.s.over18) || //Blur NSFW
+                      (!(state.preferences.getBool(SHOW_SPOILER_PREVIEWS) ?? false) && post.s.spoiler) //Blur Spoiler
+                        ? new BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                            sigmaY: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                          ),
+                          child: new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
+                        )
+                        : new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
                 )
-          ]);
-          break;
+              ]);
+            }
+          );
         case PostView.ImagePreview:
           return new Column(
             children: <Widget>[
@@ -74,7 +82,6 @@ class postInnerWidget extends StatelessWidget {
               getSlideColumn(context)
             ],
           );
-          break;
         case PostView.Compact:
           return new Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,7 +92,6 @@ class postInnerWidget extends StatelessWidget {
               ),
               getSquaredImage(context)
           ],);
-          break;
         default:
           return new defaultColumn(post, callBack);
       }

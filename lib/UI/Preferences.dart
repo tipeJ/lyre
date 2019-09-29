@@ -30,14 +30,22 @@ class _PreferencesViewState extends State<PreferencesView> {
                 return ListView(
                   children: <Widget>[
                     CustomExpansionTile(
+                      initiallyExpanded: true,
                       title: 'Browsing',
                       children: getBrowsingSettings(context),
                     ),
                     CustomExpansionTile(
+                      initiallyExpanded: true,
                       title: 'Filters',
                       children: getFiltersSettings(context),
                     ),
                     CustomExpansionTile(
+                      initiallyExpanded: true,
+                      title: 'Media',
+                      children: getMediaSettings(context),
+                    ),
+                    CustomExpansionTile(
+                      initiallyExpanded: false,
                       title: 'Themes',
                       children: getThemeSettings(context),
                     ),
@@ -113,6 +121,48 @@ class _PreferencesViewState extends State<PreferencesView> {
           onChanged: (value){
             preferences.setBool(SHOW_NSFW_PREVIEWS, value);
           },)
+      ),
+      SettingsTitleRow(
+        title: 'Show Spoiler Previews', 
+        leading: Switch(
+          value: preferences.getBool(SHOW_SPOILER_PREVIEWS) != null ? preferences.getBool(SHOW_SPOILER_PREVIEWS) : false,
+          onChanged: (value){
+            preferences.setBool(SHOW_SPOILER_PREVIEWS, value);
+          },)
+      ),
+      Column(
+        children: <Widget>[
+          Text('Blur level'),
+          StatefulBuilder(
+            builder: (BuildContext context, setState) {
+              return Slider(
+                min: 5.0,
+                max: 100.0,
+                value: (preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                onChanged: (_){
+                  setState(() {
+                    
+                  });
+                },
+                onChangeEnd: (value){
+                  preferences.setInt(IMAGE_BLUR_LEVEL, value >= 5.0 && value <= 100.0 ? value.round() : 20);
+                },
+              );
+            },
+          ),
+        ],
+      )
+    ];
+  }
+  List<Widget> getMediaSettings(BuildContext context){
+    return [
+      SettingsTitleRow(
+        title: "Enable image rotation",
+        leading: Switch(
+          value: preferences.getBool(IMAGE_ENABLE_ROTATION) != null ? preferences.getBool(IMAGE_ENABLE_ROTATION) : false,
+          onChanged: (value){
+            preferences.setBool(IMAGE_ENABLE_ROTATION, value);
+        },)
       )
     ];
   }

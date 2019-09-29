@@ -57,7 +57,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         currentUser: currentUser, 
         targetRedditor: event.redditor, 
         sideBar: sideBar,
-        styleSheetImages: styleSheetImages
+        styleSheetImages: styleSheetImages,
+        preferences: preferences
         );
     } else if (event is ParamsChanged){
       List<UserContent> _userContent;
@@ -106,7 +107,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       currentUser: currentState.currentUser,
       targetRedditor: currentState.targetRedditor,
       sideBar: currentState.sideBar,
-      styleSheetImages: currentState.styleSheetImages
+      styleSheetImages: currentState.styleSheetImages,
+      preferences: currentState.preferences
     );
   }
 }

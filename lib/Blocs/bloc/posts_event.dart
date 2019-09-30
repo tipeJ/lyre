@@ -29,6 +29,10 @@ class PostsSourceChanged extends PostsEvent {
   });
 }
 
+class ParamsChanged extends PostsEvent{
+
+}
+
 class FetchMore extends PostsEvent {
   
 }

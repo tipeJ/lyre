@@ -5,13 +5,43 @@ Color getScoreColor(VoteableMixin m, BuildContext context){
   switch (m.vote) {
       case VoteState.downvoted:
         return Colors.purple;
-        break;
+
       case VoteState.upvoted:
         return Colors.amberAccent;
-        break;
+
       default:
         return Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87;
     }
+}
+CommentSortType parseCommentSortType(String sortString){
+  switch (sortString) {
+    case "Best":
+      return CommentSortType.best;
+
+    case "Confidence":
+      return CommentSortType.confidence;
+      
+    case "Controversial":
+      return CommentSortType.controversial;
+      
+    case "New":
+      return CommentSortType.newest;
+      
+    case "Old":
+      return CommentSortType.old;
+      
+    case "Q/A":
+      return CommentSortType.qa;
+      
+    case "Random":
+      return CommentSortType.random;
+      
+    case "Top":
+      return CommentSortType.top;
+      
+    default:
+      return CommentSortType.blank; //Default to blank
+  }
 }
 String getSubmissionAge(DateTime submittedAt){
   // ? Probably inaccurate at times due to excessive rounding? Implement a better method later (never)

@@ -2,10 +2,13 @@ import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
@@ -213,23 +216,30 @@ class PostsListState extends State<PostsList>
     });
     state = Overlay.of(context);
     imageEntry = OverlayEntry(
-        builder: (context) => new GestureDetector(
-              child: new Container(
-                  width: 400.0,
-                  height: 500.0,
-                  child: new Container(
-                    child: Image(
-                        image: AdvancedNetworkImage(
-                      previewUrl,
-                      useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-                    )),
-                    color: Color.fromARGB(200, 0, 0, 0),
-                  )),
-              onLongPressUp: () {
+        builder: (context) => new Container(
+          width: 400.0,
+          height: 500.0,
+          child: new Container(
+            child: ZoomableWidget(
+              onTap: (){
                 hideOverlay();
               },
-            ));
+              enableRotate: false,
+              multiFingersPan: false,
+              minScale: 1.0,
+              maxScale: 5.0,
+              panLimit: 0.8,
+              child: Image(
+                image: AdvancedNetworkImage(
+                  previewUrl,
+                  useDiskCache: true,
+                  cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+              )),
+            ),
+            color: Color.fromARGB(200, 0, 0, 0),
+          )
+        ),
+    );
 
     videoEntry = OverlayEntry(
         builder: (context) => new GestureDetector(
@@ -318,7 +328,7 @@ class PostsListState extends State<PostsList>
                     parseTypeFilter(q);
                     currentSortTime = "";
 
-                    refreshList();
+                    bloc.dispatch(ParamsChanged());
                     //bloc.resetFilters();
 
                     _changeParamsVisibility();
@@ -337,7 +347,7 @@ class PostsListState extends State<PostsList>
                 if (tempType != "") {
                   parseTypeFilter(tempType);
                   currentSortTime = sortTimes[index];
-                  refreshList();
+                  bloc.dispatch(ParamsChanged());
                   tempType = "";
                 }
                 _changeTypeVisibility();
@@ -442,6 +452,7 @@ class PostsListState extends State<PostsList>
                                   }
                                   return CustomExpansionTile(
                                     title: "Profile",
+                                    initiallyExpanded: true,
                                     fontSize: 32.0,
                                     children: <Widget>[
                                       Row(
@@ -526,10 +537,62 @@ class PostsListState extends State<PostsList>
                 )
           )),
           endDrawer: new Drawer(
-            child: Container(
-              padding: EdgeInsets.only(top: 10.0, left: 20.0, right: 20.0),
-              child: Text('End Drawer (To Be Implemented'),
-            ),
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverAppBar(
+                  expandedHeight: 125.0,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                  actions: <Widget>[Container()],
+                  leading: Container(),
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: false,
+                    title: Text(
+                      'r/' + currentSubreddit,
+                      style: prefix1.TextStyle(fontSize: 32.0),
+                      ),
+                    background: BlocBuilder<PostsBloc, PostsState>(
+                      builder: (context, state){
+                        return state.styleSheetImages.isNotEmpty
+                          ? prefix1.Image(
+                            image: AdvancedNetworkImage(
+                              state.styleSheetImages[0].url.toString(),
+                              useDiskCache: true,
+                              cacheRule: CacheRule(maxAge: const Duration(days: 28)),
+                            ),
+                            fit: BoxFit.fitHeight
+                          )
+                          : Container(); // TODO: Placeholder image
+                      },
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(5.0),
+                      helperText: "Search r/$currentSubreddit",
+                      helperStyle: prefix1.TextStyle(fontStyle: FontStyle.italic)
+                    ),
+                  ),
+                ),
+                BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state){
+                    return notNull(state.sideBar)
+                      ? SliverToBoxAdapter(
+                        child: Html(
+                          data: state.sideBar.contentHtml,
+                          padding: EdgeInsets.symmetric(horizontal: 5.0),
+                          useRichText: true,
+                        ),
+                      )
+                      : null;
+                  },
+                )
+              ].where((w) => notNull(w)).toList(),
+            )
           ),
           body: new Container(
               child: new GestureDetector(
@@ -559,7 +622,7 @@ class PostsListState extends State<PostsList>
                     getFloatingNavBar()
                   ].where(notNull).toList(),
                 ),
-            onLongPressUp: () {
+            onTapUp: (TapUpDetails details) {
               hideOverlay();
             },
           )),
@@ -953,7 +1016,7 @@ class PostsListState extends State<PostsList>
               return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(Post.fromApi((posts[index] as prefix0.Submission)), this, PostView.IntendedPreview)
+                      child: new postInnerWidget(posts[index] as prefix0.Submission, this, PostView.IntendedPreview)
                     )
                     : new CommentContent(posts[index] as prefix0.Comment);
             }

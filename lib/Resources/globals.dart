@@ -4,34 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'reddit_api_provider.dart';
 import '../Models/Post.dart';
 
-String BASE_URL = "https://www.reddit.com";
-String COMMENTS_BASE_URL = "https://www.reddit.com/comments/";
+String WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
+
 String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 
 String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
-String currentSubreddit = "all";
-List<String> subreddits = [
-  '/r/AskReddit',
-  '/r/Science',
-  '/r/Android',
-  '/r/Technology',
-  '/r/WorldNews',
-  '/r/Programming',
-  '/r/DartLang',
-  '/r/India',
-  '/r/Europe',
-  '/r/News',
-  '/r/Futurology',
-  '/r/IAmA',
-  '/r/TodayILearned',
-  '/r/Politics',
-  '/r/Gaming',
-  '/r/ShowerThoughts',
-  '/r/Movies',
-];
+String currentSubreddit = "pics";
 
 List<String> sortTypes = [
   "hot",
@@ -47,6 +28,17 @@ List<String> sortTimes = [
   "month",
   "year",
   "all time"
+];
+List<String> commentSortTypes = [
+  "Best",
+  "Confidence",
+  "Controversial",
+  "New",
+  "Old",
+  "Q/A",
+  "Random",
+  "Top",
+  "Blank"
 ];
 
 ContentSource currentContentSource = ContentSource.Subreddit;
@@ -95,6 +87,5 @@ String lastPost = "";
 bool autoLoad = false;
 bool loopVideos = true;
 bool preCollapsed = false;
-bool showNSFWPreviews = false;
 
 List<Submission> recentlyViewed = [];

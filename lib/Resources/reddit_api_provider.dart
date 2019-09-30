@@ -295,6 +295,16 @@ class PostsProvider {
     var s = await r.submission(id: currentPostId).populate();
     return CommentM.fromJson(s.comments.comments);
   }
+  Future<List<StyleSheetImage>> getStyleSheetImages() async {
+    final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
+    final styleSheet = await subreddit.stylesheet.call();
+    return styleSheet.images;
+  }
+  Future<WikiPage> getWikiPage(String args) async {
+    final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
+    final page = await subreddit.wiki[args].populate(); //Fetch wiki page content for the sidebar
+    return page;
+  }
   List<dynamic> getData(List<dynamic> data){
     List<dynamic> result = List();
     for(int i = 0; i < data.length; i++){

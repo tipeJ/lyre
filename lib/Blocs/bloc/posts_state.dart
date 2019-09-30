@@ -3,22 +3,35 @@ import 'package:equatable/equatable.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Resources/globals.dart';
 
 @immutable
 class PostsState extends Equatable {
+
+  //CONTENT
   final List<UserContent> userContent;
   final ContentSource contentSource;
 
+  //SORTING
   TypeFilter temporaryType = currentSortType;
   String temporaryTime = currentSortTime;
 
+  //LOGGED IN USER INFORMATION
   List<String> usernamesList;
   RedditUser currentUser;
 
+  //WHEN TARGETING REDDITOR
   String targetRedditor;
 
+  //WHEN TARGETING SELF
   SelfContentType selfContentType;
+
+  //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
+  WikiPage sideBar;
+  List<StyleSheetImage> styleSheetImages;
+
+  SharedPreferences preferences;
 
   PostsState({
     @required this.contentSource,
@@ -26,8 +39,11 @@ class PostsState extends Equatable {
     this.usernamesList,
     this.currentUser,
     this.targetRedditor,
-    this.selfContentType
-  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType]);
+    this.selfContentType,
+    this.sideBar,
+    this.styleSheetImages,
+    this.preferences
+  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, preferences]);
 
   String getSourceString(){
     switch (contentSource) {

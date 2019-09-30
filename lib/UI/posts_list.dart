@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
+import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
 import '../Models/Post.dart';
@@ -183,13 +185,6 @@ class PostsListState extends State<PostsList>
   }
 
   double maxHeight = 400.0; //<-- Get max height of the screen
-
-  /*void refreshUser() {
-    setState(() {});
-    bloc.fetchAllPosts();
-  }
-  */
-
 
   @override
   void initState() {
@@ -572,7 +567,10 @@ class PostsListState extends State<PostsList>
                   builder: (context, state){
                     return notNull(state.sideBar)
                       ? SliverToBoxAdapter(
-                        child: Html(data: state.sideBar.contentHtml),
+                        child: Html(
+                          data: parseShittyFlutterHtml(state.sideBar.contentHtml),
+                          padding: EdgeInsets.symmetric(horizontal: 5.0),
+                        )
                       )
                       : null;
                   },
@@ -968,9 +966,6 @@ class PostsListState extends State<PostsList>
                 child: FlatButton(
                     onPressed: () {
                       bloc.dispatch(FetchMore());
-                      setState(() {
-                        // ! bloc.fetchMore();
-                      });
                     },
                     child: Text("Load more")),
               );

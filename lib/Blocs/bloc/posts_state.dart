@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Resources/globals.dart';
 
 @immutable
@@ -30,6 +31,8 @@ class PostsState extends Equatable {
   WikiPage sideBar;
   List<StyleSheetImage> styleSheetImages;
 
+  SharedPreferences preferences;
+
   PostsState({
     @required this.contentSource,
     @required this.userContent,
@@ -38,8 +41,9 @@ class PostsState extends Equatable {
     this.targetRedditor,
     this.selfContentType,
     this.sideBar,
-    this.styleSheetImages
-  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages]);
+    this.styleSheetImages,
+    this.preferences
+  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, preferences]);
 
   String getSourceString(){
     switch (contentSource) {

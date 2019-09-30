@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Models/Post.dart';
-import 'package:lyre/UI/Animations/slide_right_transition.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -134,7 +132,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                           fontSize: 26.0,
                         ),
                       )
-                      : postInnerWidget(Post.fromApi(recentlyViewed[i-1]), this, PostView.Compact,);
+                      : postInnerWidget(recentlyViewed[i-1], this, PostView.Compact,);
                   },
                 ),
               ),
@@ -146,7 +144,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                       new SliverToBoxAdapter(
                         child: new Hero(
                           tag: 'post_hero ${submission.id}',
-                          child: new postInnerWidget(Post.fromApi(submission), this, PostView.ImagePreview),
+                          child: new postInnerWidget(submission, this, PostView.ImagePreview),
                         ),
                       ),
                       
@@ -218,5 +216,4 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
       return new MoreCommentsWidget(comment, i);
     }
   }
-  
 }

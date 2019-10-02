@@ -3,16 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
-import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
-import '../Models/Post.dart';
 import '../Models/Subreddit.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
@@ -105,26 +101,35 @@ class PostsListState extends State<PostsList>
 
   @override
   void preview(String url) {
-    var x = getLinkType(url);
-    if (x == LinkType.Gfycat) {
+    var linkType = getLinkType(url);
+    if (videoLinkTypes.contains(linkType)){
       if (!isPreviewing) {
         previewType = PreviewType.Video;
-        gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((onValue) {
-          _videoController = VideoPlayerController.network(onValue);
-          _initializeVideoPlayerFuture = _videoController.initialize();
-          showVideoOverlay();
-          _videoController.setLooping(loopVideos);
-          _videoController.play();
-        });
+        if (linkType == LinkType.Gfycat){
+          gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
+            _initializeVideo(videoUrl);
+          });
+        } else {
+          _initializeVideo(url, VideoFormat.dash);
+        }
       }
     } else {
       if (!isPreviewing) {
         previewType = PreviewType.Image;
-        previewUrl = url;
+        previewUrl = url.toString();
         showOverlay();
         //previewController.forward();
       }
     }
+  }
+
+  void _initializeVideo(String videoUrl, [VideoFormat format]){
+    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    VideoPlayerController.network(videoUrl);
+    _initializeVideoPlayerFuture = _videoController.initialize();
+    showVideoOverlay();
+    _videoController.setLooping(loopVideos);
+    _videoController.play();
   }
 
   Future<void> _initializeVideoPlayerFuture;

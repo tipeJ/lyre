@@ -114,6 +114,7 @@ class postInnerWidget extends StatelessWidget {
     }
     return getSlideColumn(context);
   }
+  
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
     var y = 250.0;
@@ -128,32 +129,40 @@ class postInnerWidget extends StatelessWidget {
       width: x,
     );
   }
+
   Widget getImageWidget(BuildContext context){
-    return Stack(children: <Widget>[
+    if(submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType)){
+      return Stack(children: <Widget>[
         SizedBox.expand(
-          child: new GestureDetector(
-            child: Image(
-              image: AdvancedNetworkImage(
-                submission.preview.first.source.url.toString(),
-                useDiskCache: true,
-                cacheRule: CacheRule(maxAge: const Duration(days: 7))
-              ),
-              fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
-            ),
-            
-            onTap: () {
-              handleClick(context);
-            },
-            onLongPress: (){
-              handlePress(context);
-            },
-            onLongPressUp: (){
-                callBack.previewEnd();
-            },
-          ),
+          child: getImageWrapper(context),
         ),
-        (linkType == LinkType.YouTube)? getCenteredIndicator(linkType) : Container(height: 0.0),
+        getCenteredIndicator(linkType),
       ],);
+    }
+    return getImageWrapper(context);
+  }
+
+  Widget getImageWrapper(BuildContext context){
+    return new GestureDetector(
+      child: Image(
+        image: AdvancedNetworkImage(
+          submission.preview.first.source.url.toString(),
+          useDiskCache: true,
+          cacheRule: CacheRule(maxAge: const Duration(days: 7))
+        ),
+        fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
+      ),
+      
+      onTap: () {
+        handleClick(context);
+      },
+      onLongPress: (){
+        handlePress(context);
+      },
+      onLongPressUp: (){
+          callBack.previewEnd();
+      },
+    );
   }
   Widget getSquaredImage(BuildContext context){
     return new Container(
@@ -169,7 +178,10 @@ class postInnerWidget extends StatelessWidget {
       _launchURL(context, submission);
     }else if(linkType == LinkType.DirectImage || linkType == LinkType.Gfycat){
       callBack.preview(submission.url.toString());
-    }else{
+    } else if (linkType == LinkType.RedditVideo){
+      print(submission.data["media"]["reddit_video"]["fallback_url"] + ".mp4");
+      callBack.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+    } else {
       _launchURL(context, submission);
     }
   }
@@ -205,9 +217,18 @@ class postInnerWidget extends StatelessWidget {
     );
   }
   Widget getIndicator(LinkType type){
-    if(type == LinkType.YouTube){
-      return Center(child: Icon(Icons.play_arrow, color: Colors.white,),);
+    Widget content;
+    if(submission.over18 || submission.spoiler){
+      content = Column(children: <Widget>[
+        Icon(Icons.warning),
+        Text(submission.over18 ? "NSFW" : "SPOILER"),
+        Divider(indent: 250,endIndent: 250,)
+      ],);
     }
+    if(type == LinkType.YouTube){
+      content = Icon(Icons.play_arrow, color: Colors.white,);
+    }
+    return Center(child: content,);
   }
 
   Widget build(BuildContext context) {

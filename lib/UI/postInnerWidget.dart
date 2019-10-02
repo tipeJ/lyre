@@ -199,36 +199,33 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getCenteredIndicator(LinkType type){
     return Center(
-      child: 
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 2.0,
-              ),
-            ),
-            child: getIndicator(type),
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white,
+            width: 2.0,
           ),
-        
-      
+        ),
+        child: getIndicator(type),
+      ),
     );
   }
+
   Widget getIndicator(LinkType type){
-    Widget content;
+    Widget content = Container(color: Colors.red, width: 250, height: 250,);
     if(submission.over18 || submission.spoiler){
       content = Column(children: <Widget>[
         Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),
         Divider(indent: 250,endIndent: 250,)
       ],);
-    }
-    if(type == LinkType.YouTube){
+    } else if (videoLinkTypes.contains(type)){
       content = Icon(Icons.play_arrow, color: Colors.white,);
     }
-    return Center(child: content,);
+    return Center(child: content);
   }
 
   Widget build(BuildContext context) {

@@ -1,5 +1,3 @@
-import 'package:draw/draw.dart';
-
 import 'imageUtils.dart';
 
 final supportedYoutubeUrls = [

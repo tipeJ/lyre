@@ -294,6 +294,7 @@ class PostsListState extends State<PostsList>
       if (previewType == PreviewType.Image) {
         imageEntry.remove();
       } else if (previewType == PreviewType.Video) {
+        _videoController.pause();
         videoEntry.remove();
       }
       state.deactivate();

@@ -1,5 +1,9 @@
+final BOX_SETTINGS = "settings";
+
 final CURRENT_THEME = "currentTheme";
 //SUBMISSIONS
+final SUBMISSION_VIEWMODE = "submissionViewMode";
+final SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
 final DEFAULT_SORT_TYPE = "defaultSortType";
 final DEFAULT_SORT_TIME = "defaultSortTime";
 final RESET_SORTING = "resetSortingWhenRefreshing";

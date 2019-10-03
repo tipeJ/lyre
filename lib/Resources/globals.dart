@@ -1,8 +1,9 @@
 library lyre.globals;
 import 'package:draw/draw.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import 'reddit_api_provider.dart';
-import '../Models/Post.dart';
+part 'globals.g.dart';
 
 String WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
 
@@ -13,6 +14,18 @@ String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
 String currentSubreddit = "dota2";
+
+@HiveType(adapterName: "PostViewAdapter")
+enum PostView{
+  @HiveField(0)
+  ImagePreview,
+  @HiveField(1)
+  IntendedPreview,
+  @HiveField(2)
+  Compact,
+  @HiveField(3)
+  NoPreview
+}
 
 List<String> sortTypes = [
   "hot",

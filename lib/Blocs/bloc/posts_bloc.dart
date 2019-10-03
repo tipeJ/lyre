@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
+import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import './bloc.dart';
 import '../../Resources/globals.dart';
 
@@ -32,10 +32,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       final source = event.source != null
         ? event.source
         : currentState.contentSource;
-      final preferences = await SharedPreferences.getInstance();
-      if(preferences.getBool(RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
-        parseTypeFilter(preferences.getString(DEFAULT_SORT_TYPE) ?? sortTypes[0]);
-        currentSortTime = preferences.getString(DEFAULT_SORT_TIME ?? defaultSortTime);
+      final preferences = await Hive.openBox(BOX_SETTINGS);
+      if(preferences.get(RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
+        parseTypeFilter(preferences.get(DEFAULT_SORT_TYPE) ?? sortTypes[0]);
+        currentSortTime = preferences.get(DEFAULT_SORT_TIME ?? defaultSortTime);
       }
       switch (source) {
         case ContentSource.Subreddit:

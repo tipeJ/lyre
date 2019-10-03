@@ -21,13 +21,6 @@ import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
-enum PostView{
-  ImagePreview,
-  IntendedPreview,
-  Compact,
-  NoPreview
-}
-
 class postInnerWidget extends StatelessWidget {
 
   PostView viewSetting = PostView.IntendedPreview;
@@ -45,72 +38,72 @@ class postInnerWidget extends StatelessWidget {
       return getSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      switch (viewSetting) {
-        case PostView.IntendedPreview:
-          if (callBack is PostsList){
-            return BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state){
+      return BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, state){
+          switch (state.preferences.get(SUBMISSION_VIEWMODE)) {
+            case PostView.IntendedPreview:
+              if (callBack is PostsList){
                 return new Stack(children: <Widget>[
                   getExpandedImage(context),
                   new Positioned(
-                      bottom: 0.0,
-                      child: 
-                        (!(state.preferences.getBool(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
-                        (!(state.preferences.getBool(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
-                          ? new BackdropFilter(
-                          filter: ImageFilter.blur(
-                              sigmaX: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                              sigmaY: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                            ),
-                            child: new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
-                          )
-                          : new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
+                    bottom: 0.0,
+                    child: 
+                      (!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
+                      (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
+                        ? new BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                            sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                          ),
+                          child: new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
+                        )
+                        : new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
                   )
                 ]);
+              } else {
+                return Stack(children: <Widget>[
+                  getExpandedImage(context),
+                  new Positioned(
+                    bottom: 0.0,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: Color.fromARGB(155, 0, 0, 0),
+                      child: getSlideColumn(context),
+                    ),
+                  )
+                ],);
               }
-            );
-          } else {
-            return Stack(children: <Widget>[
-              getExpandedImage(context),
-              new Positioned(
-                bottom: 0.0,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
-                  child: getSlideColumn(context),
-                ),
-              )
-            ],);
+              break;
+            case PostView.ImagePreview:
+              return new Column(
+                children: <Widget>[
+                  getExpandedImage(context),
+                  getSlideColumn(context)
+                ],
+              );
+            case PostView.Compact:
+              return new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    child: defaultColumn(submission, callBack, linkType),
+                    width: MediaQuery.of(context).size.width * 0.9,
+                  ),
+                  getSquaredImage(context)
+              ],);
+            default:
+              return new defaultColumn(submission, callBack, linkType);
           }
-          break;
-        case PostView.ImagePreview:
-          return new Column(
-            children: <Widget>[
-              getExpandedImage(context),
-              getSlideColumn(context)
-            ],
-          );
-        case PostView.Compact:
-          return new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                child: defaultColumn(submission, callBack, linkType),
-                width: MediaQuery.of(context).size.width * 0.9,
-              ),
-              getSquaredImage(context)
-          ],);
-        default:
-          return new defaultColumn(submission, callBack, linkType);
-      }
+        }
+      );
     }
     return getSlideColumn(context);
   }
@@ -131,15 +124,20 @@ class postInnerWidget extends StatelessWidget {
   }
 
   Widget getImageWidget(BuildContext context){
-    if(submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType)){
-      return Stack(children: <Widget>[
-        SizedBox.expand(
-          child: getImageWrapper(context),
-        ),
-        getCenteredIndicator(linkType),
-      ],);
-    }
-    return getImageWrapper(context);
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        final showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+        if(state.preferences.get(SUBMISSION_VIEWMODE) != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
+          return Stack(children: <Widget>[
+            SizedBox.expand(
+              child: getImageWrapper(context),
+            ),
+            getCenteredIndicator(linkType, showCircle),
+          ],);
+        }
+        return getImageWrapper(context);
+      },
+    );
   }
 
   Widget getImageWrapper(BuildContext context){
@@ -168,8 +166,7 @@ class postInnerWidget extends StatelessWidget {
     return new Container(
       child: getImageWidget(context),
       //The fixed height of the post image:
-      height: 40,
-      width: 40,
+      constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
   void handleClick(BuildContext context){
@@ -197,25 +194,32 @@ class postInnerWidget extends StatelessWidget {
     }
   }
 
-  Widget getCenteredIndicator(LinkType type){
-    return Center(
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white,
-            width: 2.0,
+  Widget getCenteredIndicator(LinkType type, bool showCircle){
+    return showCircle
+      ? Center(
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white,
+                width: 2.0,
+              ),
+            ),
+            child: getIndicator(type),
           ),
-        ),
-        child: getIndicator(type),
-      ),
-    );
+        )
+      : Center(
+          child: Container(
+            width: 50,
+            height: 50,
+            child: getIndicator(type),
+          ),
+        );
   }
-
   Widget getIndicator(LinkType type){
-    Widget content = Container(color: Colors.red, width: 250, height: 250,);
+    Widget content;
     if(submission.over18 || submission.spoiler){
       content = Column(children: <Widget>[
         Icon(Icons.warning),

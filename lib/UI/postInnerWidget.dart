@@ -21,17 +21,9 @@ import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
-enum PostView{
-  ImagePreview,
-  IntendedPreview,
-  Compact,
-  NoPreview
-}
-
 class postInnerWidget extends StatelessWidget {
 
   PostView viewSetting = PostView.IntendedPreview;
-  bool isFullSize = true;
   final Submission submission;
   final PreviewCallback callBack;
   bool expanded = false;
@@ -45,11 +37,11 @@ class postInnerWidget extends StatelessWidget {
       return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      switch (viewSetting) {
-        case PostView.IntendedPreview:
-          if (callBack is PostsList){
-            return BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state){
+      return BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, state){
+          switch (state.preferences.get(SUBMISSION_VIEWMODE)) {
+            case PostView.IntendedPreview:
+              if (callBack is PostsList){
                 return new Stack(children: <Widget>[
                   getExpandedImage(context),
                   new Positioned(
@@ -114,42 +106,30 @@ class postInnerWidget extends StatelessWidget {
             default:
               return new defaultColumn(submission, callBack, linkType);
           }
-          break;
-        case PostView.ImagePreview:
-          return new Column(
-            children: <Widget>[
-              getExpandedImage(context),
-              getSlideColumn(context)
-            ],
-          );
-        case PostView.Compact:
-          return new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                child: defaultColumn(submission, callBack, linkType),
-                width: MediaQuery.of(context).size.width * 0.9,
-              ),
-              getSquaredImage(context)
-          ],);
-        default:
-          return new defaultColumn(submission, callBack, linkType);
-      }
+        }
+      );
     }
     return getDefaultSlideColumn(context);
   }
+  
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
-    var y = 250.0;
+    var y = 250.0; //Default preview height
     final preview = submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
-    return new Container(
-      child: getImageWidget(context),
-      
-      height: (isFullSize) ? y : 250.0,
-      width: x,
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        final bool isFullSize = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
+        final showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+        return new Container(
+          child: getImageWidget(context, isFullSize, showCircle),
+          
+          height: (isFullSize) ? y : 250.0,
+          width: x,
+        );
+      },
     );
   }
 
@@ -208,7 +188,10 @@ class postInnerWidget extends StatelessWidget {
       _launchURL(context, submission);
     }else if(linkType == LinkType.DirectImage || linkType == LinkType.Gfycat){
       callBack.preview(submission.url.toString());
-    }else{
+    } else if (linkType == LinkType.RedditVideo){
+      print(submission.data["media"]["reddit_video"]["fallback_url"] + ".mp4");
+      callBack.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+    } else {
       _launchURL(context, submission);
     }
   }
@@ -224,10 +207,10 @@ class postInnerWidget extends StatelessWidget {
     }
   }
 
-  Widget getCenteredIndicator(LinkType type){
-    return Center(
-      child: 
-          Container(
+  Widget getCenteredIndicator(LinkType type, bool showCircle){
+    return showCircle
+      ? Center(
+          child: Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -239,14 +222,27 @@ class postInnerWidget extends StatelessWidget {
             ),
             child: getIndicator(type),
           ),
-        
-      
-    );
+        )
+      : Center(
+          child: Container(
+            width: 50,
+            height: 50,
+            child: getIndicator(type),
+          ),
+        );
   }
   Widget getIndicator(LinkType type){
-    if(type == LinkType.YouTube){
-      return Center(child: Icon(Icons.play_arrow, color: Colors.white,),);
+    Widget content;
+    if(submission.over18 || submission.spoiler){
+      content = Column(children: <Widget>[
+        Icon(Icons.warning),
+        Text(submission.over18 ? "NSFW" : "SPOILER"),
+        Divider(indent: 250,endIndent: 250,)
+      ],);
+    } else if (videoLinkTypes.contains(type)){
+      content = Icon(Icons.play_arrow, color: Colors.white,);
     }
+    return Center(child: content);
   }
 
   Widget build(BuildContext context) {

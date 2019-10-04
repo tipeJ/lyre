@@ -24,7 +24,6 @@ import '../utils/redditUtils.dart';
 class postInnerWidget extends StatelessWidget {
 
   PostView viewSetting = PostView.IntendedPreview;
-  bool isFullSize = true;
   final Submission submission;
   final PreviewCallback callBack;
   bool expanded = false;
@@ -110,37 +109,42 @@ class postInnerWidget extends StatelessWidget {
   
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
-    var y = 250.0;
+    var y = 250.0; //Default preview height
     final preview = submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
-    return new Container(
-      child: getImageWidget(context),
-      
-      height: (isFullSize) ? y : 250.0,
-      width: x,
-    );
-  }
-
-  Widget getImageWidget(BuildContext context){
     return BlocBuilder<PostsBloc, PostsState>(
       builder: (context, state){
+        final bool isFullSize = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
         final showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-        if(state.preferences.get(SUBMISSION_VIEWMODE) != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
-          return Stack(children: <Widget>[
-            SizedBox.expand(
-              child: getImageWrapper(context),
-            ),
-            getCenteredIndicator(linkType, showCircle),
-          ],);
-        }
-        return getImageWrapper(context);
+        return new Container(
+          child: getImageWidget(context, isFullSize, showCircle),
+          
+          height: (isFullSize) ? y : 250.0,
+          width: x,
+        );
       },
     );
   }
 
-  Widget getImageWrapper(BuildContext context){
+  Widget getImageWidget(BuildContext context, [bool fullSizePreviews, bool showCircle]){
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        if(state.preferences.get(SUBMISSION_VIEWMODE) != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
+          return Stack(children: <Widget>[
+            SizedBox.expand(
+              child: getImageWrapper(context, fullSizePreviews),
+            ),
+            getCenteredIndicator(linkType, showCircle),
+          ],);
+        }
+        return getImageWrapper(context, fullSizePreviews);
+      },
+    );
+  }
+
+  Widget getImageWrapper(BuildContext context, bool fullSizePreviews){
     return new GestureDetector(
       child: Image(
         image: AdvancedNetworkImage(
@@ -148,7 +152,7 @@ class postInnerWidget extends StatelessWidget {
           useDiskCache: true,
           cacheRule: CacheRule(maxAge: const Duration(days: 7))
         ),
-        fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
+        fit: (fullSizePreviews) ? BoxFit.contain : BoxFit.cover,
       ),
       
       onTap: () {

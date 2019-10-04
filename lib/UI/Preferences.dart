@@ -72,9 +72,9 @@ class _PreferencesViewState extends State<PreferencesView> {
         box: Hive.box('settings'),
         builder: (context, box){
           return SettingsTitleRow(
-            title: "Default sorting type",
+            title: "Default Sorting Type",
             leading: new DropdownButton<String>(
-              value: box.get(DEFAULT_SORT_TYPE) ?? sortTypes[0],
+              value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
               items: sortTypes.map((String value) {
                 return new DropdownMenuItem<String>(
                   value: value,
@@ -82,7 +82,7 @@ class _PreferencesViewState extends State<PreferencesView> {
                 );
               }).toList(),
               onChanged: (value) {
-                box.put(DEFAULT_SORT_TYPE, value);
+                box.put(SUBMISSION_DEFAULT_SORT_TYPE, value);
                 setState(() {
                 });
               },
@@ -94,9 +94,9 @@ class _PreferencesViewState extends State<PreferencesView> {
         box: Hive.box('settings'),
         builder: (context, box){
           return SettingsTitleRow(
-            title: "Default sorting time",
+            title: "Default Sorting Time",
             leading: new DropdownButton<String>(
-              value: box.get(DEFAULT_SORT_TIME) ?? sortTimes[1],
+              value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
               items: sortTimes.map((String value) {
                 return new DropdownMenuItem<String>(
                   value: value,
@@ -104,27 +104,26 @@ class _PreferencesViewState extends State<PreferencesView> {
                 );
               }).toList(),
               onChanged: (value) {
-                box.put(DEFAULT_SORT_TIME, value);
+                box.put(SUBMISSION_DEFAULT_SORT_TIME, value);
               },
             )
           );
         },
       ),
-      
       SettingsTitleRow(
-        title: "Reset sorting when refreshing submission list",
+        title: "Reset Sorting When Refreshing Submission List",
         leading: Switch(
-          value: box.get(RESET_SORTING) ?? true,
+          value: box.get(SUBMISSION_RESET_SORTING) ?? true,
           onChanged: (value){
-            box.put(RESET_SORTING, value);
+            box.put(SUBMISSION_RESET_SORTING, value);
           },)
       ),
       SettingsTitleRow(
-        title: "Reset sorting when refreshing submission list",
+        title: "Auto-Load Posts",
         leading: Switch(
-          value: box.get(RESET_SORTING) ?? true,
+          value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
           onChanged: (value){
-            box.put(RESET_SORTING, value);
+            box.put(SUBMISSION_AUTO_LOAD, value);
           },)
       ),
       SettingsTitleRow(
@@ -245,12 +244,48 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getMediaSettings(BuildContext context){
     return [
+      /*
       SettingsTitleRow(
-        title: "Enable image rotation",
+        title: "Enable Image Rotation",
         leading: Switch(
           value: box.get(IMAGE_ENABLE_ROTATION) ?? false,
           onChanged: (value){
             box.put(IMAGE_ENABLE_ROTATION, value);
+        },)
+      ),
+      */
+      SettingsTitleRow(
+        title: "Show Full Size Previews",
+        leading: Switch(
+          value: box.get(IMAGE_SHOW_FULLSIZE) ?? false,
+          onChanged: (value){
+            box.put(IMAGE_SHOW_FULLSIZE, value);
+        },)
+      ),
+      /*
+      SettingsTitleRow(
+        title: "Enable Video Rotation",
+        leading: Switch(
+          value: box.get(VIDEO_ENABLE_ROTATION) ?? false,
+          onChanged: (value){
+            box.put(VIDEO_ENABLE_ROTATION, value);
+        },)
+      ),
+      */
+      SettingsTitleRow(
+        title: "Loop Videos",
+        leading: Switch(
+          value: box.get(VIDEO_LOOP) ?? true,
+          onChanged: (value){
+            box.put(VIDEO_LOOP, value);
+        },)
+      ),
+       SettingsTitleRow(
+        title: "Auto-Mute Videos",
+        leading: Switch(
+          value: box.get(VIDEO_AUTO_MUTE) ?? false,
+          onChanged: (value){
+            box.put(VIDEO_AUTO_MUTE, value);
         },)
       )
     ];

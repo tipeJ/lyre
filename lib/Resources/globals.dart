@@ -97,8 +97,6 @@ int perPage = 25;
 int currentCount = 0;
 String lastPost = "";
 
-bool autoLoad = false;
-bool loopVideos = true;
 bool preCollapsed = false;
 
 List<Submission> recentlyViewed = [];

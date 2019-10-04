@@ -1,17 +1,28 @@
 final BOX_SETTINGS = "settings";
 
+// ! Themes
 final CURRENT_THEME = "currentTheme";
-//SUBMISSIONS
+
+// ! Submissions
 final SUBMISSION_VIEWMODE = "submissionViewMode";
 final SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
-final DEFAULT_SORT_TYPE = "defaultSortType";
-final DEFAULT_SORT_TIME = "defaultSortTime";
-final RESET_SORTING = "resetSortingWhenRefreshing";
-//COMMENTS
+final SUBMISSION_DEFAULT_SORT_TYPE = "defaultSortType";
+final SUBMISSION_DEFAULT_SORT_TIME = "defaultSortTime";
+final SUBMISSION_RESET_SORTING = "resetSortingWhenRefreshing";
+final SUBMISSION_AUTO_LOAD = "autoLoadPosts";
+
+// ! Comments
 final COMMENTS_DEFAULT_SORT = "defaultCommentsSort";
 final COMMENTS_PRECOLLAPSE = "preCollapse";
-//IMAGES AND VIDEOS
+
+// ! Images & Videos
 final IMAGE_ENABLE_ROTATION = "enableImageRotation";
+final IMAGE_BLUR_LEVEL = "imageBlurLever";
+final IMAGE_SHOW_FULLSIZE = "imageShowFullPreviews";
+final VIDEO_ENABLE_ROTATION = "enableVideoRotation";
+final VIDEO_LOOP = "videoLoop";
+final VIDEO_AUTO_MUTE = "videoAutoMute";
+
+// ! Filters:
 final SHOW_NSFW_PREVIEWS = "showNSFWPreviews";
 final SHOW_SPOILER_PREVIEWS = "showSpoilerPreviews";
-final IMAGE_BLUR_LEVEL = "imageBlurLever";

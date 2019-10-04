@@ -4,7 +4,6 @@ import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../Resources/globals.dart';
 
 @immutable
@@ -44,7 +43,9 @@ class PostsState extends Equatable {
     this.sideBar,
     this.styleSheetImages,
     this.preferences
-  }) : super([userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, preferences]);
+  });
+
+  List<dynamic> get props => [userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, preferences];
 
   String getSourceString(){
     switch (contentSource) {

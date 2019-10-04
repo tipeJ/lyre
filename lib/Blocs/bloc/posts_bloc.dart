@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
+import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import './bloc.dart';
 import '../../Resources/globals.dart';
 
@@ -16,6 +16,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
+  DateTime lastRefresh;
 
   @override
   Stream<PostsState> mapEventToState(
@@ -32,10 +33,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       final source = event.source != null
         ? event.source
         : currentState.contentSource;
-      final preferences = await SharedPreferences.getInstance();
-      if(preferences.getBool(RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
-        parseTypeFilter(preferences.getString(DEFAULT_SORT_TYPE) ?? sortTypes[0]);
-        currentSortTime = preferences.getString(DEFAULT_SORT_TIME ?? defaultSortTime);
+      final preferences = await Hive.openBox(BOX_SETTINGS);
+      if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
+        parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0]);
+        currentSortTime = preferences.get(SUBMISSION_DEFAULT_SORT_TIME ?? defaultSortTime);
       }
       switch (source) {
         case ContentSource.Subreddit:
@@ -50,6 +51,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSelf(false, event.selfContentType);
           break;
       }
+
+      lastRefresh = DateTime.now();
       yield PostsState(
         userContent: _userContent, 
         contentSource : source,
@@ -73,8 +76,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSelf(false, currentState.selfContentType);
           break;
       }
+
+      lastRefresh = DateTime.now();
       yield getUpdatedCurrentState(_userContent);
     } else if (event is FetchMore){
+      if (lastRefresh.difference(DateTime.now()).inMilliseconds < 700) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       lastPost = currentState.userContent.last is Comment
         ? (currentState.userContent.last as Comment).id
         : (currentState.userContent.last as Submission).id;
@@ -95,6 +101,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       print("before: " + currentState.userContent.length.toString());
       currentState.userContent.addAll(fetchedContent);
       print("after: " + currentState.userContent.length.toString());
+
+      lastRefresh = DateTime.now();
       yield getUpdatedCurrentState();
     }
   }

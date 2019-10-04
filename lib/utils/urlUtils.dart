@@ -1,39 +1,55 @@
 import 'imageUtils.dart';
 
-var supportedYoutubeUrls = [
+final supportedYoutubeUrls = [
     "youtube.com",
     "youtu.be"
 ];
+
 enum LinkType{
-  Self,
-  Default,
-  YouTube,
+  Self, //Text post
+  Default, //Fallback
+  //Images
   DirectImage,
+  ImgurAlbum,
+  //Videos:
+  YouTube,
+  RedditVideo,
   Gfycat
 }
+
+final videoLinkTypes = [
+  LinkType.Gfycat,
+  LinkType.RedditVideo
+];
+
 String getYoutubeIdFromUrl(String url){
-  if(url.contains("youtu.be")){
+  if (url.contains("youtu.be")){
     var strings = url.split("/");
     return strings.last;
   }
   var video_id = url.split("v=")[1];
   var ampersandPosition = video_id.indexOf("&");
-  if(ampersandPosition != -1){
+  if (ampersandPosition != -1){
     video_id = video_id.substring(0,ampersandPosition);
   }
   return video_id;
 }
 
 LinkType getLinkType(String url){
+
   var divided = url.split(".");
+
   var last = divided.last;
-  if(supportedFormats.contains(last)){
+  if (supportedFormats.contains(last)){
     return LinkType.DirectImage;
-  }else if(url.contains("youtube.com") || url.contains("youtu.be")){
+  } else if (url.contains("youtube.com") || url.contains("youtu.be")){
     return LinkType.YouTube;
-  }else if(url.contains("gfycat.com")){
+  } else if (url.contains("gfycat.com")){
     return LinkType.Gfycat;
+  } else if(url.contains("v.redd.it")){
+    return LinkType.RedditVideo;
   }
+
   return LinkType.Default;
 }
 

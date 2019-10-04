@@ -15,7 +15,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: ^0.20.0
+  flutter_bloc: ^0.21.0
   equatable: ^0.4.0
   shared_preferences: ^0.5.3+4
 
@@ -46,10 +46,15 @@ dependencies:
   flutter_inappbrowser: ^1.2.1
   markdown: ^2.0.3
   flutter_html: ^0.11.0
-
+  hive: ^1.0.0
+  hive_flutter: ^0.2.1
+  dependencies:
+  
 
 
 dev_dependencies:
+  hive_generator: ^0.5.2
+  build_runner: ^1.7.1
   flutter_test:
     sdk: flutter
 dependency_overrides:

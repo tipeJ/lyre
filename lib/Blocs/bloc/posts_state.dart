@@ -1,5 +1,6 @@
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
@@ -31,7 +32,7 @@ class PostsState extends Equatable {
   WikiPage sideBar;
   List<StyleSheetImage> styleSheetImages;
 
-  SharedPreferences preferences;
+  Box preferences;
 
   PostsState({
     @required this.contentSource,

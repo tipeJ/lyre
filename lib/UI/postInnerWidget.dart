@@ -21,17 +21,9 @@ import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
-enum PostView{
-  ImagePreview,
-  IntendedPreview,
-  Compact,
-  NoPreview
-}
-
 class postInnerWidget extends StatelessWidget {
 
   PostView viewSetting = PostView.IntendedPreview;
-  bool isFullSize = true;
   final Submission submission;
   final PreviewCallback callBack;
   bool expanded = false;
@@ -45,122 +37,140 @@ class postInnerWidget extends StatelessWidget {
       return getSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      switch (viewSetting) {
-        case PostView.IntendedPreview:
-          if (callBack is PostsList){
-            return BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state){
+      return BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, state){
+          switch (state.preferences.get(SUBMISSION_VIEWMODE)) {
+            case PostView.IntendedPreview:
+              if (callBack is PostsList){
                 return new Stack(children: <Widget>[
                   getExpandedImage(context),
                   new Positioned(
-                      bottom: 0.0,
-                      child: 
-                        (!(state.preferences.getBool(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
-                        (!(state.preferences.getBool(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
-                          ? new BackdropFilter(
-                          filter: ImageFilter.blur(
-                              sigmaX: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                              sigmaY: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                            ),
-                            child: new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
-                          )
-                          : new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
+                    bottom: 0.0,
+                    child: 
+                      (!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
+                      (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
+                        ? new BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                            sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                          ),
+                          child: new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
+                        )
+                        : new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getSlideColumn(context),
+                          ),
                   )
                 ]);
+              } else {
+                return Stack(children: <Widget>[
+                  getExpandedImage(context),
+                  new Positioned(
+                    bottom: 0.0,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: Color.fromARGB(155, 0, 0, 0),
+                      child: getSlideColumn(context),
+                    ),
+                  )
+                ],);
               }
-            );
-          } else {
-            return Stack(children: <Widget>[
-              getExpandedImage(context),
-              new Positioned(
-                bottom: 0.0,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
-                  child: getSlideColumn(context),
-                ),
-              )
-            ],);
+              break;
+            case PostView.ImagePreview:
+              return new Column(
+                children: <Widget>[
+                  getExpandedImage(context),
+                  getSlideColumn(context)
+                ],
+              );
+            case PostView.Compact:
+              return new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    child: defaultColumn(submission, callBack, linkType),
+                    width: MediaQuery.of(context).size.width * 0.9,
+                  ),
+                  getSquaredImage(context)
+              ],);
+            default:
+              return new defaultColumn(submission, callBack, linkType);
           }
-          break;
-        case PostView.ImagePreview:
-          return new Column(
-            children: <Widget>[
-              getExpandedImage(context),
-              getSlideColumn(context)
-            ],
-          );
-        case PostView.Compact:
-          return new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                child: defaultColumn(submission, callBack, linkType),
-                width: MediaQuery.of(context).size.width * 0.9,
-              ),
-              getSquaredImage(context)
-          ],);
-        default:
-          return new defaultColumn(submission, callBack, linkType);
-      }
+        }
+      );
     }
     return getSlideColumn(context);
   }
+  
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
-    var y = 250.0;
+    var y = 250.0; //Default preview height
     final preview = submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
-    return new Container(
-      child: getImageWidget(context),
-      
-      height: (isFullSize) ? y : 250.0,
-      width: x,
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        final bool isFullSize = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
+        final showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+        return new Container(
+          child: getImageWidget(context, isFullSize, showCircle),
+          
+          height: (isFullSize) ? y : 250.0,
+          width: x,
+        );
+      },
     );
   }
-  Widget getImageWidget(BuildContext context){
-    return Stack(children: <Widget>[
-        SizedBox.expand(
-          child: new GestureDetector(
-            child: Image(
-              image: AdvancedNetworkImage(
-                submission.preview.first.source.url.toString(),
-                useDiskCache: true,
-                cacheRule: CacheRule(maxAge: const Duration(days: 7))
-              ),
-              fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
+
+  Widget getImageWidget(BuildContext context, [bool fullSizePreviews, bool showCircle]){
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        if(state.preferences.get(SUBMISSION_VIEWMODE) != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
+          return Stack(children: <Widget>[
+            SizedBox.expand(
+              child: getImageWrapper(context, fullSizePreviews),
             ),
-            
-            onTap: () {
-              handleClick(context);
-            },
-            onLongPress: (){
-              handlePress(context);
-            },
-            onLongPressUp: (){
-                callBack.previewEnd();
-            },
-          ),
+            getCenteredIndicator(linkType, showCircle),
+          ],);
+        }
+        return getImageWrapper(context, fullSizePreviews);
+      },
+    );
+  }
+
+  Widget getImageWrapper(BuildContext context, bool fullSizePreviews){
+    return new GestureDetector(
+      child: Image(
+        image: AdvancedNetworkImage(
+          submission.preview.first.source.url.toString(),
+          useDiskCache: true,
+          cacheRule: CacheRule(maxAge: const Duration(days: 7))
         ),
-        (linkType == LinkType.YouTube)? getCenteredIndicator(linkType) : Container(height: 0.0),
-      ],);
+        fit: (fullSizePreviews) ? BoxFit.contain : BoxFit.cover,
+      ),
+      
+      onTap: () {
+        handleClick(context);
+      },
+      onLongPress: (){
+        handlePress(context);
+      },
+      onLongPressUp: (){
+          callBack.previewEnd();
+      },
+    );
   }
   Widget getSquaredImage(BuildContext context){
     return new Container(
       child: getImageWidget(context),
       //The fixed height of the post image:
-      height: 40,
-      width: 40,
+      constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
   void handleClick(BuildContext context){
@@ -169,7 +179,10 @@ class postInnerWidget extends StatelessWidget {
       _launchURL(context, submission);
     }else if(linkType == LinkType.DirectImage || linkType == LinkType.Gfycat){
       callBack.preview(submission.url.toString());
-    }else{
+    } else if (linkType == LinkType.RedditVideo){
+      print(submission.data["media"]["reddit_video"]["fallback_url"] + ".mp4");
+      callBack.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+    } else {
       _launchURL(context, submission);
     }
   }
@@ -185,10 +198,10 @@ class postInnerWidget extends StatelessWidget {
     }
   }
 
-  Widget getCenteredIndicator(LinkType type){
-    return Center(
-      child: 
-          Container(
+  Widget getCenteredIndicator(LinkType type, bool showCircle){
+    return showCircle
+      ? Center(
+          child: Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
@@ -200,14 +213,27 @@ class postInnerWidget extends StatelessWidget {
             ),
             child: getIndicator(type),
           ),
-        
-      
-    );
+        )
+      : Center(
+          child: Container(
+            width: 50,
+            height: 50,
+            child: getIndicator(type),
+          ),
+        );
   }
   Widget getIndicator(LinkType type){
-    if(type == LinkType.YouTube){
-      return Center(child: Icon(Icons.play_arrow, color: Colors.white,),);
+    Widget content;
+    if(submission.over18 || submission.spoiler){
+      content = Column(children: <Widget>[
+        Icon(Icons.warning),
+        Text(submission.over18 ? "NSFW" : "SPOILER"),
+        Divider(indent: 250,endIndent: 250,)
+      ],);
+    } else if (videoLinkTypes.contains(type)){
+      content = Icon(Icons.play_arrow, color: Colors.white,);
     }
+    return Center(child: content);
   }
 
   Widget build(BuildContext context) {

@@ -4,7 +4,7 @@ import '../themes.dart';
 
 @immutable
 abstract class ThemeEvent extends Equatable {
-  ThemeEvent([List props = const <dynamic>[]]) : super(props);
+  ThemeEvent();
 }
 
 class ThemeChanged extends ThemeEvent{
@@ -12,5 +12,6 @@ class ThemeChanged extends ThemeEvent{
 
   ThemeChanged({
     @required this.theme,
-  }) : super([theme]);
+  });
+  List<dynamic> get props => [theme];
 }

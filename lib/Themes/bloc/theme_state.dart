@@ -8,7 +8,6 @@ class ThemeState extends Equatable {
 
   ThemeState({
       @required this.themeData,
-    }) : super([themeData]);
+    });
+    List<dynamic> get props => [themeData];
 }
-
-class InitialThemeState extends ThemeState {}

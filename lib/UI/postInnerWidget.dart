@@ -34,7 +34,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getWidget(BuildContext context){
     if (submission.isSelf) {
-      return getSlideColumn(context);
+      return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
       return BlocBuilder<PostsBloc, PostsState>(
@@ -57,13 +57,13 @@ class postInnerWidget extends StatelessWidget {
                           child: new Container(
                             width: MediaQuery.of(context).size.width,
                             color: Color.fromARGB(155, 0, 0, 0),
-                            child: getSlideColumn(context),
+                            child: getDefaultSlideColumn(context),
                           ),
                         )
                         : new Container(
                             width: MediaQuery.of(context).size.width,
                             color: Color.fromARGB(155, 0, 0, 0),
-                            child: getSlideColumn(context),
+                            child: getDefaultSlideColumn(context),
                           ),
                   )
                 ]);
@@ -75,7 +75,7 @@ class postInnerWidget extends StatelessWidget {
                     child: Container(
                       width: MediaQuery.of(context).size.width,
                       color: Color.fromARGB(155, 0, 0, 0),
-                      child: getSlideColumn(context),
+                      child: getDefaultSlideColumn(context),
                     ),
                   )
                 ],);
@@ -85,26 +85,31 @@ class postInnerWidget extends StatelessWidget {
               return new Column(
                 children: <Widget>[
                   getExpandedImage(context),
-                  getSlideColumn(context)
+                  getDefaultSlideColumn(context)
                 ],
               );
             case PostView.Compact:
-              return new Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                    child: defaultColumn(submission, callBack, linkType),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                  ),
-                  getSquaredImage(context)
-              ],);
+              return getSlideColumn(
+                context,
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      child: defaultColumn(submission, callBack, linkType),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                    ),
+                    getSquaredImage(context)
+                  ],
+                )
+              );
             default:
               return new defaultColumn(submission, callBack, linkType);
           }
         }
       );
     }
-    return getSlideColumn(context);
+    return getDefaultSlideColumn(context);
   }
   
   Widget getExpandedImage(BuildContext context){
@@ -131,20 +136,24 @@ class postInnerWidget extends StatelessWidget {
   Widget getImageWidget(BuildContext context, [bool fullSizePreviews, bool showCircle]){
     return BlocBuilder<PostsBloc, PostsState>(
       builder: (context, state){
-        if(state.preferences.get(SUBMISSION_VIEWMODE) != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
+        final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
+
+        if(viewMode != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
           return Stack(children: <Widget>[
             SizedBox.expand(
-              child: getImageWrapper(context, fullSizePreviews),
+              child: getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover),
             ),
             getCenteredIndicator(linkType, showCircle),
           ],);
+        } else if (viewMode == PostView.Compact) {
+          return getImageWrapper(context, BoxFit.fitWidth);
         }
-        return getImageWrapper(context, fullSizePreviews);
+        return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
       },
     );
   }
 
-  Widget getImageWrapper(BuildContext context, bool fullSizePreviews){
+  Widget getImageWrapper(BuildContext context, BoxFit fit){
     return new GestureDetector(
       child: Image(
         image: AdvancedNetworkImage(
@@ -152,7 +161,7 @@ class postInnerWidget extends StatelessWidget {
           useDiskCache: true,
           cacheRule: CacheRule(maxAge: const Duration(days: 7))
         ),
-        fit: (fullSizePreviews) ? BoxFit.contain : BoxFit.cover,
+        fit: fit,
       ),
       
       onTap: () {
@@ -168,9 +177,9 @@ class postInnerWidget extends StatelessWidget {
   }
   Widget getSquaredImage(BuildContext context){
     return new Container(
-      child: getImageWidget(context),
+      child: getImageWidget(context, false, false),
       //The fixed height of the post image:
-      constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
+      constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
   void handleClick(BuildContext context){
@@ -253,7 +262,12 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
-  Widget getSlideColumn(BuildContext context){
+  // Returns the slide column with the defaultcolumn as child
+  Widget getDefaultSlideColumn(BuildContext context){
+    return getSlideColumn(context, child: defaultColumn(submission, callBack, linkType));
+  }
+  
+  Widget getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
@@ -297,7 +311,7 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
       ],
-      child: defaultColumn(submission, callBack, linkType),
+      child: child,
       backgroundColor: Colors.transparent,
     );
   }
@@ -316,7 +330,7 @@ class defaultColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return new InkWell(
       child: new Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           new Padding(

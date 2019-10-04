@@ -18,6 +18,9 @@ final lyreThemeData = {
     primaryColor: getC(50,50,50),
     primaryColorDark: darkenColor(45, 45, 45),
     canvasColor: getC(25, 25, 25),
+    primaryTextTheme: TextTheme(
+      body1: TextStyle(fontSize: 9.0, color: Colors.red)
+    ),
     accentColor: Colors.tealAccent
   ),
   LyreTheme.TerraCotta: ThemeData(

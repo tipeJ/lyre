@@ -14,6 +14,18 @@ String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s
 
 String currentSubreddit = "pics";
 
+@HiveType(adapterName: "PostViewAdapter")
+enum PostView{
+  @HiveField(0)
+  ImagePreview,
+  @HiveField(1)
+  IntendedPreview,
+  @HiveField(2)
+  Compact,
+  @HiveField(3)
+  NoPreview
+}
+
 List<String> sortTypes = [
   "hot",
   "new",

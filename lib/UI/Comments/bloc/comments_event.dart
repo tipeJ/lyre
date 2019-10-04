@@ -4,14 +4,16 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class CommentsEvent extends Equatable {
-  CommentsEvent([List props = const <dynamic>[]]) : super(props);
+  CommentsEvent([List props = const<dynamic>[]]);
 }
 
 class SortChanged extends CommentsEvent{
   final Submission submission;
   final CommentSortType commentSortType;
 
-  SortChanged(this.submission, this.commentSortType) : super([submission, commentSortType]);
+  SortChanged(this.submission, this.commentSortType);
+
+  List<dynamic> get props => [submission, commentSortType];
 }
 class FetchMore extends CommentsEvent{
   final MoreComments moreComments;
@@ -20,7 +22,9 @@ class FetchMore extends CommentsEvent{
   FetchMore({
     @required this.moreComments,
     @required this.location,
-  }) : super([moreComments, location]);
+  });
+
+  List<dynamic> get props => [moreComments, location];
 }
 class Collapse extends CommentsEvent{
   final int location;
@@ -29,12 +33,14 @@ class Collapse extends CommentsEvent{
   Collapse({
     @required this.location,
     @required this.depth,
-  }) : super([location, depth]);
+  });
+  List<dynamic> get props => [location, depth];
 }
 class CollapseX extends CommentsEvent{
   final Comment c;
   
   CollapseX({
     @required this.c,
-  }) : super([c]);
+  });
+  List<dynamic> get props => [c];
 }

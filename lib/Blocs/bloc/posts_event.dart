@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class PostsEvent extends Equatable {
-  PostsEvent([List props = const <dynamic>[]]) : super(props);
+  PostsEvent([List props = const <dynamic>[]]);
 }
 
 class PostsSourceChanged extends PostsEvent {
@@ -27,12 +27,13 @@ class PostsSourceChanged extends PostsEvent {
     this.redditor,
     this.selfContentType
   });
+  List<dynamic> get props => [source, typeFilter, timeFilter, redditor, selfContentType];
 }
 
 class ParamsChanged extends PostsEvent{
-
+  List<dynamic> get props => [];
 }
 
 class FetchMore extends PostsEvent {
-  
+  List<dynamic> get props => [];
 }

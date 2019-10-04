@@ -42,7 +42,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getWidget(BuildContext context){
     if (submission.isSelf) {
-      return getSlideColumn(context);
+      return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
       switch (viewSetting) {
@@ -53,42 +53,66 @@ class postInnerWidget extends StatelessWidget {
                 return new Stack(children: <Widget>[
                   getExpandedImage(context),
                   new Positioned(
-                      bottom: 0.0,
-                      child: 
-                        (!(state.preferences.getBool(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
-                        (!(state.preferences.getBool(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
-                          ? new BackdropFilter(
-                          filter: ImageFilter.blur(
-                              sigmaX: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                              sigmaY: (state.preferences.getInt(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                            ),
-                            child: new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
-                          )
-                          : new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getSlideColumn(context),
-                            ),
+                    bottom: 0.0,
+                    child: 
+                      (!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
+                      (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
+                        ? new BackdropFilter(
+                        filter: ImageFilter.blur(
+                            sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                            sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                          ),
+                          child: new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getDefaultSlideColumn(context),
+                          ),
+                        )
+                        : new Container(
+                            width: MediaQuery.of(context).size.width,
+                            color: Color.fromARGB(155, 0, 0, 0),
+                            child: getDefaultSlideColumn(context),
+                          ),
                   )
                 ]);
+              } else {
+                return Stack(children: <Widget>[
+                  getExpandedImage(context),
+                  new Positioned(
+                    bottom: 0.0,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      color: Color.fromARGB(155, 0, 0, 0),
+                      child: getDefaultSlideColumn(context),
+                    ),
+                  )
+                ],);
               }
-            );
-          } else {
-            return Stack(children: <Widget>[
-              getExpandedImage(context),
-              new Positioned(
-                bottom: 0.0,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
-                  child: getSlideColumn(context),
-                ),
-              )
-            ],);
+              break;
+            case PostView.ImagePreview:
+              return new Column(
+                children: <Widget>[
+                  getExpandedImage(context),
+                  getDefaultSlideColumn(context)
+                ],
+              );
+            case PostView.Compact:
+              return getSlideColumn(
+                context,
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      child: defaultColumn(submission, callBack, linkType),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                    ),
+                    getSquaredImage(context)
+                  ],
+                )
+              );
+            default:
+              return new defaultColumn(submission, callBack, linkType);
           }
           break;
         case PostView.ImagePreview:
@@ -112,7 +136,7 @@ class postInnerWidget extends StatelessWidget {
           return new defaultColumn(submission, callBack, linkType);
       }
     }
-    return getSlideColumn(context);
+    return getDefaultSlideColumn(context);
   }
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
@@ -128,39 +152,54 @@ class postInnerWidget extends StatelessWidget {
       width: x,
     );
   }
-  Widget getImageWidget(BuildContext context){
-    return Stack(children: <Widget>[
-        SizedBox.expand(
-          child: new GestureDetector(
-            child: Image(
-              image: AdvancedNetworkImage(
-                submission.preview.first.source.url.toString(),
-                useDiskCache: true,
-                cacheRule: CacheRule(maxAge: const Duration(days: 7))
-              ),
-              fit: (isFullSize) ? BoxFit.contain : BoxFit.cover,
+
+  Widget getImageWidget(BuildContext context, [bool fullSizePreviews, bool showCircle]){
+    return BlocBuilder<PostsBloc, PostsState>(
+      builder: (context, state){
+        final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
+
+        if(viewMode != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
+          return Stack(children: <Widget>[
+            SizedBox.expand(
+              child: getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover),
             ),
-            
-            onTap: () {
-              handleClick(context);
-            },
-            onLongPress: (){
-              handlePress(context);
-            },
-            onLongPressUp: (){
-                callBack.previewEnd();
-            },
-          ),
+            getCenteredIndicator(linkType, showCircle),
+          ],);
+        } else if (viewMode == PostView.Compact) {
+          return getImageWrapper(context, BoxFit.fitWidth);
+        }
+        return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
+      },
+    );
+  }
+
+  Widget getImageWrapper(BuildContext context, BoxFit fit){
+    return new GestureDetector(
+      child: Image(
+        image: AdvancedNetworkImage(
+          submission.preview.first.source.url.toString(),
+          useDiskCache: true,
+          cacheRule: CacheRule(maxAge: const Duration(days: 7))
         ),
-        (linkType == LinkType.YouTube)? getCenteredIndicator(linkType) : Container(height: 0.0),
-      ],);
+        fit: fit,
+      ),
+      
+      onTap: () {
+        handleClick(context);
+      },
+      onLongPress: (){
+        handlePress(context);
+      },
+      onLongPressUp: (){
+          callBack.previewEnd();
+      },
+    );
   }
   Widget getSquaredImage(BuildContext context){
     return new Container(
-      child: getImageWidget(context),
+      child: getImageWidget(context, false, false),
       //The fixed height of the post image:
-      height: 40,
-      width: 40,
+      constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
   void handleClick(BuildContext context){
@@ -227,7 +266,12 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
-  Widget getSlideColumn(BuildContext context){
+  // Returns the slide column with the defaultcolumn as child
+  Widget getDefaultSlideColumn(BuildContext context){
+    return getSlideColumn(context, child: defaultColumn(submission, callBack, linkType));
+  }
+  
+  Widget getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
@@ -271,7 +315,7 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
       ],
-      child: defaultColumn(submission, callBack, linkType),
+      child: child,
       backgroundColor: Colors.transparent,
     );
   }
@@ -290,7 +334,7 @@ class defaultColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return new InkWell(
       child: new Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           new Padding(

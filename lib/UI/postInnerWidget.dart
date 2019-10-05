@@ -23,7 +23,7 @@ import '../utils/redditUtils.dart';
 
 class postInnerWidget extends StatelessWidget {
 
-  PostView viewSetting = PostView.IntendedPreview;
+  final PostView viewSetting;
   final Submission submission;
   final PreviewCallback callBack;
   bool expanded = false;
@@ -31,6 +31,9 @@ class postInnerWidget extends StatelessWidget {
 
   postInnerWidget(this.submission, this.callBack, [this.viewSetting, this.expanded]);
 
+  bool showCircle;
+  bool fullSizePreviews;
+  PostView postView;
 
   Widget getWidget(BuildContext context){
     if (submission.isSelf) {
@@ -39,18 +42,21 @@ class postInnerWidget extends StatelessWidget {
     if (submission.preview != null && submission.preview.isNotEmpty) {
       return BlocBuilder<PostsBloc, PostsState>(
         builder: (context, state){
-          switch (state.preferences.get(SUBMISSION_VIEWMODE)) {
+          showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+          fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
+          postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
+          switch (postView) {
             case PostView.IntendedPreview:
-              if (callBack is PostsList){
+              if (callBack is PostsListState){ //Only blur in postslist
                 return new Stack(children: <Widget>[
                   getExpandedImage(context),
                   new Positioned(
                     bottom: 0.0,
                     child: 
-                      (!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) || //Blur NSFW
-                      (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler) //Blur Spoiler
+                      ((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
+                       (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler))   //Blur Spoiler
                         ? new BackdropFilter(
-                        filter: ImageFilter.blur(
+                          filter: ImageFilter.blur(
                             sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
                             sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
                           ),
@@ -65,8 +71,10 @@ class postInnerWidget extends StatelessWidget {
                             color: Color.fromARGB(155, 0, 0, 0),
                             child: getDefaultSlideColumn(context),
                           ),
-                  )
-                ]);
+                  ),
+                  (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
+                    ? getCenteredIndicator(linkType, showCircle) : null
+                ].where((w) => notNull(w)).toList());
               } else {
                 return Stack(children: <Widget>[
                   getExpandedImage(context),
@@ -119,33 +127,19 @@ class postInnerWidget extends StatelessWidget {
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
-    return BlocBuilder<PostsBloc, PostsState>(
-      builder: (context, state){
-        final bool isFullSize = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
-        final showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-        return new Container(
-          child: getImageWidget(context, isFullSize, showCircle),
-          
-          height: (isFullSize) ? y : 250.0,
-          width: x,
-        );
-      },
+    return Container(
+      child: getImageWidget(context, fullSizePreviews),
+      height: (fullSizePreviews) ? y : 250.0,
+      width: x,
     );
   }
 
-  Widget getImageWidget(BuildContext context, [bool fullSizePreviews, bool showCircle]){
+  Widget getImageWidget(BuildContext context, [bool fullSizePreviews]){
     return BlocBuilder<PostsBloc, PostsState>(
       builder: (context, state){
         final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
 
-        if(viewMode != PostView.Compact && (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))){
-          return Stack(children: <Widget>[
-            SizedBox.expand(
-              child: getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover),
-            ),
-            getCenteredIndicator(linkType, showCircle),
-          ],);
-        } else if (viewMode == PostView.Compact) {
+        if (viewMode == PostView.Compact) {
           return getImageWrapper(context, BoxFit.fitWidth);
         }
         return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
@@ -177,7 +171,7 @@ class postInnerWidget extends StatelessWidget {
   }
   Widget getSquaredImage(BuildContext context){
     return new Container(
-      child: getImageWidget(context, false, false),
+      child: getImageWidget(context, false),
       //The fixed height of the post image:
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
@@ -244,24 +238,6 @@ class postInnerWidget extends StatelessWidget {
     }
     return Center(child: content);
   }
-
-  Widget build(BuildContext context) {
-    linkType = getLinkType(submission.url.toString());
-    return Container(
-      child: ClipRRect(
-        child: Container(
-          child: getWidget(context),
-          color: Theme.of(context).primaryColor,
-        ),
-        //The circular radius for post widgets. Set 0.0 for rectangular.
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      padding: EdgeInsets.only(
-        //The gap bewtween the widgets.
-        bottom: 5.0
-      ),
-    );
-  }
   // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
     return getSlideColumn(context, child: defaultColumn(submission, callBack, linkType));
@@ -313,6 +289,24 @@ class postInnerWidget extends StatelessWidget {
       ],
       child: child,
       backgroundColor: Colors.transparent,
+    );
+  }
+
+  Widget build(BuildContext context) {
+    linkType = getLinkType(submission.url.toString());
+    return Padding(
+      child: ClipRRect(
+        child: Container(
+          child: getWidget(context),
+          color: Theme.of(context).primaryColor,
+        ),
+        //The circular radius for post widgets. Set 0.0 for rectangular.
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.only(
+        //The gap bewtween the widgets.
+        bottom: 5.0
+      ),
     );
   }
 }

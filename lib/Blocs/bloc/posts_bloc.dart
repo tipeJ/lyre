@@ -16,6 +16,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
+
+  final int allowNewRefresh = 700; //Refreshing buffer in milliseconds
   DateTime lastRefresh;
 
   @override
@@ -80,7 +82,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       lastRefresh = DateTime.now();
       yield getUpdatedCurrentState(_userContent);
     } else if (event is FetchMore){
-      if (lastRefresh.difference(DateTime.now()).inMilliseconds < 700) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
+      if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       lastPost = currentState.userContent.last is Comment
         ? (currentState.userContent.last as Comment).id
         : (currentState.userContent.last as Submission).id;

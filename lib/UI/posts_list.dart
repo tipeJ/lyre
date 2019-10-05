@@ -57,10 +57,11 @@ class PostsList extends StatefulWidget {
   State<PostsList> createState() => new PostsListState(redditor, initialSource);
 }
 
-class PostsListState extends State<PostsList>
-    with TickerProviderStateMixin, PreviewCallback {
+class PostsListState extends State<PostsList> with TickerProviderStateMixin, PreviewCallback {
+
+
   var titletext = "Lyre for Reddit";
-  var currentSub = "";
+  bool autoLoad;
   final String redditor;
   final ContentSource initialSource;
 
@@ -98,8 +99,6 @@ class PostsListState extends State<PostsList>
   var paramsHeight = 0.0;
 
   PreviewType previewType;
-
-  
 
   @override
   void preview(String url) {
@@ -698,6 +697,7 @@ class PostsListState extends State<PostsList>
                       builder: (context, AsyncSnapshot<PostsState> snapshot){
                         if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
                           final state = snapshot.data;
+                          autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
                           if(state.contentSource == ContentSource.Redditor){
                             return snapshot.data.targetRedditor.isNotEmpty
                               ? buildList(snapshot)
@@ -1050,9 +1050,10 @@ class PostsListState extends State<PostsList>
     var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
-        if ((bloc.currentState.preferences.get(SUBMISSION_AUTO_LOAD) ?? false) &&
-            scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          // ! bloc.fetchMore();
+        if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
+          setState(() {
+            bloc.dispatch(FetchMore());
+          });
         }
         if (scrollInfo is ScrollUpdateNotification) {
           var sc = scrollInfo;
@@ -1079,9 +1080,11 @@ class PostsListState extends State<PostsList>
                 color: Theme.of(context).primaryColor,
                 child: FlatButton(
                     onPressed: () {
-                      bloc.dispatch(FetchMore());
+                      setState(() {
+                        bloc.dispatch(FetchMore());
+                      });
                     },
-                    child: Text("Load more")),
+                    child: Text("Load More")),
               );
             } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
@@ -1111,7 +1114,7 @@ class PostsListState extends State<PostsList>
               return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(posts[index] as prefix0.Submission, this, PostView.IntendedPreview)
+                      child: new postInnerWidget(posts[index] as prefix0.Submission, this)
                     )
                     : new CommentContent(posts[index] as prefix0.Comment);
             }

@@ -302,8 +302,12 @@ class PostsProvider {
   }
   Future<WikiPage> getWikiPage(String args) async {
     final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
-    final page = await subreddit.wiki[args].populate(); //Fetch wiki page content for the sidebar
-    return page;
+    try {
+      final page = await subreddit.wiki[args].populate();
+      return page;
+    } catch (e) {
+      return null;
+    } //Fetch wiki page content for the sidebar
   }
   List<dynamic> getData(List<dynamic> data){
     List<dynamic> result = List();

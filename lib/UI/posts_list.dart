@@ -7,6 +7,7 @@ import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
+import 'package:lyre/UI/video_player/lyre_video_player.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'dart:ui';
@@ -15,7 +16,6 @@ import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';
-import 'package:flutter_advanced_networkimage/transition.dart';
 import 'package:flutter_advanced_networkimage/zoomable.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
@@ -114,25 +114,32 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
           _initializeVideo(url, VideoFormat.dash);
         }
       }
-    } else {
-      if (!isPreviewing) {
-        previewType = PreviewType.Image;
-        previewUrl = url.toString();
-        showOverlay();
-        //previewController.forward();
-      }
+    } else if (!isPreviewing){
+      previewType = PreviewType.Image;
+      previewUrl = url.toString();
+      showOverlay();
     }
   }
+  LyreVideoController _vController;
 
   void _initializeVideo(String videoUrl, [VideoFormat format]){
-    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
     _initializeVideoPlayerFuture = _videoController.initialize();
+    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    _vController = LyreVideoController(
+      showControls: true,
+      autoPlay: true,
+      videoPlayerController: _videoController,
+      looping: bloc.currentState.preferences.get(VIDEO_LOOP) ?? true,
+      errorBuilder: (context, errorMessage) {
+        return Center(
+          child: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      },
+    );
     showVideoOverlay();
-    _videoController.setLooping(bloc.currentState.preferences.get(VIDEO_LOOP) ?? true);
-    if (bloc.currentState.preferences.get(VIDEO_AUTO_MUTE) == true){
-      _videoController.setVolume(.0);
-    }
-    _videoController.play();
   }
 
   Future<void> _initializeVideoPlayerFuture;
@@ -250,79 +257,26 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
     );
 
     videoEntry = OverlayEntry(
-        builder: (context) => new GestureDetector(
-          child: Container(
-            color: Color.fromARGB(200, 0, 0, 0),
-            child: StatefulBuilder(
-              builder: (context, setState){
-                return FutureBuilder(
-                  future: _initializeVideoPlayerFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      return Stack(children: <Widget>[
-                        Center(
-                          child: Container(
-                            child: AspectRatio(
-                              child: VideoPlayer(_videoController),
-                              aspectRatio: _videoController.value.aspectRatio,
-                            ),
-                          ),
-                        ),
-                        Positioned(bottom: 0.0,
-                          child: AnimatedBuilder(
-                            animation: _videoControlsController,
-                            builder: (context, child){
-                              return GestureDetector(
-                                onVerticalDragUpdate: _handleVideoDragUpdate,
-                                onVerticalDragEnd: _handleVidDragEnd,
-                                child: Container(
-                                  child: Column(
-                                    children: <Widget>[
-                                      Container(
-                                        height: 50.0,
-                                        child: Row(
-                                          children: <Widget>[
-                                            Slider.adaptive(
-                                              value: _videoController.value.position.inMilliseconds / _videoController.value.duration.inMilliseconds,
-                                              onChanged: (double newValue) {
-                                                _videoController.seekTo(Duration(milliseconds: (newValue * _videoController.value.duration.inMilliseconds).floor()));
-                                              },
-                                              // ? Mute button?
-                                            )
-                                          ].where((w) => notNull(w)).toList()
-                                        ),
-                                      ),
-                                      Container(
-                                        height: videoControlsLerp(0, maxVidControlsHeight - 50.0),
-                                        child: Row(children: <Widget>[
-                                          IconButton(
-                                            icon: Icon(_videoController.value.isPlaying ? Icons.pause : Icons.play_arrow),
-                                            onPressed: (){
-                                              _videoController.value.isPlaying ? _videoController.pause() : _videoController.play();
-                                            },
-                                          )
-                                        ],),
-                                      )
-                                    ],
-                                  )
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          ],
-                        );
-                    } else {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                  },
-                );
+      builder: (context) => Container(
+        color: Color.fromARGB(200, 0, 0, 0),
+        child: StatefulBuilder(
+          builder: (context, setState){
+            return FutureBuilder(
+              future: _initializeVideoPlayerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return LyreVideo(
+                    controller: _vController,
+                  );
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
               },
-            ),),
-          onTap: () {
-            hideOverlay();
+            );
           },
-        ));
+          ),
+        ),
+      );
     super.initState();
   }
 
@@ -820,39 +774,39 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                                                         .spaceBetween,
                                                 children: <Widget>[
                                                   Expanded(
-                                                      child: InkWell(
-                                                        child: StreamBuilder(
-                                                          stream: bloc.state,
-                                                          builder: (context, AsyncSnapshot<PostsState> snapshot){
-                                                            return snapshot.hasData && snapshot.data.userContent.isNotEmpty
-                                                            ? Column(
-                                                                children: <Widget>[
-                                                                  new Text(
-                                                                    snapshot.data.getSourceString(),
-                                                                    style: TextStyle(
-                                                                      fontSize: 22.0,
-                                                                    ),
-                                                                    textAlign:
-                                                                        TextAlign.start,
+                                                    child: InkWell(
+                                                      child: StreamBuilder(
+                                                        stream: bloc.state,
+                                                        builder: (context, AsyncSnapshot<PostsState> snapshot){
+                                                          return snapshot.hasData && snapshot.data.userContent.isNotEmpty
+                                                          ? Column(
+                                                              children: <Widget>[
+                                                                new Text(
+                                                                  snapshot.data.getSourceString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 22.0,
                                                                   ),
-                                                                  new Text(
-                                                                    snapshot.data.getFilterString(),
-                                                                    style: TextStyle(
-                                                                      fontSize: 14.0,
-                                                                    ),
-                                                                    textAlign:
-                                                                        TextAlign.start,
-                                                                  )
-                                                                ],
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment.start,
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                              )
-                                                            : Container();
-                                                          },
-                                                        ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
+                                                                ),
+                                                                new Text(
+                                                                  snapshot.data.getFilterString(),
+                                                                  style: TextStyle(
+                                                                    fontSize: 14.0,
+                                                                  ),
+                                                                  textAlign:
+                                                                      TextAlign.start,
+                                                                )
+                                                              ],
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment.start,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                            )
+                                                          : Container();
+                                                        },
+                                                      ),
                                                     onTap: () {
                                                       _changeParamsVisibility();
                                                     },
@@ -1169,6 +1123,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
     super.dispose();
     _navBarController.dispose();
     _videoController.dispose();
+    _vController.dispose();
     controller?.dispose();
     scontrol.dispose();
     previewController?.dispose();

@@ -24,6 +24,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
+    print(event.toString() + "EVENT");
     if(event is PostsSourceChanged){
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");

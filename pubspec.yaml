@@ -48,6 +48,7 @@ dependencies:
   flutter_html: ^0.11.0
   hive: ^1.0.0
   hive_flutter: ^0.2.1
+  screen: ^0.0.5
   dependencies:
   
 

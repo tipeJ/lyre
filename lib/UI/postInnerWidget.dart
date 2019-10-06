@@ -48,32 +48,35 @@ class postInnerWidget extends StatelessWidget {
           switch (postView) {
             case PostView.IntendedPreview:
               if (callBack is PostsListState){ //Only blur in postslist
-                return new Stack(children: <Widget>[
-                  getExpandedImage(context),
-                  new Positioned(
-                    bottom: 0.0,
-                    child: 
-                      ((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
-                       (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler))   //Blur Spoiler
-                        ? new BackdropFilter(
-                          filter: ImageFilter.blur(
-                            sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                            sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                          ),
-                          child: new Container(
-                            width: MediaQuery.of(context).size.width,
-                            color: Color.fromARGB(155, 0, 0, 0),
-                            child: getDefaultSlideColumn(context),
-                          ),
-                        )
-                        : new Container(
-                            width: MediaQuery.of(context).size.width,
-                            color: Color.fromARGB(155, 0, 0, 0),
-                            child: getDefaultSlideColumn(context),
-                          ),
-                  ),
-                  (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
-                    ? getCenteredIndicator(linkType, showCircle) : null
+                return new Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    getExpandedImage(context),
+                    new Positioned(
+                      bottom: 0.0,
+                      child: 
+                        ((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
+                        (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler))   //Blur Spoiler
+                          ? new BackdropFilter(
+                            filter: ImageFilter.blur(
+                              sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                              sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                            ),
+                            child: new Container(
+                              width: MediaQuery.of(context).size.width,
+                              color: Color.fromARGB(155, 0, 0, 0),
+                              child: getDefaultSlideColumn(context),
+                            ),
+                          )
+                          : new Container(
+                              width: MediaQuery.of(context).size.width,
+                              color: Color.fromARGB(155, 0, 0, 0),
+                              child: getDefaultSlideColumn(context),
+                            ),
+                    ),
+                    (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
+                      ? getCenteredIndicator(linkType, showCircle)
+                      : null
                 ].where((w) => notNull(w)).toList());
               } else {
                 return Stack(children: <Widget>[
@@ -203,26 +206,22 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getCenteredIndicator(LinkType type, bool showCircle){
     return showCircle
-      ? Center(
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 2.0,
-              ),
-            ),
-            child: getIndicator(type),
+      ? Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white,
+            width: 2.0,
           ),
-        )
-      : Center(
-          child: Container(
-            width: 50,
-            height: 50,
-            child: getIndicator(type),
-          ),
+        ),
+        child: getIndicator(type),
+      )
+      : Container(
+          width: 50,
+          height: 50,
+          child: getIndicator(type),
         );
   }
   Widget getIndicator(LinkType type){

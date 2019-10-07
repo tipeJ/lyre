@@ -14,11 +14,8 @@ class LyreVideoPlayer extends StatelessWidget {
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width,
-        child: AspectRatio(
-          aspectRatio:
-              lyreVideoController.aspectRatio ?? _calculateAspectRatio(context),
-          child: _buildLyreVideoPlayer(lyreVideoController, context),
-        ),
+        height: MediaQuery.of(context).size.height,
+        child: _buildLyreVideoPlayer(lyreVideoController, context)
       ),
     );
   }

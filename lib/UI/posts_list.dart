@@ -108,7 +108,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
         previewType = PreviewType.Video;
         if (linkType == LinkType.Gfycat){
           gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
-            _initializeVideo(videoUrl);
+            _videoInitialized = _initializeVideo(videoUrl);
           });
         } else {
           _initializeVideo(url, VideoFormat.dash);
@@ -122,11 +122,15 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
   }
   LyreVideoController _vController;
 
-  void _initializeVideo(String videoUrl, [VideoFormat format]){
-    _initializeVideoPlayerFuture = _videoController.initialize();
+  Future<void> _videoInitialized;
+
+  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
+    
     _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    await _videoController.initialize();
     _vController = LyreVideoController(
       showControls: true,
+      aspectRatio: _videoController.value.aspectRatio,
       autoPlay: true,
       videoPlayerController: _videoController,
       looping: bloc.currentState.preferences.get(VIDEO_LOOP) ?? true,
@@ -134,15 +138,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
         return Center(
           child: Text(
             errorMessage,
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         );
       },
     );
     showVideoOverlay();
   }
-
-  Future<void> _initializeVideoPlayerFuture;
 
   @override
   void view(String url) {}
@@ -262,14 +264,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
         child: StatefulBuilder(
           builder: (context, setState){
             return FutureBuilder(
-              future: _initializeVideoPlayerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
+              future: _videoInitialized,
+              builder: (context, snapshot){
+                if (snapshot.connectionState == ConnectionState.done){
                   return LyreVideo(
                     controller: _vController,
                   );
                 } else {
-                  return Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator(),);
                 }
               },
             );
@@ -767,11 +769,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                                             child: Container(
                                               padding: EdgeInsets.all(5.0),
                                               child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: <Widget>[
                                                   Expanded(
                                                     child: InkWell(
@@ -798,11 +797,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                                                                       TextAlign.start,
                                                                 )
                                                               ],
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment.start,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
                                                             )
                                                           : Container();
                                                         },
@@ -965,6 +961,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
   Future<bool> _willPop() {
     if (isElevated) {
       _reverseNav();
+      return new Future.value(false);
+    } else if(isPreviewing){
+      if (_vController != null && _vController.isFullScreen){
+        _vController.exitFullScreen();
+      } else {
+        previewUrl = "";
+        hideOverlay();
+      }
       return new Future.value(false);
     }
     return new Future.value(true);

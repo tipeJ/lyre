@@ -24,7 +24,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
-    print(event.toString() + "EVENT");
     if(event is PostsSourceChanged){
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");
@@ -84,6 +83,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       yield getUpdatedCurrentState(_userContent);
     } else if (event is FetchMore){
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
+      
       lastPost = currentState.userContent.last is Comment
         ? (currentState.userContent.last as Comment).id
         : (currentState.userContent.last as Submission).id;

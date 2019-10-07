@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' show Client;
 import 'dart:convert';
-import '../Models/item_model.dart';
 import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
 import '../Models/User.dart';
@@ -216,7 +215,7 @@ class PostsProvider {
   }
 
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
-    var res = await logInToLatest();
+    await logInToLatest();
     reddit = await getRed();
 
     Map<String, String> headers = new Map<String, String>();

@@ -17,7 +17,6 @@ class MaterialControls extends StatefulWidget {
 class _MaterialControlsState extends State<MaterialControls> {
   VideoPlayerValue _latestValue;
   double _latestVolume;
-  bool _hideStuff = true;
   Timer _hideTimer;
   Timer _initTimer;
   Timer _showAfterExpandCollapseTimer;
@@ -53,23 +52,20 @@ class _MaterialControlsState extends State<MaterialControls> {
       },
       child: GestureDetector(
         onTap: () => _cancelAndRestartTimer(),
-        child: AbsorbPointer(
-          absorbing: _hideStuff,
-          child: Column(
-            children: <Widget>[
-              _latestValue != null &&
-                          !_latestValue.isPlaying &&
-                          _latestValue.duration == null ||
-                      _latestValue.isBuffering
-                  ? const Expanded(
-                      child: const Center(
-                        child: const CircularProgressIndicator(),
-                      ),
-                    )
-                  : _buildHitArea(),
-              _buildBottomBar(context),
-            ],
-          ),
+        child: Column(
+          children: <Widget>[
+            _latestValue != null &&
+                        !_latestValue.isPlaying &&
+                        _latestValue.duration == null ||
+                    _latestValue.isBuffering
+                ? const Expanded(
+                    child: const Center(
+                      child: const CircularProgressIndicator(),
+                    ),
+                  )
+                : _buildHitArea(),
+            _buildBottomBar(context),
+          ],
         ),
       ),
     );
@@ -102,32 +98,28 @@ class _MaterialControlsState extends State<MaterialControls> {
     super.didChangeDependencies();
   }
 
-  AnimatedOpacity _buildBottomBar(
+  Container _buildBottomBar(
     BuildContext context,
   ) {
     final iconColor = Theme.of(context).textTheme.button.color;
 
-    return AnimatedOpacity(
-      opacity: _hideStuff ? 0.0 : 1.0,
-      duration: Duration(milliseconds: 300),
-      child: Container(
-        height: barHeight,
-        color: Theme.of(context).dialogBackgroundColor,
-        child: Row(
-          children: <Widget>[
-            _buildPlayPause(controller),
-            lyreVideoController.isLive
-                ? Expanded(child: const Text('LIVE'))
-                : _buildPosition(iconColor),
-            lyreVideoController.isLive ? const SizedBox() : _buildProgressBar(),
-            lyreVideoController.allowMuting
-                ? _buildMuteButton(controller)
-                : Container(),
-            lyreVideoController.allowFullScreen
-                ? _buildExpandButton()
-                : Container(),
-          ],
-        ),
+    return Container(
+      height: barHeight,
+      color: Colors.black.withOpacity(0.5),
+      child: Row(
+        children: <Widget>[
+          _buildPlayPause(controller),
+          lyreVideoController.isLive
+              ? Expanded(child: const Text('LIVE'))
+              : _buildPosition(iconColor),
+          lyreVideoController.isLive ? const SizedBox() : _buildProgressBar(),
+          lyreVideoController.allowMuting
+              ? _buildMuteButton(controller)
+              : Container(),
+          lyreVideoController.allowFullScreen
+              ? _buildExpandButton()
+              : Container(),
+        ],
       ),
     );
   }
@@ -135,22 +127,18 @@ class _MaterialControlsState extends State<MaterialControls> {
   GestureDetector _buildExpandButton() {
     return GestureDetector(
       onTap: _onExpandCollapse,
-      child: AnimatedOpacity(
-        opacity: _hideStuff ? 0.0 : 1.0,
-        duration: Duration(milliseconds: 300),
-        child: Container(
-          height: barHeight,
-          margin: EdgeInsets.only(right: 12.0),
-          padding: EdgeInsets.only(
-            left: 8.0,
-            right: 8.0,
-          ),
-          child: Center(
-            child: Icon(
-              lyreVideoController.isFullScreen
-                  ? Icons.fullscreen_exit
-                  : Icons.fullscreen,
-            ),
+      child: Container(
+        height: barHeight,
+        margin: EdgeInsets.only(right: 12.0),
+        padding: EdgeInsets.only(
+          left: 8.0,
+          right: 8.0,
+        ),
+        child: Center(
+          child: Icon(
+            lyreVideoController.isFullScreen
+                ? Icons.fullscreen_exit
+                : Icons.fullscreen,
           ),
         ),
       ),
@@ -161,20 +149,7 @@ class _MaterialControlsState extends State<MaterialControls> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          if (_latestValue != null && _latestValue.isPlaying) {
-            if (_displayTapped) {
-              setState(() {
-                _hideStuff = true;
-              });
-            } else
-              _cancelAndRestartTimer();
-          } else {
-            _playPause();
-
-            setState(() {
-              _hideStuff = true;
-            });
-          }
+          Navigator.of(context).maybePop();
         },
         child: Container(
           color: Colors.transparent,
@@ -218,22 +193,18 @@ class _MaterialControlsState extends State<MaterialControls> {
           controller.setVolume(0.0);
         }
       },
-      child: AnimatedOpacity(
-        opacity: _hideStuff ? 0.0 : 1.0,
-        duration: Duration(milliseconds: 300),
-        child: ClipRect(
+      child: ClipRect(
+        child: Container(
           child: Container(
-            child: Container(
-              height: barHeight,
-              padding: EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-              ),
-              child: Icon(
-                (_latestValue != null && _latestValue.volume > 0)
-                    ? Icons.volume_up
-                    : Icons.volume_off,
-              ),
+            height: barHeight,
+            padding: EdgeInsets.only(
+              left: 8.0,
+              right: 8.0,
+            ),
+            child: Icon(
+              (_latestValue != null && _latestValue.volume > 0)
+                  ? Icons.volume_up
+                  : Icons.volume_off,
             ),
           ),
         ),
@@ -269,25 +240,43 @@ class _MaterialControlsState extends State<MaterialControls> {
 
     return Padding(
       padding: EdgeInsets.only(right: 24.0),
-      child: Text(
+      child: Material(child: Text(
         '${formatDuration(position)} / ${formatDuration(duration)}',
         style: TextStyle(
           fontSize: 14.0,
         ),
-      ),
+      ),)
     );
   }
 
-  String formatDuration(Duration position){
-    return "xd";
-  }
+  String formatDuration(Duration position) {
+    final ms = position.inMilliseconds;
+
+    int seconds = ms ~/ 1000;
+    final int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    var minutes = seconds ~/ 60;
+    seconds = seconds % 60;
+
+    final hoursString = hours >= 10 ? '$hours' : hours == 0 ? '00' : '0$hours';
+
+    final minutesString =
+        minutes >= 10 ? '$minutes' : minutes == 0 ? '00' : '0$minutes';
+
+    final secondsString =
+        seconds >= 10 ? '$seconds' : seconds == 0 ? '00' : '0$seconds';
+
+    final formattedTime =
+        '${hoursString == '00' ? '' : hoursString + ':'}$minutesString:$secondsString';
+
+    return formattedTime;
+}
 
   void _cancelAndRestartTimer() {
     _hideTimer?.cancel();
     _startHideTimer();
 
     setState(() {
-      _hideStuff = false;
       _displayTapped = true;
     });
   }
@@ -304,16 +293,12 @@ class _MaterialControlsState extends State<MaterialControls> {
 
     if (lyreVideoController.showControlsOnInitialize) {
       _initTimer = Timer(Duration(milliseconds: 200), () {
-        setState(() {
-          _hideStuff = false;
-        });
       });
     }
   }
 
   void _onExpandCollapse() {
     setState(() {
-      _hideStuff = true;
 
       lyreVideoController.toggleFullScreen();
       _showAfterExpandCollapseTimer = Timer(Duration(milliseconds: 300), () {
@@ -329,7 +314,6 @@ class _MaterialControlsState extends State<MaterialControls> {
 
     setState(() {
       if (controller.value.isPlaying) {
-        _hideStuff = false;
         _hideTimer?.cancel();
         controller.pause();
       } else {
@@ -351,9 +335,6 @@ class _MaterialControlsState extends State<MaterialControls> {
 
   void _startHideTimer() {
     _hideTimer = Timer(const Duration(seconds: 3), () {
-      setState(() {
-        _hideStuff = true;
-      });
     });
   }
 

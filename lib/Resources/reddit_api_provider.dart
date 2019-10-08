@@ -37,16 +37,18 @@ enum TypeFilter{
 }
 
 class PostsProvider {
-  static final PostsProvider _instance = new PostsProvider._internal();
-  PostsProvider._internal();
-
   factory PostsProvider(){
     return _instance;
   }
-  
+
+  static final PostsProvider _instance = new PostsProvider._internal();
+
+  PostsProvider._internal();
+
   Client client = Client();
-  final _apiKey = 'your_api_key';
   Reddit reddit;
+
+  final _apiKey = 'your_api_key';
 
   Future<Redditor> getLoggedInUser(){
     if(reddit == null){
@@ -54,20 +56,24 @@ class PostsProvider {
     }
     return reddit.user.me();
   }
+
   bool isLoggedIn() {
     if(reddit == null){
       return false;
     }
     return reddit.readOnly ? false : true;
   }
+
   logInAsGuest() async {
     reddit = await getReadOnlyReddit();
     currentUser.value = "Guest";
   }
+
   Future<Redditor> getRedditor(String fullname) async {
     var r = await getRed();
     return r.redditor(fullname).populate();
   }
+
   Future<bool> logIn(String username) async{
     var credentials = await readCredentials(username);
     if(credentials != null){
@@ -94,6 +100,7 @@ class PostsProvider {
     }
     return false;
   }
+
   Future<bool> logInToLatest() async {
     if(reddit != null && !reddit.readOnly){
       return true;
@@ -116,7 +123,7 @@ class PostsProvider {
     });
     return false;
   }
-  
+
   Future<Reddit> restoreAuth(String jsonCredentials) async {
     final configUri = Uri.parse('draw.ini');
     var userAgent = "$appName $appVersion by u/tipezuke";
@@ -128,6 +135,7 @@ class PostsProvider {
         clientId: "JfjOgtm3pWG22g"
       );
   }
+
   checkForRefresh() async {
     if(reddit.auth.credentials.isExpired){
       var x = await reddit.auth.credentials.refresh();
@@ -162,6 +170,7 @@ class PostsProvider {
     writeCredentials(user.displayName, reddit.auth.credentials.toJson());
     
   }
+
   Future<Stream<String>> _server() async {
     final StreamController<String> onCode = new StreamController();
     HttpServer server =
@@ -179,12 +188,14 @@ class PostsProvider {
     });
     return onCode.stream;
   }
+
   Future<RedditUser> getLatestUser() async {
     var list = await getAllUsers();
     if(list == null || list.isEmpty) return null;
     list.sort((user1, user2) => user1.date.compareTo(user2.date));
     return list.last;
   }
+
   Future<Reddit> getRed() async {
     if(reddit == null){
       return getReadOnlyReddit();
@@ -192,6 +203,7 @@ class PostsProvider {
       return reddit;
     }
   }
+
   Future<Reddit> getReadOnlyReddit() async {
     return Reddit.createReadOnlyInstance(
       userAgent: "$appName $appVersion by u/tipezuke",
@@ -199,6 +211,7 @@ class PostsProvider {
         clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
     );
   }
+
   Future<CommentM> getC2(String ids, String fullname) async {
     
     Map<String, String> headers = new Map<String, String>();
@@ -286,6 +299,7 @@ class PostsProvider {
     }
     return v;
   }
+
   Future<CommentM> fetchCommentsList() async {
     Map<String, String> headers = new Map<String, String>();
     headers["before"] = "0";
@@ -294,11 +308,13 @@ class PostsProvider {
     var s = await r.submission(id: currentPostId).populate();
     return CommentM.fromJson(s.comments.comments);
   }
+
   Future<List<StyleSheetImage>> getStyleSheetImages() async {
     final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
     final styleSheet = await subreddit.stylesheet.call();
     return styleSheet.images;
   }
+
   Future<WikiPage> getWikiPage(String args) async {
     final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
     try {
@@ -308,6 +324,7 @@ class PostsProvider {
       return null;
     } //Fetch wiki page content for the sidebar
   }
+
   List<dynamic> getData(List<dynamic> data){
     List<dynamic> result = List();
     for(int i = 0; i < data.length; i++){

@@ -34,6 +34,12 @@ List<String> sortTypes = [
   "top",
   "controversial",
 ];
+List<String> sortTypesuser = [
+  "hot",
+  "new",
+  "top",
+  "controversial",
+];
 List<String> sortTimes = [
   "hour",
   "24h",

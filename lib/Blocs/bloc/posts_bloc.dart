@@ -13,7 +13,7 @@ import '../../Resources/globals.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, updated: false, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
 
@@ -57,6 +57,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       lastRefresh = DateTime.now();
       yield PostsState(
         userContent: _userContent, 
+        updated: false,
         contentSource : source,
         usernamesList: userNamesList, 
         currentUser: currentUser, 
@@ -80,7 +81,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
-      yield getUpdatedCurrentState(_userContent);
+      yield getUpdatedCurrentState(_userContent, false);
     } else if (event is FetchMore){
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       
@@ -106,13 +107,14 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       print("after: " + currentState.userContent.length.toString());
 
       lastRefresh = DateTime.now();
-      yield getUpdatedCurrentState();
+      yield getUpdatedCurrentState(currentState.userContent, true);
     }
   }
 
-  PostsState getUpdatedCurrentState([List<UserContent> userContent]){
+  PostsState getUpdatedCurrentState([List<UserContent> userContent, bool updated]){
     return PostsState(
       userContent: notNull(userContent) ? userContent : currentState.userContent,
+      updated: notNull(updated) ? updated : currentState.updated,
       contentSource: currentState.contentSource,
       usernamesList: currentState.usernamesList,
       currentUser: currentState.currentUser,

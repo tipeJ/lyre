@@ -156,7 +156,7 @@ class postInnerWidget extends StatelessWidget {
         image: AdvancedNetworkImage(
           submission.preview.first.source.url.toString(),
           useDiskCache: true,
-          cacheRule: CacheRule(maxAge: const Duration(days: 7))
+          cacheRule: const CacheRule(maxAge: const Duration(days: 7))
         ),
         fit: fit,
       ),
@@ -228,12 +228,12 @@ class postInnerWidget extends StatelessWidget {
     Widget content;
     if(submission.over18 || submission.spoiler){
       content = Column(children: <Widget>[
-        Icon(Icons.warning),
+        const Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),
-        Divider(indent: 250,endIndent: 250,)
+        const Divider(indent: 250,endIndent: 250,)
       ],);
     } else if (videoLinkTypes.contains(type)){
-      content = Icon(Icons.play_arrow, color: Colors.white,);
+      content = const Icon(Icons.play_arrow, color: Colors.white,);
     }
     return Center(child: content);
   }
@@ -247,7 +247,7 @@ class postInnerWidget extends StatelessWidget {
       items: <ActionItems>[
         ActionItems(
           icon: IconButton(
-            icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
+            icon: const Icon(Icons.keyboard_arrow_up),onPressed: (){},
             color: submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.upvoted, submission);
@@ -255,7 +255,7 @@ class postInnerWidget extends StatelessWidget {
         ),
         ActionItems(
           icon: IconButton(
-            icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
+            icon: const Icon(Icons.keyboard_arrow_down),onPressed: (){},
             color: submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.downvoted, submission);
@@ -263,7 +263,7 @@ class postInnerWidget extends StatelessWidget {
         ),
         ActionItems(
           icon: IconButton(
-            icon: Icon(Icons.bookmark),onPressed: (){},
+            icon: const Icon(Icons.bookmark),onPressed: (){},
             color: submission.saved ? Colors.yellow : Colors.grey,),
           onPress: (){
             changeSubmissionSave(submission);
@@ -302,7 +302,7 @@ class postInnerWidget extends StatelessWidget {
         //The circular radius for post widgets. Set 0.0 for rectangular.
         borderRadius: BorderRadius.circular(10.0),
       ),
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         //The gap bewtween the widgets.
         bottom: 5.0
       ),
@@ -369,7 +369,7 @@ class defaultColumn extends StatelessWidget {
                   maxLines: callback is CommentListState ? null : 5,
                 ),
               ),
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 left: 8.0,
                 right: 8.0,
                 top: 8.0,
@@ -384,12 +384,12 @@ class defaultColumn extends StatelessWidget {
                       ? Padding(
                         padding: const EdgeInsets.only(left: 6.0, right: 4.0),
                         child: Container(
-                          padding: EdgeInsets.all(2.0),
+                          padding: const EdgeInsets.all(2.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(3.5),
                             color: Colors.red
                           ),
-                          child: Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
+                          child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
                         )
                       )
                       : null,
@@ -409,7 +409,7 @@ class defaultColumn extends StatelessWidget {
                             "u/${submission.author}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
-                            style: new TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9.0)),
+                            style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new Padding(
@@ -417,7 +417,7 @@ class defaultColumn extends StatelessWidget {
                             "r/${submission.subreddit.displayName}",
                             textAlign: TextAlign.left,
                             textScaleFactor: 1.0,
-                            style: new TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
+                            style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                     new GestureDetector(
@@ -440,7 +440,7 @@ class defaultColumn extends StatelessWidget {
                               color: Colors.white.withOpacity(0.9)
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 4.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     ),
                     submission.isSelf ? null :
                     new Padding(

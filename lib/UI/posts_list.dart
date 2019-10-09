@@ -64,34 +64,28 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
 
   bool autoLoad;
   PostsBloc bloc;
-  
   //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
   Widget headerWidget;
 
   OverlayEntry imageEntry;
   final ContentSource initialSource;
-  
   bool isPreviewing = false;
-  
-  
+  final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
   AnimationController previewController;
   PreviewType previewType;
   var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
 
   final String redditor;
-  
-  ScrollController scontrol = new ScrollController();
 
+  ScrollController scontrol = new ScrollController();
   OverlayState state;
-  
   var titletext = "Lyre for Reddit";
+  OverlayEntry videoEntry;
 
   LyreVideoController _vController;
   VideoPlayerController _videoController;
   AnimationController _videoControlsController;
   Future<void> _videoInitialized;
-
-  final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
 
   @override
   void dispose() {
@@ -102,7 +96,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
     bloc.dispose();
     super.dispose();
   }
-   
 
   @override
   void initState() {
@@ -149,7 +142,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
 
     videoEntry = OverlayEntry(
       builder: (context) => Container(
-        color: Color.fromARGB(200, 0, 0, 0),
+        color: const Color.fromARGB(200, 0, 0, 0),
         child: StatefulBuilder(
           builder: (context, setState){
             return FutureBuilder(
@@ -160,7 +153,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                     controller: _vController,
                   );
                 } else {
-                  return Center(child: CircularProgressIndicator(),);
+                  return const Center(child: CircularProgressIndicator(),);
                 }
               },
             );
@@ -226,15 +219,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
     showVideoOverlay();
   }
 
-  
-
   showOverlay() {
     if (!isPreviewing) {
       state.insert(imageEntry);
       isPreviewing = true;
     }
   }
-  OverlayEntry videoEntry;
 
   showVideoOverlay() {
     if (!isPreviewing) {
@@ -263,7 +253,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
           child: Container(
             child: Text(
               list[i],
-              style: TextStyle(fontSize: 18.0, fontStyle: FontStyle.italic),
+              style: const TextStyle(fontSize: 18.0, fontStyle: FontStyle.italic),
             ),
             margin: EdgeInsets.all(18.0),
           ),
@@ -300,7 +290,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
     return new Future.value(true);
   }
 
-
   Widget buildList(AsyncSnapshot<PostsState> snapshot) {
     var state = snapshot.data;
     var posts = state.userContent;
@@ -313,8 +302,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
           });
         }
         if (scrollInfo is ScrollUpdateNotification) {
-          if (scrollInfo.scrollDelta >= 10.0 || scrollInfo.scrollDelta <= -10.0) {
-            navBarController.toggleVisibility();
+          if (scrollInfo.scrollDelta >= 10.0) {
+            navBarController.setVisibility(false);
+          } else if (scrollInfo.scrollDelta <= -10.0){
+            navBarController.setVisibility(true);
           }
         }
         return true;
@@ -334,7 +325,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                         bloc.dispatch(FetchMore());
                       });
                     },
-                    child: Text("Load More")),
+                    child: const Text("Load More")),
               );
             } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
@@ -347,12 +338,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                       return Padding(
                         child: Center(
                           child: Container(
-                            child: CircularProgressIndicator(),
+                            child: const CircularProgressIndicator(),
                             height: 25.0,
                             width: 25.0
                           ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 10.0)
+                        padding: const EdgeInsets.symmetric(vertical: 10.0)
                       );
                     }
                   },
@@ -384,21 +375,21 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
               image: AdvancedNetworkImage(
                 redditor.data['icon_img'],
                 useDiskCache: true,
-                cacheRule: CacheRule(maxAge: const Duration(days: 7))
+                cacheRule: const CacheRule(maxAge: const Duration(days: 7))
               ),
             ),
           ),
           width: 120,
           height: 120,
         ),
-        Divider(),
+        const Divider(),
         Text(
           'u/${redditor.fullname}',
           style: TextStyle(
             fontSize: 25.0,
           ),
           ),
-        Divider(),
+        const Divider(),
         Padding(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -407,7 +398,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
               Text('Comment karma: ${redditor.commentKarma}',)
             ],
           ),
-        padding: EdgeInsets.only(bottom: 10.0),)
+        padding: const EdgeInsets.only(bottom: 10.0),)
       ],
     );
   }
@@ -434,7 +425,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
           resizeToAvoidBottomInset: true,
           drawer: new Drawer(
               child: new Container(
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Stack(
                   children: <Widget>[
                     CustomScrollView(
@@ -460,7 +451,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                               switch (snapshot.connectionState) {
                                 case ConnectionState.done:
                                   if(snapshot.hasError){
-                                    return Text('Error loading user data');
+                                    return const Text('Error loading user data');
                                   }
                                   return CustomExpansionTile(
                                     title: "Profile",
@@ -473,36 +464,36 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.commentKarma.toString(),
-                                              style: TextStyle(fontSize: 28.0),
+                                              style: const TextStyle(fontSize: 28.0),
                                             ),
-                                            Text(
+                                            const Text(
                                               'Comment karma',
-                                              style: TextStyle(fontSize: 22.0),
+                                              style: const TextStyle(fontSize: 22.0),
                                             )
                                           ],),
-                                          Spacer(),
-                                          VerticalDivider(),
-                                          Spacer(),
+                                          const Spacer(),
+                                          const VerticalDivider(),
+                                          const Spacer(),
                                           Column(children: <Widget>[
                                             Text(
                                               snapshot.data.linkKarma.toString(),
-                                              style: TextStyle(fontSize: 28.0),
+                                              style: const  TextStyle(fontSize: 28.0),
                                             ),
-                                            Text(
+                                            const Text(
                                               'Link karma',
                                               style: TextStyle(fontSize: 22.0),
                                             )
                                           ],)
                                         ],
                                       ),
-                                      Divider(),
-                                      SelfContentTypeWidget("Comments"),
-                                      SelfContentTypeWidget("Submitted"),
-                                      SelfContentTypeWidget("Upvoted"),
-                                      SelfContentTypeWidget("Saved"),
-                                      SelfContentTypeWidget("Hidden"),
-                                      SelfContentTypeWidget("Watching"),
-                                      SelfContentTypeWidget("Friends")
+                                      const Divider(),
+                                      const SelfContentTypeWidget("Comments"),
+                                      const SelfContentTypeWidget("Submitted"),
+                                      const SelfContentTypeWidget("Upvoted"),
+                                      const SelfContentTypeWidget("Saved"),
+                                      const SelfContentTypeWidget("Hidden"),
+                                      const SelfContentTypeWidget("Watching"),
+                                      const SelfContentTypeWidget("Friends")
                                     ],
                                   );
                                 default:
@@ -656,11 +647,81 @@ class FloatingNavigationBar extends StatefulWidget {
 }
 
 class _FloatingNavigationBarState extends State<FloatingNavigationBar> with TickerProviderStateMixin{
+  AnimationController controller;
+  Animation<double> edgeAnimation;
+  Tween edgeTween = new Tween<double>(begin: 55.0, end: 0.0);
+  Animation<double> height2Animation;
+  Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
+  Animation<double> heightAnimation;
+  double maxNavBarHeight = 400.0; //<-- Get max height of the screen
+  Animation<double> opacityAnimation;
+  Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
+  Animation<double> padAnimation;
+  Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
+  Animation<double> roundAnimation;
+  Tween roundTween = new Tween<double>(begin: 30.0, end: 0.0);
+  var subsListHeight = 50.0;
+  String tempType = "";
+
+  AnimationController _navBarController;
 
   @override void dispose(){
     controller?.dispose();
+
+  @override
+  void initState(){
+    maxNavBarHeight = 400.0;
+    _navBarController = AnimationController(
+      //<-- initialize a controller
+      vsync: this,
+      duration: Duration(milliseconds: 600),
+    );
+    controller = new AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 325));
+        void initV(BuildContext context) {
+    maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
+    padAnimation = padTween.animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOut));
+    roundAnimation = roundTween.animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOut));
+    edgeAnimation = edgeTween.animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOut));
+    height2Animation = height2Tween.animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+        reverseCurve: Curves.easeOut));
+
+    height2Animation.addListener(() {
+      setState(() {});
+    });
+    padAnimation.addListener(() {
+      setState(() {});
+    });
+    edgeAnimation.addListener(() {
+      setState(() {});
+    });
+    roundAnimation.addListener(() {
+      setState(() {});
+    });
+    controller.reset();
+    widget.controller.addListener((){
+      setState(() {
+      });
+    });
+  }
+    super.initState();
+  }
+
     _navBarController.dispose();
+
     super.dispose();
+
   }
 
   @override
@@ -712,10 +773,186 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
     super.initState();
   }
-  Animation<double> roundAnimation;
+
+  double navBarLerp(double min, double max) => lerpDouble(min, max, _navBarController.value);
+
+  _changeTypeVisibility() {
+    if (widget.controller.typeVisible) {
+      widget.controller.typeVisible = false;
+    } else {
+      widget.controller.typeVisible = true;
+    }
+  }
+
+  List<Widget> _createParams([bool type]) {
+    switch (BlocProvider.of<PostsBloc>(context).currentState.contentSource) {
+      case ContentSource.Subreddit:
+        return (type)
+          ? sortTypeParams()
+          : sortTimeParams();
+      default: //Defaults to [ContentSource.Redditor]
+        return (type)
+          ? sortTypeParamsUser()
+          : sortTimeParams();
+    }
+  }
+
+  List<Widget> sortTimeParams() {
+    return new List<Widget>.generate(sortTimes.length, (int index) {
+      return InkWell(
+        child: Text(sortTimes[index]),
+        onTap: () {
+          if (tempType != "") {
+            parseTypeFilter(tempType);
+            currentSortTime = sortTimes[index];
+            BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+            tempType = "";
+          }
+          _changeTypeVisibility();
+          _changeParamsVisibility();
+        },
+      );
+    });
+  }
+
+  List<Widget> sortTypeParamsUser(){
+    return new List<Widget>.generate(sortTypes.length, (int index) {
+      return InkWell(
+        child: Text(sortTypesuser[index]),
+        onTap: () {
+          setState(() {
+            var q = sortTypes[index];
+            if (q == "hot" || q == "new" || q == "rising") {
+              parseTypeFilter(q);
+              currentSortTime = "";
+
+              BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+              //bloc.resetFilters();
+
+              _changeParamsVisibility();
+            } else {
+              tempType = q;
+              _changeTypeVisibility();
+            }
+          });
+        },
+      );
+    });
+  }
+
+  List<Widget> sortTypeParams() {
+    return new List<Widget>.generate(sortTypes.length, (int index) {
+          return InkWell(
+            child: Text(sortTypes[index]),
+            onTap: () {
+              setState(() {
+                var q = sortTypes[index];
+                if (q == "hot" || q == "new" || q == "rising") {
+                  parseTypeFilter(q);
+                  currentSortTime = "";
+
+                  BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+                  //bloc.resetFilters();
+
+                  _changeParamsVisibility();
+                } else {
+                  tempType = q;
+                  _changeTypeVisibility();
+                }
+              });
+            },
+          );
+        });
+  }
+
+  _changeParamsVisibility() {
+    //Resets the bloc:s tempType filter in case of continuity errors.
+    tempType = "";
+    setState(() {
+      if (widget.controller.paramsExpanded) {
+        widget.controller.typeVisible = true; //Reset params visibility so that type pops up on next click
+        widget.controller.paramsHeight = 0.0;
+        widget.controller.paramsExpanded = false;
+      } else {
+        widget.controller.paramsExpanded = true;
+        widget.controller.paramsHeight = 25.0;
+      }
+    });
+  }
+
+  void _handleNavDragUpdate(DragUpdateDetails details) {
+    _navBarController.value -= details.primaryDelta /
+        maxNavBarHeight; //<-- Update the _navBarController.value by the movement done by user.
+  }
+
+  void _reverseNav() {
+    _navBarController.fling(velocity: -2.0);
+    widget.controller.isElevated = false;
+  }
+
+  void _handleNavDragEnd(DragEndDetails details) {
+    if (_navBarController.status == AnimationStatus.completed) {
+      widget.controller.isElevated = true;
+    }
+    if (_navBarController.isAnimating ||
+        _navBarController.status == AnimationStatus.completed) return;
+
+    final double flingVelocity = details.velocity.pixelsPerSecond.dy /
+        maxNavBarHeight; //<-- calculate the velocity of the gesture
+    if (flingVelocity < 0.0) {
+      _navBarController.fling(
+          velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
+      widget.controller.isElevated = true;
+    } else if (flingVelocity > 0.0) {
+      _navBarController.fling(
+          velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
+      widget.controller.isElevated = false;
+    } else
+      _navBarController.fling(
+          velocity: _navBarController.value < 0.5
+              ? -2.0
+              : 2.0); //<-- or just continue to whichever edge is closer
+  }
+
+  void reverse(BuildContext context) {
+    controller.reset();
+    controller.reverse();
+    widget.controller.isElevated = false;
+  }
+
+  Widget buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
+    var subs = snapshot.data.results;
+    return new ListView.builder(
+        padding: new EdgeInsets.all(16.0),
+        itemCount: subs.length,
+        itemExtent: 50.0,
+        itemBuilder: (BuildContext context, int i) {
+          return new ListTile(
+              leading: const Icon(Icons.arrow_right),
+              title: new Text("r/" + subs[i].displayName,
+                  textScaleFactor: 1.0,
+                  style: DefaultTextStyle.of(context)
+                      .style
+                      .apply(fontSizeFactor: 1.5)),
+              onTap: () {
+                currentSubreddit = subs[i].displayName;
+                _reverseNav();
+                subsListHeight = 50.0;
+                refreshList();
+              });
+        });
+  }
+
+  void refreshList(){
+    BlocProvider.of<PostsBloc>(context).dispatch(PostsSourceChanged());
+  }
 
   @override
   Widget build(BuildContext context) {
+      widget.controller.addListener((){
+        setState(() {
+        });
+      });
       return new IgnorePointer(
         child: AnimatedBuilder(
           animation: _navBarController,
@@ -878,17 +1115,17 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                       return Text(snapshot.error.toString());
                                     }
                                     return Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: <Widget>[
-                                            Icon(
-                                              Icons.search,
-                                              size: max(50.0, MediaQuery.of(context).size.width/7),
-                                              ),
-                                            Text('Search for subreddits')
-                                          ],
-                                        ));
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(
+                                            Icons.search,
+                                            size: max(50.0, MediaQuery.of(context).size.width/7),
+                                            ),
+                                          Text('Search For Subreddits')
+                                        ],
+                                      ));
                                   } else {
                                     return Container(
                                       height: 0.0,
@@ -956,223 +1193,35 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
         ignoring: !widget.controller.visible,
       );
   }
-  double navBarLerp(double min, double max) => lerpDouble(min, max, _navBarController.value);
-
-  AnimationController _navBarController;
-
-  _changeTypeVisibility() {
-    if (widget.controller.typeVisible) {
-      widget.controller.typeVisible = false;
-    } else {
-      widget.controller.typeVisible = true;
-    }
-  }
-
-  List<Widget> _createParams([bool type]) {
-    switch (BlocProvider.of<PostsBloc>(context).currentState.contentSource) {
-      case ContentSource.Subreddit:
-        return (type)
-          ? sortTypeParams()
-          : sortTimeParams();
-      default: //Defaults to [ContentSource.Redditor]
-        return (type)
-          ? sortTypeParamsUser()
-          : sortTimeParams();
-    }
-  }
-
-  List<Widget> sortTimeParams() {
-    return new List<Widget>.generate(sortTimes.length, (int index) {
-      return InkWell(
-        child: Text(sortTimes[index]),
-        onTap: () {
-          if (tempType != "") {
-            parseTypeFilter(tempType);
-            currentSortTime = sortTimes[index];
-            BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
-            tempType = "";
-          }
-          _changeTypeVisibility();
-          _changeParamsVisibility();
-        },
-      );
-    });
-  }
-
-  List<Widget> sortTypeParamsUser(){
-    return new List<Widget>.generate(sortTypes.length, (int index) {
-      return InkWell(
-        child: Text(sortTypesuser[index]),
-        onTap: () {
-          setState(() {
-            var q = sortTypes[index];
-            if (q == "hot" || q == "new" || q == "rising") {
-              parseTypeFilter(q);
-              currentSortTime = "";
-
-              BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
-              //bloc.resetFilters();
-
-              _changeParamsVisibility();
-            } else {
-              tempType = q;
-              _changeTypeVisibility();
-            }
-          });
-        },
-      );
-    });
-  }
-
-  List<Widget> sortTypeParams() {
-    return new List<Widget>.generate(sortTypes.length, (int index) {
-          return InkWell(
-            child: Text(sortTypes[index]),
-            onTap: () {
-              setState(() {
-                var q = sortTypes[index];
-                if (q == "hot" || q == "new" || q == "rising") {
-                  parseTypeFilter(q);
-                  currentSortTime = "";
-
-                  BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
-                  //bloc.resetFilters();
-
-                  _changeParamsVisibility();
-                } else {
-                  tempType = q;
-                  _changeTypeVisibility();
-                }
-              });
-            },
-          );
-        });
-  }
-  var subsListHeight = 50.0;
-  String tempType = "";
-  Tween roundTween = new Tween<double>(begin: 30.0, end: 0.0);
-  double maxNavBarHeight = 400.0; //<-- Get max height of the screen
-  Animation<double> opacityAnimation;
-  Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
-  Animation<double> padAnimation;
-  Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
-  AnimationController controller;
-  Animation<double> edgeAnimation;
-  Tween edgeTween = new Tween<double>(begin: 55.0, end: 0.0);
-  Animation<double> height2Animation;
-  Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
-  Animation<double> heightAnimation;
-
-  
-
-  _changeParamsVisibility() {
-    //Resets the bloc:s tempType filter in case of continuity errors.
-    tempType = "";
-    setState(() {
-      if (widget.controller.paramsExpanded) {
-        widget.controller.paramsHeight = 0.0;
-        widget.controller.paramsExpanded = false;
-      } else {
-        widget.controller.paramsExpanded = true;
-        widget.controller.paramsHeight = 25.0;
-      }
-    });
-  }
-
-
-
-  void _handleNavDragUpdate(DragUpdateDetails details) {
-    _navBarController.value -= details.primaryDelta /
-        maxNavBarHeight; //<-- Update the _navBarController.value by the movement done by user.
-  }
-
-  void _reverseNav() {
-    _navBarController.fling(velocity: -2.0);
-    widget.controller.isElevated = false;
-  }
-
-  void _handleNavDragEnd(DragEndDetails details) {
-    if (_navBarController.status == AnimationStatus.completed) {
-      widget.controller.isElevated = true;
-    }
-    if (_navBarController.isAnimating ||
-        _navBarController.status == AnimationStatus.completed) return;
-
-    final double flingVelocity = details.velocity.pixelsPerSecond.dy /
-        maxNavBarHeight; //<-- calculate the velocity of the gesture
-    if (flingVelocity < 0.0) {
-      _navBarController.fling(
-          velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-      widget.controller.isElevated = true;
-    } else if (flingVelocity > 0.0) {
-      _navBarController.fling(
-          velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-      widget.controller.isElevated = false;
-    } else
-      _navBarController.fling(
-          velocity: _navBarController.value < 0.5
-              ? -2.0
-              : 2.0); //<-- or just continue to whichever edge is closer
-  }
-  void reverse(BuildContext context) {
-    controller.reset();
-    controller.reverse();
-    widget.controller.isElevated = false;
-  }
-
-  Widget buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
-    var subs = snapshot.data.results;
-    return new ListView.builder(
-        padding: new EdgeInsets.all(16.0),
-        itemCount: subs.length,
-        itemExtent: 50.0,
-        itemBuilder: (BuildContext context, int i) {
-          return new ListTile(
-              leading: const Icon(Icons.arrow_right),
-              title: new Text("r/" + subs[i].displayName,
-                  textScaleFactor: 1.0,
-                  style: DefaultTextStyle.of(context)
-                      .style
-                      .apply(fontSizeFactor: 1.5)),
-              onTap: () {
-                currentSubreddit = subs[i].displayName;
-                _reverseNav();
-                subsListHeight = 50.0;
-                refreshList();
-              });
-        });
-  }
-  void refreshList(){
-    BlocProvider.of<PostsBloc>(context).dispatch(PostsSourceChanged());
-  }
 }
 
 class FloatingNavBarController extends ChangeNotifier{
-  
-  bool visible = true;
-  final double maxNavBarHeight;
-
-  double paramsHeight = 0.0;
-  bool paramsExpanded = false;
-  bool typeVisible = true;
-
-  bool isElevated = false;
-  String searchQuery = "";
-  final double typeHeight;
-
   FloatingNavBarController({
     @required this.maxNavBarHeight,
     @required this.typeHeight
   });
 
+  bool isElevated = false;
+  final double typeHeight;
+  final double maxNavBarHeight;
+  bool paramsExpanded = false;
+  double paramsHeight = 0.0;
+  String searchQuery = "";
+  bool typeVisible = true;
+  bool visible = true;
+
   void toggleElevation(){
     isElevated = !isElevated;
     notifyListeners();
   }
+
   void setVisibility(bool visibility){
-    this.visible = visibility;
-    notifyListeners();
+    if(visible != visibility){
+      this.visible = visibility;
+      notifyListeners();
+    }
   }
+
   void toggleVisibility(){
     this.visible = !visible;
     notifyListeners();

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:photo_view/photo_view.dart';
 import 'video_controls.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lyre/UI/video_player/video_player.dart';
@@ -22,7 +23,7 @@ class LyreVideo extends StatefulWidget {
   LyreVideo({
     Key key,
     this.controller,
-  })  : assert(controller != null, 'You must provide a chewie controller'),
+  })  : assert(controller != null, 'You must provide a player controller'),
         super(key: key);
 
   /// The [LyreVideoController]
@@ -38,9 +39,11 @@ class LyreVideoState extends State<LyreVideo> {
   bool _isFullScreen = false;
 
   @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(listener);
+  void didUpdateWidget(LyreVideo oldWidget) {
+    if (oldWidget.controller != widget.controller) {
+      widget.controller.addListener(listener);
+    }
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -50,11 +53,9 @@ class LyreVideoState extends State<LyreVideo> {
   }
 
   @override
-  void didUpdateWidget(LyreVideo oldWidget) {
-    if (oldWidget.controller != widget.controller) {
-      widget.controller.addListener(listener);
-    }
-    super.didUpdateWidget(oldWidget);
+  void initState() {
+    super.initState();
+    widget.controller.addListener(listener);
   }
 
   void listener() async {
@@ -65,14 +66,6 @@ class LyreVideoState extends State<LyreVideo> {
       Navigator.of(context).pop();
       _isFullScreen = false;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _LyreVideoControllerProvider(
-      controller: widget.controller,
-      child: LyreVideoPlayer(),
-    );
   }
 
   Widget _buildFullScreenVideo(
@@ -153,6 +146,14 @@ class LyreVideoState extends State<LyreVideo> {
     SystemChrome.setPreferredOrientations(
         widget.controller.deviceOrientationsAfterFullScreen);
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return _LyreVideoControllerProvider(
+      controller: widget.controller,
+      child: LyreVideoPlayer(),
+    );
+  }
 }
 
 /// The LyreVideoController is used to configure and drive the LyreVideo Player
@@ -197,56 +198,8 @@ class LyreVideoController extends ChangeNotifier {
     _initialize();
   }
 
-  /// The controller for the video you want to play
-  final VideoPlayerController videoPlayerController;
-
-  /// Initialize the Video on Startup. This will prep the video for playback.
-  final bool autoInitialize;
-
-  /// Play the video as soon as it's displayed
-  final bool autoPlay;
-
-  /// Start video at a certain position
-  final Duration startAt;
-
-  /// Whether or not the video should loop
-  final bool looping;
-
-  /// Weather or not to show the controls when initializing the widget.
-  final bool showControlsOnInitialize;
-
-  /// Whether or not to show the controls at all
-  final bool showControls;
-
-  /// Defines customised controls. Check [MaterialControls] or
-  /// [CupertinoControls] for reference.
-  final Widget customControls;
-
-  /// When the video playback runs  into an error, you can build a custom
-  /// error message.
-  final Widget Function(BuildContext context, String errorMessage) errorBuilder;
-
-  /// The Aspect Ratio of the Video. Important to get the correct size of the
-  /// video!
-  ///
-  /// Will fallback to fitting within the space allowed.
-  final double aspectRatio;
-
-  /// The placeholder is displayed underneath the Video before it is initialized
-  /// or played.
-  final Widget placeholder;
-
-  /// A widget which is placed between the video and the controls
-  final Widget overlay;
-
-  /// Defines if the player will start in fullscreen when play is pressed
-  final bool fullScreenByDefault;
-
   /// Defines if the player will sleep in fullscreen or not
   final bool allowedScreenSleep;
-
-  /// Defines if the controls should be for live stream video
-  final bool isLive;
 
   /// Defines if the fullscreen control should be shown
   final bool allowFullScreen;
@@ -254,14 +207,65 @@ class LyreVideoController extends ChangeNotifier {
   /// Defines if the mute control should be shown
   final bool allowMuting;
 
-  /// Defines the system overlays visible after exiting fullscreen
-  final List<SystemUiOverlay> systemOverlaysAfterFullScreen;
+  /// The Aspect Ratio of the Video. Important to get the correct size of the
+  /// video!
+  ///
+  /// Will fallback to fitting within the space allowed.
+  final double aspectRatio;
+
+  /// Initialize the Video on Startup. This will prep the video for playback.
+  final bool autoInitialize;
+
+  /// Play the video as soon as it's displayed
+  final bool autoPlay;
+
+  /// Defines customised controls. Check [MaterialControls] or
+  /// [CupertinoControls] for reference.
+  final Widget customControls;
 
   /// Defines the set of allowed device orientations after exiting fullscreen
   final List<DeviceOrientation> deviceOrientationsAfterFullScreen;
 
+  /// Defines if the player will start in fullscreen when play is pressed
+  final bool fullScreenByDefault;
+
+  /// Defines if the controls should be for live stream video
+  final bool isLive;
+
+  /// Whether or not the video should loop
+  final bool looping;
+
+  /// A widget which is placed between the video and the controls
+  final Widget overlay;
+
+  /// The placeholder is displayed underneath the Video before it is initialized
+  /// or played.
+  final Widget placeholder;
+
   /// Defines a custom RoutePageBuilder for the fullscreen
   final LyreVideoRoutePageBuilder routePageBuilder;
+
+
+  /// Whether or not to show the controls at all
+  final bool showControls;
+
+  /// Weather or not to show the controls when initializing the widget.
+  final bool showControlsOnInitialize;
+
+  /// Start video at a certain position
+  final Duration startAt;
+
+  /// Defines the system overlays visible after exiting fullscreen
+  final List<SystemUiOverlay> systemOverlaysAfterFullScreen;
+
+  /// The controller for the video you want to play
+  final VideoPlayerController videoPlayerController;
+
+  bool _isFullScreen = false;
+
+  /// When the video playback runs  into an error, you can build a custom
+  /// error message.
+  final Widget Function(BuildContext context, String errorMessage) errorBuilder;
 
   static LyreVideoController of(BuildContext context) {
     final lyreControllerProvider =
@@ -270,8 +274,6 @@ class LyreVideoController extends ChangeNotifier {
 
     return lyreControllerProvider.controller;
   }
-
-  bool _isFullScreen = false;
 
   bool get isFullScreen => _isFullScreen;
 
@@ -305,6 +307,12 @@ class LyreVideoController extends ChangeNotifier {
       enterFullScreen();
       videoPlayerController.removeListener(_fullScreenListener);
     }
+  }
+  bool expanded = false;
+
+  void toggleZoom(){
+    expanded = !expanded;
+    notifyListeners();
   }
 
   void enterFullScreen() {

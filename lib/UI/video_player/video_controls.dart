@@ -116,6 +116,7 @@ class _MaterialControlsState extends State<MaterialControls> {
           lyreVideoController.allowMuting
               ? _buildMuteButton(controller)
               : Container(),
+          _buildZoomButton(),
           lyreVideoController.allowFullScreen
               ? _buildExpandButton()
               : Container(),
@@ -139,6 +140,26 @@ class _MaterialControlsState extends State<MaterialControls> {
             lyreVideoController.isFullScreen
                 ? Icons.fullscreen_exit
                 : Icons.fullscreen,
+          ),
+        ),
+      ),
+    );
+  }
+  GestureDetector _buildZoomButton() {
+    return GestureDetector(
+      onTap: _onZoomToggle,
+      child: Container(
+        height: barHeight,
+        margin: EdgeInsets.only(right: 12.0),
+        padding: EdgeInsets.only(
+          left: 8.0,
+          right: 8.0,
+        ),
+        child: Center(
+          child: Icon(
+            lyreVideoController.expanded
+                ? Icons.zoom_out
+                : Icons.zoom_in,
           ),
         ),
       ),
@@ -306,6 +327,12 @@ class _MaterialControlsState extends State<MaterialControls> {
           _cancelAndRestartTimer();
         });
       });
+    });
+  }
+  void _onZoomToggle() {
+    setState(() {
+
+      lyreVideoController.toggleZoom();
     });
   }
 

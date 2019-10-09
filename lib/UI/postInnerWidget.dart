@@ -22,18 +22,16 @@ import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
 class postInnerWidget extends StatelessWidget {
-
-  final PostView viewSetting;
-  final Submission submission;
-  final PreviewCallback callBack;
-  bool expanded = false;
-  LinkType linkType;
-
   postInnerWidget(this.submission, this.callBack, [this.viewSetting, this.expanded]);
 
-  bool showCircle;
+  final PreviewCallback callBack;
+  bool expanded = false;
   bool fullSizePreviews;
+  LinkType linkType;
   PostView postView;
+  bool showCircle;
+  final Submission submission;
+  final PostView viewSetting;
 
   Widget getWidget(BuildContext context){
     if (submission.isSelf) {
@@ -47,73 +45,11 @@ class postInnerWidget extends StatelessWidget {
           postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
           switch (postView) {
             case PostView.IntendedPreview:
-              if (callBack is PostsListState){ //Only blur in postslist
-                return new Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    getExpandedImage(context),
-                    new Positioned(
-                      bottom: 0.0,
-                      child: 
-                        ((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
-                        (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler))   //Blur Spoiler
-                          ? new BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                              sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                            ),
-                            child: new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getDefaultSlideColumn(context),
-                            ),
-                          )
-                          : new Container(
-                              width: MediaQuery.of(context).size.width,
-                              color: Color.fromARGB(155, 0, 0, 0),
-                              child: getDefaultSlideColumn(context),
-                            ),
-                    ),
-                    (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
-                      ? getCenteredIndicator(linkType, showCircle)
-                      : null
-                ].where((w) => notNull(w)).toList());
-              } else {
-                return Stack(children: <Widget>[
-                  getExpandedImage(context),
-                  new Positioned(
-                    bottom: 0.0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      color: Color.fromARGB(155, 0, 0, 0),
-                      child: getDefaultSlideColumn(context),
-                    ),
-                  )
-                ],);
-              }
-              break;
+              return intendedWidget(context, state);
             case PostView.ImagePreview:
-              return new Column(
-                children: <Widget>[
-                  getExpandedImage(context),
-                  getDefaultSlideColumn(context)
-                ],
-              );
+              return imagePreview(context);
             case PostView.Compact:
-              return getSlideColumn(
-                context,
-                child: new Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      child: defaultColumn(submission, callBack, linkType),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                    ),
-                    getSquaredImage(context)
-                  ],
-                )
-              );
+              return compactWidget(context);
             default:
               return new defaultColumn(submission, callBack, linkType);
           }
@@ -122,7 +58,66 @@ class postInnerWidget extends StatelessWidget {
     }
     return getDefaultSlideColumn(context);
   }
-  
+
+  Widget compactWidget(BuildContext context) {
+    return getSlideColumn(
+      context,
+      child: new Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            child: defaultColumn(submission, callBack, linkType),
+            width: MediaQuery.of(context).size.width * 0.9,
+          ),
+          getSquaredImage(context)
+        ],
+      )
+    );
+  }
+
+  Column imagePreview(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        getExpandedImage(context),
+        getDefaultSlideColumn(context)
+      ],
+    );
+  }
+
+  Stack intendedWidget(BuildContext context, PostsState state) {
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        getExpandedImage(context),
+        new Positioned(
+          bottom: 0.0,
+          child: 
+            (((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
+            (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler)) && callBack is PostsListState)   //Blur Spoiler
+              ? new BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                  sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                ),
+                child: new Container(
+                  width: MediaQuery.of(context).size.width,
+                  color: Color.fromARGB(155, 0, 0, 0),
+                  child: getDefaultSlideColumn(context),
+                ),
+              )
+              : new Container(
+                  width: MediaQuery.of(context).size.width,
+                  color: Color.fromARGB(155, 0, 0, 0),
+                  child: getDefaultSlideColumn(context),
+                ),
+        ),
+        (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
+          ? getCenteredIndicator(linkType, showCircle)
+          : null
+    ].where((w) => notNull(w)).toList());
+  }
+
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
     var y = 250.0; //Default preview height
@@ -172,6 +167,7 @@ class postInnerWidget extends StatelessWidget {
       },
     );
   }
+
   Widget getSquaredImage(BuildContext context){
     return new Container(
       child: getImageWidget(context, false),
@@ -179,6 +175,7 @@ class postInnerWidget extends StatelessWidget {
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
+
   void handleClick(BuildContext context){
     if(linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
@@ -224,6 +221,7 @@ class postInnerWidget extends StatelessWidget {
           child: getIndicator(type),
         );
   }
+
   Widget getIndicator(LinkType type){
     Widget content;
     if(submission.over18 || submission.spoiler){
@@ -237,11 +235,12 @@ class postInnerWidget extends StatelessWidget {
     }
     return Center(child: content);
   }
+
   // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
     return getSlideColumn(context, child: defaultColumn(submission, callBack, linkType));
   }
-  
+
   Widget getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
@@ -271,7 +270,7 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+          icon: IconButton(icon: const Icon(Icons.person),onPressed: (){},color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
               'redditor'        : submission.author,
@@ -313,11 +312,15 @@ class postInnerWidget extends StatelessWidget {
 bool notNull(Object o) => o != null;
 
 class defaultColumn extends StatelessWidget {
-  final Submission submission;
+  defaultColumn(this.submission, this.callback, this.linkType);
+
   final PreviewCallback callback;
   final LinkType linkType;
+  final Submission submission;
 
-  defaultColumn(this.submission, this.callback, this.linkType);
+  void showComments(BuildContext context) {
+    Navigator.of(context).pushNamed('comments', arguments: submission);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -504,11 +507,6 @@ class defaultColumn extends StatelessWidget {
         },
     );
   }
-
-  void showComments(BuildContext context) {
-    Navigator.of(context).pushNamed('comments', arguments: submission);
-  }
-  
 }
 void _launchURL(BuildContext context, Submission submission) async {
     String url = submission.url.toString();

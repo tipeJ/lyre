@@ -145,6 +145,7 @@ class _MaterialControlsState extends State<MaterialControls> {
       ),
     );
   }
+
   GestureDetector _buildZoomButton() {
     return GestureDetector(
       onTap: _onZoomToggle,
@@ -170,32 +171,9 @@ class _MaterialControlsState extends State<MaterialControls> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          Navigator.of(context).maybePop();
+          //Navigator.of(context).maybePop();
         },
-        child: Container(
-          color: Colors.transparent,
-          child: Center(
-            child: AnimatedOpacity(
-              opacity:
-                  _latestValue != null && !_latestValue.isPlaying && !_dragging
-                      ? 1.0
-                      : 0.0,
-              duration: Duration(milliseconds: 300),
-              child: GestureDetector(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dialogBackgroundColor,
-                    borderRadius: BorderRadius.circular(48.0),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Icon(Icons.play_arrow, size: 32.0),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+        child: Container(),
       ),
     );
   }
@@ -320,7 +298,6 @@ class _MaterialControlsState extends State<MaterialControls> {
 
   void _onExpandCollapse() {
     setState(() {
-
       lyreVideoController.toggleFullScreen();
       _showAfterExpandCollapseTimer = Timer(Duration(milliseconds: 300), () {
         setState(() {
@@ -329,9 +306,9 @@ class _MaterialControlsState extends State<MaterialControls> {
       });
     });
   }
+
   void _onZoomToggle() {
     setState(() {
-
       lyreVideoController.toggleZoom();
     });
   }

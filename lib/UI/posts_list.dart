@@ -668,56 +668,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   @override void dispose(){
     controller?.dispose();
 
-  @override
-  void initState(){
-    maxNavBarHeight = 400.0;
-    _navBarController = AnimationController(
-      //<-- initialize a controller
-      vsync: this,
-      duration: Duration(milliseconds: 600),
-    );
-    controller = new AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 325));
-        void initV(BuildContext context) {
-    maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
-    padAnimation = padTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    roundAnimation = roundTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    edgeAnimation = edgeTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    height2Animation = height2Tween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-
-    height2Animation.addListener(() {
-      setState(() {});
-    });
-    padAnimation.addListener(() {
-      setState(() {});
-    });
-    edgeAnimation.addListener(() {
-      setState(() {});
-    });
-    roundAnimation.addListener(() {
-      setState(() {});
-    });
-    controller.reset();
-    widget.controller.addListener((){
-      setState(() {
-      });
-    });
-  }
-    super.initState();
-  }
-
     _navBarController.dispose();
 
     super.dispose();
@@ -734,7 +684,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     );
     controller = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 325));
-        void initV(BuildContext context) {
     maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
     padAnimation = padTween.animate(CurvedAnimation(
         parent: controller,
@@ -770,7 +719,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
       setState(() {
       });
     });
-  }
     super.initState();
   }
 

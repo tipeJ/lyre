@@ -1,30 +1,56 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_advanced_networkimage/zoomable.dart';
 import 'package:lyre/UI/video_player/lyre_video_player.dart';
 import 'package:lyre/UI/video_player/video_controls.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:video_player/video_player.dart';
 
-class LyreVideoPlayer extends StatelessWidget {
+class LyreVideoPlayer extends StatefulWidget {
   LyreVideoPlayer({Key key}) : super(key: key);
 
   @override
+  _LyreVideoPlayerState createState() => _LyreVideoPlayerState();
+}
+
+class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProviderStateMixin{
+
+  @override void initState(){
+    animationController = AnimationController(vsync: this);
+    animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+    super.initState();
+  }
+  AnimationController animationController;
+  CurvedAnimation animation;
+  double fittedScale;
+  @override
   Widget build(BuildContext context) {
     final LyreVideoController lyreVideoController = LyreVideoController.of(context);
+    final aspectRatio = _calculateAspectRatio(context);
+    final videoAspectRatio = lyreVideoController.videoPlayerController.value.aspectRatio;
+    fittedScale = aspectRatio / videoAspectRatio;
     lyreVideoController.addListener((){
-          if (lyreVideoController.expanded != expanded){
-            expanded = lyreVideoController.expanded;
-            final aspectRatio = _calculateAspectRatio(context);
-            final videoAspectRatio = lyreVideoController.videoPlayerController.value.aspectRatio;
-            if (expanded == false && aspectRatio != videoAspectRatio){
-              zoomController.scale = (aspectRatio / videoAspectRatio);
-            } else if (expanded == true){
-              zoomController.reset();
-            }
-          }
+      if (lyreVideoController.expanded != expanded){
+        expanded = lyreVideoController.expanded;
+        if (expanded == true && aspectRatio != videoAspectRatio){
+          animationController.animateTo(1.0, duration: Duration(milliseconds: 300));
+        } else if (expanded == false){
+          animationController.animateTo(0.0, duration: Duration(milliseconds: 300));
         }
-    );
+      }
+    });
+    zoomController.addIgnorableListener((){
+      expanded = zoomController.scale < 1.0 ? false : true;
+      if (lyreVideoController.expanded != expanded){
+        lyreVideoController.toggleZoom();
+      }
+    });
+    animation.addListener((){
+      zoomController.scale = (animation.value * (fittedScale -1)) + 1.0;
+    });
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width,
@@ -33,7 +59,9 @@ class LyreVideoPlayer extends StatelessWidget {
       ),
     );
   }
+
   bool expanded = false;
+
   final PhotoViewController zoomController = PhotoViewController(initialPosition: Offset.zero, initialRotation: 0.0);
 
   Container _buildLyreVideoPlayer(LyreVideoController lyreVideoController, BuildContext context) {
@@ -48,11 +76,7 @@ class LyreVideoPlayer extends StatelessWidget {
             maxScale: 5.0,
             minScale: 1.0,
             childSize: lyreVideoController.videoPlayerController.value.size,
-            child: AspectRatio(
-              aspectRatio: lyreVideoController.aspectRatio ??
-                  _calculateAspectRatio(context),
-              child: VideoPlayer(lyreVideoController.videoPlayerController),
-            ),
+            child: VideoPlayer(lyreVideoController.videoPlayerController),
           ),
           lyreVideoController.overlay ?? Container(),
           _buildControls(context, lyreVideoController),

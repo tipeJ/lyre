@@ -64,6 +64,7 @@ class _VideoProgressBarState extends State<LyreVideoProgressBar> {
           child: CustomPaint(
             painter: _ProgressBarPainter(
               controller.value,
+              Theme.of(context),
             ),
           ),
         ),
@@ -111,9 +112,10 @@ class _VideoProgressBarState extends State<LyreVideoProgressBar> {
 }
 
 class _ProgressBarPainter extends CustomPainter {
-  _ProgressBarPainter(this.value);
+  _ProgressBarPainter(this.value, this.themeData);
 
   VideoPlayerValue value;
+  ThemeData themeData;
 
   @override
   bool shouldRepaint(CustomPainter painter) {
@@ -132,7 +134,7 @@ class _ProgressBarPainter extends CustomPainter {
         ),
         Radius.circular(4.0),
       ),
-      Paint()..color = Colors.blue
+      Paint()..color = Colors.black45
     );
     if (!value.initialized) {
       return;
@@ -152,9 +154,11 @@ class _ProgressBarPainter extends CustomPainter {
           ),
           Radius.circular(4.0),
         ),
-        Paint()..color = Colors.red
+        Paint()..color = Colors.black26
       );
     }
+    // ? Show different color for played process
+    /*
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromPoints(
@@ -165,10 +169,12 @@ class _ProgressBarPainter extends CustomPainter {
       ),
       Paint()..color = Colors.green,
     );
+    */
+    // Indicator:
     canvas.drawCircle(
       Offset(playedPart, size.height / 2 + height / 2),
       height * 3,
-      Paint()..color = Colors.purple,
+      Paint()..color = themeData.accentColor,
     );
   }
 }

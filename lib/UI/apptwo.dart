@@ -169,7 +169,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       });
     } else if (linkType == LinkType.RedditVideo){
       _videoInitialized = _initializeVideo(url, VideoFormat.dash);
-    } else if (linkType == LinkType.TwitchVOD){
+    } else if (linkType == LinkType.TwitchClip){
       final clipVideoUrl = await getTwitchClipVideoLink(url);
       _videoInitialized = _initializeVideo(clipVideoUrl);
     }

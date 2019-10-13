@@ -16,14 +16,14 @@ enum LinkType{
   RedditVideo,
   Gfycat,
   Streamable, // ! Not yet supported
-  TwitchVOD,
+  TwitchClip,
 }
 
 final videoLinkTypes = [
   LinkType.Gfycat,
   LinkType.RedditVideo,
   LinkType.Streamable,
-  LinkType.TwitchVOD
+  LinkType.TwitchClip
 ];
 
 String getYoutubeIdFromUrl(String url){
@@ -53,7 +53,7 @@ LinkType getLinkType(String url){
   } else if(url.contains("v.redd.it")){
     return LinkType.RedditVideo;
   } else if(url.contains("clips.twitch.tv")){
-    return LinkType.TwitchVOD;
+    return LinkType.TwitchClip;
   }
 
   return LinkType.Default;

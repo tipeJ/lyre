@@ -7,9 +7,9 @@ import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
-import 'package:lyre/UI/video_player/lyre_video_player.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:photo_view/photo_view.dart';
 import 'dart:ui';
 import '../Models/Subreddit.dart';
 import '../Blocs/subreddits_bloc.dart';
@@ -22,9 +22,6 @@ import 'interfaces/previewCallback.dart';
 import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 import '../Resources/gfycat_provider.dart';
-import 'package:video_player/video_player.dart';
-
-enum PreviewType { Image, Video }
 
 class PostsView extends StatelessWidget {
   PostsView(String targetRedditor, ContentSource source){
@@ -59,7 +56,7 @@ class PostsList extends StatefulWidget {
   State<PostsList> createState() => new PostsListState(redditor, initialSource);
 }
 
-class PostsListState extends State<PostsList> with TickerProviderStateMixin, PreviewCallback {
+class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   PostsListState(this.redditor, this.initialSource);
 
   bool autoLoad;
@@ -72,7 +69,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
   bool isPreviewing = false;
   final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
   AnimationController previewController;
-  PreviewType previewType;
   var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
 
   final String redditor;
@@ -80,17 +76,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
   ScrollController scontrol = new ScrollController();
   OverlayState state;
   var titletext = "Lyre for Reddit";
-  OverlayEntry videoEntry;
-
-  LyreVideoController _vController;
-  VideoPlayerController _videoController;
-  AnimationController _videoControlsController;
-  Future<void> _videoInitialized;
 
   @override
   void dispose() {
-    _videoController.dispose();
-    _vController.dispose();
     scontrol.dispose();
     previewController?.dispose();
     bloc.dispose();
@@ -105,10 +93,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
         
       });
     });
-    _videoControlsController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200)
-    );
     
     previewController = new AnimationController(
         vsync: this, duration: const Duration(milliseconds: 50));
@@ -119,132 +103,23 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
           width: 400.0,
           height: 500.0,
           child: new Container(
-            child: ZoomableWidget(
-              onTap: (){
-                hideOverlay();
-              },
-              enableRotate: false,
-              multiFingersPan: false,
+            child: PhotoView(
+              enableRotation: false,
               minScale: 1.0,
               maxScale: 5.0,
-              panLimit: 0.8,
-              child: Image(
-                image: AdvancedNetworkImage(
+              imageProvider: AdvancedNetworkImage(
                   previewUrl,
                   useDiskCache: true,
                   cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-              )),
+              ),
             ),
             color: Color.fromARGB(200, 0, 0, 0),
           )
         ),
     );
-
-    videoEntry = OverlayEntry(
-      builder: (context) => Container(
-        color: const Color.fromARGB(200, 0, 0, 0),
-        child: StatefulBuilder(
-          builder: (context, setState){
-            return FutureBuilder(
-              future: _videoInitialized,
-              builder: (context, snapshot){
-                if (snapshot.connectionState == ConnectionState.done){
-                  return LyreVideo(
-                    controller: _vController,
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator(),);
-                }
-              },
-            );
-          },
-          ),
-        ),
-      );
     super.initState();
   }
 
-  @override
-  void preview(String url) {
-    var linkType = getLinkType(url);
-    if (videoLinkTypes.contains(linkType)){
-      if (!isPreviewing) {
-        previewType = PreviewType.Video;
-        if (linkType == LinkType.Gfycat){
-          gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
-            _videoInitialized = _initializeVideo(videoUrl);
-          });
-        } else {
-          _initializeVideo(url, VideoFormat.dash);
-        }
-      }
-    } else if (!isPreviewing){
-      previewType = PreviewType.Image;
-      previewUrl = url.toString();
-      showOverlay();
-    }
-  }
-
-  @override
-  void previewEnd() {
-    if (isPreviewing) {
-      previewUrl = "";
-      // previewController.reverse();
-      hideOverlay();
-    }
-  }
-
-  @override
-  void view(String url) {}
-
-  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
-    
-    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
-    await _videoController.initialize();
-    _vController = LyreVideoController(
-      showControls: true,
-      aspectRatio: _videoController.value.aspectRatio,
-      autoPlay: true,
-      videoPlayerController: _videoController,
-      looping: bloc.currentState.preferences.get(VIDEO_LOOP) ?? true,
-      errorBuilder: (context, errorMessage) {
-        return Center(
-          child: Text(
-            errorMessage,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        );
-      },
-    );
-    showVideoOverlay();
-  }
-
-  showOverlay() {
-    if (!isPreviewing) {
-      state.insert(imageEntry);
-      isPreviewing = true;
-    }
-  }
-
-  showVideoOverlay() {
-    if (!isPreviewing) {
-      state.insert(videoEntry);
-      isPreviewing = true;
-    }
-  }
-
-  hideOverlay() {
-    if (isPreviewing) {
-      if (previewType == PreviewType.Image) {
-        imageEntry.remove();
-      } else if (previewType == PreviewType.Video) {
-        _videoController.pause();
-        videoEntry.remove();
-      }
-      state.deactivate();
-      isPreviewing = false;
-    }
-  }
 
   List<Widget> getRegisteredUsernamesList(List<String> list) {
     List<Widget> widgets = [];
@@ -277,14 +152,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
   Future<bool> _willPop() {
     if (navBarController.isElevated) {
       navBarController.toggleElevation();
-      return new Future.value(false);
-    } else if(isPreviewing){
-      if (_vController != null && _vController.isFullScreen){
-        _vController.exitFullScreen();
-      } else {
-        previewUrl = "";
-        hideOverlay();
-      }
       return new Future.value(false);
     }
     return new Future.value(true);
@@ -355,7 +222,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
               return posts[index] is prefix0.Submission
                     ? new Hero(
                       tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(posts[index] as prefix0.Submission, this)
+                      child: new postInnerWidget(posts[index] as prefix0.Submission, PreviewSource.PostsList)
                     )
                     : new CommentContent(posts[index] as prefix0.Comment);
             }
@@ -597,38 +464,33 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin, Pre
             )
           ),
           body: new Container(
-              child: new GestureDetector(
-                child: new Stack(
-                  children: <Widget>[
-                    StreamBuilder(
-                      stream: bloc.state.takeWhile((PostsState s){
-                        return s.userContent != null;
-                      }),
-                      builder: (context, AsyncSnapshot<PostsState> snapshot){
-                        if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
-                          final state = snapshot.data;
-                          autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
-                          if(state.contentSource == ContentSource.Redditor){
-                            return snapshot.data.targetRedditor.isNotEmpty
-                              ? buildList(snapshot)
-                              : Center(child: CircularProgressIndicator());
-                          } else {
-                            return buildList(snapshot);
-                          }
-                        }else if (snapshot.hasError) {
-                          return Text(snapshot.error.toString());
-                        }else{
-                          return Center(child: CircularProgressIndicator());
+              child: new Stack(
+                children: <Widget>[
+                  StreamBuilder(
+                    stream: bloc.state.takeWhile((PostsState s){
+                      return s.userContent != null;
+                    }),
+                    builder: (context, AsyncSnapshot<PostsState> snapshot){
+                      if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
+                        final state = snapshot.data;
+                        autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
+                        if(state.contentSource == ContentSource.Redditor){
+                          return snapshot.data.targetRedditor.isNotEmpty
+                            ? buildList(snapshot)
+                            : Center(child: CircularProgressIndicator());
+                        } else {
+                          return buildList(snapshot);
                         }
-                      },
-                    ),
-                    new FloatingNavigationBar(controller: navBarController,)
-                  ].where(notNull).toList(),
-                ),
-            onTapUp: (TapUpDetails details) {
-              hideOverlay();
-            },
-          )),
+                      }else if (snapshot.hasError) {
+                        return Text(snapshot.error.toString());
+                      }else{
+                        return Center(child: CircularProgressIndicator());
+                      }
+                    },
+                  ),
+                  new FloatingNavigationBar(controller: navBarController,)
+                ].where(notNull).toList(),
+              )),
         ),
         onWillPop: _willPop);
   }

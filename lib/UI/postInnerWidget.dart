@@ -5,8 +5,7 @@ import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Blocs/bloc/posts_bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/UI/Comments/comment_list.dart';
-import 'package:lyre/UI/posts_list.dart';
+import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';
@@ -22,14 +21,14 @@ import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
 class postInnerWidget extends StatelessWidget {
-  postInnerWidget(this.submission, this.callBack, [this.viewSetting, this.expanded]);
+  postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded]);
 
-  final PreviewCallback callBack;
   bool expanded = false;
   bool fullSizePreviews;
   LinkType linkType;
   PostView postView;
   bool showCircle;
+  final PreviewSource previewSource;
   final Submission submission;
   final PostView viewSetting;
 
@@ -51,7 +50,7 @@ class postInnerWidget extends StatelessWidget {
             case PostView.Compact:
               return compactWidget(context);
             default:
-              return new defaultColumn(submission, callBack, linkType);
+              return new defaultColumn(submission, previewSource, linkType);
           }
         }
       );
@@ -67,7 +66,7 @@ class postInnerWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            child: defaultColumn(submission, callBack, linkType),
+            child: defaultColumn(submission, previewSource, linkType),
             width: MediaQuery.of(context).size.width * 0.9,
           ),
           getSquaredImage(context)
@@ -94,7 +93,7 @@ class postInnerWidget extends StatelessWidget {
           bottom: 0.0,
           child: 
             (((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
-            (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler)) && callBack is PostsListState)   //Blur Spoiler
+            (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
@@ -163,7 +162,7 @@ class postInnerWidget extends StatelessWidget {
         handlePress(context);
       },
       onLongPressUp: (){
-          callBack.previewEnd();
+          PreviewCall().callback.previewEnd();
       },
     );
   }
@@ -181,10 +180,10 @@ class postInnerWidget extends StatelessWidget {
       //TODO: Implement YT plugin?
       _launchURL(context, submission);
     }else if(linkType == LinkType.DirectImage || linkType == LinkType.Gfycat){
-      callBack.preview(submission.url.toString());
+      PreviewCall().callback.preview(submission.url.toString());
     } else if (linkType == LinkType.RedditVideo){
       print(submission.data["media"]["reddit_video"]["fallback_url"] + ".mp4");
-      callBack.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+      PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
       _launchURL(context, submission);
     }
@@ -193,10 +192,10 @@ class postInnerWidget extends StatelessWidget {
   void handlePress(BuildContext context){
     switch (linkType) {
       case LinkType.YouTube:
-        callBack.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(submission.url.toString())));
+        PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(submission.url.toString())));
         break;
       default :
-        callBack.preview(submission.preview.first.source.url.toString());
+        PreviewCall().callback.preview(submission.preview.first.source.url.toString());
         break;
     }
   }
@@ -238,7 +237,7 @@ class postInnerWidget extends StatelessWidget {
 
   // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
-    return getSlideColumn(context, child: defaultColumn(submission, callBack, linkType));
+    return getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
   }
 
   Widget getSlideColumn(BuildContext context, {Widget child}){
@@ -312,9 +311,9 @@ class postInnerWidget extends StatelessWidget {
 bool notNull(Object o) => o != null;
 
 class defaultColumn extends StatelessWidget {
-  defaultColumn(this.submission, this.callback, this.linkType);
+  defaultColumn(this.submission, this.previewSource, this.linkType);
 
-  final PreviewCallback callback;
+  final PreviewSource previewSource;
   final LinkType linkType;
   final Submission submission;
 
@@ -369,7 +368,7 @@ class defaultColumn extends StatelessWidget {
                     fontFamily: "Roboto"
                   ),
                   overflow: TextOverflow.fade,
-                  maxLines: callback is CommentListState ? null : 5,
+                  maxLines: previewSource == PreviewSource.Comments ? null : 5,
                 ),
               ),
               padding: const EdgeInsets.only(

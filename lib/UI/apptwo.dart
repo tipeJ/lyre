@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
-import 'package:lyre/UI/Comments/comment_list.dart';
-import 'package:lyre/UI/Preferences.dart';
 import 'package:lyre/UI/Router.dart';
+import 'package:lyre/UI/interfaces/previewCallback.dart';
+import 'package:lyre/UI/interfaces/previewc.dart';
+import 'package:lyre/UI/video_player/lyre_video_player.dart';
+import 'package:lyre/utils/urlUtils.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'posts_list.dart';
-import 'submit.dart';
-import '../Resources/globals.dart';
+import 'package:video_player/video_player.dart';
 
-class App extends StatelessWidget {
+enum PreviewType { Image, Video }
+
+class App extends StatelessWidget{
+  Widget _buildWithTheme(BuildContext context, ThemeState themeState){
+    return MaterialApp(
+      title: 'Lyre',
+      theme: themeState.themeData,
+      home: LyreApp(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -19,7 +31,7 @@ class App extends StatelessWidget {
         if(snapshot.hasData){
           final prefs = snapshot.data;
           return BlocProvider(
-            builder: (context) => ThemeBloc(snapshot.data.get('currentTheme') == null ? "" : snapshot.data.get('currentTheme')),
+            builder: (context) => ThemeBloc(prefs.get('currentTheme') == null ? "" : prefs.get('currentTheme')),
             child: BlocBuilder<ThemeBloc, ThemeState>(
               builder: _buildWithTheme,
             ),
@@ -36,14 +48,184 @@ class App extends StatelessWidget {
       },
     );
   }
-  Widget _buildWithTheme(BuildContext context, ThemeState themeState){
-    return MaterialApp(
-      title: 'Lyre',
-      theme: themeState.themeData,
-      initialRoute: 'posts',
-      onGenerateRoute: Router.generateRoute,
-    );
+}
+class LyreApp extends StatefulWidget {
+  @override
+  _LyreAppState createState() => _LyreAppState();
+}
+
+class _LyreAppState extends State<LyreApp> with PreviewCallback{
+  _LyreAppState(){
+    PreviewCall().callback = this;
   }
 
+  OverlayEntry imageEntry;
+  bool isPreviewing = false;
+  OverlayState overlayState;
+  var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
+  PreviewType previewType;
 
+  OverlayEntry videoEntry;
+
+  LyreVideoController _vController;
+  VideoPlayerController _videoController;
+  Future<void> _videoInitialized;
+
+  @override
+  void initState(){
+    overlayState = Overlay.of(context);
+    imageEntry = OverlayEntry(
+        builder: (context) => new Container(
+          width: 400.0,
+          height: 500.0,
+          child: new Container(
+            child: PhotoView(
+              enableRotation: false,
+              minScale: 1.0,
+              maxScale: 5.0,
+              imageProvider: AdvancedNetworkImage(
+                  previewUrl,
+                  useDiskCache: true,
+                  cacheRule: CacheRule(maxAge: const Duration(days: 7)),
+              ),
+            ),
+            color: Color.fromARGB(200, 0, 0, 0),
+          )
+        ),
+    );
+    videoEntry = OverlayEntry(
+      builder: (context) => Container(
+        color: const Color.fromARGB(200, 0, 0, 0),
+        child: StatefulBuilder(
+          builder: (context, setState){
+            return FutureBuilder(
+              future: _videoInitialized,
+              builder: (context, snapshot){
+                if (snapshot.connectionState == ConnectionState.done){
+                  return LyreVideo(
+                    controller: _vController,
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator(),);
+                }
+              },
+            );
+          },
+          ),
+        ),
+      );
+    super.initState();
+  }
+
+  @override
+  void preview(String url) {
+    final linkType = getLinkType(url);
+    if (linkType == LinkType.DirectImage){
+      if(!isPreviewing){
+        previewType = PreviewType.Image;
+        previewUrl = url.toString();
+        showOverlay();
+      }
+    } else if (videoLinkTypes.contains(linkType)){
+      if (!isPreviewing) {
+        previewType = PreviewType.Video;
+        if (linkType == LinkType.Gfycat){
+          gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
+            _videoInitialized = _initializeVideo(videoUrl);
+          });
+        } else {
+          _initializeVideo(url, VideoFormat.dash);
+        }
+      }
+    }
+  }
+
+  @override
+  void previewEnd() {
+    if (isPreviewing) {
+      previewUrl = "";
+      // previewController.reverse();
+      hideOverlay();
+    }
+  }
+
+  @override
+  void view(String url) {}
+
+  showOverlay() {
+    if (!isPreviewing) {
+      overlayState.insert(imageEntry);
+      isPreviewing = true;
+    }
+  }
+
+  showVideoOverlay() {
+    if (!isPreviewing) {
+      overlayState.insert(videoEntry);
+      isPreviewing = true;
+    }
+  }
+
+  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
+    
+    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    await _videoController.initialize();
+    _vController = LyreVideoController(
+      showControls: true,
+      aspectRatio: _videoController.value.aspectRatio,
+      autoPlay: true,
+      videoPlayerController: _videoController,
+      looping: true,
+      errorBuilder: (context, errorMessage) {
+        return Center(
+          child: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
+    );
+    showVideoOverlay();
+  }
+
+  hideOverlay() {
+    if (isPreviewing) {
+      if (previewType == PreviewType.Image) {
+        imageEntry.remove();
+      } else if (previewType == PreviewType.Video) {
+        //_videoController.pause();
+        videoEntry.remove();
+      }
+      overlayState.deactivate();
+      isPreviewing = false;
+    }
+  }
+
+  Future<bool> _willPop(){
+    if(isPreviewing){
+      if (_vController != null && _vController.isFullScreen){
+        _vController.exitFullScreen();
+      } else {
+        previewUrl = "";
+        hideOverlay();
+      }
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _willPop,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Navigator(
+            initialRoute: 'posts',
+            onGenerateRoute: Router.generateRoute,
+          );
+        },
+      ),
+    );
+  }
 }

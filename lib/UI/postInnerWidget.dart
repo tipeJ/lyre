@@ -179,13 +179,13 @@ class postInnerWidget extends StatelessWidget {
     if(linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
       _launchURL(context, submission);
-    }else if(linkType == LinkType.DirectImage || linkType == LinkType.Gfycat){
-      PreviewCall().callback.preview(submission.url.toString());
+    } else if(linkType == LinkType.Default){
+      _launchURL(context, submission);
     } else if (linkType == LinkType.RedditVideo){
-      print(submission.data["media"]["reddit_video"]["fallback_url"] + ".mp4");
       PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      _launchURL(context, submission);
+      PreviewCall().callback.preview(submission.url.toString());
+      
     }
   }
 

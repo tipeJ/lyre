@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/video_player/lyre_video_player.dart';
+import 'package:lyre/utils/twitchUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -129,13 +131,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     } else if (videoLinkTypes.contains(linkType)){
       if (!isPreviewing) {
         previewType = PreviewType.Video;
-        if (linkType == LinkType.Gfycat){
-          gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
-            _videoInitialized = _initializeVideo(videoUrl);
-          });
-        } else {
-          _initializeVideo(url, VideoFormat.dash);
-        }
+        handleVideoLink(linkType, url);
       }
     }
   }
@@ -163,6 +159,19 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     if (!isPreviewing) {
       overlayState.insert(videoEntry);
       isPreviewing = true;
+    }
+  }
+
+  void handleVideoLink(LinkType linkType, String url) async {
+    if (linkType == LinkType.Gfycat){
+      gfycatProvider().getGfyWebmUrl(getGfyid(url)).then((videoUrl) {
+        _videoInitialized = _initializeVideo(videoUrl);
+      });
+    } else if (linkType == LinkType.RedditVideo){
+      _videoInitialized = _initializeVideo(url, VideoFormat.dash);
+    } else if (linkType == LinkType.TwitchVOD){
+      final clipVideoUrl = await getTwitchClipVideoLink(url);
+      _videoInitialized = _initializeVideo(clipVideoUrl);
     }
   }
 

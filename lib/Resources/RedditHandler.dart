@@ -41,29 +41,41 @@ Future<void> changeCommentVoteState(VoteState state, Comment c) async {
   }
 }
 //---SUBMISSIONS---
-Future<Submission> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
+Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
-  var x = await subRef.submit(
-    title,
-    selftext: text,
-    nsfw: isNsfw,
-    sendReplies: sendReplies
-     );
-  return r.submission(id: x.id).populate();
+  try {
+    var x = await subRef.submit(
+      title,
+      selftext: text,
+      nsfw: isNsfw,
+      sendReplies: sendReplies
+      );
+    return r.submission(id: x.id).populate();
+  } catch (e) {
+    return e.toString();
+  }
 }
-Future<Submission> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
+Future<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
-  var x = await subRef.submit(
-    title,
-    url: url,
-    nsfw: isNsfw,
-    sendReplies: sendReplies
-     );
-  return r.submission(id: x.id).populate();
+  try {
+    var x = await subRef.submit(
+      title,
+      url: url,
+      nsfw: isNsfw,
+      sendReplies: sendReplies
+    );
+    return r.submission(id: x.id).populate();
+  } catch (e) {
+    return e.toString();
+  }  
 }
-Future<Submission> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile) async {
-  var url = await ImgurAPI().uploadImage(imageFile, title);
-  return submitLink(sub, title, url, isNsfw, sendReplies);
+Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile) async {
+  try {
+    var url = await ImgurAPI().uploadImage(imageFile, title);
+    return submitLink(sub, title, url, isNsfw, sendReplies);
+  } catch (e) {
+    return e.toString();
+  }  
 }

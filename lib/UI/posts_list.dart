@@ -8,20 +8,16 @@ import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
-import 'package:lyre/utils/urlUtils.dart';
-import 'package:photo_view/photo_view.dart';
 import 'dart:ui';
 import '../Models/Subreddit.dart';
 import '../Blocs/subreddits_bloc.dart';
 import '../Resources/globals.dart';
 import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';
-import 'package:flutter_advanced_networkimage/zoomable.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
 import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
-import '../Resources/gfycat_provider.dart';
 
 class PostsView extends StatelessWidget {
   PostsView(String targetRedditor, ContentSource source){

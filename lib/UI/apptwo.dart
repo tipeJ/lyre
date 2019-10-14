@@ -178,6 +178,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
     
     _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    showVideoOverlay();
     await _videoController.initialize();
     _vController = LyreVideoController(
       showControls: true,
@@ -194,7 +195,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
         );
       },
     );
-    showVideoOverlay();
   }
 
   hideOverlay() {
@@ -220,7 +220,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       }
       return Future.value(false);
     }
-    return Future.value(true);
+    return Future.value(false);
   }
 
   @override
@@ -230,7 +230,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Navigator(
-            initialRoute: 'posts',
+            initialRoute: 'submit',
             onGenerateRoute: Router.generateRoute,
           );
         },

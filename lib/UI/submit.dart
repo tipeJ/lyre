@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
-import '../Models/Post.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -143,12 +142,20 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                             switch (_submitType) {
                               case SubmitType.Selftext:
                                 submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((sub){
-                                  showComments(context, sub);
+                                  if (sub is String){
+                                    showSnackBar(sub);
+                                  } else {
+                                    showComments(context, sub);
+                                  }
                                 });
                                 break;
                               case SubmitType.Link:
                                 submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
-                                  showComments(context, submission);
+                                  if (submission is String){
+                                    showSnackBar(submission);
+                                  } else {
+                                    showComments(context, submission);
+                                  }
                                 });
                                 break;
                               case SubmitType.Image:
@@ -168,10 +175,15 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                                   }
                                 );
                                 submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
-                                  showComments(context, submission);
+                                  if (submission is String){
+                                    showSnackBar(submission);
+                                  } else {
+                                    showComments(context, submission);
+                                  }
                                 });
                                 break;
                               default:
+                                break;
                           }
                         }else{
                           final snackBar = SnackBar(
@@ -301,10 +313,17 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
       ),
     );
   }
+  void showSnackBar(String msg){
+    final snackBar = SnackBar(
+      content: Text(msg),
+    );
+    setState(() {
+      Scaffold.of(context).showSnackBar(snackBar);
+    });
+  }
   Widget getPreviewWidget(){
     switch (_submitType) {
       case SubmitType.Selftext:
-        return HtmlWidget(prefix0.markdownToHtml(markdownData, extensionSet: prefix0.ExtensionSet.gitHubFlavored,));
         return Html(data: prefix0.markdownToHtml(markdownData, extensionSet: prefix0.ExtensionSet.gitHubFlavored,));
         break;
       case SubmitType.Link:

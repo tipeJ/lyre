@@ -64,23 +64,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
   Widget headerWidget;
 
-  OverlayEntry imageEntry;
   final ContentSource initialSource;
-  bool isPreviewing = false;
   final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
-  AnimationController previewController;
-  var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
-
   final String redditor;
 
   ScrollController scontrol = new ScrollController();
-  OverlayState state;
   var titletext = "Lyre for Reddit";
 
   @override
   void dispose() {
     scontrol.dispose();
-    previewController?.dispose();
     bloc.dispose();
     super.dispose();
   }
@@ -93,30 +86,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         
       });
     });
-    
-    previewController = new AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 50));
-
-    state = Overlay.of(context);
-    imageEntry = OverlayEntry(
-        builder: (context) => new Container(
-          width: 400.0,
-          height: 500.0,
-          child: new Container(
-            child: PhotoView(
-              enableRotation: false,
-              minScale: 1.0,
-              maxScale: 5.0,
-              imageProvider: AdvancedNetworkImage(
-                  previewUrl,
-                  useDiskCache: true,
-                  cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-              ),
-            ),
-            color: Color.fromARGB(200, 0, 0, 0),
-          )
-        ),
-    );
     super.initState();
   }
 

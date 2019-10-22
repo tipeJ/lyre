@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:lyre/UI/video_player/progress_bar.dart';
@@ -14,7 +16,7 @@ class MaterialControls extends StatefulWidget {
   }
 }
 
-class _MaterialControlsState extends State<MaterialControls> {
+class _MaterialControlsState extends State<MaterialControls> with SingleTickerProviderStateMixin{
   VideoPlayerValue _latestValue;
   double _latestVolume;
   Timer _hideTimer;
@@ -22,6 +24,47 @@ class _MaterialControlsState extends State<MaterialControls> {
   Timer _showAfterExpandCollapseTimer;
   bool _dragging = false;
   bool _displayTapped = false;
+
+  AnimationController _expansionController;
+  bool isElevated = false;
+  final expandedBarHeight = 48.0;
+  
+
+    double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
+
+    void _handleNavDragUpdate(DragUpdateDetails details) {
+    _expansionController.value -= details.primaryDelta /
+        expandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
+  }
+
+  void _reverseNav() {
+    _expansionController.fling(velocity: -2.0);
+    isElevated = false;
+  }
+
+  void _handleNavDragEnd(DragEndDetails details) {
+    if (_expansionController.status == AnimationStatus.completed) {
+      isElevated = true;
+    }
+    if (_expansionController.isAnimating ||
+        _expansionController.status == AnimationStatus.completed) return;
+
+    final double flingVelocity = details.velocity.pixelsPerSecond.dy /
+        expandedBarHeight; //<-- calculate the velocity of the gesture
+    if (flingVelocity < 0.0) {
+      _expansionController.fling(
+          velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
+      isElevated = true;
+    } else if (flingVelocity > 0.0) {
+      _expansionController.fling(
+          velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
+      isElevated = false;
+    } else
+      _expansionController.fling(
+          velocity: _expansionController.value < 0.5
+              ? -2.0
+              : 2.0); //<-- or just continue to whichever edge is closer
+  }
 
   final barHeight = 48.0;
   final marginSize = 5.0;
@@ -64,7 +107,17 @@ class _MaterialControlsState extends State<MaterialControls> {
                     ),
                   )
                 : _buildHitArea(),
-            _buildBottomBar(context),
+            Column(children: <Widget>[
+              _buildBottomBar(context),
+              AnimatedBuilder(
+                animation: _expansionController,
+                builder: (context, child){
+                  return Container(
+
+                  );
+                },
+              )
+            ],),
           ],
         ),
       ),
@@ -82,6 +135,16 @@ class _MaterialControlsState extends State<MaterialControls> {
     _hideTimer?.cancel();
     _initTimer?.cancel();
     _showAfterExpandCollapseTimer?.cancel();
+  }
+
+  @override
+  void initState() { 
+    _expansionController = AnimationController(
+      //<-- initialize a controller
+      vsync: this,
+      duration: Duration(milliseconds: 600),
+    );
+    super.initState();
   }
 
   @override
@@ -123,6 +186,73 @@ class _MaterialControlsState extends State<MaterialControls> {
         ],
       ),
     );
+  }
+  Container _buildBottomExpandingBar(
+    BuildContext context,
+  ) {
+    final iconColor = Theme.of(context).textTheme.button.color;
+
+    return Container(
+      height: lerp(0, 48.0),
+      color: Colors.black.withOpacity(0.5),
+      child: Row(
+        children: <Widget>[
+          _buildSlowerButton(),
+          _buildPlayBackSpeedIndicator(),
+          _buildFasterButton()
+        ],
+      ),
+    );
+  }
+
+  Container _buildPlayBackSpeedIndicator(){
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 6.0),
+      child: Text(
+        "" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
+      ),
+    );
+  }
+
+  GestureDetector _buildSlowerButton() {
+    return GestureDetector(
+      onTap: _playSlower,
+      child: Container(
+        height: barHeight,
+        margin: EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.only(
+          left: 8.0,
+          right: 8.0,
+        ),
+        child: Center(
+          child: Icon(Icons.fast_rewind)
+        ),
+      ),
+    );
+  }
+
+  GestureDetector _buildFasterButton() {
+    return GestureDetector(
+      onTap: _playFaster,
+      child: Container(
+        height: barHeight,
+        margin: EdgeInsets.symmetric(horizontal: 6.0),
+        padding: EdgeInsets.only(
+          left: 8.0,
+          right: 8.0,
+        ),
+        child: Center(
+          child: Icon(Icons.fast_forward)
+        ),
+      ),
+    );
+  }
+
+  void _playSlower(){
+    // ? NOT YET SUPPORTED BY VIDEO_PLAYER
+  }
+  void _playFaster(){
+    // ? NOT YET SUPPORTED BY VIDEO_PLAYER
   }
 
   GestureDetector _buildExpandButton() {

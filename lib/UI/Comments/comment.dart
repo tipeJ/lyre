@@ -107,7 +107,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                   tag: 'comment_hero ${comment.id}',
                 ),
                 onTap: (){
-                  BlocProvider.of<CommentsBloc>(context).dispatch(CollapseX(c: comment));
+                  BlocProvider.of<CommentsBloc>(context).add(CollapseX(c: comment));
                 },
               )
             ),
@@ -244,7 +244,7 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
           if (moreComments.id != bloc.loadingMoreId) {
             setState(() {
               bloc.loadingMoreId = moreComments.id;
-              bloc.dispatch(FetchMore(moreComments: moreComments, location: index));
+              bloc.add(FetchMore(moreComments: moreComments, location: index));
             });
           }
         },

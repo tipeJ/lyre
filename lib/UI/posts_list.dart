@@ -70,7 +70,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   @override
   void dispose() {
     scontrol.dispose();
-    bloc.dispose();
+    bloc.drain();
     super.dispose();
   }
 
@@ -130,7 +130,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         if (scrollInfo.depth != 0) return true;
         if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
           setState(() {
-            bloc.dispatch(FetchMore());
+            bloc.add(FetchMore());
           });
         }
         if (scrollInfo is ScrollUpdateNotification) {
@@ -154,7 +154,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 child: FlatButton(
                     onPressed: () {
                       setState(() {
-                        bloc.dispatch(FetchMore());
+                        bloc.add(FetchMore());
                       });
                     },
                     child: const Text("Load More")),
@@ -240,16 +240,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 
   void refreshList(){
-    bloc.dispatch(PostsSourceChanged());
+    bloc.add(PostsSourceChanged());
   }
 
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
-    if (bloc.currentState.userContent == null || bloc.currentState.userContent.isEmpty) {
-      bloc.dispatch(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
+    if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
+      bloc.add(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
     }
-    bloc.state.listen((PostsState state){
+    bloc.listen((PostsState state){
       if(state.userContent.isNotEmpty && !state.updated) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
     });
     return new WillPopScope(
@@ -432,7 +432,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               child: new Stack(
                 children: <Widget>[
                   StreamBuilder(
-                    stream: bloc.state.takeWhile((PostsState s){
+                    stream: bloc.takeWhile((PostsState s){
                       return s.userContent != null;
                     }),
                     builder: (context, AsyncSnapshot<PostsState> snapshot){
@@ -560,7 +560,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   List<Widget> _createParams([bool type]) {
-    switch (BlocProvider.of<PostsBloc>(context).currentState.contentSource) {
+    switch (BlocProvider.of<PostsBloc>(context).state.contentSource) {
       case ContentSource.Subreddit:
         return (type)
           ? sortTypeParams()
@@ -580,7 +580,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
           if (tempType != "") {
             parseTypeFilter(tempType);
             currentSortTime = sortTimes[index];
-            BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+            BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
             tempType = "";
           }
           _changeTypeVisibility();
@@ -601,7 +601,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
               parseTypeFilter(q);
               currentSortTime = "";
 
-              BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
               //bloc.resetFilters();
 
               _changeParamsVisibility();
@@ -626,7 +626,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                   parseTypeFilter(q);
                   currentSortTime = "";
 
-                  BlocProvider.of<PostsBloc>(context).dispatch(ParamsChanged());
+                  BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
                   //bloc.resetFilters();
 
                   _changeParamsVisibility();
@@ -719,7 +719,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   void refreshList(){
-    BlocProvider.of<PostsBloc>(context).dispatch(PostsSourceChanged());
+    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged());
   }
 
   @override
@@ -817,7 +817,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                                 Expanded(
                                                   child: InkWell(
                                                     child: StreamBuilder(
-                                                      stream: BlocProvider.of<PostsBloc>(context).state,
+                                                      stream: BlocProvider.of<PostsBloc>(context),
                                                       builder: (context, AsyncSnapshot<PostsState> snapshot){
                                                         return snapshot.hasData && snapshot.data.userContent.isNotEmpty
                                                         ? Column(
@@ -849,7 +849,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                                     _changeParamsVisibility();
                                                   },
                                                 )),
-                                                (BlocProvider.of<PostsBloc>(context).currentState != null && BlocProvider.of<PostsBloc>(context).currentState.contentSource == ContentSource.Subreddit)
+                                                (BlocProvider.of<PostsBloc>(context).state != null && BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit)
                                                   ? IconButton(
                                                     icon: Icon(Icons.create),
                                                     onPressed: () {
@@ -1022,37 +1022,37 @@ class SelfContentTypeWidget extends StatelessWidget {
         final bloc = BlocProvider.of<PostsBloc>(context);
         switch (contentType) {
           case "Comments":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Comments
             ));
             break;
           case "Submitted":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Submitted
             ));
             break;
           case "Upvoted":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Upvoted
             ));
             break;
           case "Saved":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Saved
             ));
             break;
           case "Hidden":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Hidden
             ));
             break;
           case "Watching":
-            bloc.dispatch(PostsSourceChanged(
+            bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
               selfContentType: SelfContentType.Watching
             ));

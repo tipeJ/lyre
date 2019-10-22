@@ -230,7 +230,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Navigator(
-            initialRoute: 'submit',
+            initialRoute: 'posts',
             onGenerateRoute: Router.generateRoute,
           );
         },

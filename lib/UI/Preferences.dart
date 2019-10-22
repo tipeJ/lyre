@@ -314,7 +314,7 @@ class _PreferencesViewState extends State<PreferencesView> {
           onTap: (){
             //Make the bloc output a new ThemeState
             box.put(CURRENT_THEME, lyreAppTheme.toString());
-            BlocProvider.of<ThemeBloc>(context).dispatch(ThemeChanged(theme: lyreAppTheme));
+            BlocProvider.of<ThemeBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
           },
         ),
       ));

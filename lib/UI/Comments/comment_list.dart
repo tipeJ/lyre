@@ -45,8 +45,8 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.currentState == null || bloc.currentState.isEmpty){
-      bloc.dispatch(SortChanged(submission, CommentSortType.best));
+    if(bloc.state == null || bloc.state.isEmpty){
+      bloc.add(SortChanged(submission, CommentSortType.best));
     }
     return new WillPopScope(
         child: Scaffold(
@@ -83,7 +83,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                       ),
                       
                       new StreamBuilder(
-                        stream: bloc.state,
+                        stream: bloc,
                         builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
                           if (snapshot.hasData) {
                             return getCommentWidgets(context, snapshot.data);
@@ -124,7 +124,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   }
   
   bool getWidgetVisibility(int index){
-    var item = bloc.currentState[index];
+    var item = bloc.state[index];
     if(item is MoreComments){
       return !getWidgetVisibility(index-1);
     }

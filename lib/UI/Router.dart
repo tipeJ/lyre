@@ -4,6 +4,7 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
+import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import 'package:lyre/UI/submit.dart';
@@ -40,5 +41,11 @@ class Router {
           );
         });
     }
+  }
+  Widget popWidget(Widget child){
+    return WillPopScope(
+      onWillPop: PreviewCall().callback.canPop,
+      child: child,
+    );
   }
 }

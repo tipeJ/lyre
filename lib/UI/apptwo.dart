@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';

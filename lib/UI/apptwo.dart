@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';
@@ -210,7 +209,8 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     }
   }
 
-  Future<bool> _willPop(){
+  @override
+  Future<bool> canPop(){
     if(isPreviewing){
       if (_vController != null && _vController.isFullScreen){
         _vController.exitFullScreen();
@@ -225,6 +225,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return WillPopScope(
       onWillPop: _willPop,
       child: LayoutBuilder(
@@ -235,6 +236,15 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           );
         },
       ),
+=======
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Navigator(
+          initialRoute: 'submit',
+          onGenerateRoute: Router.generateRoute,
+        );
+      },
+>>>>>>> 9419c9af82afb780d76fefefd8acaca6bfd92d28
     );
   }
 }

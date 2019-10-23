@@ -225,18 +225,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return WillPopScope(
-      onWillPop: _willPop,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Navigator(
-            initialRoute: 'posts',
-            onGenerateRoute: Router.generateRoute,
-          );
-        },
-      ),
-=======
     return LayoutBuilder(
       builder: (context, constraints) {
         return Navigator(
@@ -244,7 +232,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           onGenerateRoute: Router.generateRoute,
         );
       },
->>>>>>> 9419c9af82afb780d76fefefd8acaca6bfd92d28
     );
   }
 }

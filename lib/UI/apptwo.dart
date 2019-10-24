@@ -1,3 +1,4 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -74,6 +75,8 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   void initState(){
+    BackButtonInterceptor.add(myInterceptor);
+
     overlayState = Overlay.of(context);
     imageEntry = OverlayEntry(
         builder: (context) => new Container(
@@ -210,7 +213,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   }
 
   @override
-  Future<bool> canPop(){
+  Future<bool> canPop() async {
     if(isPreviewing){
       if (_vController != null && _vController.isFullScreen){
         _vController.exitFullScreen();
@@ -218,9 +221,29 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
         previewUrl = "";
         hideOverlay();
       }
-      return Future.value(false);
+      return false;
     }
-    return Future.value(false);
+    return true;
+  }
+
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(myInterceptor);
+    super.dispose();
+  }
+
+  bool myInterceptor(bool stopDefaultButtonEvent) {
+    if(isPreviewing){
+      if (_vController != null && _vController.isFullScreen){
+        _vController.exitFullScreen();
+      } else {
+        previewUrl = "";
+        hideOverlay();
+      }
+      Navigator.maybePop(context);
+    }
+    Navigator.maybePop(context);
+    return true;
   }
 
   @override

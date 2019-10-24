@@ -20,18 +20,18 @@ class Router {
           redditor = args['redditor'] as String;
           source = args['content_source'] as ContentSource;
         }
-        return MaterialPageRoute(builder: (_) => PostsView(redditor, source));
+        return MaterialPageRoute(builder: (_) => popWidget(PostsView(redditor, source)));
       case 'comments':
         Submission submission = settings.arguments as Submission;
         if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)
         recentlyViewed.add(submission); //Adds the submission to the top of the recently viewed list
-        return MaterialPageRoute(builder: (_) => CommentsList(submission));
+        return MaterialPageRoute(builder: (_) => popWidget(CommentsList(submission)));
       case 'settings':
-        return MaterialPageRoute(builder: (_) => PreferencesView());
+        return MaterialPageRoute(builder: (_) => popWidget(PreferencesView()));
       case 'submit':
-        return MaterialPageRoute(builder: (_) => SubmitWindow());
+        return MaterialPageRoute(builder: (_) => popWidget(SubmitWindow()));
       case 'reply':
-        return MaterialPageRoute(builder: (_) => replyWindow(settings.arguments as Comment));
+        return MaterialPageRoute(builder: (_) => popWidget(replyWindow(settings.arguments as Comment)));
       default:
         return MaterialPageRoute(builder: (_) {
           return Scaffold(
@@ -42,7 +42,7 @@ class Router {
         });
     }
   }
-  Widget popWidget(Widget child){
+  static Widget popWidget(Widget child){
     return WillPopScope(
       onWillPop: PreviewCall().callback.canPop,
       child: child,

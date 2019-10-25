@@ -25,6 +25,8 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   bool _dragging = false;
   bool _displayTapped = false;
 
+  final buttonPadding = 20.0;
+
   AnimationController _expansionController;
   bool isExpanded = false;
   final expandedBarHeight = 48.0;
@@ -167,6 +169,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     final iconColor = Theme.of(context).textTheme.button.color;
 
     return Container(
+      padding: EdgeInsets.symmetric(horizontal: buttonPadding),
       height: barHeight,
       color: Colors.black.withOpacity(0.5),
       child: Row(
@@ -190,27 +193,35 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   Container _buildBottomExpandingBar(
     BuildContext context,
   ) {
-    final iconColor = Theme.of(context).textTheme.button.color;
-
     return Container(
       height: lerp(0, 48.0),
       color: Colors.black.withOpacity(0.5),
-      child: Row(
-        children: <Widget>[
-          _buildSlowerButton(),
-          _buildPlayBackSpeedIndicator(),
-          _buildFasterButton()
-        ],
-      ),
+      child: Padding(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Icon(Icons.settings), //TODO: IMPLEMENT
+            Row(children: <Widget>[
+              _buildSlowerButton(),
+              _buildPlayBackSpeedIndicator(),
+              _buildFasterButton()
+            ],),
+            Icon(Icons.share) //TODO: IMPLEMENT
+          ],
+        ),
+        padding: EdgeInsets.symmetric(horizontal: buttonPadding),
+      )
     );
   }
 
   Container _buildPlayBackSpeedIndicator(){
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 6.0),
-      child: Text(
-        "1.0" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
-      ),
+      margin: EdgeInsets.symmetric(horizontal: buttonPadding),
+      child: Material(
+        child: Text(
+          "1.0" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
+        ),
+      )
     );
   }
 
@@ -219,7 +230,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _playSlower,
       child: Container(
         height: barHeight,
-        margin: EdgeInsets.symmetric(horizontal: 6.0),
         padding: EdgeInsets.only(
           left: 8.0,
           right: 8.0,
@@ -236,7 +246,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _playFaster,
       child: Container(
         height: barHeight,
-        margin: EdgeInsets.symmetric(horizontal: 6.0),
         padding: EdgeInsets.only(
           left: 8.0,
           right: 8.0,
@@ -260,11 +269,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _onExpandCollapse,
       child: Container(
         height: barHeight,
-        margin: EdgeInsets.only(right: 12.0),
-        padding: EdgeInsets.only(
-          left: 8.0,
-          right: 8.0,
-        ),
         child: Center(
           child: Icon(
             lyreVideoController.isFullScreen
@@ -281,11 +285,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _onZoomToggle,
       child: Container(
         height: barHeight,
-        margin: EdgeInsets.only(right: 12.0),
-        padding: EdgeInsets.only(
-          left: 8.0,
-          right: 8.0,
-        ),
+        margin: EdgeInsets.only(right: buttonPadding),
         child: Center(
           child: Icon(
             lyreVideoController.expanded
@@ -325,11 +325,8 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       child: ClipRect(
         child: Container(
           child: Container(
+            margin: EdgeInsets.only(right: buttonPadding),
             height: barHeight,
-            padding: EdgeInsets.only(
-              left: 8.0,
-              right: 8.0,
-            ),
             child: Icon(
               (_latestValue != null && _latestValue.volume > 0)
                   ? Icons.volume_up
@@ -347,11 +344,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       child: Container(
         height: barHeight,
         color: Colors.transparent,
-        margin: EdgeInsets.only(left: 8.0, right: 4.0),
-        padding: EdgeInsets.only(
-          left: 12.0,
-          right: 12.0,
-        ),
+        margin: EdgeInsets.only(right: buttonPadding),
         child: Icon(
           controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
         ),

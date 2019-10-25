@@ -187,6 +187,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       autoPlay: true,
       videoPlayerController: _videoController,
       looping: true,
+      placeholder: CircularProgressIndicator(),
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(

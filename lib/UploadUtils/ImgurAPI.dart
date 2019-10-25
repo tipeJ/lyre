@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lyre/Models/image.dart';
 import 'package:retrofit/dio.dart';
 import 'package:retrofit/http.dart';
 import 'dart:io';
@@ -14,10 +15,11 @@ class ImgurAPI {
   factory ImgurAPI(){
     return _instance;
   }
-  String client_id = "5d4483785a696ca";
-  String client_secret = "e2f8b7c938d7659dbde3623b22d59f2cbe98d767";
+  final String client_id = "5d4483785a696ca";
+  final String client_secret = "e2f8b7c938d7659dbde3623b22d59f2cbe98d767";
 
-  String imageUploadUrl = "https://api.imgur.com/3/upload";
+  final String imageUploadUrl = "https://api.imgur.com/3/upload";
+  final String albumGetUrl = "https://api.imgur.com/3/album/";
   /*
   void postImage(
     @Header("Authorization") String auth,
@@ -43,7 +45,26 @@ class ImgurAPI {
     final responseJson = json.decode(response.body);
     return responseJson['data']['link'];
   }
-  static List<String> getAlbumUrls(String url){
-    
+  Future<List<LyreImage>> getAlbumPictures(String url) async {
+    final String id = url.split("/").last;
+    print('id:' + id);
+    final response = await http.get(
+      albumGetUrl + id,
+      headers: {
+        "Authorization": 'Client-ID ${client_id}'
+      }
+    );
+    print('response: ' + response.body);
+    final imagesJson = json.decode(response.body)['data']['images'];
+    final List<LyreImage> images = [];
+    imagesJson.forEach((image){
+      final imageUrl = image['link'];
+      print('image: ' + imageUrl);
+      final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last + "m." + imageUrl.split(",").last;
+      print('thumb: ' + thumbNailUrl);
+
+      images.add(LyreImage(description: image['description'], url: imageUrl, thumbnailUrl: thumbNailUrl));
+    });
+    return images;
   }
 }

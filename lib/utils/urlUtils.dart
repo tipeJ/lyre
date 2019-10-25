@@ -28,7 +28,7 @@ final videoLinkTypes = [
 
 final albumLinkTypes = [
   LinkType.ImgurAlbum
-]
+];
 
 String getYoutubeIdFromUrl(String url){
   if (url.contains("youtu.be")){
@@ -52,6 +52,8 @@ LinkType getLinkType(String url){
     return LinkType.DirectImage;
   } else if (url.contains("youtube.com") || url.contains("youtu.be")){
     return LinkType.YouTube;
+  } else if(url.contains("imgur.com/a/")) {
+    return LinkType.ImgurAlbum;
   } else if (url.contains("gfycat.com")){
     return LinkType.Gfycat;
   } else if(url.contains("v.redd.it")){

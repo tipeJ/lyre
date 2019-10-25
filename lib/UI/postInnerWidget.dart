@@ -184,8 +184,8 @@ class postInnerWidget extends StatelessWidget {
     } else if (linkType == LinkType.RedditVideo){
       PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
+      print("URL:" + submission.url.toString());
       PreviewCall().callback.preview(submission.url.toString());
-      
     }
   }
 

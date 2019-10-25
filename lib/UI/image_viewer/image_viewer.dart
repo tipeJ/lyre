@@ -4,24 +4,22 @@ import 'dart:ui' as prefix0;
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:lyre/Models/image.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 class ImageViewer extends StatelessWidget {
-  UserContent content;
+  Submission submission;
   LinkType linkType;
+  String url;
 
-  ImageViewer(String url, [UserContent userContent]){
+  ImageViewer(String url, [Submission submission]){
+    this.url = url;
     linkType = getLinkType(url);
-    if (userContent != null){
-      content = userContent;
-    }
-    if (albumLinkTypes.contains(linkType)){
-      if (linkType == LinkType.ImgurAlbum){
-        albumController = AlbumController(ImgurAPI.getAlbumUrls(url), content);
-      }
+    if (submission != null){
+      this.submission = submission;
     }
   }
 
@@ -29,29 +27,49 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (albumLinkTypes.contains(linkType)){
+      if (albumController != null) return AlbumViewer(albumController: albumController,);
+      return FutureBuilder(
+        future: ImgurAPI().getAlbumPictures(url),
+        builder: (context, AsyncSnapshot<List<LyreImage>> snapshot){
+          if (snapshot.hasData){
+            albumController = AlbumController(snapshot.data, submission, linkType);
+            return Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                AlbumViewer(albumController: albumController,),
+                Positioned(
+                  bottom: 0.0,
+                  child: AlbumControlsBar(controller: albumController,),
+                )
+              ],
+            );
+          } else {
+            return const Center(child: const CircularProgressIndicator(),);
+          }
+        },
+      );
+    }
     return Stack(
       fit: StackFit.expand,
-      children: albumLinkTypes.contains(linkType) 
-        ? <Widget> [
-          AlbumViewer(albumController: albumController,),
-          Positioned(
-            bottom: 0.0,
-            child: AlbumControlsBar(controller: albumController,),
-          )
-        ]
-        : <Widget> [
-          
-        ],
+      children: <Widget> [
+        SingleImageViewer(url),
+        Positioned(
+          bottom: 0.0,
+          child: ImageControlsBar(submission: submission, url: url,),
+        )
+      ]
     );
   }
 }
 
 class AlbumController extends ChangeNotifier{
-  final List<String> imageUrls;
-  UserContent userContent;
+  List<LyreImage> images; //dynamic json response if Imgur album, otherwise a direct link URL string
+  LinkType linkType;
+  Submission submission;
   int currentIndex = 0;
 
-  AlbumController(this.imageUrls, this.userContent, [this.currentIndex]);
+  AlbumController(this.images, this.submission, this.linkType, [this.currentIndex]);
 
   void setCurrentIndex(int newIndex){
     currentIndex = newIndex;
@@ -67,17 +85,32 @@ class AlbumViewer extends StatefulWidget {
 }
 
 class _AlbumViewerState extends State<AlbumViewer> {
+  final pageController = PageController();
+
+  @override
+  void initState() { 
+    widget.albumController.addListener((){
+      setState(() {
+        pageController.jumpToPage(widget.albumController.currentIndex);
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return PhotoViewGallery.builder(
-      itemCount: widget.albumController.imageUrls.length,
+      pageController: pageController,
+      itemCount: widget.albumController.images.length,
       builder: (context, i){
-        final url = widget.albumController.imageUrls[i];
-        switch (getLinkType(url)) {
+        final image = widget.albumController.images[i].url;
+        switch (getLinkType(image)) {
           case LinkType.DirectImage:
             return PhotoViewGalleryPageOptions(
+              minScale: 0.5,
+              maxScale: 5.0,
               imageProvider: AdvancedNetworkImage(
-                url,
+                image,
                 useDiskCache: true,
                 cacheRule: const CacheRule(maxAge: Duration(days: 7))
               )
@@ -101,6 +134,8 @@ class SingleImageViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PhotoView(
+      minScale: 0.5,
+      maxScale: 5.0,
       imageProvider: AdvancedNetworkImage(
         previewUrl,
         // TODO: IMPLEMENT loadingProgress indicator
@@ -179,7 +214,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
        child: GestureDetector(
          child: Column(children: <Widget>[
           getPreviewsBar(context),
-          ImageControlsBar(content: widget.controller.userContent,)
+          ImageControlsBar(submission: widget.controller.submission,)
         ],),
         onVerticalDragUpdate: _handleExpandedDragUpdate,
         onVerticalDragEnd: _handleExpandedDragEnd,
@@ -191,22 +226,34 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
     return Container(
       height: lerp(0, expandedBarHeight),
       width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: ListView.builder(
-        itemCount: widget.controller.imageUrls.length,
+        itemCount: widget.controller.images.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, i){
-          final url = widget.controller.imageUrls[i];
-          if (getLinkType(url) == LinkType.DirectImage){
-            return SizedBox(
-              width: 50.0,
-              child: Image(
-                image: AdvancedNetworkImage(
-                  url,
-                  useDiskCache: true,
-                  cacheRule: CacheRule(maxAge: Duration(days: 7))
+          final url = widget.controller.images[i].thumbnailUrl;
+          if (url != null && getLinkType(url) == LinkType.DirectImage){
+            return InkWell(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 3.0),
+                width: 75.0,
+                height: expandedBarHeight,
+                child: Stack(children: <Widget>[
+                  Image(
+                    image: AdvancedNetworkImage(
+                      url,
+                      useDiskCache: true,
+                      cacheRule: CacheRule(maxAge: Duration(days: 7))
+                    ),
+                    fit: BoxFit.cover,
                   ),
+                  Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent),
+                ],)
               ),
+              onTap: (){
+                setState(() {
+                  widget.controller.setCurrentIndex(i);                
+                });
+              },
             );
           }
           return Container();
@@ -217,8 +264,9 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 }
 
 class ImageControlsBar extends StatelessWidget {
-  UserContent content;
-  ImageControlsBar({Key key, this.content} ) : super(key: key);
+  final Submission submission;
+  final String url;
+  ImageControlsBar({Key key, this.submission, this.url} ) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +277,7 @@ class ImageControlsBar extends StatelessWidget {
         children: <Widget>[
           _buildCopyButton(context),
           _buildOpenUrlButton(context),
-          content is Submission ?? _buildCommentsButton(context), //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
+          submission ?? _buildCommentsButton(context), //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
           _buildDownloadButton(context),
           _buildShareButton(context),
         ],
@@ -259,7 +307,7 @@ class ImageControlsBar extends StatelessWidget {
       icon: Icon(Icons.comment),
       color: Colors.white,
       onPressed: (){
-        Navigator.of(context).pushNamed('comments', arguments: content);
+        Navigator.of(context).pushNamed('comments', arguments: submission);
       },
     );
   }

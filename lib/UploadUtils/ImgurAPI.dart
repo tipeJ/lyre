@@ -43,5 +43,7 @@ class ImgurAPI {
     final responseJson = json.decode(response.body);
     return responseJson['data']['link'];
   }
-  
+  static List<String> getAlbumUrls(String url){
+    
+  }
 }

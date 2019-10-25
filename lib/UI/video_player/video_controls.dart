@@ -34,7 +34,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
 
     double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
 
-    void _handleExpandedDragUpdate(DragUpdateDetails details) {
+  void _handleExpandedDragUpdate(DragUpdateDetails details) {
     _expansionController.value -= details.primaryDelta /
         expandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
   }

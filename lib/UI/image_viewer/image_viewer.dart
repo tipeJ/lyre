@@ -18,23 +18,26 @@ class ImageViewer extends StatelessWidget {
           
         ]
         : <Widget> [
-          PhotoView(
-            imageProvider: AdvancedNetworkImage(
-              previewUrl,
-              useDiskCache: true,
-              cacheRule: CacheRule(maxAge: Duration(days: 7))
-            ),
-          )
+          
         ],
     );
   }
 }
 
 class SingleImageViewer extends StatelessWidget {
+  final previewUrl;
+
+  SingleImageViewer(this.previewUrl);
+  
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
+    return PhotoView(
+      imageProvider: AdvancedNetworkImage(
+        previewUrl,
+        useDiskCache: true,
+        cacheRule: const CacheRule(maxAge: Duration(days: 7)),
+      ),
+      loadingChild: const Center(child: const CircularProgressIndicator(),),
     );
   }
 }

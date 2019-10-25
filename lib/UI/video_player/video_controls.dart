@@ -230,10 +230,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _playSlower,
       child: Container(
         height: barHeight,
-        padding: EdgeInsets.only(
-          left: 8.0,
-          right: 8.0,
-        ),
         child: Center(
           child: Icon(Icons.fast_rewind)
         ),
@@ -246,10 +242,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       onTap: _playFaster,
       child: Container(
         height: barHeight,
-        padding: EdgeInsets.only(
-          left: 8.0,
-          right: 8.0,
-        ),
         child: Center(
           child: Icon(Icons.fast_forward)
         ),

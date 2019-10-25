@@ -26,6 +26,10 @@ final videoLinkTypes = [
   LinkType.TwitchClip
 ];
 
+final albumLinkTypes = [
+  LinkType.ImgurAlbum
+]
+
 String getYoutubeIdFromUrl(String url){
   if (url.contains("youtu.be")){
     var strings = url.split("/");

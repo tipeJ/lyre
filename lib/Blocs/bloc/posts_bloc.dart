@@ -13,7 +13,7 @@ import '../../Resources/globals.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, updated: false, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
 
@@ -34,7 +34,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
       final source = event.source != null
         ? event.source
-        : currentState.contentSource;
+        : state.contentSource;
       final preferences = await Hive.openBox(BOX_SETTINGS);
       if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
         parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0]);
@@ -57,6 +57,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       lastRefresh = DateTime.now();
       yield PostsState(
         userContent: _userContent, 
+        updated: false,
         contentSource : source,
         usernamesList: userNamesList, 
         currentUser: currentUser, 
@@ -67,58 +68,60 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
     } else if (event is ParamsChanged){
       List<UserContent> _userContent;
-      switch (currentState.contentSource) {
+      switch (state.contentSource) {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, currentState.targetRedditor);
+          _userContent = await _repository.fetchPostsFromRedditor(false, state.targetRedditor);
           break;
         case ContentSource.Self:
-          _userContent = await _repository.fetchPostsFromSelf(false, currentState.selfContentType);
+          _userContent = await _repository.fetchPostsFromSelf(false, state.selfContentType);
           break;
       }
 
       lastRefresh = DateTime.now();
-      yield getUpdatedCurrentState(_userContent);
+      yield getUpdatedstate(_userContent, false);
     } else if (event is FetchMore){
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
-      lastPost = currentState.userContent.last is Comment
-        ? (currentState.userContent.last as Comment).id
-        : (currentState.userContent.last as Submission).id;
+      
+      lastPost = state.userContent.last is Comment
+        ? (state.userContent.last as Comment).id
+        : (state.userContent.last as Submission).id;
       
       var fetchedContent = List<UserContent>();
       
-      switch (currentState.contentSource) {
+      switch (state.contentSource) {
         case ContentSource.Subreddit:
           fetchedContent = await _repository.fetchPostsFromSubreddit(true);
           break;
         case ContentSource.Redditor:
-          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.currentState.targetRedditor);
+          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.targetRedditor);
           break;
         case ContentSource.Self:
-          fetchedContent = await _repository.fetchPostsFromSelf(false, this.currentState.selfContentType);
+          fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.selfContentType);
           break;
       }
-      print("before: " + currentState.userContent.length.toString());
-      currentState.userContent.addAll(fetchedContent);
-      print("after: " + currentState.userContent.length.toString());
+      print("before: " + state.userContent.length.toString());
+      state.userContent.addAll(fetchedContent);
+      print("after: " + state.userContent.length.toString());
 
       lastRefresh = DateTime.now();
-      yield getUpdatedCurrentState();
+      yield getUpdatedstate(state.userContent, true);
     }
   }
 
-  PostsState getUpdatedCurrentState([List<UserContent> userContent]){
+  PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
-      userContent: notNull(userContent) ? userContent : currentState.userContent,
-      contentSource: currentState.contentSource,
-      usernamesList: currentState.usernamesList,
-      currentUser: currentState.currentUser,
-      targetRedditor: currentState.targetRedditor,
-      sideBar: currentState.sideBar,
-      styleSheetImages: currentState.styleSheetImages,
-      preferences: currentState.preferences
+      userContent: notNull(userContent) ? userContent : state.userContent,
+      updated: notNull(updated) ? updated : state.updated,
+      contentSource: state.contentSource,
+      usernamesList: state.usernamesList,
+      currentUser: state.currentUser,
+      targetRedditor: state.targetRedditor,
+      sideBar: state.sideBar,
+      styleSheetImages: state.styleSheetImages,
+      preferences: state.preferences
     );
   }
 }

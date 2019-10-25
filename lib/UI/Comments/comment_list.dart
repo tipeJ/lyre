@@ -35,84 +35,18 @@ class CommentList extends StatefulWidget {
 }
 
 
-class CommentListState extends State<CommentList> with SingleTickerProviderStateMixin, PreviewCallback{
+class CommentListState extends State<CommentList> with SingleTickerProviderStateMixin{
   final Submission submission;
 
   CommentListState(this.submission);
-
-  bool isPreviewing = false;
-  var previewUrl = "";
-
-  OverlayState state;
-  OverlayEntry entry;
-
-  @override
-  void initState() {
-    super.initState();
-    state = Overlay.of(context);
-    entry = OverlayEntry(
-        builder: (context) => new GestureDetector(
-              child: new Container(
-                  width: 400.0,
-                  height: 500.0,
-                  child: new Container(
-                      child: Image(
-                          image: AdvancedNetworkImage(
-                        previewUrl,
-                        useDiskCache: true,
-                        cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-                      )),
-                      color: Color.fromARGB(200, 0, 0, 0),
-                  ),),
-              onLongPressUp: () {
-                hideOverlay();
-              },
-            ));
-  }
-
-  showOverlay() {
-    if (!isPreviewing) {
-      state.insert(entry);
-      isPreviewing = true;
-    }
-  }
-
-  hideOverlay() {
-    if (isPreviewing) {
-      entry.remove();
-      state.deactivate();
-      isPreviewing = false;
-    }
-  }
-
-  @override
-  void previewEnd() {
-    if (isPreviewing) {
-      previewUrl = "";
-      // previewController.reverse();
-      hideOverlay();
-    }
-  }
-
-  @override
-  void view(String s) {}
-
-  @override
-  void preview(String url) {
-    if (!isPreviewing) {
-      previewUrl = url;
-      showOverlay();
-      //previewController.forward();
-    }
-  }
 
   CommentsBloc bloc;
 
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.currentState == null || bloc.currentState.isEmpty){
-      bloc.dispatch(SortChanged(submission, CommentSortType.best));
+    if(bloc.state == null || bloc.state.isEmpty){
+      bloc.add(SortChanged(submission, CommentSortType.best));
     }
     return new WillPopScope(
         child: Scaffold(
@@ -132,7 +66,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                           fontSize: 26.0,
                         ),
                       )
-                      : postInnerWidget(recentlyViewed[i-1], this, PostView.Compact,);
+                      : postInnerWidget(recentlyViewed[i-1], PreviewSource.Comments, PostView.Compact,);
                   },
                 ),
               ),
@@ -144,12 +78,12 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                       new SliverToBoxAdapter(
                         child: new Hero(
                           tag: 'post_hero ${submission.id}',
-                          child: new postInnerWidget(submission, this, PostView.ImagePreview),
+                          child: new postInnerWidget(submission, PreviewSource.Comments,),
                         ),
                       ),
                       
                       new StreamBuilder(
-                        stream: bloc.state,
+                        stream: bloc,
                         builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
                           if (snapshot.hasData) {
                             return getCommentWidgets(context, snapshot.data);
@@ -165,7 +99,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                       )
                     ],
                   ),
-                  onTapUp: hideOverlay(),
                   onHorizontalDragUpdate: (DragUpdateDetails details) {
                     if (details.delta.direction < 1.0 &&
                         details.delta.dx > 30) {
@@ -191,7 +124,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   }
   
   bool getWidgetVisibility(int index){
-    var item = bloc.currentState[index];
+    var item = bloc.state[index];
     if(item is MoreComments){
       return !getWidgetVisibility(index-1);
     }

@@ -26,25 +26,25 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   bool _displayTapped = false;
 
   AnimationController _expansionController;
-  bool isElevated = false;
+  bool isExpanded = false;
   final expandedBarHeight = 48.0;
   
 
     double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
 
-    void _handleNavDragUpdate(DragUpdateDetails details) {
+    void _handleExpandedDragUpdate(DragUpdateDetails details) {
     _expansionController.value -= details.primaryDelta /
         expandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
   }
 
-  void _reverseNav() {
+  void _reverseExpanded() {
     _expansionController.fling(velocity: -2.0);
-    isElevated = false;
+    isExpanded = false;
   }
 
-  void _handleNavDragEnd(DragEndDetails details) {
+  void _handleExpandedDragEnd(DragEndDetails details) {
     if (_expansionController.status == AnimationStatus.completed) {
-      isElevated = true;
+      isExpanded = true;
     }
     if (_expansionController.isAnimating ||
         _expansionController.status == AnimationStatus.completed) return;
@@ -54,11 +54,11 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     if (flingVelocity < 0.0) {
       _expansionController.fling(
           velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-      isElevated = true;
+      isExpanded = true;
     } else if (flingVelocity > 0.0) {
       _expansionController.fling(
           velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-      isElevated = false;
+      isExpanded = false;
     } else
       _expansionController.fling(
           velocity: _expansionController.value < 0.5
@@ -107,17 +107,14 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
                     ),
                   )
                 : _buildHitArea(),
-            Column(children: <Widget>[
-              _buildBottomBar(context),
-              AnimatedBuilder(
-                animation: _expansionController,
-                builder: (context, child){
-                  return Container(
-
-                  );
-                },
-              )
-            ],),
+            GestureDetector(
+              child: Column(children: <Widget>[
+                _buildBottomBar(context),
+                _buildBottomExpandingBar(context)
+              ],),
+              onVerticalDragUpdate: _handleExpandedDragUpdate,
+              onVerticalDragEnd: _handleExpandedDragEnd,
+            ),
           ],
         ),
       ),
@@ -143,7 +140,10 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       //<-- initialize a controller
       vsync: this,
       duration: Duration(milliseconds: 600),
-    );
+    )..addListener((){
+      setState(() { 
+      });
+    });
     super.initState();
   }
 
@@ -209,7 +209,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 6.0),
       child: Text(
-        "" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
+        "1.0" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
       ),
     );
   }
@@ -301,7 +301,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          //Navigator.of(context).maybePop();
+          //Expandedigator.of(context).maybePop();
         },
         child: Container(),
       ),

@@ -75,7 +75,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   void initState(){
-    BackButtonInterceptor.add(myInterceptor);
 
     overlayState = Overlay.of(context);
     imageEntry = OverlayEntry(
@@ -223,38 +222,29 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       }
       return false;
     }
-    return true;
+    return !await PreviewCall().navigatorKey.currentState.maybePop();
   }
 
   @override
   void dispose() {
-    BackButtonInterceptor.remove(myInterceptor);
+    overlayState.dispose();
     super.dispose();
   }
 
-  bool myInterceptor(bool stopDefaultButtonEvent) {
-    if(isPreviewing){
-      if (_vController != null && _vController.isFullScreen){
-        _vController.exitFullScreen();
-      } else {
-        previewUrl = "";
-        hideOverlay();
-      }
-      Navigator.maybePop(context);
-    }
-    Navigator.maybePop(context);
-    return true;
-  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder: (context, constraints) {
-        return Navigator(
+    builder: (context, constraints) {
+      return WillPopScope(
+        onWillPop: canPop,
+        child: Navigator(
+          key: PreviewCall().navigatorKey,
           initialRoute: 'posts',
           onGenerateRoute: Router.generateRoute,
-        );
-      },
+        ),
+      );
+    },
     );
   }
 }

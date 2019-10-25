@@ -492,6 +492,8 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   AnimationController _navBarController;
 
+  bool isElevated = false;
+
   @override void dispose(){
     controller?.dispose();
 
@@ -543,6 +545,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     });
     controller.reset();
     widget.controller.addListener((){
+      if(widget.controller.isElevated != isElevated) _reverseNav();
       setState(() {
       });
     });
@@ -662,11 +665,13 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   void _reverseNav() {
     _navBarController.fling(velocity: -2.0);
+    isElevated = false;
     widget.controller.isElevated = false;
   }
 
   void _handleNavDragEnd(DragEndDetails details) {
     if (_navBarController.status == AnimationStatus.completed) {
+      isElevated = true;
       widget.controller.isElevated = true;
     }
     if (_navBarController.isAnimating ||
@@ -677,10 +682,12 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     if (flingVelocity < 0.0) {
       _navBarController.fling(
           velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
+      isElevated = true;
       widget.controller.isElevated = true;
     } else if (flingVelocity > 0.0) {
       _navBarController.fling(
           velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
+      isElevated = false;
       widget.controller.isElevated = false;
     } else
       _navBarController.fling(
@@ -692,6 +699,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   void reverse(BuildContext context) {
     controller.reset();
     controller.reverse();
+    isElevated = false;
     widget.controller.isElevated = false;
   }
 

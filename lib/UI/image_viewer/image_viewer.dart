@@ -160,42 +160,98 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 
   void _handleExpandedDragUpdate(DragUpdateDetails details) {
     _expansionController.value -= details.primaryDelta /
-        expandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
+        maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
   }
 
   void _reverseExpanded() {
-    _expansionController.fling(velocity: -2.0);
-    isExpanded = false;
+    if (fullyExpanded) {
+      _expansionController.animateBack(0.1, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
+      fullyExpanded = false;
+      isExpanded = true;
+    } else {
+      _expansionController.fling(velocity: -2.0);
+      fullyExpanded = false;
+      isExpanded = false;
+    }
   }
 
   void _handleExpandedDragEnd(DragEndDetails details) {
     if (_expansionController.status == AnimationStatus.completed) {
-      isExpanded = true;
+      fullyExpanded = true;
     }
     if (_expansionController.isAnimating ||
         _expansionController.status == AnimationStatus.completed) return;
 
     final double flingVelocity = details.velocity.pixelsPerSecond.dy /
-        expandedBarHeight; //<-- calculate the velocity of the gesture
+        getExpandedBarHeight(); //<-- calculate the velocity of the gesture
     if (flingVelocity < 0.0) {
-      _expansionController.fling(
-          velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-      isExpanded = true;
+      if (_expansionController.value > 0.1) {
+        _expansionController.animateTo(1.0, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);//<-- either continue it upwards
+        isExpanded = true;
+        fullyExpanded = true;
+      } else {
+        _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
+        isExpanded = true;
+        fullyExpanded = false;
+      }
     } else if (flingVelocity > 0.0) {
-      _expansionController.fling(
-          velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-      isExpanded = false;
-    } else
-      _expansionController.fling(
-          velocity: _expansionController.value < 0.5
-              ? -2.0
-              : 2.0); //<-- or just continue to whichever edge is closer
+      if (_expansionController.value > 0.1) {
+        _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
+        isExpanded = true;
+        fullyExpanded = false;
+      } else {
+        _expansionController.animateTo(0, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
+        isExpanded = false;
+        fullyExpanded = false;
+      }
+    } else{
+      if (_expansionController.value > 0.1) {
+        if (_expansionController.value > 0.9 / 2) {
+          _expansionController.animateTo(1.0, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);
+          isExpanded = true;
+          fullyExpanded = true;
+        } else {
+          _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve);
+          isExpanded = true;
+          fullyExpanded = false;
+        }
+      } else {
+        if (_expansionController.value > 0.05) {
+          _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);
+          isExpanded = true;
+          fullyExpanded = false;
+        } else {
+          _expansionController.animateTo(0.0, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve);
+          isExpanded = false;
+          fullyExpanded = false;
+        }
+      }
+    }
+        //<-- or just continue to whichever edge is closer
+  }
+  final Curve animationCurve = Curves.easeOutCirc;
+  final int maxAnimationDuration = 400;
+  final double minAnimationDuration = 150.0;
+
+  // Flingvelocity is the velocity which the user ends the fling with. Boolean true if the animation is going upwards, false if downwards
+  int getExpansionFlingDuration(bool up, double flingVelocity){
+    final double animationDuration = min(maxAnimationDuration.toDouble(), max(maxAnimationDuration / (flingVelocity.abs() * 0.1), minAnimationDuration));
+    if (_expansionController.value > 0.1) {
+      return up ? (animationDuration * (1 - 0.75 * (_expansionController.value - 0.1))).round() : (animationDuration * 1.5 * (_expansionController.value - 0.1)).round();
+    } else {
+      return up ? (animationDuration * (1 - 10 * (_expansionController.value))).round() : (animationDuration * 1.25 * (10 * _expansionController.value)).round();      
+    }
   }
   bool isExpanded = false;
-  double expandedBarHeight = 100.0;
+  bool fullyExpanded = false;
+  double getExpandedBarHeight(){
+    return maxExpandedBarHeight * 0.1;
+  }
+  double maxExpandedBarHeight = 500.0; //Fallback value
 
   @override
   void initState() { 
+    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Scren height minus the height of image controls bar
     _expansionController = AnimationController(
       //<-- initialize a controller
       vsync: this,
@@ -224,7 +280,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   
   Widget getPreviewsBar(BuildContext context){
     return Container(
-      height: lerp(0, expandedBarHeight),
+      height: lerp(0, maxExpandedBarHeight),
       width: MediaQuery.of(context).size.width,
       child: ListView.builder(
         itemCount: widget.controller.images.length,
@@ -232,29 +288,31 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
         itemBuilder: (context, i){
           final url = widget.controller.images[i].thumbnailUrl;
           if (url != null && getLinkType(url) == LinkType.DirectImage){
-            return InkWell(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 3.0),
-                width: 75.0,
-                height: expandedBarHeight,
-                child: Stack(children: <Widget>[
-                  Image(
-                    image: AdvancedNetworkImage(
-                      url,
-                      useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: Duration(days: 7))
+            return StatefulBuilder(builder: (context, child){
+              return InkWell(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 3.0),
+                  width: 75.0,
+                  height: getExpandedBarHeight(),
+                  child: Stack(children: <Widget>[
+                    Image(
+                      image: AdvancedNetworkImage(
+                        url,
+                        useDiskCache: true,
+                        cacheRule: CacheRule(maxAge: Duration(days: 7))
+                      ),
+                      fit: BoxFit.cover,
                     ),
-                    fit: BoxFit.cover,
-                  ),
-                  Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent),
-                ],)
-              ),
-              onTap: (){
-                setState(() {
-                  widget.controller.setCurrentIndex(i);                
-                });
-              },
-            );
+                    Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
+                  ],)
+                ),
+                onTap: (){
+                  setState(() {
+                    widget.controller.setCurrentIndex(i);                
+                  });
+                },
+              );
+            },);
           }
           return Container();
         },
@@ -271,6 +329,7 @@ class ImageControlsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 50.0,
       width: MediaQuery.of(context).size.width,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

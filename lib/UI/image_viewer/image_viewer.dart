@@ -161,6 +161,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   void _handleExpandedDragUpdate(DragUpdateDetails details) {
     if(_expansionController.value == 1 && ((gridController.offset == 0.0 && details.delta.dy < 0.0) || gridController.offset != 0.0)){
       gridController.jumpTo(gridController.offset - details.delta.dy);
+      //TODO: ! ADD CUSTOM FLING ANIMATION FOR GRID
     } else {
       _expansionController.value -= details.primaryDelta /
       maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.

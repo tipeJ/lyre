@@ -47,21 +47,17 @@ class ImgurAPI {
   }
   Future<List<LyreImage>> getAlbumPictures(String url) async {
     final String id = url.split("/").last;
-    print('id:' + id);
     final response = await http.get(
       albumGetUrl + id,
       headers: {
         "Authorization": 'Client-ID ${client_id}'
       }
     );
-    print('response: ' + response.body);
     final imagesJson = json.decode(response.body)['data']['images'];
     final List<LyreImage> images = [];
     imagesJson.forEach((image){
       final imageUrl = image['link'];
-      print('image: ' + imageUrl);
       final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last + "m." + imageUrl.split(",").last;
-      print('thumb: ' + thumbNailUrl);
 
       images.add(LyreImage(description: image['description'], url: imageUrl, thumbnailUrl: thumbNailUrl));
     });

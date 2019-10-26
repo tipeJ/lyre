@@ -277,86 +277,100 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
        )
     );
   }
+            //  opacity: 1.0 - (max(_expansionController.value, 0.1) - min(1 - _expansionController.value, 0.1)),
   
   Widget getPreviewsBar(BuildContext context){
     return Container(
       height: lerp(0, maxExpandedBarHeight),
       width: MediaQuery.of(context).size.width,
-      child: AnimatedCrossFade(
-        duration: const Duration(milliseconds: 500),
-        crossFadeState: fullyExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-        firstChild: ListView.builder(
-          itemCount: widget.controller.images.length,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, i){
-            final url = widget.controller.images[i].thumbnailUrl;
-            if (url != null && getLinkType(url) == LinkType.DirectImage){
-              return StatefulBuilder(builder: (context, child){
-                return InkWell(
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 3.0),
-                    width: 75.0,
-                    height: getExpandedBarHeight(),
-                    child: Stack(children: <Widget>[
-                      Image(
-                        image: AdvancedNetworkImage(
-                          url,
-                          useDiskCache: true,
-                          cacheRule: CacheRule(maxAge: Duration(days: 7))
+      child: Column(
+        children: <Widget> [
+          IgnorePointer(
+            ignoring: _expansionController.value > 0.15,
+            child: Container(
+              height: 1.0 - (max(_expansionController.value, 0.1) - min(1 - _expansionController.value, 0.1)) * getExpandedBarHeight(),
+              child: ListView.builder(
+                itemCount: widget.controller.images.length,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, i){
+                  final url = widget.controller.images[i].thumbnailUrl;
+                  if (url != null && getLinkType(url) == LinkType.DirectImage){
+                    return StatefulBuilder(builder: (context, child){
+                      return InkWell(
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 3.0),
+                          width: 75.0,
+                          height: getExpandedBarHeight(),
+                          child: Stack(children: <Widget>[
+                            Image(
+                              image: AdvancedNetworkImage(
+                                url,
+                                useDiskCache: true,
+                                cacheRule: CacheRule(maxAge: Duration(days: 7))
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                            Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
+                          ],)
                         ),
-                        fit: BoxFit.cover,
-                      ),
-                      Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
-                    ],)
-                  ),
-                  onTap: (){
-                    setState(() {
-                      widget.controller.setCurrentIndex(i);                
-                    });
-                  },
-                );
-              },);
-            }
-            return Container();
-          },
-        ),
-        secondChild: GridView.builder(
-          gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                                   crossAxisCount: (MediaQuery.of(context).size.height * 0.9 / 6).round()),
-          itemCount: widget.controller.images.length,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, i){
-            final url = widget.controller.images[i].thumbnailUrl;
-            if (url != null && getLinkType(url) == LinkType.DirectImage){
-              return StatefulBuilder(builder: (context, child){
-                return InkWell(
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 3.0),
-                    width: 125.0,
-                    height: (MediaQuery.of(context).size.height * 0.9 / 6),
-                    child: Stack(children: <Widget>[
-                      Image(
-                        image: AdvancedNetworkImage(
-                          url,
-                          useDiskCache: true,
-                          cacheRule: CacheRule(maxAge: Duration(days: 7))
+                        onTap: (){
+                          setState(() {
+                            widget.controller.setCurrentIndex(i);                
+                          });
+                        },
+                      );
+                    },);
+                  }
+                  return Container();
+                },
+              ),
+            )
+          ),
+          IgnorePointer(
+            ignoring: _expansionController.value < 0.2,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.9 * (1.0 - (max(_expansionController.value, 0.1) - min(1 - _expansionController.value, 0.1))),
+              child: GridView.builder(
+                gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: (6).round()),
+                itemCount: widget.controller.images.length,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, i){
+                  final url = widget.controller.images[i].thumbnailUrl;
+                  if (url != null && getLinkType(url) == LinkType.DirectImage){
+                    return StatefulBuilder(builder: (context, child){
+                      return InkWell(
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 3.0),
+                          width: 125.0,
+                          height: (125.0),
+                          child: Stack(children: <Widget>[
+                            Image(
+                              image: AdvancedNetworkImage(
+                                url,
+                                useDiskCache: true,
+                                cacheRule: CacheRule(maxAge: Duration(days: 7))
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                            Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
+                          ],)
                         ),
-                        fit: BoxFit.cover,
-                      ),
-                      Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
-                    ],)
-                  ),
-                  onTap: (){
-                    setState(() {
-                      widget.controller.setCurrentIndex(i);                
-                    });
-                  },
-                );
-              },);
-            }
-            return Container();
-          },
-        ),
+                        onTap: (){
+                          setState(() {
+                            widget.controller.setCurrentIndex(i);                
+                          });
+                        },
+                      );
+                    },);
+                  }
+                  return Container();
+                },
+              ),
+            )
+          )
+        ]
+        
       )
     );
   }

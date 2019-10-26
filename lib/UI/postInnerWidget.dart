@@ -137,7 +137,7 @@ class postInnerWidget extends StatelessWidget {
         final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
 
         if (viewMode == PostView.Compact) {
-          return getImageWrapper(context, BoxFit.fitWidth);
+          return getImageWrapper(context, BoxFit.cover);
         }
         return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
       },
@@ -147,6 +147,10 @@ class postInnerWidget extends StatelessWidget {
   Widget getImageWrapper(BuildContext context, BoxFit fit){
     return new GestureDetector(
       child: Image(
+        color: Colors.black.withOpacity(0.22),
+        colorBlendMode: BlendMode.luminosity,
+        width: double.infinity,
+        height: double.infinity,
         image: AdvancedNetworkImage(
           submission.preview.first.source.url.toString(),
           useDiskCache: true,

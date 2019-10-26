@@ -282,41 +282,82 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
     return Container(
       height: lerp(0, maxExpandedBarHeight),
       width: MediaQuery.of(context).size.width,
-      child: ListView.builder(
-        itemCount: widget.controller.images.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, i){
-          final url = widget.controller.images[i].thumbnailUrl;
-          if (url != null && getLinkType(url) == LinkType.DirectImage){
-            return StatefulBuilder(builder: (context, child){
-              return InkWell(
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 3.0),
-                  width: 75.0,
-                  height: getExpandedBarHeight(),
-                  child: Stack(children: <Widget>[
-                    Image(
-                      image: AdvancedNetworkImage(
-                        url,
-                        useDiskCache: true,
-                        cacheRule: CacheRule(maxAge: Duration(days: 7))
+      child: AnimatedCrossFade(
+        duration: const Duration(milliseconds: 500),
+        crossFadeState: fullyExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+        firstChild: ListView.builder(
+          itemCount: widget.controller.images.length,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, i){
+            final url = widget.controller.images[i].thumbnailUrl;
+            if (url != null && getLinkType(url) == LinkType.DirectImage){
+              return StatefulBuilder(builder: (context, child){
+                return InkWell(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 3.0),
+                    width: 75.0,
+                    height: getExpandedBarHeight(),
+                    child: Stack(children: <Widget>[
+                      Image(
+                        image: AdvancedNetworkImage(
+                          url,
+                          useDiskCache: true,
+                          cacheRule: CacheRule(maxAge: Duration(days: 7))
+                        ),
+                        fit: BoxFit.cover,
                       ),
-                      fit: BoxFit.cover,
-                    ),
-                    Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
-                  ],)
-                ),
-                onTap: (){
-                  setState(() {
-                    widget.controller.setCurrentIndex(i);                
-                  });
-                },
-              );
-            },);
-          }
-          return Container();
-        },
-      ),
+                      Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
+                    ],)
+                  ),
+                  onTap: (){
+                    setState(() {
+                      widget.controller.setCurrentIndex(i);                
+                    });
+                  },
+                );
+              },);
+            }
+            return Container();
+          },
+        ),
+        secondChild: GridView.builder(
+          gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                                   crossAxisCount: (MediaQuery.of(context).size.height * 0.9 / 6).round()),
+          itemCount: widget.controller.images.length,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, i){
+            final url = widget.controller.images[i].thumbnailUrl;
+            if (url != null && getLinkType(url) == LinkType.DirectImage){
+              return StatefulBuilder(builder: (context, child){
+                return InkWell(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 3.0),
+                    width: 125.0,
+                    height: (MediaQuery.of(context).size.height * 0.9 / 6),
+                    child: Stack(children: <Widget>[
+                      Image(
+                        image: AdvancedNetworkImage(
+                          url,
+                          useDiskCache: true,
+                          cacheRule: CacheRule(maxAge: Duration(days: 7))
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                      Container(color: i == widget.controller.currentIndex ? Colors.black38 : Colors.transparent, height: getExpandedBarHeight(),),
+                    ],)
+                  ),
+                  onTap: (){
+                    setState(() {
+                      widget.controller.setCurrentIndex(i);                
+                    });
+                  },
+                );
+              },);
+            }
+            return Container();
+          },
+        ),
+      )
     );
   }
 }
@@ -337,6 +378,7 @@ class ImageControlsBar extends StatelessWidget {
           _buildCopyButton(context),
           _buildOpenUrlButton(context),
           submission ?? _buildCommentsButton(context), //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
+          _buildExpandButton(context),
           _buildDownloadButton(context),
           _buildShareButton(context),
         ],
@@ -367,6 +409,15 @@ class ImageControlsBar extends StatelessWidget {
       color: Colors.white,
       onPressed: (){
         Navigator.of(context).pushNamed('comments', arguments: submission);
+      },
+    );
+  }
+  Widget _buildExpandButton(BuildContext context){
+    return IconButton(
+      icon: Icon(Icons.grid_on),
+      color: Colors.white,
+      onPressed: (){
+        //TODO: Implement
       },
     );
   }

@@ -236,12 +236,12 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
         //<-- or just continue to whichever edge is closer
   }
   final Curve animationCurve = Curves.easeOutCirc;
-  final int maxAnimationDuration = 400;
+  final int maxAnimationDuration = 700;
   final double minAnimationDuration = 150.0;
 
   // Flingvelocity is the velocity which the user ends the fling with. Boolean true if the animation is going upwards, false if downwards
   int getExpansionFlingDuration(bool up, double flingVelocity){
-    final double animationDuration = min(maxAnimationDuration.toDouble(), max(maxAnimationDuration / (flingVelocity.abs() * 0.1), minAnimationDuration));
+    final double animationDuration = min(maxAnimationDuration.toDouble(), max(maxAnimationDuration / (flingVelocity.abs() * 0.10), minAnimationDuration));
     if (_expansionController.value > 0.1) {
       return up ? (animationDuration * (1 - 0.75 * (_expansionController.value - 0.1))).round() : (animationDuration * 1.5 * (_expansionController.value - 0.1)).round();
     } else {

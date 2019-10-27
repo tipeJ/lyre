@@ -22,6 +22,7 @@ final IMAGE_SHOW_FULLSIZE = "imageShowFullPreviews";
 final VIDEO_ENABLE_ROTATION = "enableVideoRotation";
 final VIDEO_LOOP = "videoLoop";
 final VIDEO_AUTO_MUTE = "videoAutoMute";
+final IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";
 
 // ! Filters:
 final SHOW_NSFW_PREVIEWS = "showNSFWPreviews";

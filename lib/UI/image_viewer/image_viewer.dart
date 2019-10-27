@@ -392,6 +392,7 @@ class ImageControlsBar extends StatelessWidget {
     return Container(
       height: 50.0,
       width: MediaQuery.of(context).size.width,
+      color: Colors.black.withOpacity(0.6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[

@@ -28,6 +28,10 @@ class postInnerWidget extends StatelessWidget {
   LinkType linkType;
   PostView postView;
   bool showCircle;
+
+  bool showNsfw;
+  bool showSpoiler;
+
   final PreviewSource previewSource;
   final Submission submission;
   final PostView viewSetting;
@@ -42,6 +46,8 @@ class postInnerWidget extends StatelessWidget {
           showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
           fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
           postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
+          showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS);
+          showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS);
           switch (postView) {
             case PostView.IntendedPreview:
               return intendedWidget(context, state);
@@ -92,8 +98,8 @@ class postInnerWidget extends StatelessWidget {
         new Positioned(
           bottom: 0.0,
           child: 
-            (((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
-            (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
+            (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
+            (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
@@ -101,17 +107,17 @@ class postInnerWidget extends StatelessWidget {
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
+                  color: Colors.black.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
               )
               : new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
+                  color: Colors.black.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
         ),
-        (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
+        ((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
           : null
     ].where((w) => notNull(w)).toList());
@@ -227,7 +233,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getIndicator(LinkType type){
     Widget content;
-    if(submission.over18 || submission.spoiler){
+    if((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler)){
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),

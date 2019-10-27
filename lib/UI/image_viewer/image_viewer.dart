@@ -357,7 +357,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                           image: AdvancedNetworkImage(
                             url,
                             useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: Duration(days: 7))
+                            cacheRule: CacheRule(maxAge: Duration(hours: 1))
                           ),
                           fit: BoxFit.cover,
                         )

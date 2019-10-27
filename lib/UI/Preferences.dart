@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
+import '../UploadUtils/ImgurAPI.dart';
 import '../Themes/themes.dart';
 import '../Themes/bloc/theme_bloc.dart';
 import '../Themes/bloc/theme_event.dart';
@@ -17,6 +18,7 @@ class PreferencesView extends StatefulWidget {
 class _PreferencesViewState extends State<PreferencesView> {
 
   Box box;
+  bool advanced = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,33 +31,55 @@ class _PreferencesViewState extends State<PreferencesView> {
             blurLevel = (box.get(IMAGE_BLUR_LEVEL) ?? 20.0).toDouble();
             return Container(
               padding: EdgeInsets.all(10.0),
-              child: ListView(
-                children: <Widget>[
-                  CustomExpansionTile(
-                    initiallyExpanded: true,
-                    title: 'Submissions',
-                    children: getSubmissionSettings(context),
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  SliverAppBar(
+                    expandedHeight: 125.0,
+                    floating: false,
+                    pinned: true,
+                    backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                    actions: <Widget>[
+                      Material(child: Center(child: Text('Advanced',),),),
+                      Switch(
+                        value: advanced,
+                        onChanged: (value){
+                          setState(() {
+                            advanced = value;
+                          });
+                        },
+                      )
+                    ],
+                    title: Text('Settings', style: TextStyle(fontSize: 32.0)),
                   ),
-                  CustomExpansionTile(
-                    initiallyExpanded: true,
-                    title: 'Comments',
-                    children: getCommentsSettings(context),
-                  ),
-                  CustomExpansionTile(
-                    initiallyExpanded: true,
-                    title: 'Filters',
-                    children: getFiltersSettings(context),
-                  ),
-                  CustomExpansionTile(
-                    initiallyExpanded: true,
-                    title: 'Media',
-                    children: getMediaSettings(context),
-                  ),
-                  CustomExpansionTile(
-                    initiallyExpanded: false,
-                    title: 'Themes',
-                    children: getThemeSettings(context),
-                  ),
+                  SliverList(
+                    delegate: SliverChildListDelegate([
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
+                        title: 'Submissions',
+                        children: getSubmissionSettings(context),
+                        ),
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
+                        title: 'Comments',
+                        children: getCommentsSettings(context),
+                      ),
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
+                        title: 'Filters',
+                        children: getFiltersSettings(context),
+                      ),
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
+                        title: 'Media',
+                        children: getMediaSettings(context),
+                      ),
+                      CustomExpansionTile(
+                        initiallyExpanded: false,
+                        title: 'Themes',
+                        children: getThemeSettings(context),
+                      ),
+                    ]),
+                  )
                 ],
               )
             );
@@ -68,153 +92,176 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getSubmissionSettings(BuildContext context){
     return [
-      WatchBoxBuilder(
-        box: Hive.box('settings'),
-        builder: (context, box){
-          return SettingsTitleRow(
-            title: "Default Sorting Type",
-            leading: new DropdownButton<String>(
-              value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
-              items: sortTypes.map((String value) {
-                return new DropdownMenuItem<String>(
-                  value: value,
-                  child: new Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                box.put(SUBMISSION_DEFAULT_SORT_TYPE, value);
-                setState(() {
-                });
-              },
-            )
-          );
-        },
+      settingsWidget(
+        children: [
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Default Sorting Type",
+                leading: new DropdownButton<String>(
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
+                  items: sortTypes.map((String value) {
+                    return new DropdownMenuItem<String>(
+                      value: value,
+                      child: new Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    box.put(SUBMISSION_DEFAULT_SORT_TYPE, value);
+                    setState(() {
+                    });
+                  },
+                )
+              );
+            },
+          ),
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Default Sorting Time",
+                leading: new DropdownButton<String>(
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
+                  items: sortTimes.map((String value) {
+                    return new DropdownMenuItem<String>(
+                      value: value,
+                      child: new Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    box.put(SUBMISSION_DEFAULT_SORT_TIME, value);
+                  },
+                )
+              );
+            },
+          ),
+          SettingsTitleRow(
+            title: "Auto-Load Posts",
+            leading: Switch(
+              value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
+              onChanged: (value){
+                box.put(SUBMISSION_AUTO_LOAD, value);
+              },)
+          ),
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Post View Mode",
+                leading: new DropdownButton<PostView>(
+                  value: box.get(SUBMISSION_VIEWMODE) ?? PostView.Compact,
+                  items: PostView.values.map((PostView value) {
+                    return new DropdownMenuItem<PostView>(
+                      value: value,
+                      child: new Text(value.toString().split('.')[1]),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    box.put(SUBMISSION_VIEWMODE, value);
+                  },
+                )
+              );
+            },
+          ),
+        
+        ],
+        isAdvanced: false
       ),
-      WatchBoxBuilder(
-        box: Hive.box('settings'),
-        builder: (context, box){
-          return SettingsTitleRow(
-            title: "Default Sorting Time",
-            leading: new DropdownButton<String>(
-              value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
-              items: sortTimes.map((String value) {
-                return new DropdownMenuItem<String>(
-                  value: value,
-                  child: new Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                box.put(SUBMISSION_DEFAULT_SORT_TIME, value);
-              },
-            )
-          );
-        },
+      settingsWidget(
+        children:[
+          SettingsTitleRow(
+            title: "Reset Sorting When Refreshing Submission List",
+            leading: Switch(
+              value: box.get(SUBMISSION_RESET_SORTING) ?? true,
+              onChanged: (value){
+                box.put(SUBMISSION_RESET_SORTING, value);
+              },)
+          ),
+          SettingsTitleRow(
+            title: "Show Circle Around Preview Indicator",
+            leading: Switch(
+              value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? true,
+              onChanged: (value){
+                box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
+              },)
+          ),
+
+        ],
+        isAdvanced: true
       ),
-      SettingsTitleRow(
-        title: "Reset Sorting When Refreshing Submission List",
-        leading: Switch(
-          value: box.get(SUBMISSION_RESET_SORTING) ?? true,
-          onChanged: (value){
-            box.put(SUBMISSION_RESET_SORTING, value);
-          },)
-      ),
-      SettingsTitleRow(
-        title: "Auto-Load Posts",
-        leading: Switch(
-          value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
-          onChanged: (value){
-            box.put(SUBMISSION_AUTO_LOAD, value);
-          },)
-      ),
-      SettingsTitleRow(
-        title: "Show Circle Around Preview Indicator",
-        leading: Switch(
-          value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? true,
-          onChanged: (value){
-            box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
-          },)
-      ),
-      WatchBoxBuilder(
-        box: Hive.box('settings'),
-        builder: (context, box){
-          return SettingsTitleRow(
-            title: "Post View Mode",
-            leading: new DropdownButton<PostView>(
-              value: box.get(SUBMISSION_VIEWMODE) ?? PostView.Compact,
-              items: PostView.values.map((PostView value) {
-                return new DropdownMenuItem<PostView>(
-                  value: value,
-                  child: new Text(value.toString().split('.')[1]),
-                );
-              }).toList(),
-              onChanged: (value) {
-                box.put(SUBMISSION_VIEWMODE, value);
-              },
-            )
-          );
-        },
-      ),
+      
     ];
   }
   List<Widget> getCommentsSettings(BuildContext context){
     return [
-      WatchBoxBuilder(
-        box: Hive.box('settings'),
-        builder: (context, box){
-          return SettingsTitleRow(
-            title: "Default Comments Sort",
-            leading: new DropdownButton<String>(
-              value: box.get(COMMENTS_DEFAULT_SORT) ?? commentSortTypes[1],
-              items: commentSortTypes.map((String value) {
-                return new DropdownMenuItem<String>(
-                  value: value,
-                  child: new Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                box.put(COMMENTS_DEFAULT_SORT, value);
-              },
-            )
-          );
-        },
+      settingsWidget(
+        children: [
+          WatchBoxBuilder(
+            watchKeys: [COMMENTS_DEFAULT_SORT],
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Default Comments Sort",
+                leading: new DropdownButton<String>(
+                  value: box.get(COMMENTS_DEFAULT_SORT) ?? commentSortTypes[1],
+                  items: commentSortTypes.map((String value) {
+                    return new DropdownMenuItem<String>(
+                      value: value,
+                      child: new Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    box.put(COMMENTS_DEFAULT_SORT, value);
+                  },
+                )
+              );
+            },
+          ),
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: 'Precollapse Threads', 
+                leading: Switch(
+                  value: box.get(COMMENTS_PRECOLLAPSE) ?? false,
+                  onChanged: (value){
+                    box.put(COMMENTS_PRECOLLAPSE, value);
+                  },)
+              );
+            },
+          )
+        ],
+        isAdvanced: false
       ),
-      WatchBoxBuilder(
-        box: Hive.box('settings'),
-        builder: (context, box){
-          return SettingsTitleRow(
-            title: 'Precollapse Threads', 
-            leading: Switch(
-              value: box.get(COMMENTS_PRECOLLAPSE) ?? false,
-              onChanged: (value){
-                box.put(COMMENTS_PRECOLLAPSE, value);
-              },)
-          );
-        },
-      )
-      
     ];
   }
   double blurLevel = 20.0;
   List<Widget> getFiltersSettings(BuildContext context){
     return [
-      SettingsTitleRow(
-        title: 'Show NSFW Previews', 
-        leading: Switch(
-          value: box.get(SHOW_NSFW_PREVIEWS) ?? false,
-          onChanged: (value){
-            box.put(SHOW_NSFW_PREVIEWS, value);
-          },)
+      settingsWidget(
+        children: [
+          SettingsTitleRow(
+            title: 'Show NSFW Previews', 
+            leading: Switch(
+              value: box.get(SHOW_NSFW_PREVIEWS) ?? false,
+              onChanged: (value){
+                box.put(SHOW_NSFW_PREVIEWS, value);
+              },)
+          ),
+          SettingsTitleRow(
+            title: 'Show Spoiler Previews', 
+            leading: Switch(
+              value: box.get(SHOW_SPOILER_PREVIEWS) ?? false,
+              onChanged: (value){
+                box.put(SHOW_SPOILER_PREVIEWS, value);
+              },)
+          ),
+        ],
+        isAdvanced: false
       ),
-      SettingsTitleRow(
-        title: 'Show Spoiler Previews', 
-        leading: Switch(
-          value: box.get(SHOW_SPOILER_PREVIEWS) ?? false,
-          onChanged: (value){
-            box.put(SHOW_SPOILER_PREVIEWS, value);
-          },)
-      ),
-      Column(
-        children: <Widget>[
+      settingsWidget(
+        children: [
           Text('Blur level'),
           StatefulBuilder(
             builder: (context, setState){
@@ -239,55 +286,77 @@ class _PreferencesViewState extends State<PreferencesView> {
             },
           )
         ],
-      )
+        isAdvanced: true
+      ),
     ];
   }
   List<Widget> getMediaSettings(BuildContext context){
     return [
-      /*
-      SettingsTitleRow(
-        title: "Enable Image Rotation",
-        leading: Switch(
-          value: box.get(IMAGE_ENABLE_ROTATION) ?? false,
-          onChanged: (value){
-            box.put(IMAGE_ENABLE_ROTATION, value);
-        },)
+      settingsWidget(
+        children: [
+          SettingsTitleRow(
+            title: "Show Full Size Previews",
+            leading: Switch(
+              value: box.get(IMAGE_SHOW_FULLSIZE) ?? false,
+              onChanged: (value){
+                box.put(IMAGE_SHOW_FULLSIZE, value);
+            },)
+          ),
+          /*
+          SettingsTitleRow(
+            title: "Enable Video Rotation",
+            leading: Switch(
+              value: box.get(VIDEO_ENABLE_ROTATION) ?? false,
+              onChanged: (value){
+                box.put(VIDEO_ENABLE_ROTATION, value);
+            },)
+          ),
+          */
+          SettingsTitleRow(
+            title: "Loop Videos",
+            leading: Switch(
+              value: box.get(VIDEO_LOOP) ?? true,
+              onChanged: (value){
+                box.put(VIDEO_LOOP, value);
+            },)
+          ),
+          SettingsTitleRow(
+            title: "Auto-Mute Videos",
+            leading: Switch(
+              value: box.get(VIDEO_AUTO_MUTE) ?? false,
+              onChanged: (value){
+                box.put(VIDEO_AUTO_MUTE, value);
+            },)
+          ),
+        ],
+        isAdvanced: false
       ),
-      */
-      SettingsTitleRow(
-        title: "Show Full Size Previews",
-        leading: Switch(
-          value: box.get(IMAGE_SHOW_FULLSIZE) ?? false,
-          onChanged: (value){
-            box.put(IMAGE_SHOW_FULLSIZE, value);
-        },)
+      settingsWidget(
+        children: [
+          WatchBoxBuilder(
+            watchKeys: [IMGUR_THUMBNAIL_QUALITY],
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Imgur Thumbnail Quality",
+                leading: new DropdownButton<String>(
+                  value: box.get(IMGUR_THUMBNAIL_QUALITY) ?? imgurThumbnailsQuality.keys.first,
+                  items: imgurThumbnailsQuality.keys.map((String value) {
+                    return new DropdownMenuItem<String>(
+                      value: value,
+                      child: new Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    box.put(IMGUR_THUMBNAIL_QUALITY, value);
+                  },
+                )
+              );
+            },
+          ),
+        ],
+        isAdvanced: true
       ),
-      /*
-      SettingsTitleRow(
-        title: "Enable Video Rotation",
-        leading: Switch(
-          value: box.get(VIDEO_ENABLE_ROTATION) ?? false,
-          onChanged: (value){
-            box.put(VIDEO_ENABLE_ROTATION, value);
-        },)
-      ),
-      */
-      SettingsTitleRow(
-        title: "Loop Videos",
-        leading: Switch(
-          value: box.get(VIDEO_LOOP) ?? true,
-          onChanged: (value){
-            box.put(VIDEO_LOOP, value);
-        },)
-      ),
-       SettingsTitleRow(
-        title: "Auto-Mute Videos",
-        leading: Switch(
-          value: box.get(VIDEO_AUTO_MUTE) ?? false,
-          onChanged: (value){
-            box.put(VIDEO_AUTO_MUTE, value);
-        },)
-      )
     ];
   }
   List<Widget> getThemeSettings(BuildContext context){
@@ -321,12 +390,19 @@ class _PreferencesViewState extends State<PreferencesView> {
     });
     return list;
   }
+  Widget settingsWidget({@required List<Widget> children, @required  bool isAdvanced}){
+    return Visibility(
+      child: Column(children: children,),
+      visible: isAdvanced == advanced,
+    );
+  }
 }
-class SettingsTitleRow extends StatelessWidget {
-  final String title;
-  final Widget leading;
 
+class SettingsTitleRow extends StatelessWidget {
   const SettingsTitleRow({this.title, this.leading});
+
+  final Widget leading;
+  final String title;
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,8 @@
+import 'package:draw/draw.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+
 import 'imageUtils.dart';
 
 final supportedYoutubeUrls = [
@@ -69,4 +74,38 @@ String getGfyid(String url){
   var divided = url.split("/");
   var last = divided.last;
   return last;
+}
+
+void launchURL(BuildContext context, dynamic source) async {
+  String url;
+  if (source is Submission){
+    url = source.url.toString();
+  } else {
+    url = source;
+  }
+  try{
+    await launch(
+        url,
+        option: new CustomTabsOption(
+          toolbarColor: Theme.of(context).primaryColor,
+          enableDefaultShare: true,
+          enableUrlBarHiding: true,
+          showPageTitle: true,
+          animation: new CustomTabsAnimation(
+            startEnter: 'slide_up',
+            startExit: 'android:anim/fade_out',
+            endEnter: 'android:anim/fade_in',
+            endExit: 'slide_down',
+          ),
+          extraCustomTabs: <String>[
+            // ref. https://play.google.com/store/apps/details?id=org.mozilla.firefox
+            'org.mozilla.firefox',
+            // ref. https://play.google.com/store/apps/details?id=com.microsoft.emmx
+            'com.microsoft.emmx',
+          ]
+        )
+    );
+  }catch(e){
+    debugPrint(e.toString());
+  }
 }

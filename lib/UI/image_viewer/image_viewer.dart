@@ -5,10 +5,15 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:lyre/Models/image.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
+import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+
+const selection_album = "Album";
+const selection_image = "Image";
 
 class ImageViewer extends StatelessWidget {
   Submission submission;
@@ -33,7 +38,7 @@ class ImageViewer extends StatelessWidget {
         future: ImgurAPI().getAlbumPictures(url),
         builder: (context, AsyncSnapshot<List<LyreImage>> snapshot){
           if (snapshot.hasData){
-            albumController = AlbumController(snapshot.data, submission, linkType);
+            albumController = AlbumController(snapshot.data, submission, url);
             return Stack(
               fit: StackFit.expand,
               children: <Widget>[
@@ -56,7 +61,7 @@ class ImageViewer extends StatelessWidget {
         SingleImageViewer(url),
         Positioned(
           bottom: 0.0,
-          child: ImageControlsBar(submission: submission, url: url,),
+          child: ImageControlsBar(submission: submission, url: url, controller: null,),
         )
       ]
     );
@@ -64,15 +69,33 @@ class ImageViewer extends StatelessWidget {
 }
 
 class AlbumController extends ChangeNotifier{
-  List<LyreImage> images; //dynamic json response if Imgur album, otherwise a direct link URL string
-  LinkType linkType;
+  List<LyreImage> images;
+  String url;
   Submission submission;
   int currentIndex = 0;
 
-  AlbumController(this.images, this.submission, this.linkType, [this.currentIndex]);
+  bool expanded = false;
+  bool fullyExpanded = false;
+
+  AlbumController(this.images, this.submission, this.url, [this.currentIndex]);
 
   void setCurrentIndex(int newIndex){
     currentIndex = newIndex;
+    notifyListeners();
+  }
+  LyreImage currentImage(){
+    return images[currentIndex];
+  }
+
+  void toggleExpand(){
+    if (fullyExpanded){
+      fullyExpanded = false;
+      expanded = false;
+    } else if (expanded) {
+      fullyExpanded = true;
+    } else {
+      expanded = true;
+    }
     notifyListeners();
   }
 }
@@ -90,9 +113,11 @@ class _AlbumViewerState extends State<AlbumViewer> {
   @override
   void initState() { 
     widget.albumController.addListener((){
-      setState(() {
-        pageController.jumpToPage(widget.albumController.currentIndex);
-      });
+      if (pageController.page.round() != widget.albumController.currentIndex){
+        setState(() {
+          pageController.jumpToPage(widget.albumController.currentIndex);
+        });
+      }
     });
     super.initState();
   }
@@ -170,20 +195,15 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   }
 
   void _reverseExpanded() {
-    if (fullyExpanded) {
+    if (fullyExpanded()) {
       _expansionController.animateBack(0.1, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
-      fullyExpanded = false;
-      isExpanded = true;
     } else {
       _expansionController.fling(velocity: -2.0);
-      fullyExpanded = false;
-      isExpanded = false;
     }
   }
 
   void _handleExpandedDragEnd(DragEndDetails details) {
     if (_expansionController.status == AnimationStatus.completed) {
-      fullyExpanded = true;
     }
     if (_expansionController.isAnimating ||
         _expansionController.status == AnimationStatus.completed) return;
@@ -193,43 +213,27 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
     if (flingVelocity < 0.0) {
       if (_expansionController.value > 0.1) {
         _expansionController.animateTo(1.0, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);//<-- either continue it upwards
-        isExpanded = true;
-        fullyExpanded = true;
       } else {
         _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
-        isExpanded = true;
-        fullyExpanded = false;
       }
     } else if (flingVelocity > 0.0) {
       if (_expansionController.value > 0.1) {
         _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
-        isExpanded = true;
-        fullyExpanded = false;
       } else {
         _expansionController.animateTo(0, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve); //<-- either continue it upwards
-        isExpanded = false;
-        fullyExpanded = false;
       }
     } else{
       if (_expansionController.value > 0.1) {
         if (_expansionController.value > 0.9 / 2) {
           _expansionController.animateTo(1.0, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);
-          isExpanded = true;
-          fullyExpanded = true;
         } else {
           _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve);
-          isExpanded = true;
-          fullyExpanded = false;
         }
       } else {
         if (_expansionController.value > 0.05) {
           _expansionController.animateTo(0.1, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);
-          isExpanded = true;
-          fullyExpanded = false;
         } else {
           _expansionController.animateTo(0.0, duration: Duration(milliseconds: getExpansionFlingDuration(false, flingVelocity)), curve: animationCurve);
-          isExpanded = false;
-          fullyExpanded = false;
         }
       }
     }
@@ -248,8 +252,8 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       return up ? (animationDuration * (1 - 10 * (_expansionController.value))).round() : (animationDuration * 1.25 * (10 * _expansionController.value)).round();      
     }
   }
-  bool isExpanded = false;
-  bool fullyExpanded = false;
+  bool isExpanded() => _expansionController.value >= 0.1;
+  bool fullyExpanded() => _expansionController.value == 1.0;
   double getExpandedBarHeight(){
     return maxExpandedBarHeight * 0.1;
   }
@@ -266,6 +270,17 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       setState(() { 
       });
     });
+    widget.controller.addListener((){
+      if (widget.controller.expanded != isExpanded() || widget.controller.fullyExpanded != fullyExpanded()) {
+        if (widget.controller.fullyExpanded) {
+          _expansionController.animateTo(1.0, duration: Duration(milliseconds: 500), curve: animationCurve);
+        } else if (widget.controller.expanded) {
+          _expansionController.animateTo(0.1, duration: Duration(milliseconds: 500), curve: animationCurve);
+        } else {
+          _expansionController.animateTo(0.0, duration: Duration(milliseconds: 500), curve: animationCurve);
+        }
+      }
+    });
     super.initState();
   }
 
@@ -276,7 +291,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
        child: GestureDetector(
          child: Column(children: <Widget>[
           getPreviewsBar(context),
-          ImageControlsBar(submission: widget.controller.submission,)
+          ImageControlsBar(submission: widget.controller.submission, controller: widget.controller, url: widget.controller.url,)
         ],),
         onVerticalDragUpdate: _handleExpandedDragUpdate,
         onVerticalDragEnd: _handleExpandedDragEnd,
@@ -383,9 +398,10 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 }
 
 class ImageControlsBar extends StatelessWidget {
+  final AlbumController controller;
   final Submission submission;
   final String url;
-  ImageControlsBar({Key key, this.submission, this.url} ) : super(key: key);
+  ImageControlsBar({Key key, this.submission, this.url, this.controller} ) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -398,29 +414,59 @@ class ImageControlsBar extends StatelessWidget {
         children: <Widget>[
           _buildCopyButton(context),
           _buildOpenUrlButton(context),
-          submission ?? _buildCommentsButton(context), //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
-          _buildExpandButton(context),
+          submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
+          controller != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
           _buildDownloadButton(context),
           _buildShareButton(context),
-        ],
+        ].where((w) => notNull(w)).toList(),
       ),
     );
   }
   Widget _buildCopyButton(BuildContext context){
-    return IconButton(
-      icon: Icon(Icons.content_copy),
-      color: Colors.white,
-      onPressed: (){
-        // TODO: Implement
-      },
-    );
+    return controller != null ?
+      IconButton(
+        icon: Icon(Icons.content_copy),
+        color: Colors.white,
+        onPressed: (){
+          copyToClipboard(url).then((result){
+            final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
+            //Scaffold.of(context).showSnackBar(snackBar);
+          });
+        },
+      )
+      : PopupMenuButton<String>(
+        child: Icon(Icons.content_copy),
+        itemBuilder: (context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(
+            value: selection_album,
+            child: Text("Copy Album"),
+          ),
+          const PopupMenuItem<String>(
+            value: selection_image,
+            child: Text("Copy Image"),
+          )
+        ],
+        onSelected: (String value) {
+          if (value == selection_album) {
+            copyToClipboard(url).then((result){
+              final snackBar = SnackBar(content: Text( result ? 'Copied Album Url to Clipboard' : "Failed to Copy Album Url to Clipboard"),);
+              //Scaffold.of(context).showSnackBar(snackBar);
+            });
+          } else {
+            copyToClipboard(controller.currentImage().url).then((result){
+              final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
+              // ! Scaffold.of(context).showSnackBar(snackBar); NEEDS SCAFFOLD
+            });
+          }
+        },
+      );
   }
   Widget _buildOpenUrlButton(BuildContext context){
     return IconButton(
       icon: Icon(Icons.open_in_browser),
       color: Colors.white,
       onPressed: (){
-        // TODO: Implement
+        launchURL(context, url);
       },
     );
   }
@@ -438,26 +484,68 @@ class ImageControlsBar extends StatelessWidget {
       icon: Icon(Icons.grid_on),
       color: Colors.white,
       onPressed: (){
-        //TODO: Implement
+        controller.toggleExpand();
       },
     );
   }
   Widget _buildDownloadButton(BuildContext context){
-    return IconButton(
-      icon: Icon(Icons.file_download),
-      color: Colors.white,
-      onPressed: (){
-        // TODO: Implement
-      },
-    );
+    return controller != null ?
+      IconButton(
+        icon: Icon(Icons.file_download),
+        color: Colors.white,
+        onPressed: (){
+          // TODO: Implement
+        },
+      )
+      : PopupMenuButton<String>(
+        child: Icon(Icons.file_download),
+        itemBuilder: (context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(
+            value: selection_album,
+            child: Text("Download Album"),
+          ),
+          const PopupMenuItem<String>(
+            value: selection_image,
+            child: Text("Download Image"),
+          )
+        ],
+        onSelected: (String value) {
+          if (value == selection_album) {
+            //TODO : IMPLEMENT
+          } else {
+
+          }
+        },
+      );
   }
   Widget _buildShareButton(BuildContext context){
-    return IconButton(
-      icon: Icon(Icons.share),
-      color: Colors.white,
-      onPressed: (){
-        // TODO: Implement
-      },
-    );
+    return controller != null ?
+      IconButton(
+        icon: Icon(Icons.share),
+        color: Colors.white,
+        onPressed: (){
+          shareString(url);
+        },
+      )
+      : PopupMenuButton<String>(
+        child: Icon(Icons.share),
+        itemBuilder: (context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(
+            value: selection_album,
+            child: Text("Share Album"),
+          ),
+          const PopupMenuItem<String>(
+            value: selection_image,
+            child: Text("Share Image"),
+          )
+        ],
+        onSelected: (String value) {
+          if (value == selection_album) {
+            shareString(url);
+          } else {
+            shareString(controller.currentImage().url);
+          }
+        },
+      );
   }
 }

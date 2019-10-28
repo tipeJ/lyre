@@ -9,7 +9,6 @@ import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
@@ -188,9 +187,9 @@ class postInnerWidget extends StatelessWidget {
   void handleClick(BuildContext context){
     if(linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
-      _launchURL(context, submission);
+      launchURL(context, submission);
     } else if(linkType == LinkType.Default){
-      _launchURL(context, submission);
+      launchURL(context, submission);
     } else if (linkType == LinkType.RedditVideo){
       PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
@@ -318,8 +317,6 @@ class postInnerWidget extends StatelessWidget {
   }
 }
 
-bool notNull(Object o) => o != null;
-
 class defaultColumn extends StatelessWidget {
   defaultColumn(this.submission, this.previewSource, this.linkType);
 
@@ -358,7 +355,7 @@ class defaultColumn extends StatelessWidget {
                       playYouTube(submission.url.toString());
                       break;
                     case LinkType.Default:
-                      _launchURL(context, submission);
+                      launchURL(context, submission);
                       break;
                     default:
                       break;
@@ -517,31 +514,3 @@ class defaultColumn extends StatelessWidget {
     );
   }
 }
-void _launchURL(BuildContext context, Submission submission) async {
-    String url = submission.url.toString();
-    try{
-      await launch(
-          url,
-          option: new CustomTabsOption(
-            toolbarColor: Theme.of(context).primaryColor,
-            enableDefaultShare: true,
-            enableUrlBarHiding: true,
-            showPageTitle: true,
-            animation: new CustomTabsAnimation(
-              startEnter: 'slide_up',
-              startExit: 'android:anim/fade_out',
-              endEnter: 'android:anim/fade_in',
-              endExit: 'slide_down',
-            ),
-            extraCustomTabs: <String>[
-              // ref. https://play.google.com/store/apps/details?id=org.mozilla.firefox
-              'org.mozilla.firefox',
-              // ref. https://play.google.com/store/apps/details?id=com.microsoft.emmx
-              'com.microsoft.emmx',
-            ]
-          )
-      );
-    }catch(e){
-      debugPrint(e.toString());
-    }
-  }

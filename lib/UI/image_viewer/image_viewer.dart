@@ -3,6 +3,7 @@ import 'dart:ui' as prefix0;
 
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:lyre/Models/image.dart';
 import 'package:lyre/Resources/globals.dart';
@@ -240,12 +241,12 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
         //<-- or just continue to whichever edge is closer
   }
   final Curve animationCurve = Curves.easeOutCirc;
-  final int maxAnimationDuration = 700;
+  final double maxAnimationDuration = 700.0;
   final double minAnimationDuration = 150.0;
 
   // Flingvelocity is the velocity which the user ends the fling with. Boolean true if the animation is going upwards, false if downwards
   int getExpansionFlingDuration(bool up, double flingVelocity){
-    final double animationDuration = min(maxAnimationDuration.toDouble(), max(maxAnimationDuration / (flingVelocity.abs() * 0.10), minAnimationDuration));
+    final double animationDuration = min(maxAnimationDuration, max(maxAnimationDuration / (flingVelocity.abs() * 0.10), minAnimationDuration));
     if (_expansionController.value > 0.1) {
       return up ? (animationDuration * (1 - 0.75 * (_expansionController.value - 0.1))).round() : (animationDuration * 1.5 * (_expansionController.value - 0.1)).round();
     } else {
@@ -261,13 +262,16 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 
   @override
   void initState() { 
-    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Scren height minus the height of image controls bar
+    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
     _expansionController = AnimationController(
       //<-- initialize a controller
       vsync: this,
       duration: Duration(milliseconds: 450),
     )..addListener((){
-      setState(() { 
+      widget.controller.expanded = isExpanded();
+      widget.controller.fullyExpanded = fullyExpanded();
+      setState(() {
+        
       });
     });
     widget.controller.addListener((){
@@ -282,6 +286,11 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       }
     });
     super.initState();
+  }
+  @override
+  void didUpdateWidget(AlbumControlsBar oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -306,44 +315,49 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       width: MediaQuery.of(context).size.width,
       child: Column(
         children: <Widget> [
-          Container(
-            height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
-            child: ListView.builder(
-              itemCount: widget.controller.images.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, i){
-                final url = widget.controller.images[i].thumbnailUrl;
-                if (url != null && getLinkType(url) == LinkType.DirectImage){
-                  return StatefulBuilder(builder: (context, child){
-                    return InkWell(
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 3.0),
-                        width: 75.0,
-                        height: getExpandedBarHeight(),
-                        child: Image(
-                          height: double.infinity,
-                          width: double.infinity,
-                          color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
-                          colorBlendMode: BlendMode.luminosity,
-                          image: AdvancedNetworkImage(
-                            url,
-                            useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: Duration(days: 7))
+          AnimatedBuilder(
+            animation: _expansionController,
+            builder: (_, child){
+              return Container(
+                height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
+                child: ListView.builder(
+                  itemCount: widget.controller.images.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, i){
+                    final url = widget.controller.images[i].thumbnailUrl;
+                    if (url != null && getLinkType(url) == LinkType.DirectImage){
+                      return StatefulBuilder(builder: (context, child){
+                        return InkWell(
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 3.0),
+                            width: 75.0,
+                            height: getExpandedBarHeight(),
+                            child: Image(
+                              height: double.infinity,
+                              width: double.infinity,
+                              color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
+                              colorBlendMode: BlendMode.luminosity,
+                              image: AdvancedNetworkImage(
+                                url,
+                                useDiskCache: true,
+                                cacheRule: CacheRule(maxAge: Duration(days: 7))
+                              ),
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      onTap: (){
-                        setState(() {
-                          widget.controller.setCurrentIndex(i);                
-                        });
-                      },
-                    );
-                  },);
-                }
-                return Container();
-              },
-            ),
+                          onTap: (){
+                            setState(() {
+                              widget.controller.setCurrentIndex(i);                
+                            });
+                          },
+                        );
+                      },);
+                    }
+                    return Container();
+                  },
+                ),
+              );
+            },
           ),
           Container(
             height: maxExpandedBarHeight,
@@ -361,7 +375,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                   return StatefulBuilder(builder: (context, child){
                     return InkWell(
                       child: Container(
-                        margin: EdgeInsets.all(3.0),
+                        margin: const EdgeInsets.all(3.0),
                         width: 125.0,
                         height: 125.0,
                         child: Image(
@@ -372,7 +386,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                           image: AdvancedNetworkImage(
                             url,
                             useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: Duration(hours: 1))
+                            cacheRule: const CacheRule(maxAge: const Duration(hours: 1))
                           ),
                           fit: BoxFit.cover,
                         )
@@ -389,7 +403,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                 return Container();
               },
             ),
-          )
+          ),
         ]
         
       )
@@ -415,9 +429,9 @@ class ImageControlsBar extends StatelessWidget {
           _buildCopyButton(context),
           _buildOpenUrlButton(context),
           submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
-          controller != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
           _buildDownloadButton(context),
           _buildShareButton(context),
+          controller != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
         ].where((w) => notNull(w)).toList(),
       ),
     );

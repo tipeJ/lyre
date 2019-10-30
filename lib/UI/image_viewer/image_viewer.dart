@@ -137,7 +137,7 @@ class _AlbumViewerState extends State<AlbumViewer> {
               maxScale: 5.0,
               imageProvider: AdvancedNetworkImage(
                 image,
-                useDiskCache: true,
+                useDiskCache: false,
                 cacheRule: const CacheRule(maxAge: Duration(days: 7))
               )
             );
@@ -240,7 +240,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
     }
         //<-- or just continue to whichever edge is closer
   }
-  final Curve animationCurve = Curves.easeOutCirc;
+  final Curve animationCurve = Curves.easeOut;
   final double maxAnimationDuration = 700.0;
   final double minAnimationDuration = 150.0;
 
@@ -315,49 +315,44 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       width: MediaQuery.of(context).size.width,
       child: Column(
         children: <Widget> [
-          AnimatedBuilder(
-            animation: _expansionController,
-            builder: (_, child){
-              return Container(
-                height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
-                child: ListView.builder(
-                  itemCount: widget.controller.images.length,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, i){
-                    final url = widget.controller.images[i].thumbnailUrl;
-                    if (url != null && getLinkType(url) == LinkType.DirectImage){
-                      return StatefulBuilder(builder: (context, child){
-                        return InkWell(
-                          child: Container(
-                            margin: EdgeInsets.symmetric(horizontal: 3.0),
-                            width: 75.0,
-                            height: getExpandedBarHeight(),
-                            child: Image(
-                              height: double.infinity,
-                              width: double.infinity,
-                              color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
-                              colorBlendMode: BlendMode.luminosity,
-                              image: AdvancedNetworkImage(
-                                url,
-                                useDiskCache: true,
-                                cacheRule: CacheRule(maxAge: Duration(days: 7))
-                              ),
-                              fit: BoxFit.cover,
-                            ),
+         Container(
+            height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
+            child: ListView.builder(
+              itemCount: widget.controller.images.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, i){
+                final url = widget.controller.images[i].thumbnailUrl;
+                if (url != null && getLinkType(url) == LinkType.DirectImage){
+                  return StatefulBuilder(builder: (context, child){
+                    return InkWell(
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 3.0),
+                        width: 75.0,
+                        height: getExpandedBarHeight(),
+                        child: Image(
+                          height: double.infinity,
+                          width: double.infinity,
+                          color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
+                          colorBlendMode: BlendMode.luminosity,
+                          image: AdvancedNetworkImage(
+                            url,
+                            useDiskCache: false,
+                            cacheRule: CacheRule(maxAge: Duration(days: 7))
                           ),
-                          onTap: (){
-                            setState(() {
-                              widget.controller.setCurrentIndex(i);                
-                            });
-                          },
-                        );
-                      },);
-                    }
-                    return Container();
-                  },
-                ),
-              );
-            },
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      onTap: (){
+                        setState(() {
+                          widget.controller.setCurrentIndex(i);                
+                        });
+                      },
+                    );
+                  },);
+                }
+                return Container();
+              },
+            ),
           ),
           Container(
             height: maxExpandedBarHeight,
@@ -385,7 +380,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                           height: double.infinity,
                           image: AdvancedNetworkImage(
                             url,
-                            useDiskCache: true,
+                            useDiskCache: false,
                             cacheRule: const CacheRule(maxAge: const Duration(hours: 1))
                           ),
                           fit: BoxFit.cover,

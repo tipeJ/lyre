@@ -28,8 +28,8 @@ class postInnerWidget extends StatelessWidget {
   PostView postView;
   bool showCircle;
 
-  bool showNsfw;
-  bool showSpoiler;
+  bool showNsfw = false;
+  bool showSpoiler = false;
 
   final PreviewSource previewSource;
   final Submission submission;
@@ -45,8 +45,8 @@ class postInnerWidget extends StatelessWidget {
           showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
           fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
           postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
-          showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS);
-          showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS);
+          showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false;
+          showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false;
           switch (postView) {
             case PostView.IntendedPreview:
               return intendedWidget(context, state);
@@ -116,7 +116,7 @@ class postInnerWidget extends StatelessWidget {
                   child: getDefaultSlideColumn(context),
                 ),
         ),
-        ((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler) || videoLinkTypes.contains(linkType))
+        ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
           : null
     ].where((w) => notNull(w)).toList());

@@ -95,7 +95,6 @@ class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
   }
   int currentIndex = 0;
   void _updateIndicator(){
-    print("SHOULD UPDATE");
     if (widget.albumController.currentIndex != currentIndex) {
       setState(() { 
         currentIndex = widget.albumController.currentIndex;
@@ -125,7 +124,6 @@ class AlbumController extends ChangeNotifier{
   AlbumController(this.images, this.submission, this.url, [currentIndex]);
 
   void setCurrentIndex(int newIndex){
-    print("INDEXSET FROM " + currentIndex.toString() + " TO " + newIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -159,7 +157,6 @@ class _AlbumViewerState extends State<AlbumViewer> {
   @override
   void initState() { 
     widget.albumController.addListener((){
-      print("ALBUMLISTENER TRIGGERED");
       if (pageController.page.round() != widget.albumController.currentIndex){
         setState(() {
           pageController.jumpToPage(widget.albumController.currentIndex);
@@ -170,7 +167,6 @@ class _AlbumViewerState extends State<AlbumViewer> {
     super.initState();
   }
   void _pageListener(){
-      print("PAGELISTENER TRIGGERED");
     if (widget.albumController.currentIndex != pageController.page.round()) widget.albumController.setCurrentIndex(pageController.page.round());
   }
 

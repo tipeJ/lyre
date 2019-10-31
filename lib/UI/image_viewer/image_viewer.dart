@@ -3,7 +3,6 @@ import 'dart:ui' as prefix0;
 
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:lyre/Models/image.dart';
 import 'package:lyre/Resources/globals.dart';
@@ -44,6 +43,13 @@ class ImageViewer extends StatelessWidget {
               fit: StackFit.expand,
               children: <Widget>[
                 AlbumViewer(albumController: albumController,),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    child: SafeArea(child: CurrentImageIndicator(albumController: this.albumController,),),
+                    margin: EdgeInsets.only(top: 15.0),
+                  ),
+                ),
                 Positioned(
                   bottom: 0.0,
                   child: AlbumControlsBar(controller: albumController,),
@@ -69,6 +75,44 @@ class ImageViewer extends StatelessWidget {
   }
 }
 
+class CurrentImageIndicator extends StatefulWidget {
+  const CurrentImageIndicator({
+    Key key,
+    @required this.albumController,
+  }) : super(key: key);
+
+  final AlbumController albumController;
+
+  @override
+  _CurrentImageIndicatorState createState() => _CurrentImageIndicatorState();
+}
+
+class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
+  @override
+  void initState() {
+    widget.albumController.addListener(_updateIndicator);
+    super.initState();
+  }
+  int currentIndex = 0;
+  void _updateIndicator(){
+    print("SHOULD UPDATE");
+    if (widget.albumController.currentIndex != currentIndex) {
+      setState(() { 
+        currentIndex = widget.albumController.currentIndex;
+      });
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Material(color: Colors.transparent, child: Text(
+      currentIndex.toString() + '/' + widget.albumController.images.length.toString(),
+      style: TextStyle(
+        fontSize: 26.0
+      ),
+    ),);
+  }
+}
+
 class AlbumController extends ChangeNotifier{
   List<LyreImage> images;
   String url;
@@ -78,9 +122,10 @@ class AlbumController extends ChangeNotifier{
   bool expanded = false;
   bool fullyExpanded = false;
 
-  AlbumController(this.images, this.submission, this.url, [this.currentIndex]);
+  AlbumController(this.images, this.submission, this.url, [currentIndex]);
 
   void setCurrentIndex(int newIndex){
+    print("INDEXSET FROM " + currentIndex.toString() + " TO " + newIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -114,13 +159,25 @@ class _AlbumViewerState extends State<AlbumViewer> {
   @override
   void initState() { 
     widget.albumController.addListener((){
+      print("ALBUMLISTENER TRIGGERED");
       if (pageController.page.round() != widget.albumController.currentIndex){
         setState(() {
           pageController.jumpToPage(widget.albumController.currentIndex);
         });
       }
     });
+    pageController.addListener(_pageListener);
     super.initState();
+  }
+  void _pageListener(){
+      print("PAGELISTENER TRIGGERED");
+    if (widget.albumController.currentIndex != pageController.page.round()) widget.albumController.setCurrentIndex(pageController.page.round());
+  }
+
+  @override void dispose(){
+    pageController.dispose();
+    widget.albumController.dispose();
+    super.dispose();
   }
 
   @override
@@ -324,24 +381,8 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                 final url = widget.controller.images[i].thumbnailUrl;
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
                   return StatefulBuilder(builder: (context, child){
-                    return InkWell(
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 3.0),
-                        width: 75.0,
-                        height: getExpandedBarHeight(),
-                        child: Image(
-                          height: double.infinity,
-                          width: double.infinity,
-                          color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
-                          colorBlendMode: BlendMode.luminosity,
-                          image: AdvancedNetworkImage(
-                            url,
-                            useDiskCache: false,
-                            cacheRule: CacheRule(maxAge: Duration(days: 7))
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                    return GestureDetector(
+                      child: new PreviewImage(controller: widget.controller, url: url, index: i, size: Size(75.0, getExpandedBarHeight()),),                      
                       onTap: (){
                         setState(() {
                           widget.controller.setCurrentIndex(i);                
@@ -367,33 +408,15 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
               itemBuilder: (context, i){
                 final url = widget.controller.images[i].thumbnailUrl;
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
-                  return StatefulBuilder(builder: (context, child){
-                    return InkWell(
-                      child: Container(
-                        margin: const EdgeInsets.all(3.0),
-                        width: 125.0,
-                        height: 125.0,
-                        child: Image(
-                          color: Colors.black.withOpacity(i == widget.controller.currentIndex ? 0.38 : 0.0),
-                          colorBlendMode: BlendMode.luminosity,
-                          width: double.infinity,
-                          height: double.infinity,
-                          image: AdvancedNetworkImage(
-                            url,
-                            useDiskCache: false,
-                            cacheRule: const CacheRule(maxAge: const Duration(hours: 1))
-                          ),
-                          fit: BoxFit.cover,
-                        )
-                      ),
-                      onTap: (){
-                        setState(() {
-                          widget.controller.setCurrentIndex(i);                
-                          _reverseExpanded();
-                        });
-                      },
-                    );
-                  },);
+                  return GestureDetector(
+                    child: new PreviewImage(controller: widget.controller, url: url, index: i, size: Size(125.0, 125.0),),
+                    onTap: (){
+                      setState(() {
+                        widget.controller.setCurrentIndex(i);                
+                        _reverseExpanded();
+                      });
+                    },
+                  );
                 }
                 return Container();
               },
@@ -401,6 +424,64 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
           ),
         ]
         
+      )
+    );
+  }
+}
+
+class PreviewImage extends StatefulWidget {
+  const PreviewImage({
+    Key key,
+    @required this.controller,
+    @required this.url,
+    @required this.index,
+    @required this.size,
+  }) : super(key: key);
+
+  final AlbumController controller;
+  final String url;
+  final int index;
+  final Size size;
+
+  @override
+  _PreviewImageState createState() => _PreviewImageState();
+}
+
+class _PreviewImageState extends State<PreviewImage> {
+
+  @override
+  void initState() { 
+    if (widget.controller.currentIndex == widget.index) selected = true;
+    widget.controller.addListener(_updateCurrentIndex);
+    super.initState();
+  }
+  void _updateCurrentIndex(){
+    if (selected != (widget.controller.currentIndex == widget.index)) {
+      setState(() {
+        selected = !selected;
+      });
+    }
+  }
+
+  bool selected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(3.0),
+      width: widget.size.width,
+      height: widget.size.height,
+      child: Image(
+        color: Colors.black.withOpacity(widget.index == widget.controller.currentIndex ? 0.38 : 0.0),
+        colorBlendMode: BlendMode.luminosity,
+        width: double.infinity,
+        height: double.infinity,
+        image: AdvancedNetworkImage(
+          widget.url,
+          useDiskCache: false,
+          cacheRule: const CacheRule(maxAge: const Duration(hours: 1))
+        ),
+        fit: BoxFit.cover,
       )
     );
   }

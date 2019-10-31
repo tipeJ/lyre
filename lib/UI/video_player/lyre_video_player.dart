@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:photo_view/photo_view.dart';
 import 'video_controls.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lyre/UI/video_player/video_player.dart';

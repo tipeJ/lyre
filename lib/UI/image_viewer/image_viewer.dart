@@ -28,34 +28,18 @@ class ImageViewer extends StatelessWidget {
     }
   }
 
-  AlbumController albumController;
+  AlbumController _albumController;
 
   @override
   Widget build(BuildContext context) {
     if (albumLinkTypes.contains(linkType)){
-      if (albumController != null) return AlbumViewer(albumController: albumController,);
+      if (_albumController != null) return _buildAlbumStack();
       return FutureBuilder(
         future: ImgurAPI().getAlbumPictures(url),
         builder: (context, AsyncSnapshot<List<LyreImage>> snapshot){
           if (snapshot.hasData){
-            albumController = AlbumController(snapshot.data, submission, url);
-            return Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                AlbumViewer(albumController: albumController,),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    child: SafeArea(child: CurrentImageIndicator(albumController: this.albumController,),),
-                    margin: EdgeInsets.only(top: 15.0),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0.0,
-                  child: AlbumControlsBar(controller: albumController,),
-                )
-              ],
-            );
+            _albumController = AlbumController(snapshot.data, submission, url);
+            return _buildAlbumStack();
           } else {
             return const Center(child: const CircularProgressIndicator(),);
           }
@@ -71,6 +55,26 @@ class ImageViewer extends StatelessWidget {
           child: ImageControlsBar(submission: submission, url: url, controller: null,),
         )
       ]
+    );
+  }
+
+  Stack _buildAlbumStack() {
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        AlbumViewer(albumController: _albumController,),
+        Align(
+          alignment: Alignment.topCenter,
+          child: Container(
+            child: SafeArea(child: CurrentImageIndicator(albumController: this._albumController,),),
+            margin: EdgeInsets.only(top: 15.0),
+          ),
+        ),
+        Positioned(
+          bottom: 0.0,
+          child: AlbumControlsBar(controller: _albumController,),
+        )
+      ],
     );
   }
 }
@@ -309,13 +313,12 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   bool isExpanded() => _expansionController.value >= 0.1;
   bool fullyExpanded() => _expansionController.value == 1.0;
   double getExpandedBarHeight(){
-    return maxExpandedBarHeight * 0.1;
+    return min(maxExpandedBarHeight * 0.1, 125);
   }
   double maxExpandedBarHeight = 500.0; //Fallback value
 
   @override
   void initState() { 
-    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
     _expansionController = AnimationController(
       //<-- initialize a controller
       vsync: this,
@@ -348,6 +351,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
     return Container(
        width: MediaQuery.of(context).size.width,
        child: GestureDetector(

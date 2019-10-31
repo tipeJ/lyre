@@ -9,7 +9,6 @@ import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import '../Resources/globals.dart';
 import '../utils/imageUtils.dart';
 import '../utils/urlUtils.dart';
@@ -28,6 +27,10 @@ class postInnerWidget extends StatelessWidget {
   LinkType linkType;
   PostView postView;
   bool showCircle;
+
+  bool showNsfw = false;
+  bool showSpoiler = false;
+
   final PreviewSource previewSource;
   final Submission submission;
   final PostView viewSetting;
@@ -42,6 +45,8 @@ class postInnerWidget extends StatelessWidget {
           showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
           fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
           postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
+          showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false;
+          showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false;
           switch (postView) {
             case PostView.IntendedPreview:
               return intendedWidget(context, state);
@@ -92,8 +97,8 @@ class postInnerWidget extends StatelessWidget {
         new Positioned(
           bottom: 0.0,
           child: 
-            (((!(state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false) && submission.over18) ||    //Blur NSFW
-            (!(state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
+            (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
+            (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
@@ -101,17 +106,17 @@ class postInnerWidget extends StatelessWidget {
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
+                  color: Colors.black.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
               )
               : new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Color.fromARGB(155, 0, 0, 0),
+                  color: Colors.black.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
         ),
-        (submission.over18 || submission.spoiler || videoLinkTypes.contains(linkType))
+        ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
           : null
     ].where((w) => notNull(w)).toList());
@@ -137,7 +142,7 @@ class postInnerWidget extends StatelessWidget {
         final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
 
         if (viewMode == PostView.Compact) {
-          return getImageWrapper(context, BoxFit.fitWidth);
+          return getImageWrapper(context, BoxFit.cover);
         }
         return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
       },
@@ -147,6 +152,10 @@ class postInnerWidget extends StatelessWidget {
   Widget getImageWrapper(BuildContext context, BoxFit fit){
     return new GestureDetector(
       child: Image(
+        color: Colors.black.withOpacity(0.22),
+        colorBlendMode: BlendMode.luminosity,
+        width: double.infinity,
+        height: double.infinity,
         image: AdvancedNetworkImage(
           submission.preview.first.source.url.toString(),
           useDiskCache: true,
@@ -178,14 +187,14 @@ class postInnerWidget extends StatelessWidget {
   void handleClick(BuildContext context){
     if(linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
-      _launchURL(context, submission);
+      launchURL(context, submission);
     } else if(linkType == LinkType.Default){
-      _launchURL(context, submission);
+      launchURL(context, submission);
     } else if (linkType == LinkType.RedditVideo){
       PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
+      print("URL:" + submission.url.toString());
       PreviewCall().callback.preview(submission.url.toString());
-      
     }
   }
 
@@ -223,7 +232,7 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getIndicator(LinkType type){
     Widget content;
-    if(submission.over18 || submission.spoiler){
+    if((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler)){
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),
@@ -308,8 +317,6 @@ class postInnerWidget extends StatelessWidget {
   }
 }
 
-bool notNull(Object o) => o != null;
-
 class defaultColumn extends StatelessWidget {
   defaultColumn(this.submission, this.previewSource, this.linkType);
 
@@ -348,7 +355,7 @@ class defaultColumn extends StatelessWidget {
                       playYouTube(submission.url.toString());
                       break;
                     case LinkType.Default:
-                      _launchURL(context, submission);
+                      launchURL(context, submission);
                       break;
                     default:
                       break;
@@ -507,31 +514,3 @@ class defaultColumn extends StatelessWidget {
     );
   }
 }
-void _launchURL(BuildContext context, Submission submission) async {
-    String url = submission.url.toString();
-    try{
-      await launch(
-          url,
-          option: new CustomTabsOption(
-            toolbarColor: Theme.of(context).primaryColor,
-            enableDefaultShare: true,
-            enableUrlBarHiding: true,
-            showPageTitle: true,
-            animation: new CustomTabsAnimation(
-              startEnter: 'slide_up',
-              startExit: 'android:anim/fade_out',
-              endEnter: 'android:anim/fade_in',
-              endExit: 'slide_down',
-            ),
-            extraCustomTabs: <String>[
-              // ref. https://play.google.com/store/apps/details?id=org.mozilla.firefox
-              'org.mozilla.firefox',
-              // ref. https://play.google.com/store/apps/details?id=com.microsoft.emmx
-              'com.microsoft.emmx',
-            ]
-          )
-      );
-    }catch(e){
-      debugPrint(e.toString());
-    }
-  }

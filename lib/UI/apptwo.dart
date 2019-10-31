@@ -1,16 +1,14 @@
-import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';
+import 'package:lyre/UI/image_viewer/image_viewer.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/video_player/lyre_video_player.dart';
 import 'package:lyre/utils/twitchUtils.dart';
 import 'package:lyre/utils/urlUtils.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
@@ -82,16 +80,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           width: 400.0,
           height: 500.0,
           child: new Container(
-            child: PhotoView(
-              enableRotation: false,
-              minScale: 1.0,
-              maxScale: 5.0,
-              imageProvider: AdvancedNetworkImage(
-                  previewUrl,
-                  useDiskCache: true,
-                  cacheRule: CacheRule(maxAge: const Duration(days: 7)),
-              ),
-            ),
+            child: ImageViewer(previewUrl),
             color: Color.fromARGB(200, 0, 0, 0),
           )
         ),
@@ -123,7 +112,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   @override
   void preview(String url) {
     final linkType = getLinkType(url);
-    if (linkType == LinkType.DirectImage){
+    if (linkType == LinkType.DirectImage || albumLinkTypes.contains(linkType)){
       if(!isPreviewing){
         previewType = PreviewType.Image;
         previewUrl = url.toString();

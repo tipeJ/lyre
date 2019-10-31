@@ -128,6 +128,7 @@ class AlbumController extends ChangeNotifier{
   AlbumController(this.images, this.submission, this.url, [currentIndex]);
 
   void setCurrentIndex(int newIndex){
+    print("UPDATE" + currentIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -147,6 +148,22 @@ class AlbumController extends ChangeNotifier{
     notifyListeners();
   }
 }
+class _AlbumControllerProvider extends InheritedWidget {
+  const _AlbumControllerProvider({
+    Key key,
+    @required this.controller,
+    @required Widget child,
+  })  : assert(controller != null),
+        assert(child != null),
+        super(key: key, child: child);
+
+  final AlbumController controller;
+
+  @override
+  bool updateShouldNotify(_AlbumControllerProvider old) =>
+      controller != old.controller;
+}
+
 
 class AlbumViewer extends StatefulWidget {
   final AlbumController albumController;

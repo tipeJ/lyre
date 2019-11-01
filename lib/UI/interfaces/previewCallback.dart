@@ -5,6 +5,10 @@ abstract class PreviewCallback{
   Future<bool> canPop();
 }
 
+abstract class MediaViewerCallback {
+  bool canPopMediaViewer();
+}
+
 // Source view of preview. Needed for deciding whether to show every line of selftext
 enum PreviewSource{
   Comments,

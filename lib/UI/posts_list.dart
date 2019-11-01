@@ -49,20 +49,18 @@ class PostsList extends StatefulWidget {
   final ContentSource initialSource;
   final String redditor;
 
-  State<PostsList> createState() => new PostsListState(redditor, initialSource);
+  State<PostsList> createState() => new PostsListState();
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
-  PostsListState(this.redditor, this.initialSource);
+  PostsListState();
 
   bool autoLoad;
   PostsBloc bloc;
   //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
   Widget headerWidget;
 
-  final ContentSource initialSource;
   final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
-  final String redditor;
 
   ScrollController scontrol = new ScrollController();
   var titletext = "Lyre for Reddit";
@@ -247,7 +245,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
-      bloc.add(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
+      bloc.add(PostsSourceChanged(redditor: widget.redditor, source: widget.initialSource));
     }
     bloc.listen((PostsState state){
       if(state.userContent.isNotEmpty && !state.updated) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);

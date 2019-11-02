@@ -12,7 +12,7 @@ class PostsState extends Equatable {
   //CONTENT
   final List<UserContent> userContent;
   final ContentSource contentSource;
-  final updated; // IS THIS A CONTENT REFRESH
+  final bool updated; // IS THIS A CONTENT REFRESH
 
   //SORTING
   TypeFilter temporaryType = currentSortType;

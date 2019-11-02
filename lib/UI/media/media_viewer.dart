@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/image_viewer/image_viewer.dart';
@@ -15,7 +16,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
   LyreVideoController _vController;
   
   MediaViewer({@required this.url}) {
-    PreviewCall().mediaViewerCallback = this;    
+    PreviewCall().mediaViewerCallback = this; 
   }
 
   @override
@@ -25,7 +26,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       return ImageViewer(url);
     } else if (videoLinkTypes.contains(linkType)) {
       return FutureBuilder(
-        future: _videoInitialized,
+        future: handleVideoLink(linkType, url),
         builder: (context, snapshot){
           if (snapshot.connectionState == ConnectionState.done){
             return LyreVideo(
@@ -36,10 +37,11 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
           }
         },
       );
-    }
+    } 
+    return const Center(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,));
   }
 
-  void handleVideoLink(LinkType linkType, String url) async {
+  Future<void> handleVideoLink(LinkType linkType, String url) async {
     if (linkType == LinkType.Gfycat){
       getGfyVideoUrl(url).then((videoUrl) {
         _videoInitialized = _initializeVideo(videoUrl);
@@ -50,6 +52,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       final clipVideoUrl = await getTwitchClipVideoLink(url);
       _videoInitialized = _initializeVideo(clipVideoUrl);
     }
+    return _videoInitialized;
   }
   Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
     
@@ -67,7 +70,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
         return Center(
           child: Text(
             errorMessage,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: LyreTextStyles.errorMessage,
           ),
         );
       },
@@ -79,6 +82,10 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
     if (_vController != null && _vController.isFullScreen){
       _vController.exitFullScreen();
       return false;
+    } else if (_vController != null) {
+      _vController.pause();
+      _videoController.dispose();
+      _vController.dispose();
     }
     return true;
   }

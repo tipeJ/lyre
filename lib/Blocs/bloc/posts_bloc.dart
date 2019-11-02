@@ -7,7 +7,6 @@ import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
-import 'package:lyre/UI/postInnerWidget.dart';
 import './bloc.dart';
 import '../../Resources/globals.dart';
 
@@ -19,12 +18,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
   final int allowNewRefresh = 700; //Refreshing buffer in milliseconds
   DateTime lastRefresh;
+  bool updated = false;
 
   @override
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
+    print("EVENT: ${event.toString()}");
     if(event is PostsSourceChanged){
+      print("POSTSSOURCEC");
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");
       WikiPage sideBar;
@@ -55,6 +57,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
+      updated = false;
       yield PostsState(
         userContent: _userContent, 
         updated: false,
@@ -67,6 +70,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         preferences: preferences
         );
     } else if (event is ParamsChanged){
+      print("PARAMSC");
       List<UserContent> _userContent;
       switch (state.contentSource) {
         case ContentSource.Subreddit:
@@ -81,8 +85,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
+      updated = false;
       yield getUpdatedstate(_userContent, false);
     } else if (event is FetchMore){
+      updated = true;
+      print("FETCHMORE");
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       
       lastPost = state.userContent.last is Comment
@@ -102,19 +109,16 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.selfContentType);
           break;
       }
-      print("before: " + state.userContent.length.toString());
-      state.userContent.addAll(fetchedContent);
-      print("after: " + state.userContent.length.toString());
 
       lastRefresh = DateTime.now();
-      yield getUpdatedstate(state.userContent, true);
+      yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);
     }
   }
 
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
       userContent: notNull(userContent) ? userContent : state.userContent,
-      updated: notNull(updated) ? updated : state.updated,
+      updated: updated != null ? updated : state.updated,
       contentSource: state.contentSource,
       usernamesList: state.usernamesList,
       currentUser: state.currentUser,

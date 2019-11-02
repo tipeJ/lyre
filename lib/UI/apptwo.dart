@@ -52,18 +52,11 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     PreviewCall().callback = this;
   }
 
-  OverlayEntry _overlayEntry;
   bool isPreviewing = false;
-  OverlayState overlayState;
-  var previewUrl = "https://i.imgur.com/CSS40QN.jpg";
+  var previewUrl = "https://i.imgur.com/n7YQvBx.jpg";
 
   @override
   void initState(){
-    overlayState = Overlay.of(context);
-    _overlayEntry = OverlayEntry(builder: (context) => Container(
-      color: Colors.black.withOpacity(0.8),
-      child: MediaViewer(url: previewUrl),
-    ));
     super.initState();
   }
 
@@ -79,7 +72,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   void previewEnd() {
     if (isPreviewing) {
       previewUrl = "";
-      // previewController.reverse();
       hideOverlay();
     }
   }
@@ -89,23 +81,26 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   showOverlay() {
     if (!isPreviewing) {
-      overlayState.insert(_overlayEntry);
       isPreviewing = true;
+      setState(() {
+        
+      });
     }
   }
 
   hideOverlay() {
     if (isPreviewing) {
-      _overlayEntry.remove();
-      overlayState.deactivate();
       isPreviewing = false;
+      setState(() {
+        
+      });
     }
   }
 
   @override
   Future<bool> canPop() async {
     if(isPreviewing){
-      if (!PreviewCall().canPop()){
+      if (PreviewCall().canPop()){
         previewUrl = "";
         hideOverlay();
       }
@@ -116,7 +111,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   void dispose() {
-    overlayState.dispose();
     super.dispose();
   }
 
@@ -127,11 +121,23 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     builder: (context, constraints) {
       return WillPopScope(
         onWillPop: canPop,
-        child: Navigator(
-          key: PreviewCall().navigatorKey,
-          initialRoute: 'posts',
-          onGenerateRoute: Router.generateRoute,
-        ),
+        child: Stack(children: <Widget>[
+          IgnorePointer(
+            ignoring: isPreviewing,
+            child: Navigator(
+              key: PreviewCall().navigatorKey,
+              initialRoute: 'posts',
+              onGenerateRoute: Router.generateRoute,
+            ),
+          ),
+          Visibility(
+            visible: isPreviewing,
+            child: Container(
+              color: Colors.black.withOpacity(0.8),
+              child: MediaViewer(url: previewUrl,),
+            ),
+          )
+        ],)
       );
     },
     );

@@ -28,6 +28,8 @@ class postInnerWidget extends StatelessWidget {
   PostView postView;
   bool showCircle;
 
+  double blurLevel;
+
   bool showNsfw = false;
   bool showSpoiler = false;
 
@@ -40,27 +42,41 @@ class postInnerWidget extends StatelessWidget {
       return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      return BlocBuilder<PostsBloc, PostsState>(
-        builder: (context, state){
-          showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-          fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
-          postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
-          showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false;
-          showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false;
-          switch (postView) {
-            case PostView.IntendedPreview:
-              return intendedWidget(context, state);
-            case PostView.ImagePreview:
-              return imagePreview(context);
-            case PostView.Compact:
-              return compactWidget(context);
-            default:
-              return new defaultColumn(submission, previewSource, linkType);
+      if (previewSource == PreviewSource.PostsList) {
+        return BlocBuilder<PostsBloc, PostsState>(
+          builder: (context, state){
+            showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+            fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
+            postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
+            showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false;
+            showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false;
+            blurLevel = (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
+            return getMediaWidget(context);
           }
-        }
-      );
+        );
+      } else {
+        showCircle = false;
+        fullSizePreviews = false;
+        postView = PostView.ImagePreview;
+        showNsfw = true;
+        showSpoiler = true;
+        return getMediaWidget(context);
+      }
     }
     return getDefaultSlideColumn(context);
+  }
+
+  Widget getMediaWidget(BuildContext context) {
+    switch (postView) {
+      case PostView.IntendedPreview:
+        return intendedWidget(context);
+      case PostView.ImagePreview:
+        return imagePreview(context);
+      case PostView.Compact:
+        return compactWidget(context);
+      default:
+        return new defaultColumn(submission, previewSource, linkType);
+    }
   }
 
   Widget compactWidget(BuildContext context) {
@@ -89,7 +105,7 @@ class postInnerWidget extends StatelessWidget {
     );
   }
 
-  Stack intendedWidget(BuildContext context, PostsState state) {
+  Stack intendedWidget(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -101,8 +117,8 @@ class postInnerWidget extends StatelessWidget {
             (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
-                  sigmaX: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
-                  sigmaY: (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble(),
+                  sigmaX: blurLevel,
+                  sigmaY: blurLevel,
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
@@ -137,16 +153,10 @@ class postInnerWidget extends StatelessWidget {
   }
 
   Widget getImageWidget(BuildContext context, [bool fullSizePreviews]){
-    return BlocBuilder<PostsBloc, PostsState>(
-      builder: (context, state){
-        final viewMode = state.preferences.get(SUBMISSION_VIEWMODE);
-
-        if (viewMode == PostView.Compact) {
-          return getImageWrapper(context, BoxFit.cover);
-        }
-        return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
-      },
-    );
+    if (postView == PostView.Compact) {
+      return getImageWrapper(context, BoxFit.cover);
+    }
+    return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
   }
 
   Widget getImageWrapper(BuildContext context, BoxFit fit){

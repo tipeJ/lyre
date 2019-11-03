@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
@@ -18,15 +19,13 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
   final int allowNewRefresh = 700; //Refreshing buffer in milliseconds
   DateTime lastRefresh;
-  bool updated = false;
 
   @override
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
-    print("EVENT: ${event.toString()}");
     if(event is PostsSourceChanged){
-      print("POSTSSOURCEC");
+      loading.value = LoadingState.refreshing;
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");
       WikiPage sideBar;
@@ -57,7 +56,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
-      updated = false;
+      loading.value = LoadingState.notLoading;
       yield PostsState(
         userContent: _userContent, 
         updated: false,
@@ -70,7 +69,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         preferences: preferences
         );
     } else if (event is ParamsChanged){
-      print("PARAMSC");
+      loading.value = LoadingState.refreshing;
       List<UserContent> _userContent;
       switch (state.contentSource) {
         case ContentSource.Subreddit:
@@ -85,13 +84,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
-      updated = false;
+      loading.value = LoadingState.notLoading;
       yield getUpdatedstate(_userContent, false);
     } else if (event is FetchMore){
-      updated = true;
-      print("FETCHMORE");
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       
+      loading.value = LoadingState.loadingMore;
       lastPost = state.userContent.last is Comment
         ? (state.userContent.last as Comment).id
         : (state.userContent.last as Submission).id;
@@ -111,9 +109,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
+      loading.value = LoadingState.notLoading;
       yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);
     }
   }
+
+  final loading = ValueNotifier(LoadingState.notLoading);
 
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
@@ -128,4 +129,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       preferences: state.preferences
     );
   }
+}
+enum LoadingState {
+  notLoading,
+  loadingMore,
+  refreshing,
 }

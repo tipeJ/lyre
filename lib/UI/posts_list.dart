@@ -124,7 +124,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
-        print("DEPTH: ${scrollInfo.depth}");
         if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
           bloc.add(FetchMore());
         }
@@ -147,12 +146,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 color: Theme.of(context).primaryColor,
                 child: FlatButton(
                     onPressed: () {
-                      bloc.add(FetchMore());
                       setState(() {
-                        
+                        bloc.add(FetchMore());
                       });
                     },
-                    child: const Text("Load More")),
+                    child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
               );
             } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
@@ -244,9 +242,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
       bloc.add(PostsSourceChanged(redditor: widget.redditor, source: widget.initialSource));
     }
-    bloc.where((s) => s.userContent.isNotEmpty && !s.updated).listen((PostsState state){
-      print("U2: ${state.updated.toString()}");
-      //if (!bloc.updated) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
+    bloc.loading.addListener((){
+      if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
+      setState(() {
+        
+      });
     });
     return new WillPopScope(
       child: Scaffold(
@@ -434,7 +434,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     final state = snapshot.data;
                     if(state.userContent != null && state.userContent.isNotEmpty){
                       autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
-                      if (!state.updated) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
                       if(state.contentSource == ContentSource.Redditor){
                         return state.targetRedditor.isNotEmpty
                           ? buildList(state)

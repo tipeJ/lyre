@@ -12,8 +12,12 @@ import './bloc.dart';
 import '../../Resources/globals.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
+  final PostsState firstState;
+
+  PostsBloc({this.firstState});
+
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, updated: false, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
 
   final _repository = Repository();
 
@@ -59,7 +63,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       loading.value = LoadingState.notLoading;
       yield PostsState(
         userContent: _userContent, 
-        updated: false,
         contentSource : source,
         usernamesList: userNamesList, 
         currentUser: currentUser, 
@@ -119,7 +122,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
       userContent: notNull(userContent) ? userContent : state.userContent,
-      updated: updated != null ? updated : state.updated,
       contentSource: state.contentSource,
       usernamesList: state.usernamesList,
       currentUser: state.currentUser,

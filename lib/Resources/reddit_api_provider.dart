@@ -48,8 +48,6 @@ class PostsProvider {
   Client client = Client();
   Reddit reddit;
 
-  final _apiKey = 'your_api_key';
-
   Future<Redditor> getLoggedInUser(){
     if(reddit == null){
       return null;
@@ -99,6 +97,13 @@ class PostsProvider {
       return true;
     }
     return false;
+  }
+
+  Future<dynamic> fetchRedditContent(String query) async {
+    final r = await getRed();
+    Map<String, String> headers = new Map<String, String>();
+      headers["api_type"] = "json";
+    return r.get(query, params: headers);
   }
 
   Future<bool> logInToLatest() async {

@@ -8,6 +8,7 @@ import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
 import '../../Resources/globals.dart';
+
 const selection_image = "Image";
 const selection_album = "Album";
 
@@ -119,13 +120,16 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-          return prefix0.Visibility(
-            child: GestureDetector(
-              child: getCommentWidget(list[i], i),
-            ),
-            visible: getWidgetVisibility(i),
+          return BlocBuilder<CommentsBloc, List<dynamic>>(
+            builder: (context, list) {
+              return prefix0.Visibility(
+                child: GestureDetector(
+                  child: getCommentWidget(list[i], i),
+                ),
+                visible: getWidgetVisibility(i),
+              );
+            },
           );
-        
       }, childCount: list.length),
     );
   }

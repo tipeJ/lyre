@@ -5,6 +5,8 @@ import 'package:lyre/Blocs/bloc/posts_bloc.dart';
 import 'package:lyre/Blocs/bloc/posts_state.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/textstyles.dart';
+import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
+import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 
 class RedditView extends StatelessWidget {
@@ -15,11 +17,13 @@ class RedditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: PostsProvider().fetchRedditContent(query),
+      future: PostsProvider().fetchRedditContent(query + ".json"),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final data = snapshot.data;
-          print(snapshot.data.toString()); // ! Right type or no??
+          final data = snapshot.data.keys.first;
+          final datadata = snapshot.data.values.first;
+          print(datadata.toString()); // ! Right type or no??
+          print(data.toString()); // ! Right type or no??
           if (data is Subreddit) {
             final PostsBloc _postsBloc = PostsBloc(firstState: PostsState(
               contentSource: ContentSource.Subreddit,
@@ -40,9 +44,15 @@ class RedditView extends StatelessWidget {
               child: PostsList("", ContentSource.Subreddit),
             );
           } else if (data is Submission) {
-            
+            final CommentsBloc _commentsBloc = CommentsBloc(firstState: datadata);
+            return BlocProvider(
+              builder: (context) => _commentsBloc,
+              child: CommentList(data),
+            );
+          } else {
+            return Center(child: Text(data.toString()));
           }
-        } else if (snapshot.error) {
+        } else if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,),);
         } 
         return Center(child: CircularProgressIndicator(),);

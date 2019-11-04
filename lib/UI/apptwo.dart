@@ -5,6 +5,7 @@ import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
+import 'package:lyre/UI/reddit_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatelessWidget{
@@ -124,11 +125,12 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
         child: Stack(children: <Widget>[
           IgnorePointer(
             ignoring: isPreviewing,
-            child: Navigator(
+            child: /*Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ),
+            ), */
+            RedditView(query: "https://old.reddit.com/r/AskReddit/comments/drfcqc/how_do_guys_feel_about_girls_making_the_first_move/f6hp97m/",)
           ),
           Visibility(
             visible: isPreviewing,

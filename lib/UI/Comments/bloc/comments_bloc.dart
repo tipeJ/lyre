@@ -5,8 +5,18 @@ import 'package:lyre/Models/Comment.dart';
 import './bloc.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
+  final List<dynamic> firstState;
+
+  CommentsBloc({this.firstState}) {
+    if (firstState != null) addCommentsFromForest(firstState);
+    visibles = comments.map((el) => true).toList();
+  }
+  List<bool> visibles = List();
+
+  List<bool> get() => visibles;
+
   @override
-  List<dynamic> get initialState => [];
+  List<dynamic> get initialState => comments;
 
   List<dynamic> comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
   String loadingMoreId = ""; //The ID of the currently loading MoreComments object
@@ -18,7 +28,7 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
     if(event is SortChanged){
         comments = []; //Removes previous items from the comment list
         var forest = await event.submission.refreshComments(sort: event.commentSortType);
-        addCommentsFromForest(forest);
+        addCommentsFromForest(forest.toList());
     } else if(event is FetchMore){
       var more = event.moreComments;
       if(more.children == null && more.children.isEmpty){
@@ -46,14 +56,14 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
     yield comments; //Return the updated list of dynamic comment objects.
     }
   //Recursing function that adds the comments to the list from a CommentForest
-  void addCommentsFromForest(CommentForest forest){
-    forest.comments.forEach((f){
+  void addCommentsFromForest(List<dynamic> forest){
+    forest.forEach((f){
       if(f is MoreComments){
         comments.add(f);
       } else if(f is Comment){
         comments.add(f);
         if(f.replies != null && f.replies.comments.isNotEmpty){
-          addCommentsFromForest(f.replies);
+          addCommentsFromForest(f.replies.toList());
         }
       }
     });

@@ -99,11 +99,26 @@ class PostsProvider {
     return false;
   }
 
-  Future<dynamic> fetchRedditContent(String query) async {
+  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
     final r = await getRed();
     Map<String, String> headers = new Map<String, String>();
       headers["api_type"] = "json";
-    return r.get(query, params: headers);
+    
+    final x = await client.get(query);
+
+    final jsonResponse = json.decode(x.body);
+
+    final Map<dynamic, dynamic> map = Map();
+
+    print(jsonResponse);
+
+    final o = r.objector.objectify(jsonResponse[0]).values.first.first;
+    final o2 = r.objector.objectify(jsonResponse[1]).values.first;
+    map[o] = o2;
+    print("TYPE: " + o.runtimeType.toString());
+    print("TYPE2: " + o2.runtimeType.toString());
+
+    return map;
   }
 
   Future<bool> logInToLatest() async {

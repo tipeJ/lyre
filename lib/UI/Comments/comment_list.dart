@@ -89,7 +89,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                           child: new postInnerWidget(submission, PreviewSource.Comments,),
                         ),
                       ),
-                      
                       new StreamBuilder(
                         stream: bloc,
                         builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
@@ -125,8 +124,15 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               return prefix0.Visibility(
                 child: GestureDetector(
                   child: getCommentWidget(list[i], i),
+                  onTap: (){
+                    setState(() {
+                      print(BlocProvider.of<CommentsBloc>(context).visibles[i].toString());
+                     bloc.visibles[i] = false; 
+                      print(BlocProvider.of<CommentsBloc>(context).visibles[i].toString());
+                    });
+                  },
                 ),
-                visible: getWidgetVisibility(i),
+                visible: BlocProvider.of<CommentsBloc>(context).visibles[i],
               );
             },
           );

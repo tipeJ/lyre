@@ -17,7 +17,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsBloc({this.firstState});
 
   @override //Default: Empty list of UserContent
-  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => firstState == null ? PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "") : firstState;
 
   final _repository = Repository();
 

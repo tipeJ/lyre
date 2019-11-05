@@ -176,7 +176,8 @@ class CommentContent extends StatelessWidget {
               child: new Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  new Html(data: prefix0.markdownToHtml(comment.body),)
+                  Text(comment.body)
+                  //new Html(data: prefix0.markdownToHtml(comment.body),)
                 ],
               ),
               padding: const EdgeInsets.only(

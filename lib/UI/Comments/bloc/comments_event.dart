@@ -28,13 +28,11 @@ class FetchMore extends CommentsEvent{
 }
 class Collapse extends CommentsEvent{
   final int location;
-  final int depth;
   
   Collapse({
     @required this.location,
-    @required this.depth,
   });
-  List<dynamic> get props => [location, depth];
+  List<dynamic> get props => [location];
 }
 class CollapseX extends CommentsEvent{
   final Comment c;

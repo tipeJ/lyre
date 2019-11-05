@@ -112,13 +112,15 @@ class PostsProvider {
 
     print(jsonResponse);
 
-    final o = r.objector.objectify(jsonResponse[0]).values.first.first;
-    final o2 = r.objector.objectify(jsonResponse[1]).values.first;
-    map[o] = o2;
-    print("TYPE: " + o.runtimeType.toString());
-    print("TYPE2: " + o2.runtimeType.toString());
+    if (jsonResponse.length > 1) {
+      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
+      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
+      map[o] = o2;
+      print("TYPE: " + o.runtimeType.toString());
+      print("TYPE2: " + o2.runtimeType.toString());
 
-    return map;
+    }
+    return map;    
   }
 
   Future<bool> logInToLatest() async {

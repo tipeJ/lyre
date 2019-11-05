@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
-import 'package:lyre/Models/Comment.dart';
 import './bloc.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
@@ -9,17 +8,40 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
 
   CommentsBloc({this.firstState}) {
     if (firstState != null) addCommentsFromForest(firstState);
-    visibles = comments.map((el) => true).toList();
   }
-  List<bool> visibles = List();
 
-  List<bool> get() => visibles;
 
   @override
   List<dynamic> get initialState => comments;
 
-  List<dynamic> comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
+  List<CommentM> comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
   String loadingMoreId = ""; //The ID of the currently loading MoreComments object
+
+  void collapse(int location){
+    var currentIndex = location+1;
+    int ogdepth = comments[location].c.data["depth"];
+    bool visible = !comments[location+1].visible;
+    int lastIndex;
+    while (comments[currentIndex].c.data["depth"] != ogdepth) {
+      lastIndex = currentIndex;
+      currentIndex++;
+    }
+   for (var i = currentIndex; i < lastIndex; i++) {
+     comments[i].visible = visible;
+   }
+    return;
+    while(true){
+      if(currentIndex == comments.length - 1) break; //  the end of the list
+
+      var object = comments[currentIndex];
+
+      if (currentIndex !=location && object.c.data['depth'] == comments[location].c.data["depth"]) break; // When this occurs we've reached another comment of the same level
+
+      object.visible = visible;
+
+      currentIndex++;
+    }
+  }
 
   @override
   Stream<List<dynamic>> mapEventToState(
@@ -36,19 +58,22 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
       }
       var results = await more.comments(update: true);
       comments.removeAt(event.location); //Removes the used MoreComments object
-      comments.insertAll(event.location, results); //Inserts the received objects into the comment list
+      comments.insertAll(event.location, results.map((c) => CommentM.from(c)).toList()); //Inserts the received objects into the comment list
     } else if(event is Collapse){
-      var currentIndex = event.location;
+      var currentIndex = event.location+1;
+      bool visible = !comments[event.location+1].visible;
       while(true){
+        if(currentIndex == comments.length - 1) break; //  the end of the list
+
+        var object = comments[currentIndex];
+
+        if (currentIndex != event.location && object.c.data['depth'] == comments[event.location].c.data["depth"]) break; // When this occurs we've reached another comment of the same level
+
+        object.visible = visible;
+
         currentIndex++;
-        var c = comments[currentIndex];
-
-        if(currentIndex == comments.length - 1 || c.data['depth'] == event.depth) break; //When this occurs we've reached another comment of the same level or the end of the list
-
-        if(c is Comment){
-          c.collapse();
-        }
       }
+      yield comments;
     }else if(event is CollapseX){
       event.c.collapse();
     }
@@ -59,13 +84,24 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   void addCommentsFromForest(List<dynamic> forest){
     forest.forEach((f){
       if(f is MoreComments){
-        comments.add(f);
+        comments.add(CommentM.from(f));
       } else if(f is Comment){
-        comments.add(f);
+        comments.add(CommentM.from(f));
         if(f.replies != null && f.replies.comments.isNotEmpty){
           addCommentsFromForest(f.replies.toList());
         }
       }
     });
+  }
+}
+class CommentM {
+  final dynamic c;
+  bool visible;
+
+  CommentM(this.c, this.visible);
+
+  static CommentM from(dynamic object) {
+
+    return CommentM(object, true);
   }
 }

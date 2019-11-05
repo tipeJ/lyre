@@ -2,6 +2,7 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -119,22 +120,16 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-          return BlocBuilder<CommentsBloc, List<dynamic>>(
-            builder: (context, list) {
-              return prefix0.Visibility(
-                child: GestureDetector(
-                  child: getCommentWidget(list[i], i),
-                  onTap: (){
-                    setState(() {
-                      print(BlocProvider.of<CommentsBloc>(context).visibles[i].toString());
-                     bloc.visibles[i] = false; 
-                      print(BlocProvider.of<CommentsBloc>(context).visibles[i].toString());
-                    });
-                  },
-                ),
-                visible: BlocProvider.of<CommentsBloc>(context).visibles[i],
-              );
-            },
+          return prefix0.Visibility(
+            child: GestureDetector(
+              child: getCommentWidget(list[i].c, i),
+              onTap: (){
+                setState(() {
+                 BlocProvider.of<CommentsBloc>(context).collapse(i); 
+                });
+              },
+            ),
+            visible: bloc.comments[i].visible,
           );
       }, childCount: list.length),
     );
@@ -142,6 +137,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   
   bool getWidgetVisibility(int index){
     var item = bloc.state[index];
+    return item.visible;
     if(item is MoreComments){
       return !getWidgetVisibility(index-1);
     }
@@ -160,6 +156,41 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   }
 
   Widget getCommentWidget(dynamic comment, int i) {
+    if (comment is Comment) {
+      return CommentContent(comment);
+    } else {
+      return Container(
+          child: Container(
+              child: Row(
+                children: <Widget>[
+                  (bloc.loadingMoreId == comment.id)
+                      ? new Container(
+                          padding: EdgeInsets.all(5.0),
+                          child: SizedBox(
+                            child: CircularProgressIndicator(),
+                            height: 18.0,
+                            width: 18.0,
+                          ),
+                        )
+                      : Container(),
+                  new Text(
+                    "Load more comments)"
+                  )
+                ],
+              ),
+              decoration: BoxDecoration(
+                  border: Border(
+                      left: BorderSide(
+                          color: getColor(comment.data['depth']), width: 3.5)))),
+          padding: EdgeInsets.only(
+            left: 4.5 + comment.data['depth'] * 3.5,
+            right: 0.5,
+            top: 0.5,
+            bottom: 0.5,
+          ),
+        );
+    }
+    return Padding(child: Text("PERFORMANCE TEST ${i.toString()}", style: LyreTextStyles.errorMessage,), padding: EdgeInsets.only(bottom: 10.0, left: comment.data["depth"] * 3.5),);
     if (comment is Comment) {
       return CommentWidget(comment);
     } else if (comment is MoreComments) {

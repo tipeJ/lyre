@@ -8,6 +8,7 @@ import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
+import 'package:tree_view/tree_view.dart';
 import '../../Resources/globals.dart';
 
 const selection_image = "Image";
@@ -81,40 +82,78 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               ),
             ),
             body: new Container(
-              child: new GestureDetector(
-                  child: new CustomScrollView(
-                    slivers: <Widget>[
-                      new SliverToBoxAdapter(
-                        child: new Hero(
-                          tag: 'post_hero ${submission.id}',
-                          child: new postInnerWidget(submission, PreviewSource.Comments,),
-                        ),
-                      ),
-                      new StreamBuilder(
-                        stream: bloc,
-                        builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
-                          if (snapshot.hasData) {
-                            return getCommentWidgets(context, snapshot.data);
-                          } else {
-                            return SliverToBoxAdapter(
-                              child: Container(
-                                child: Center(child: CircularProgressIndicator()),
-                                padding: EdgeInsets.only(top: 3.5, bottom: 2.5),
-                              ),
-                            );
-                          }
-                        },
-                      )
-                    ],
+              child: new CustomScrollView(
+                slivers: <Widget>[
+                  new SliverToBoxAdapter(
+                    child: new Hero(
+                      tag: 'post_hero ${submission.id}',
+                      child: new postInnerWidget(submission, PreviewSource.Comments,),
+                    ),
                   ),
-                  onHorizontalDragUpdate: (DragUpdateDetails details) {
-                    if (details.delta.direction < 1.0 &&
-                        details.delta.dx > 30) {
-                      Navigator.of(context).maybePop();
-                    }
-                  }),
+                  new StreamBuilder(
+                    stream: bloc,
+                    builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot){
+                      if (snapshot.hasData) {
+                        return getCommentWidgets(context, snapshot.data);
+                      } else {
+                        return SliverToBoxAdapter(
+                          child: Container(
+                            child: Center(child: CircularProgressIndicator()),
+                            padding: EdgeInsets.only(top: 3.5, bottom: 2.5),
+                          ),
+                        );
+                      }
+                    },
+                  )
+                ],
+              ),
+                  /*
+                  BlocBuilder<CommentsBloc, List<dynamic>>(
+                          builder: (context, List<dynamic> state){
+                            return TreeView(
+                              parentList: getCommentTreeList(context, state,),
+                            );
+                          },
+                        )*/
             )),
         onWillPop: requestPop);
+  }
+
+  List<Parent> getCommentTreeList(BuildContext context, List<dynamic> children) {
+    List<Parent> returnList = [];
+    children.forEach((comment) {
+      if (comment is Comment) {
+        if (comment.replies != null && comment.replies.toList().isNotEmpty) {
+          returnList.add(Parent(
+            parent: Padding(
+              child: CommentContent(comment),
+              padding: EdgeInsets.only(left: comment.depth * 3.5),
+            ),
+            childList: ChildList(children: getCommentTreeList(context, comment.replies.toList()),),));
+        } else {
+          returnList.add(Parent(
+            parent: Padding(
+              child: CommentContent(comment),
+              padding: EdgeInsets.only(left: comment.depth * 3.5),
+            ),
+            childList: ChildList(),
+          ));
+        }
+      } else {
+        returnList.add(Parent(parent: Container(
+          child: MoreCommentsWidget(comment, 1), // ! CHANGE TO CORRENT INDEX
+          padding: EdgeInsets.only(
+            left: 4.5 + comment.data['depth'] * 3.5,
+            right: 0.5,
+            top: 0.5,
+            bottom: 0.5,
+          ),
+        ),
+        childList: ChildList(),
+        ));
+      }
+    }) ;
+    return returnList;
   }
 
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
@@ -159,38 +198,8 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
     if (comment is Comment) {
       return CommentContent(comment);
     } else {
-      return Container(
-          child: Container(
-              child: Row(
-                children: <Widget>[
-                  (bloc.loadingMoreId == comment.id)
-                      ? new Container(
-                          padding: EdgeInsets.all(5.0),
-                          child: SizedBox(
-                            child: CircularProgressIndicator(),
-                            height: 18.0,
-                            width: 18.0,
-                          ),
-                        )
-                      : Container(),
-                  new Text(
-                    "Load more comments)"
-                  )
-                ],
-              ),
-              decoration: BoxDecoration(
-                  border: Border(
-                      left: BorderSide(
-                          color: getColor(comment.data['depth']), width: 3.5)))),
-          padding: EdgeInsets.only(
-            left: 4.5 + comment.data['depth'] * 3.5,
-            right: 0.5,
-            top: 0.5,
-            bottom: 0.5,
-          ),
-        );
+      return MoreCommentsWidget(comment, i);
     }
-    return Padding(child: Text("PERFORMANCE TEST ${i.toString()}", style: LyreTextStyles.errorMessage,), padding: EdgeInsets.only(bottom: 10.0, left: comment.data["depth"] * 3.5),);
     if (comment is Comment) {
       return CommentWidget(comment);
     } else if (comment is MoreComments) {

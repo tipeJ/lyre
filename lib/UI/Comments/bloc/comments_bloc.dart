@@ -7,6 +7,7 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   final List<dynamic> firstState;
 
   CommentsBloc({this.firstState}) {
+    // if (firstState != null) contents = firstState;
     if (firstState != null) addCommentsFromForest(firstState);
   }
 
@@ -15,6 +16,8 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   List<dynamic> get initialState => comments;
 
   List<CommentM> comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
+  List<dynamic> contents = [];
+
   String loadingMoreId = ""; //The ID of the currently loading MoreComments object
 
   void collapse(int location){
@@ -48,9 +51,14 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
     CommentsEvent event
   ) async* {
     if(event is SortChanged){
+        /*final forest1 = await event.submission.refreshComments(sort: event.commentSortType);
+        contents = forest1.toList();
+        yield contents;
+        return;*/
         comments = []; //Removes previous items from the comment list
         var forest = await event.submission.refreshComments(sort: event.commentSortType);
         addCommentsFromForest(forest.toList());
+        yield comments;
     } else if(event is FetchMore){
       var more = event.moreComments;
       if(more.children == null && more.children.isEmpty){

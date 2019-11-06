@@ -114,42 +114,44 @@ class CommentContent extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
       child: Row(children: <Widget>[
         Padding(child: VerticalDivider(width: dividerWidth,), padding: EdgeInsets.only(right: 3.5),),
-        Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            new Padding(
-                child: Row(
-                  children: <Widget>[
-                    Material(
-                      child: Text("${comment.score} ",
-                        textAlign: TextAlign.left,
-                        textScaleFactor: 0.65,
-                        style: new TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: getScoreColor(comment, context))),
-                    )
-                    ,
-                    Material(
-                      child: Text(
-                      "● u/${comment.author}",
-                      textScaleFactor: 0.7,
-                    ),
-                    ),
-                    
-                    
-                  ],
-                ),
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 16.0, top: 6.0)),
-            new Padding(
-                child: Text(comment.body),
-                    //new Html(data: prefix0.markdownToHtml(comment.body),)
-                padding: const EdgeInsets.only(
-                    left: 16.0, right: 16.0, top: 6.0, bottom: 16.0)),
-            Divider(height: dividerWidth,)
-          ]),
+        Flexible(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[-
+              new Padding(
+                  child: Row(
+                    children: <Widget>[
+                      Material(
+                        child: Text("${comment.score} ",
+                          textAlign: TextAlign.left,
+                          textScaleFactor: 0.65,
+                          style: new TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: getScoreColor(comment, context))),
+                      )
+                      ,
+                      Material(
+                        child: Text(
+                        "● u/${comment.author}",
+                        textScaleFactor: 0.7,
+                      ),
+                      ),
+                      
+                      
+                    ],
+                  ),
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, top: 6.0)),
+              new Padding(
+                  child: Text(comment.body),
+                      //new Html(data: prefix0.markdownToHtml(comment.body),)
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, top: 6.0, bottom: 16.0)),
+              Divider(height: dividerWidth,)
+            ]),
+        ),
       ],)
     );
   }

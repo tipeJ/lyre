@@ -4,7 +4,7 @@ const BOX_SETTINGS = "settings";
 const CURRENT_THEME = "currentTheme";
 
 // ! Subreddits
-const SUBREDDIT_STARTUP = "startUpSubreddit";
+const SUBREDDIT_HOME = "startUpSubreddit";
 
 // ! Submissions
 const SUBMISSION_VIEWMODE = "submissionViewMode";

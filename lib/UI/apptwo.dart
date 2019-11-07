@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/UI/Router.dart';
@@ -26,6 +27,8 @@ class App extends StatelessWidget{
         if(snapshot.hasData){
           final prefs = snapshot.data;
           final initialTheme = prefs.get(CURRENT_THEME) ?? "";
+          currentSubreddit = prefs.get(SUBREDDIT_HOME) ?? "all";
+          print(currentSubreddit);
           var _cTheme = LyreTheme.DarkTeal;
           LyreTheme.values.forEach((theme){
             if(theme.toString() == initialTheme){

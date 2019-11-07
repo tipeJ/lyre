@@ -89,6 +89,30 @@ class _PreferencesViewState extends State<PreferencesView> {
       )
     );
   }
+  List<Widget> getGeneralSettings(BuildContext context) {
+    return [
+      settingsWidget(
+        children: [
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Home Subreddit",
+                leading: TextFormField(
+                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
+                  decoration: InputDecoration(prefixText: "r/"),   
+                  onChanged: (value) {
+                    box.put(SUBREDDIT_HOME, value);
+                  },               
+                )
+              );
+            },
+          ),
+        ],
+        isAdvanced: false
+      )
+    ];
+  }
   List<Widget> getSubmissionSettings(BuildContext context){
     return [
       settingsWidget(

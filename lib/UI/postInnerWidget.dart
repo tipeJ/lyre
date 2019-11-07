@@ -429,18 +429,13 @@ class defaultColumn extends StatelessWidget {
                             style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                    new GestureDetector(
-                      child: new Text(
-                            "${submission.numComments} comments",
-                            style: TextStyle(
-                              fontSize: 10.0,
-                              color: Colors.white.withOpacity(0.9)
-                            ),
-                        ),
-                        onTap: (){
-                          //showComments(context);
-                        },
-                    ),
+                    new Text(
+                          "${submission.numComments} comments",
+                          style: TextStyle(
+                            fontSize: 10.0,
+                            color: Colors.white.withOpacity(0.9)
+                          ),
+                      ),
                     new Padding(
                       child: new Text(
                         getSubmissionAge(submission.createdUtc),
@@ -506,8 +501,10 @@ class defaultColumn extends StatelessWidget {
           )
         ]),
         onTap: (){
-          currentPostId = submission.id;
-          showComments(context);
+          if (previewSource != PreviewSource.Comments) {
+            currentPostId = submission.id;
+            showComments(context);
+          }
         },
     );
   }

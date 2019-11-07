@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lyre/UI/video_player/lyre_video_player.dart';
-import 'package:lyre/UI/video_player/video_controls.dart';
+import 'lyre_video_player.dart';
+import 'video_controls.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:video_player/video_player.dart';
 

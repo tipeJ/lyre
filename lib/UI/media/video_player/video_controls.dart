@@ -3,7 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:lyre/UI/video_player/progress_bar.dart';
+import 'progress_bar.dart';
 import 'package:video_player/video_player.dart';
 import 'lyre_video_player.dart';
 

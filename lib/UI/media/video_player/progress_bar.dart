@@ -134,7 +134,7 @@ class _ProgressBarPainter extends CustomPainter {
         ),
         Radius.circular(4.0),
       ),
-      Paint()..color = Colors.grey
+      Paint()..color = Colors.white30
     );
     if (!value.initialized) {
       return;
@@ -174,7 +174,7 @@ class _ProgressBarPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(playedPart, size.height / 2 + height / 2),
       height * 3,
-      Paint()..color = Colors.white70,
+      Paint()..color = Colors.grey,
     );
   }
 }

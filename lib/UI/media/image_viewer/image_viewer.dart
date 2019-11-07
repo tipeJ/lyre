@@ -12,10 +12,10 @@ import 'package:lyre/utils/urlUtils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-const selection_album = "Album";
 const selection_image = "Image";
+const selection_album = "Album";
 
-class ImageViewer extends StatelessWidget {
+class ImageViewer extends StatefulWidget {
   Submission submission;
   LinkType linkType;
   String url;
@@ -28,34 +28,29 @@ class ImageViewer extends StatelessWidget {
     }
   }
 
-  AlbumController albumController;
+  @override
+  _ImageViewerState createState() => _ImageViewerState();
+}
+
+class _ImageViewerState extends State<ImageViewer> {
+  AlbumController _albumController;
+
+  @override 
+  void dispose() {
+    _albumController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (albumLinkTypes.contains(linkType)){
-      if (albumController != null) return AlbumViewer(albumController: albumController,);
+    if (albumLinkTypes.contains(widget.linkType)){
+      if (_albumController != null) return _buildAlbumStack();
       return FutureBuilder(
-        future: ImgurAPI().getAlbumPictures(url),
+        future: ImgurAPI().getAlbumPictures(widget.url),
         builder: (context, AsyncSnapshot<List<LyreImage>> snapshot){
           if (snapshot.hasData){
-            albumController = AlbumController(snapshot.data, submission, url);
-            return Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                AlbumViewer(albumController: albumController,),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    child: SafeArea(child: CurrentImageIndicator(albumController: this.albumController,),),
-                    margin: EdgeInsets.only(top: 15.0),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0.0,
-                  child: AlbumControlsBar(controller: albumController,),
-                )
-              ],
-            );
+            _albumController = AlbumController(snapshot.data, widget.submission, widget.url);
+            return _buildAlbumStack();
           } else {
             return const Center(child: const CircularProgressIndicator(),);
           }
@@ -65,12 +60,35 @@ class ImageViewer extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: <Widget> [
-        SingleImageViewer(url),
+        SingleImageViewer(widget.url),
         Positioned(
           bottom: 0.0,
-          child: ImageControlsBar(submission: submission, url: url, controller: null,),
+          child: ImageControlsBar(submission: widget.submission, url: widget.url, isAlbum: false,),
         )
       ]
+    );
+  }
+
+  Widget _buildAlbumStack() {
+    return _AlbumControllerProvider(
+      controller: _albumController,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          AlbumViewer(),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              child: SafeArea(child: CurrentImageIndicator(),),
+              margin: EdgeInsets.only(top: 15.0),
+            ),
+          ),
+          Positioned(
+            bottom: 0.0,
+            child: AlbumControlsBar(),
+          )
+        ],
+      ),
     );
   }
 }
@@ -78,33 +96,35 @@ class ImageViewer extends StatelessWidget {
 class CurrentImageIndicator extends StatefulWidget {
   const CurrentImageIndicator({
     Key key,
-    @required this.albumController,
   }) : super(key: key);
-
-  final AlbumController albumController;
 
   @override
   _CurrentImageIndicatorState createState() => _CurrentImageIndicatorState();
 }
 
 class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
-  @override
-  void initState() {
-    widget.albumController.addListener(_updateIndicator);
-    super.initState();
-  }
+
+  AlbumController _albumController;
   int currentIndex = 0;
+  
   void _updateIndicator(){
-    if (widget.albumController.currentIndex != currentIndex) {
+    if (_albumController.currentIndex != currentIndex) {
       setState(() { 
-        currentIndex = widget.albumController.currentIndex;
+        currentIndex = _albumController.currentIndex;
       });
     }
   }
   @override
+  void dispose() { 
+    _albumController.dispose();
+    super.dispose();
+  }
+  @override
   Widget build(BuildContext context) {
+    _albumController = AlbumController.of(context);
+    _albumController.addListener(_updateIndicator);
     return Material(color: Colors.transparent, child: Text(
-      currentIndex.toString() + '/' + widget.albumController.images.length.toString(),
+      (currentIndex + 1).toString() + '/' + _albumController.images.length.toString(),
       style: TextStyle(
         fontSize: 26.0
       ),
@@ -123,7 +143,16 @@ class AlbumController extends ChangeNotifier{
 
   AlbumController(this.images, this.submission, this.url, [currentIndex]);
 
+  static AlbumController of(BuildContext context) {
+    final lyreControllerProvider =
+        context.inheritFromWidgetOfExactType(_AlbumControllerProvider)
+            as _AlbumControllerProvider;
+
+    return lyreControllerProvider.controller;
+  }
+
   void setCurrentIndex(int newIndex){
+    print("UPDATE" + currentIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -143,46 +172,59 @@ class AlbumController extends ChangeNotifier{
     notifyListeners();
   }
 }
+class _AlbumControllerProvider extends InheritedWidget {
+  const _AlbumControllerProvider({
+    Key key,
+    @required this.controller,
+    @required Widget child,
+  })  : assert(controller != null),
+        assert(child != null),
+        super(key: key, child: child);
+
+  final AlbumController controller;
+
+  @override
+  bool updateShouldNotify(_AlbumControllerProvider old) =>
+      controller != old.controller;
+}
+
 
 class AlbumViewer extends StatefulWidget {
-  final AlbumController albumController;
-  AlbumViewer({Key key, this.albumController}) : super(key: key);
+  AlbumViewer({Key key}) : super(key: key);
 
   _AlbumViewerState createState() => _AlbumViewerState();
 }
 
 class _AlbumViewerState extends State<AlbumViewer> {
   final pageController = PageController();
+  AlbumController _albumController;
 
-  @override
-  void initState() { 
-    widget.albumController.addListener((){
-      if (pageController.page.round() != widget.albumController.currentIndex){
-        setState(() {
-          pageController.jumpToPage(widget.albumController.currentIndex);
-        });
-      }
-    });
-    pageController.addListener(_pageListener);
-    super.initState();
-  }
   void _pageListener(){
-    if (widget.albumController.currentIndex != pageController.page.round()) widget.albumController.setCurrentIndex(pageController.page.round());
+    if (_albumController.currentIndex != pageController.page.round()) _albumController.setCurrentIndex(pageController.page.round());
   }
 
   @override void dispose(){
     pageController.dispose();
-    widget.albumController.dispose();
+    _albumController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _albumController = AlbumController.of(context);
+    _albumController.addListener((){
+      if (pageController.page.round() != _albumController.currentIndex){
+        setState(() {
+          pageController.jumpToPage(_albumController.currentIndex);
+        });
+      }
+    });
+    pageController.addListener(_pageListener);
     return PhotoViewGallery.builder(
       pageController: pageController,
-      itemCount: widget.albumController.images.length,
+      itemCount: _albumController.images.length,
       builder: (context, i){
-        final image = widget.albumController.images[i].url;
+        final image = _albumController.images[i].url;
         switch (getLinkType(image)) {
           case LinkType.DirectImage:
             return PhotoViewGalleryPageOptions(
@@ -226,14 +268,14 @@ class SingleImageViewer extends StatelessWidget {
   }
 }
 class AlbumControlsBar extends StatefulWidget {
-  final AlbumController controller;
-  AlbumControlsBar({Key key, this.controller}) : super(key: key);
+  AlbumControlsBar({Key key}) : super(key: key);
 
   _AlbumControlsBarState createState() => _AlbumControlsBarState();
 }
 
 class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerProviderStateMixin{
   AnimationController _expansionController;
+  AlbumController _albumController;
 
   double lerp(double min, double max) => prefix0.lerpDouble(min, max, _expansionController.value);
 
@@ -309,37 +351,10 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   bool isExpanded() => _expansionController.value >= 0.1;
   bool fullyExpanded() => _expansionController.value == 1.0;
   double getExpandedBarHeight(){
-    return maxExpandedBarHeight * 0.1;
+    return min(maxExpandedBarHeight * 0.1, 125);
   }
   double maxExpandedBarHeight = 500.0; //Fallback value
 
-  @override
-  void initState() { 
-    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
-    _expansionController = AnimationController(
-      //<-- initialize a controller
-      vsync: this,
-      duration: Duration(milliseconds: 450),
-    )..addListener((){
-      widget.controller.expanded = isExpanded();
-      widget.controller.fullyExpanded = fullyExpanded();
-      setState(() {
-        
-      });
-    });
-    widget.controller.addListener((){
-      if (widget.controller.expanded != isExpanded() || widget.controller.fullyExpanded != fullyExpanded()) {
-        if (widget.controller.fullyExpanded) {
-          _expansionController.animateTo(1.0, duration: Duration(milliseconds: 500), curve: animationCurve);
-        } else if (widget.controller.expanded) {
-          _expansionController.animateTo(0.1, duration: Duration(milliseconds: 500), curve: animationCurve);
-        } else {
-          _expansionController.animateTo(0.0, duration: Duration(milliseconds: 500), curve: animationCurve);
-        }
-      }
-    });
-    super.initState();
-  }
   @override
   void didUpdateWidget(AlbumControlsBar oldWidget) {
     // TODO: implement didUpdateWidget
@@ -347,13 +362,49 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   }
 
   @override
+  void initState() { 
+    _expansionController = AnimationController(
+      //<-- initialize a controller
+      vsync: this,
+      duration: Duration(milliseconds: 450),
+    )..addListener((){
+      _albumController.expanded = isExpanded();
+      _albumController.fullyExpanded = fullyExpanded();
+      setState(() {
+        
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() { 
+    _expansionController.dispose();
+    _albumController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _albumController = AlbumController.of(context);
+    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
+    _albumController.addListener((){
+      if (_albumController.expanded != isExpanded() || _albumController.fullyExpanded != fullyExpanded()) {
+        if (_albumController.fullyExpanded) {
+          _expansionController.animateTo(1.0, duration: Duration(milliseconds: 500), curve: animationCurve);
+        } else if (_albumController.expanded) {
+          _expansionController.animateTo(0.1, duration: Duration(milliseconds: 500), curve: animationCurve);
+        } else {
+          _expansionController.animateTo(0.0, duration: Duration(milliseconds: 500), curve: animationCurve);
+        }
+      }
+    });
     return Container(
        width: MediaQuery.of(context).size.width,
        child: GestureDetector(
          child: Column(children: <Widget>[
           getPreviewsBar(context),
-          ImageControlsBar(submission: widget.controller.submission, controller: widget.controller, url: widget.controller.url,)
+          ImageControlsBar(submission: _albumController.submission, url: _albumController.url, isAlbum: true,)
         ],),
         onVerticalDragUpdate: _handleExpandedDragUpdate,
         onVerticalDragEnd: _handleExpandedDragEnd,
@@ -371,17 +422,17 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
          Container(
             height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
             child: ListView.builder(
-              itemCount: widget.controller.images.length,
+              itemCount: _albumController.images.length,
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, i){
-                final url = widget.controller.images[i].thumbnailUrl;
+                final url = _albumController.images[i].thumbnailUrl;
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
                   return StatefulBuilder(builder: (context, child){
                     return GestureDetector(
-                      child: new PreviewImage(controller: widget.controller, url: url, index: i, size: Size(75.0, getExpandedBarHeight()),),                      
+                      child: new PreviewImage(url: url, index: i, size: Size(75.0, getExpandedBarHeight()),),                      
                       onTap: (){
                         setState(() {
-                          widget.controller.setCurrentIndex(i);                
+                          _albumController.setCurrentIndex(i);                
                         });
                       },
                     );
@@ -399,16 +450,16 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
               physics: NeverScrollableScrollPhysics(),
               gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: (4).round()),
-              itemCount: widget.controller.images.length,
+              itemCount: _albumController.images.length,
               scrollDirection: Axis.vertical,
               itemBuilder: (context, i){
-                final url = widget.controller.images[i].thumbnailUrl;
+                final url = _albumController.images[i].thumbnailUrl;
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
                   return GestureDetector(
-                    child: new PreviewImage(controller: widget.controller, url: url, index: i, size: Size(125.0, 125.0),),
+                    child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
                     onTap: (){
                       setState(() {
-                        widget.controller.setCurrentIndex(i);                
+                        _albumController.setCurrentIndex(i);                
                         _reverseExpanded();
                       });
                     },
@@ -428,13 +479,11 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 class PreviewImage extends StatefulWidget {
   const PreviewImage({
     Key key,
-    @required this.controller,
     @required this.url,
     @required this.index,
     @required this.size,
   }) : super(key: key);
 
-  final AlbumController controller;
   final String url;
   final int index;
   final Size size;
@@ -444,15 +493,10 @@ class PreviewImage extends StatefulWidget {
 }
 
 class _PreviewImageState extends State<PreviewImage> {
+  AlbumController _albumController;
 
-  @override
-  void initState() { 
-    if (widget.controller.currentIndex == widget.index) selected = true;
-    widget.controller.addListener(_updateCurrentIndex);
-    super.initState();
-  }
   void _updateCurrentIndex(){
-    if (selected != (widget.controller.currentIndex == widget.index)) {
+    if (selected != (_albumController.currentIndex == widget.index)) {
       setState(() {
         selected = !selected;
       });
@@ -462,13 +506,22 @@ class _PreviewImageState extends State<PreviewImage> {
   bool selected = false;
 
   @override
+  void dispose() { 
+    _albumController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _albumController = AlbumController.of(context);
+    if (_albumController.currentIndex == widget.index) selected = true;
+    _albumController.addListener(_updateCurrentIndex);
     return Container(
       margin: const EdgeInsets.all(3.0),
       width: widget.size.width,
       height: widget.size.height,
       child: Image(
-        color: Colors.black.withOpacity(widget.index == widget.controller.currentIndex ? 0.38 : 0.0),
+        color: Colors.black.withOpacity(widget.index == _albumController.currentIndex ? 0.38 : 0.0),
         colorBlendMode: BlendMode.luminosity,
         width: double.infinity,
         height: double.infinity,
@@ -484,13 +537,16 @@ class _PreviewImageState extends State<PreviewImage> {
 }
 
 class ImageControlsBar extends StatelessWidget {
-  final AlbumController controller;
+  AlbumController _albumController;
+  final bool isAlbum;
   final Submission submission;
   final String url;
-  ImageControlsBar({Key key, this.submission, this.url, this.controller} ) : super(key: key);
+
+  ImageControlsBar({Key key, this.submission, this.url, this.isAlbum} ) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    _albumController = isAlbum ? AlbumController.of(context) : null;
     return Container(
       height: 50.0,
       width: MediaQuery.of(context).size.width,
@@ -503,20 +559,20 @@ class ImageControlsBar extends StatelessWidget {
           submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
           _buildDownloadButton(context),
           _buildShareButton(context),
-          controller != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
+          _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
         ].where((w) => notNull(w)).toList(),
       ),
     );
   }
   Widget _buildCopyButton(BuildContext context){
-    return controller != null ?
+    return _albumController == null ?
       IconButton(
         icon: Icon(Icons.content_copy),
         color: Colors.white,
         onPressed: (){
           copyToClipboard(url).then((result){
             final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
-            //Scaffold.of(context).showSnackBar(snackBar);
+            Scaffold.of(context).showSnackBar(snackBar);
           });
         },
       )
@@ -536,12 +592,12 @@ class ImageControlsBar extends StatelessWidget {
           if (value == selection_album) {
             copyToClipboard(url).then((result){
               final snackBar = SnackBar(content: Text( result ? 'Copied Album Url to Clipboard' : "Failed to Copy Album Url to Clipboard"),);
-              //Scaffold.of(context).showSnackBar(snackBar);
+              Scaffold.of(context).showSnackBar(snackBar);
             });
           } else {
-            copyToClipboard(controller.currentImage().url).then((result){
+            copyToClipboard(_albumController.currentImage().url).then((result){
               final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
-              // ! Scaffold.of(context).showSnackBar(snackBar); NEEDS SCAFFOLD
+              Scaffold.of(context).showSnackBar(snackBar);
             });
           }
         },
@@ -570,12 +626,12 @@ class ImageControlsBar extends StatelessWidget {
       icon: Icon(Icons.grid_on),
       color: Colors.white,
       onPressed: (){
-        controller.toggleExpand();
+        _albumController.toggleExpand();
       },
     );
   }
   Widget _buildDownloadButton(BuildContext context){
-    return controller != null ?
+    return _albumController == null ?
       IconButton(
         icon: Icon(Icons.file_download),
         color: Colors.white,
@@ -605,7 +661,7 @@ class ImageControlsBar extends StatelessWidget {
       );
   }
   Widget _buildShareButton(BuildContext context){
-    return controller != null ?
+    return _albumController == null ?
       IconButton(
         icon: Icon(Icons.share),
         color: Colors.white,
@@ -615,7 +671,7 @@ class ImageControlsBar extends StatelessWidget {
       )
       : PopupMenuButton<String>(
         child: Icon(Icons.share),
-        itemBuilder: (context) => <PopupMenuEntry<String>>[
+        itemBuilder: (context) => [
           const PopupMenuItem<String>(
             value: selection_album,
             child: Text("Share Album"),
@@ -629,7 +685,7 @@ class ImageControlsBar extends StatelessWidget {
           if (value == selection_album) {
             shareString(url);
           } else {
-            shareString(controller.currentImage().url);
+            shareString(_albumController.currentImage().url);
           }
         },
       );

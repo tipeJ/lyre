@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
-import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
@@ -11,26 +10,16 @@ import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:markdown/markdown.dart' as prefix0;
 import '../../utils/redditUtils.dart';
 
-class CommentWidget extends StatefulWidget {
+
+class CommentWidget extends StatelessWidget {
   final Comment comment;
 
   CommentWidget(this.comment);
-  
-  @override
-  _CommentWidgetState createState() => _CommentWidgetState(this.comment);
-}
-
-class _CommentWidgetState extends State<CommentWidget> {
-  final Comment comment;
-
-  _CommentWidgetState(this.comment);
   @override
   Widget build(BuildContext context) {
-    return new prefix1.Visibility(
-      visible: !comment.collapsed,
-      child: OnSlide(
+    return OnSlide(
         backgroundColor: Colors.transparent,
-        key: PageStorageKey(comment.hashCode),
+        //key: PageStorageKey(comment.hashCode),
         items: <ActionItems>[
           ActionItems(
             icon: IconButton(
@@ -38,47 +27,38 @@ class _CommentWidgetState extends State<CommentWidget> {
               color: comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
             onPress: (){
               changeCommentVoteState(VoteState.upvoted, comment).then((_){
-                setState(() {
-                  
-                });
               });
             }
           ),
           ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.keyboard_arrow_down),onPressed: (){},
+            icon: Icon(
+              Icons.keyboard_arrow_down,
               color: comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
             onPress: (){
               changeCommentVoteState(VoteState.downvoted, comment).then((_){
-                setState((){
-
-                });
               });
             }
           ),
           ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.bookmark),onPressed: (){},
+            icon: Icon(
+              Icons.bookmark,
               color: comment.saved ? Colors.yellow : Colors.grey,),
             onPress: (){
               changeCommentSave(comment);
               comment.refresh().then((_){
-                setState(() {
-                  
-                });
               });
             }
           ),
           ActionItems(
-            icon: IconButton(
-              icon: Icon(Icons.reply),onPressed: (){},
+            icon: Icon(
+              Icons.reply,
               color: Colors.grey,),
             onPress: (){
               Navigator.pushNamed(context, 'reply', arguments: comment);
             }
           ),
           ActionItems(
-            icon: IconButton(icon: Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+            icon: Icon(Icons.person, color: Colors.grey),
             onPress: (){
               Navigator.pushNamed(context, 'posts', arguments: {
                 'redditor'        : comment.author,
@@ -87,37 +67,15 @@ class _CommentWidgetState extends State<CommentWidget> {
             }
           ),
           ActionItems(
-            icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
+            icon: Icon(Icons.menu,color: Colors.grey,),
             onPress: (){
 
             }
           ),
         ],
         
-        child: new Container(
-            child: new Container(
-              decoration: BoxDecoration(
-                border: Border(
-                    left:
-                        BorderSide(color: getColor(comment.depth), width: 3.5)),
-              ),
-              child: GestureDetector(
-                child:  Hero(
-                  child: new CommentContent(comment),
-                  tag: 'comment_hero ${comment.id}',
-                ),
-                onTap: (){
-                  BlocProvider.of<CommentsBloc>(context).add(CollapseX(c: comment));
-                },
-              )
-            ),
-            padding: new EdgeInsets.only(
-                left: 3.5 + comment.depth * 3.5,
-                right: 0.5,
-                top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0))
-      ),
-    );
+        child: CommentContent(comment)
+      );
   }
 
 }
@@ -146,48 +104,72 @@ class CommentContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: new Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Padding(
-              child: Row(
-                children: <Widget>[
-                  Material(
-                    child: Text("${comment.score} ",
-                      textAlign: TextAlign.left,
-                      textScaleFactor: 0.65,
-                      style: new TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: getScoreColor(comment, context))),
-                  )
-                  ,
-                  Material(
-                    child: Text(
-                    "● u/${comment.author}",
-                    textScaleFactor: 0.7,
-                  ),
-                  ),
-                  
-                  
-                ],
-              ),
-              padding: const EdgeInsets.only(
-                  left: 16.0, right: 16.0, top: 6.0)),
-          new Padding(
-              child: new Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  new Html(data: prefix0.markdownToHtml(comment.body),)
-                ],
-              ),
-              padding: const EdgeInsets.only(
-                  left: 16.0, right: 16.0, top: 6.0, bottom: 16.0))
-        ]),
-    );
+    return comment.isRoot
+            ? _commentContent(context)
+            : dividersWrapper(depth: comment.depth, child: _commentContent(context));
   }
+  Column _commentContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      
+      children: <Widget>[
+        new Padding(
+          child: Row(
+            children: <Widget>[
+              Material(
+                child: Text("${comment.score} ",
+                  textAlign: TextAlign.left,
+                  textScaleFactor: 0.65,
+                  style: new TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: getScoreColor(comment, context))),
+              ),
+              Material(
+                child: Text(
+                "● u/${comment.author}",
+                textScaleFactor: 0.7,
+              ),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.only(
+              left: _contentEdgePadding, right: 16.0, top: 6.0)),
+        new Padding(
+          child: Text(comment.body),
+              //new Html(data: prefix0.markdownToHtml(comment.body),)
+          padding: const EdgeInsets.only(
+              left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0)),
+        Container(height: _dividerWidth, color: _dividerColor,)
+      ]
+    ,);
+  }
+}
+
+const _contentEdgePadding = 16.0;
+const double _dividerSpacer = 10.5;
+const double _dividerWidth = 0.75;
+final Color _dividerColor = Colors.grey[100];
+
+List<Widget> _getDividers(int depth) {
+  List<Widget> returnList = [];
+  for (var i = 1; i < depth+1; i++) {
+    returnList.add(Container(
+      margin: EdgeInsets.only(left: _dividerSpacer),
+      color: _dividerColor,
+      width: _dividerWidth,
+    ));
+  }
+  return returnList;
+}
+
+Widget dividersWrapper({int depth, Widget child}) {
+  return IntrinsicHeight(
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: _getDividers(depth)..add(Flexible(child: child,)),)
+  );
 }
 class MoreCommentsWidget extends StatefulWidget {
   final MoreComments moreComments;
@@ -195,59 +177,53 @@ class MoreCommentsWidget extends StatefulWidget {
 
   MoreCommentsWidget(this.moreComments, this.index);
   @override
-  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState(moreComments, index);
+  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState();
 }
 
+
 class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
-  final MoreComments moreComments;
-  final int index;
 
-  _MoreCommentsWidgetState(this.moreComments, this.index);
+  _MoreCommentsWidgetState();
 
-  CommentsBloc bloc;
-  
   @override
   Widget build(BuildContext context) {
-    bloc = BlocProvider.of<CommentsBloc>(context);
-    return new GestureDetector(
-        child: Container(
+    return Container(
+      child: dividersWrapper(
+        depth: widget.moreComments.data["depth"],
+        child: InkWell(
+          onTap: () {
+              if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
+                setState(() {
+                  BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
+                  BlocProvider.of<CommentsBloc>(context).add(FetchMore(moreComments: widget.moreComments, location: widget.index));
+                });
+              }
+            },
           child: Container(
-              child: Row(
-                children: <Widget>[
-                  (bloc.loadingMoreId == moreComments.id)
-                      ? new Container(
-                          padding: EdgeInsets.all(5.0),
-                          child: SizedBox(
-                            child: CircularProgressIndicator(),
-                            height: 18.0,
-                            width: 18.0,
-                          ),
-                        )
-                      : Container(),
-                  new Text(
-                    "Load more comments (${moreComments.count})"
-                  )
-                ],
-              ),
-              decoration: BoxDecoration(
-                  border: Border(
-                      left: BorderSide(
-                          color: getColor(moreComments.data['depth']), width: 3.5)))),
-          padding: EdgeInsets.only(
-            left: 4.5 + moreComments.data['depth'] * 3.5,
-            right: 0.5,
-            top: 0.5,
-            bottom: 0.5,
-          ),
+            padding: EdgeInsets.only(left: _contentEdgePadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
+                  ? new Padding(
+                      padding: EdgeInsets.all(5.0),
+                      child: SizedBox(
+                        child: CircularProgressIndicator(),
+                        height: 18.0,
+                        width: 18.0,
+                      ),
+                    )
+                  : Container(),
+                new Text(
+                  "Load more comments (${widget.moreComments.count})"
+                ),
+                Container(height: _dividerWidth, color: _dividerColor,)
+              ]
+            ,)
+          )
         ),
-        onTapUp: (TapUpDetails details) {
-          if (moreComments.id != bloc.loadingMoreId) {
-            setState(() {
-              bloc.loadingMoreId = moreComments.id;
-              bloc.add(FetchMore(moreComments: moreComments, location: index));
-            });
-          }
-        },
-      );
+      )
+    );
   }
 }

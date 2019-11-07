@@ -1,19 +1,23 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
-import 'package:lyre/UI/postInnerWidget.dart';
 import './bloc.dart';
 import '../../Resources/globals.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
+  final PostsState firstState;
+
+  PostsBloc({this.firstState});
+
   @override //Default: Empty list of UserContent
-  PostsState get initialState => PostsState(userContent: [], contentSource : ContentSource.Subreddit, updated: false, usernamesList: [], targetRedditor: "");
+  PostsState get initialState => firstState == null ? PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "") : firstState;
 
   final _repository = Repository();
 
@@ -25,6 +29,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     PostsEvent event,
   ) async* {
     if(event is PostsSourceChanged){
+      loading.value = LoadingState.refreshing;
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");
       WikiPage sideBar;
@@ -55,9 +60,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
+      loading.value = LoadingState.notLoading;
       yield PostsState(
         userContent: _userContent, 
-        updated: false,
         contentSource : source,
         usernamesList: userNamesList, 
         currentUser: currentUser, 
@@ -67,6 +72,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         preferences: preferences
         );
     } else if (event is ParamsChanged){
+      loading.value = LoadingState.refreshing;
       List<UserContent> _userContent;
       switch (state.contentSource) {
         case ContentSource.Subreddit:
@@ -81,10 +87,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       }
 
       lastRefresh = DateTime.now();
+      loading.value = LoadingState.notLoading;
       yield getUpdatedstate(_userContent, false);
     } else if (event is FetchMore){
       if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       
+      loading.value = LoadingState.loadingMore;
       lastPost = state.userContent.last is Comment
         ? (state.userContent.last as Comment).id
         : (state.userContent.last as Submission).id;
@@ -102,19 +110,18 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.selfContentType);
           break;
       }
-      print("before: " + state.userContent.length.toString());
-      state.userContent.addAll(fetchedContent);
-      print("after: " + state.userContent.length.toString());
 
       lastRefresh = DateTime.now();
-      yield getUpdatedstate(state.userContent, true);
+      loading.value = LoadingState.notLoading;
+      yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);
     }
   }
+
+  final loading = ValueNotifier(LoadingState.notLoading);
 
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
       userContent: notNull(userContent) ? userContent : state.userContent,
-      updated: notNull(updated) ? updated : state.updated,
       contentSource: state.contentSource,
       usernamesList: state.usernamesList,
       currentUser: state.currentUser,
@@ -124,4 +131,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       preferences: state.preferences
     );
   }
+}
+enum LoadingState {
+  notLoading,
+  loadingMore,
+  refreshing,
 }

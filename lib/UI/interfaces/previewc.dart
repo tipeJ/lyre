@@ -13,4 +13,10 @@ class PreviewCall {
   PreviewCall._internal();
 
   PreviewCallback callback;
+
+  bool canPop() {
+    return mediaViewerCallback != null ? mediaViewerCallback.canPopMediaViewer() : true;
+  }
+
+  MediaViewerCallback mediaViewerCallback;
 }

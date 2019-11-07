@@ -48,8 +48,6 @@ class PostsProvider {
   Client client = Client();
   Reddit reddit;
 
-  final _apiKey = 'your_api_key';
-
   Future<Redditor> getLoggedInUser(){
     if(reddit == null){
       return null;
@@ -99,6 +97,26 @@ class PostsProvider {
       return true;
     }
     return false;
+  }
+
+  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
+    final r = await getRed();
+    Map<String, String> headers = new Map<String, String>();
+      headers["api_type"] = "json";
+    
+    final x = await client.get(query);
+
+    final jsonResponse = json.decode(x.body);
+
+    final Map<dynamic, dynamic> map = Map();
+
+    if (jsonResponse.length > 1) {
+      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
+      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
+      map[o] = o2;
+
+    }
+    return map;    
   }
 
   Future<bool> logInToLatest() async {
@@ -174,12 +192,12 @@ class PostsProvider {
   Future<Stream<String>> _server() async {
     final StreamController<String> onCode = new StreamController();
     HttpServer server =
-      await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+      await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
     server.listen((HttpRequest request) async {
       final String code = request.uri.queryParameters["code"];
       request.response
         ..statusCode = 200
-        ..headers.set("Content-Type", ContentType.HTML.mimeType)
+        ..headers.set("Content-Type", ContentType.html.mimeType)
         ..write("<html><h1>You can now close this window</h1></html>");
       await request.response.close();
       await server.close(force: true);

@@ -31,10 +31,8 @@ class CommentsBloc {
       resultList = resultList + more.children[i];
     }
     var model = await _repository.fetchComment(resultList, link_id);
-    print("BEFIRE:" + currentComments.results.length.toString());
     currentComments.results.removeAt(location);
     currentComments.results.insertAll(location, model.results);
-    print("AFTERR:" + currentComments.results.length.toString());
     _commentsFetcher.sink.add(currentComments);
     loadingMoreId = "";
   }

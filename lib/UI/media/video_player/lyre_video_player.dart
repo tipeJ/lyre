@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'video_controls.dart';
 import 'package:flutter/widgets.dart';
-import 'package:lyre/UI/video_player/video_player.dart';
+import 'video_player.dart';
 import 'package:screen/screen.dart';
 import 'package:video_player/video_player.dart';
 

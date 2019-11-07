@@ -49,20 +49,18 @@ class PostsList extends StatefulWidget {
   final ContentSource initialSource;
   final String redditor;
 
-  State<PostsList> createState() => new PostsListState(redditor, initialSource);
+  State<PostsList> createState() => new PostsListState();
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
-  PostsListState(this.redditor, this.initialSource);
+  PostsListState();
 
   bool autoLoad;
   PostsBloc bloc;
   //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
   Widget headerWidget;
 
-  final ContentSource initialSource;
   final FloatingNavBarController navBarController = FloatingNavBarController(maxNavBarHeight: 400.0, typeHeight: 25.0);
-  final String redditor;
 
   ScrollController scontrol = new ScrollController();
   var titletext = "Lyre for Reddit";
@@ -122,16 +120,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     return new Future.value(true);
   }
 
-  Widget buildList(AsyncSnapshot<PostsState> snapshot) {
-    var state = snapshot.data;
+  Widget buildList(PostsState state) {
     var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
-        if (scrollInfo.depth != 0) return true;
         if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
-          setState(() {
-            bloc.add(FetchMore());
-          });
+          bloc.add(FetchMore());
         }
         if (scrollInfo is ScrollUpdateNotification) {
           if (scrollInfo.scrollDelta >= 10.0) {
@@ -143,7 +137,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return true;
       },
       child: new ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
           controller: scontrol,
           itemCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
           itemBuilder: (BuildContext context, int i) {
@@ -157,7 +150,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         bloc.add(FetchMore());
                       });
                     },
-                    child: const Text("Load More")),
+                    child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
               );
             } else if(state.contentSource == ContentSource.Redditor && i == 0){
               if(headerWidget == null){
@@ -247,217 +240,221 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
-      bloc.add(PostsSourceChanged(redditor: this.redditor, source: this.initialSource));
+      bloc.add(PostsSourceChanged(redditor: widget.redditor, source: widget.initialSource));
     }
-    bloc.listen((PostsState state){
-      if(state.userContent.isNotEmpty && !state.updated) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
+    bloc.loading.addListener((){
+      if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
+      setState(() {
+        
+      });
     });
     return new WillPopScope(
-        child: Scaffold(
-          resizeToAvoidBottomInset: true,
-          drawer: new Drawer(
-              child: new Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Stack(
-                  children: <Widget>[
-                    CustomScrollView(
-                      slivers: <Widget>[
-                        SliverToBoxAdapter(
-                          child: Container(height: 150,),
-                        ),
-                        SliverToBoxAdapter(
-                          child: BlocBuilder<PostsBloc, PostsState>(
-                            builder: (context, PostsState state){
-                              return CustomExpansionTile(
-                                fontSize: 32.0,
-                                title: currentUser.value,
-                                children: getRegisteredUsernamesList(state.usernamesList),
-                              );
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        drawer: new Drawer(
+            child: new Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Stack(
+                children: <Widget>[
+                  CustomScrollView(
+                    slivers: <Widget>[
+                      SliverToBoxAdapter(
+                        child: Container(height: 150,),
+                      ),
+                      SliverToBoxAdapter(
+                        child: BlocBuilder<PostsBloc, PostsState>(
+                          builder: (context, PostsState state){
+                            return CustomExpansionTile(
+                              fontSize: 32.0,
+                              title: currentUser.value,
+                              children: getRegisteredUsernamesList(state.usernamesList),
+                            );
+                          },
+                        )
+                      ),
+                      PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
+                        child: FutureBuilder(
+                          future: PostsProvider().getLoggedInUser(),
+                          builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.done:
+                                if(snapshot.hasError){
+                                  return const Text('Error loading user data');
+                                }
+                                return CustomExpansionTile(
+                                  title: "Profile",
+                                  initiallyExpanded: true,
+                                  fontSize: 32.0,
+                                  children: <Widget>[
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Column(children: <Widget>[
+                                          Text(
+                                            snapshot.data.commentKarma.toString(),
+                                            style: const TextStyle(fontSize: 28.0),
+                                          ),
+                                          const Text(
+                                            'Comment karma',
+                                            style: const TextStyle(fontSize: 22.0),
+                                          )
+                                        ],),
+                                        const Spacer(),
+                                        const VerticalDivider(),
+                                        const Spacer(),
+                                        Column(children: <Widget>[
+                                          Text(
+                                            snapshot.data.linkKarma.toString(),
+                                            style: const  TextStyle(fontSize: 28.0),
+                                          ),
+                                          const Text(
+                                            'Link karma',
+                                            style: TextStyle(fontSize: 22.0),
+                                          )
+                                        ],)
+                                      ],
+                                    ),
+                                    const Divider(),
+                                    const SelfContentTypeWidget("Comments"),
+                                    const SelfContentTypeWidget("Submitted"),
+                                    const SelfContentTypeWidget("Upvoted"),
+                                    const SelfContentTypeWidget("Saved"),
+                                    const SelfContentTypeWidget("Hidden"),
+                                    const SelfContentTypeWidget("Watching"),
+                                    const SelfContentTypeWidget("Friends")
+                                  ],
+                                );
+                              default:
+                                return Container();
+                            }
+                        },
+                      ),
+                      ) : null,
+                      SliverToBoxAdapter(
+                        child: RaisedButton(
+                            child: const Text('Add an account'),
+                            color: Theme.of(context).primaryColor,
+                            onPressed: () {
+                              var pp = PostsProvider();
+                              setState(() {
+                                pp.registerReddit();
+                                refreshList();
+                              });
+                            },
+                          ),
+                      )
+                    ].where(notNull).toList(),
+                  ),
+                  Positioned(
+                    bottom: 0.0,
+                    right: 0.0,
+                    child: Container(
+                      height: 50.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Text(appName + ' v.' + appVersion),
+                          IconButton(
+                            icon: Icon(Icons.settings),
+                            onPressed: (){
+                              Navigator.of(context).pushNamed('settings');
                             },
                           )
-                        ),
-                        PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
-                          child: FutureBuilder(
-                            future: PostsProvider().getLoggedInUser(),
-                            builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                              switch (snapshot.connectionState) {
-                                case ConnectionState.done:
-                                  if(snapshot.hasError){
-                                    return const Text('Error loading user data');
-                                  }
-                                  return CustomExpansionTile(
-                                    title: "Profile",
-                                    initiallyExpanded: true,
-                                    fontSize: 32.0,
-                                    children: <Widget>[
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Column(children: <Widget>[
-                                            Text(
-                                              snapshot.data.commentKarma.toString(),
-                                              style: const TextStyle(fontSize: 28.0),
-                                            ),
-                                            const Text(
-                                              'Comment karma',
-                                              style: const TextStyle(fontSize: 22.0),
-                                            )
-                                          ],),
-                                          const Spacer(),
-                                          const VerticalDivider(),
-                                          const Spacer(),
-                                          Column(children: <Widget>[
-                                            Text(
-                                              snapshot.data.linkKarma.toString(),
-                                              style: const  TextStyle(fontSize: 28.0),
-                                            ),
-                                            const Text(
-                                              'Link karma',
-                                              style: TextStyle(fontSize: 22.0),
-                                            )
-                                          ],)
-                                        ],
-                                      ),
-                                      const Divider(),
-                                      const SelfContentTypeWidget("Comments"),
-                                      const SelfContentTypeWidget("Submitted"),
-                                      const SelfContentTypeWidget("Upvoted"),
-                                      const SelfContentTypeWidget("Saved"),
-                                      const SelfContentTypeWidget("Hidden"),
-                                      const SelfContentTypeWidget("Watching"),
-                                      const SelfContentTypeWidget("Friends")
-                                    ],
-                                  );
-                                default:
-                                  return Container();
-                              }
-                          },
-                        ),
-                        ) : null,
-                        SliverToBoxAdapter(
-                          child: RaisedButton(
-                              child: const Text('Add an account'),
-                              color: Theme.of(context).primaryColor,
-                              onPressed: () {
-                                var pp = PostsProvider();
-                                setState(() {
-                                  pp.registerReddit();
-                                  refreshList();
-                                });
-                              },
-                            ),
-                        )
-                      ].where(notNull).toList(),
-                    ),
-                    Positioned(
-                      bottom: 0.0,
-                      right: 0.0,
-                      child: Container(
-                        height: 50.0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Text(appName + ' v.' + appVersion),
-                            IconButton(
-                              icon: Icon(Icons.settings),
-                              onPressed: (){
-                                Navigator.of(context).pushNamed('settings');
-                              },
-                            )
-                          ],
-                        ),
+                        ],
                       ),
-                    )
-                  ],
-                )
-          )),
-          endDrawer: new Drawer(
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverAppBar(
-                  expandedHeight: 125.0,
-                  floating: false,
-                  pinned: true,
-                  backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
-                  actions: <Widget>[Container()],
-                  leading: Container(),
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: false,
-                    title: Text(
-                      'r/' + currentSubreddit,
-                      style: prefix1.TextStyle(fontSize: 32.0),
-                      ),
-                    background: BlocBuilder<PostsBloc, PostsState>(
-                      builder: (context, state){
-                        return state.styleSheetImages.isNotEmpty
-                          ? prefix1.Image(
-                            image: AdvancedNetworkImage(
-                              state.styleSheetImages[0].url.toString(),
-                              useDiskCache: true,
-                              cacheRule: CacheRule(maxAge: const Duration(days: 28)),
-                            ),
-                            fit: BoxFit.fitHeight
-                          )
-                          : Container(); // TODO: Placeholder image
-                      },
                     ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.all(5.0),
-                      helperText: "Search r/$currentSubreddit",
-                      helperStyle: prefix1.TextStyle(fontStyle: FontStyle.italic)
+                  )
+                ],
+              )
+        )),
+        endDrawer: new Drawer(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                expandedHeight: 125.0,
+                floating: false,
+                pinned: true,
+                backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                actions: <Widget>[Container()],
+                leading: Container(),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  title: Text(
+                    'r/' + currentSubreddit,
+                    style: prefix1.TextStyle(fontSize: 32.0),
                     ),
-                  ),
-                ),
-                BlocBuilder<PostsBloc, PostsState>(
-                  builder: (context, state){
-                    return notNull(state.sideBar)
-                      ? SliverToBoxAdapter(
-                        child: Html(
-                          data: parseShittyFlutterHtml(state.sideBar.contentHtml),
-                          padding: EdgeInsets.symmetric(horizontal: 5.0),
+                  background: BlocBuilder<PostsBloc, PostsState>(
+                    builder: (context, state){
+                      return state.styleSheetImages.isNotEmpty
+                        ? prefix1.Image(
+                          image: AdvancedNetworkImage(
+                            state.styleSheetImages[0].url.toString(),
+                            useDiskCache: true,
+                            cacheRule: CacheRule(maxAge: const Duration(days: 28)),
+                          ),
+                          fit: BoxFit.fitHeight
                         )
-                      )
-                      : null;
-                  },
-                )
-              ].where((w) => notNull(w)).toList(),
-            )
-          ),
-          body: new Container(
-              child: new Stack(
-                children: <Widget>[
-                  StreamBuilder(
-                    stream: bloc.takeWhile((PostsState s){
-                      return s.userContent != null;
-                    }),
-                    builder: (context, AsyncSnapshot<PostsState> snapshot){
-                      if(snapshot.hasData && snapshot.data.userContent != null && snapshot.data.userContent.isNotEmpty){
-                        final state = snapshot.data;
-                        autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
-                        if(state.contentSource == ContentSource.Redditor){
-                          return snapshot.data.targetRedditor.isNotEmpty
-                            ? buildList(snapshot)
-                            : Center(child: CircularProgressIndicator());
-                        } else {
-                          return buildList(snapshot);
-                        }
-                      }else if (snapshot.hasError) {
-                        return Text(snapshot.error.toString());
-                      }else{
-                        return Center(child: CircularProgressIndicator());
-                      }
+                        : Container(); // TODO: Placeholder image
                     },
                   ),
-                  new FloatingNavigationBar(controller: navBarController,)
-                ].where(notNull).toList(),
-              )),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: TextField(
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.all(5.0),
+                    helperText: "Search r/$currentSubreddit",
+                    helperStyle: prefix1.TextStyle(fontStyle: FontStyle.italic)
+                  ),
+                ),
+              ),
+              BlocBuilder<PostsBloc, PostsState>(
+                builder: (context, state){
+                  return notNull(state.sideBar)
+                    ? SliverToBoxAdapter(
+                      child: Html(
+                        data: parseShittyFlutterHtml(state.sideBar.contentHtml),
+                        padding: EdgeInsets.symmetric(horizontal: 5.0),
+                      )
+                    )
+                    : null;
+                },
+              )
+            ].where((w) => notNull(w)).toList(),
+          )
         ),
-        onWillPop: _willPop);
+        body: Container(
+          child: new Stack(
+            children: <Widget>[
+              StreamBuilder(
+                stream: bloc,
+                builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
+                  if (snapshot.hasData) {
+                    final state = snapshot.data;
+                    if(state.userContent != null && state.userContent.isNotEmpty){
+                      autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
+                      if(state.contentSource == ContentSource.Redditor){
+                        return state.targetRedditor.isNotEmpty
+                          ? buildList(state)
+                          : Center(child: CircularProgressIndicator());
+                      } else {
+                        return buildList(state);
+                      }
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  } else {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  
+                },
+              ),
+              new FloatingNavigationBar(controller: navBarController,)
+            ].where(notNull).toList(),
+          ))
+      ),
+      onWillPop: _willPop);
   }
 }
 

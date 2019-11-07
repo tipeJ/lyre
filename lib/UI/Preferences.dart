@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import '../UploadUtils/ImgurAPI.dart';
 import '../Themes/themes.dart';
-import '../Themes/bloc/theme_bloc.dart';
-import '../Themes/bloc/theme_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Resources/PreferenceValues.dart';
 
@@ -383,7 +382,7 @@ class _PreferencesViewState extends State<PreferencesView> {
           onTap: (){
             //Make the bloc output a new ThemeState
             box.put(CURRENT_THEME, lyreAppTheme.toString());
-            BlocProvider.of<ThemeBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
+            BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
           },
         ),
       ));

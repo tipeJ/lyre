@@ -74,13 +74,7 @@ class CommentWidget extends StatelessWidget {
           ),
         ],
         
-        child: new Container(
-            child: new CommentContent(comment),
-            padding: new EdgeInsets.only(
-                left: 3.5 + comment.depth * 3.5,
-                right: 0.5,
-                top: comment.depth == 0 ? 2.0 : 0.1,
-                bottom: 0.0))
+        child: CommentContent(comment)
       );
   }
 
@@ -110,51 +104,85 @@ class CommentContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
-      child: Row(children: <Widget>[
-        Padding(child: VerticalDivider(width: dividerWidth,), padding: EdgeInsets.only(right: 3.5),),
+    return comment.isRoot
+            ? _commentContent(context)
+            : Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: _getDividers(comment.depth)..add(_commentContent(context)),);
+    Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        /*Padding(
+          padding: EdgeInsets.only(left: comment.depth * dividerSpacer),
+          child: Divider(color: dividerColor,),
+        ),*/
         Flexible(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[-
-              new Padding(
-                  child: Row(
-                    children: <Widget>[
-                      Material(
-                        child: Text("${comment.score} ",
-                          textAlign: TextAlign.left,
-                          textScaleFactor: 0.65,
-                          style: new TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: getScoreColor(comment, context))),
-                      )
-                      ,
-                      Material(
-                        child: Text(
-                        "● u/${comment.author}",
-                        textScaleFactor: 0.7,
-                      ),
-                      ),
-                      
-                      
-                    ],
-                  ),
-                  padding: const EdgeInsets.only(
-                      left: 16.0, right: 16.0, top: 6.0)),
-              new Padding(
-                  child: Text(comment.body),
-                      //new Html(data: prefix0.markdownToHtml(comment.body),)
-                  padding: const EdgeInsets.only(
-                      left: 16.0, right: 16.0, top: 6.0, bottom: 16.0)),
-              Divider(height: dividerWidth,)
-            ]),
+          child: comment.isRoot
+            ? _commentContent(context)
+            : Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: _getDividers(comment.depth)..add(_commentContent(context)),),
         ),
-      ],)
-    );
+        Container(
+          margin: EdgeInsets.only(left: comment.depth * (dividerSpacer + dividerWidth)),
+          child: Container(
+            color: dividerColor,
+            height: dividerWidth,
+          ),
+        ),
+      ]);
   }
+  Column _commentContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        new Padding(
+          child: Row(
+            children: <Widget>[
+              Material(
+                child: Text("${comment.score} ",
+                  textAlign: TextAlign.left,
+                  textScaleFactor: 0.65,
+                  style: new TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: getScoreColor(comment, context))),
+              ),
+              Material(
+                child: Text(
+                "● u/${comment.author}",
+                textScaleFactor: 0.7,
+              ),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.only(
+              left: 16.0, right: 16.0, top: 6.0)),
+        new Padding(
+          child: Text(comment.body),
+              //new Html(data: prefix0.markdownToHtml(comment.body),)
+          padding: const EdgeInsets.only(
+              left: 16.0, right: 16.0, top: 6.0, bottom: 12.0)),
+      ]
+    ,);
+  }
+}
+
+const double dividerSpacer = 10.5;
+const double dividerWidth = 0.75;
+const Color dividerColor = Colors.grey;
+
+List<Widget> _getDividers(int depth) {
+  List<Widget> returnList = [];
+  for (var i = 1; i < depth+1; i++) {
+    returnList.add(Container(
+      margin: EdgeInsets.only(left: dividerSpacer),
+      color: dividerColor,
+      width: dividerWidth,
+    ));
+  }
+  return returnList;
 }
 class MoreCommentsWidget extends StatefulWidget {
   final MoreComments moreComments;
@@ -162,63 +190,62 @@ class MoreCommentsWidget extends StatefulWidget {
 
   MoreCommentsWidget(this.moreComments, this.index);
   @override
-  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState(moreComments, index);
+  _MoreCommentsWidgetState createState() => _MoreCommentsWidgetState();
 }
 
-const double dividerWidth = 3.5;
 
 class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
-  final MoreComments moreComments;
-  final int index;
 
-  _MoreCommentsWidgetState(this.moreComments, this.index);
+  _MoreCommentsWidgetState();
 
-  CommentsBloc bloc;
-  
   @override
   Widget build(BuildContext context) {
-    bloc = BlocProvider.of<CommentsBloc>(context);
-    return new GestureDetector(
-        child: Container(
-          child: Row(
-            children: <Widget>[
-              Padding(
-                child: VerticalDivider(width: dividerWidth,),
-                padding: EdgeInsets.only(right: 3.5),
-              ),
-              Column(children: <Widget>[
-                (bloc.loadingMoreId == moreComments.id)
-                  ? new Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: SizedBox(
-                        child: CircularProgressIndicator(),
-                        height: 18.0,
-                        width: 18.0,
-                      ),
-                    )
-                  : Container(),
-              new Text(
-                "Load more comments (${moreComments.count})"
-              ),
-              Divider(height: dividerWidth,)
-              ],)
-            ],
-          ),
-          padding: EdgeInsets.only(
-            left: 4.5 + moreComments.data['depth'] * 3.5,
-            right: 0.5,
-            top: 0.5,
-            bottom: 0.5,
-          ),
+    return Container(
+      padding: EdgeInsets.only(
+          left: 3.5 + widget.moreComments.data['depth'] * 3.5,
+          right: 0.5,
+          top: 0.5,
+          bottom: 0.5,
         ),
-        onTapUp: (TapUpDetails details) {
-          if (moreComments.id != bloc.loadingMoreId) {
-            setState(() {
-              bloc.loadingMoreId = moreComments.id;
-              bloc.add(FetchMore(moreComments: moreComments, location: index));
-            });
-          }
-        },
-      );
+      child: new InkWell(
+        onTap: () {
+            if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
+              setState(() {
+                BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
+                BlocProvider.of<CommentsBloc>(context).add(FetchMore(moreComments: widget.moreComments, location: widget.index));
+              });
+            }
+          },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(width: dividerWidth, color: Colors.grey),
+              top: BorderSide(width: dividerWidth, color: Colors.grey),
+              bottom: BorderSide(width: dividerWidth, color: Colors.grey)
+            )
+          ),
+                  padding: EdgeInsets.only(left: 3.5),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
+                        ? new Padding(
+                            padding: EdgeInsets.all(5.0),
+                            child: SizedBox(
+                              child: CircularProgressIndicator(),
+                              height: 18.0,
+                              width: 18.0,
+                            ),
+                          )
+                        : Container(),
+                      new Text(
+                        "Load more comments (${widget.moreComments.count})"
+                      ),
+                    ]
+                  ,)
+                )
+      ),
+    );
   }
 }

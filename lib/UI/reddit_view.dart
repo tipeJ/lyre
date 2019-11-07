@@ -22,8 +22,6 @@ class RedditView extends StatelessWidget {
         if (snapshot.hasData) {
           final data = snapshot.data.keys.first;
           final datadata = snapshot.data.values.first;
-          print(datadata.toString()); // ! Right type or no??
-          print(data.toString()); // ! Right type or no??
           if (data is Subreddit) {
             final PostsBloc _postsBloc = PostsBloc(firstState: PostsState(
               contentSource: ContentSource.Subreddit,

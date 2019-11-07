@@ -8,7 +8,6 @@ import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
-import 'package:tree_view/tree_view.dart';
 import '../../Resources/globals.dart';
 
 const selection_image = "Image";
@@ -107,86 +106,23 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                   )
                 ],
               ),
-                  /*
-                  BlocBuilder<CommentsBloc, List<dynamic>>(
-                          builder: (context, List<dynamic> state){
-                            return TreeView(
-                              parentList: getCommentTreeList(context, state,),
-                            );
-                          },
-                        )*/
             )),
         onWillPop: requestPop);
-  }
-
-  List<Parent> getCommentTreeList(BuildContext context, List<dynamic> children) {
-    List<Parent> returnList = [];
-    children.forEach((comment) {
-      if (comment is Comment) {
-        if (comment.replies != null && comment.replies.toList().isNotEmpty) {
-          returnList.add(Parent(
-            parent: Padding(
-              child: CommentContent(comment),
-              padding: EdgeInsets.only(left: comment.depth * 3.5),
-            ),
-            childList: ChildList(children: getCommentTreeList(context, comment.replies.toList()),),));
-        } else {
-          returnList.add(Parent(
-            parent: Padding(
-              child: CommentContent(comment),
-              padding: EdgeInsets.only(left: comment.depth * 3.5),
-            ),
-            childList: ChildList(),
-          ));
-        }
-      } else {
-        returnList.add(Parent(parent: Container(
-          child: MoreCommentsWidget(comment, 1), // ! CHANGE TO CORRENT INDEX
-          padding: EdgeInsets.only(
-            left: 4.5 + comment.data['depth'] * 3.5,
-            right: 0.5,
-            top: 0.5,
-            bottom: 0.5,
-          ),
-        ),
-        childList: ChildList(),
-        ));
-      }
-    }) ;
-    return returnList;
   }
 
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-          return prefix0.Visibility(
-            child: GestureDetector(
-              child: getCommentWidget(list[i].c, i),
-              onTap: (){
-                setState(() {
-                 BlocProvider.of<CommentsBloc>(context).collapse(i); 
-                });
-              },
-            ),
-            visible: bloc.comments[i].visible,
+          return StatefulBuilder(
+            builder: (BuildContext context, setState) {
+              return prefix0.Visibility(
+                child: getCommentWidget(list[i].c, i),
+                visible: list[i].visible,
+              );
+            },
           );
       }, childCount: list.length),
     );
-  }
-  
-  bool getWidgetVisibility(int index){
-    var item = bloc.state[index];
-    return item.visible;
-    if(item is MoreComments){
-      return !getWidgetVisibility(index-1);
-    }
-    var comment = item as Comment;
-    if(!comment.isRoot && comment.collapsed){
-      comment.parent().then((parent){
-        return !(parent as Comment).collapsed;
-      });
-    }
-    return true;
   }
 
   Future<bool> requestPop() {
@@ -196,14 +132,16 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
-      return CommentContent(comment);
+      return GestureDetector(
+        child: CommentWidget(comment),
+        onTap: (){
+          setState(() {
+           BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 
+          });
+        },
+      );
     } else {
       return MoreCommentsWidget(comment, i);
-    }
-    if (comment is Comment) {
-      return CommentWidget(comment);
-    } else if (comment is MoreComments) {
-      return new MoreCommentsWidget(comment, i);
     }
   }
 }

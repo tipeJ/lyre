@@ -110,14 +110,10 @@ class PostsProvider {
 
     final Map<dynamic, dynamic> map = Map();
 
-    print(jsonResponse);
-
     if (jsonResponse.length > 1) {
       final o = r.objector.objectify(jsonResponse[0]).values.first.first;
       final o2 = r.objector.objectify(jsonResponse[1]).values.first;
       map[o] = o2;
-      print("TYPE: " + o.runtimeType.toString());
-      print("TYPE2: " + o2.runtimeType.toString());
 
     }
     return map;    
@@ -196,12 +192,12 @@ class PostsProvider {
   Future<Stream<String>> _server() async {
     final StreamController<String> onCode = new StreamController();
     HttpServer server =
-      await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080);
+      await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
     server.listen((HttpRequest request) async {
       final String code = request.uri.queryParameters["code"];
       request.response
         ..statusCode = 200
-        ..headers.set("Content-Type", ContentType.HTML.mimeType)
+        ..headers.set("Content-Type", ContentType.html.mimeType)
         ..write("<html><h1>You can now close this window</h1></html>");
       await request.response.close();
       await server.close(force: true);

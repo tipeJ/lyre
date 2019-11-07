@@ -8,7 +8,6 @@ import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
-import 'package:lyre/UI/reddit_view.dart';
 
 class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){

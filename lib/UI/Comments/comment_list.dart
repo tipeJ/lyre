@@ -15,14 +15,13 @@ const selection_album = "Album";
 
 class CommentsList extends StatelessWidget{
   final Submission submission;
-  CommentsBloc bloc = CommentsBloc();
 
   CommentsList(this.submission);
 
   @override
   Widget build(BuildContext context){
     return BlocProvider(
-      builder: (context) => bloc,
+      builder: (context) => CommentsBloc(),
       child: CommentList(submission),
     );
   }

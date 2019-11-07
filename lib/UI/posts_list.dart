@@ -32,12 +32,10 @@ class PostsView extends StatelessWidget {
   ContentSource initialSource;
   String redditor;
 
-  final PostsBloc _postsBloc = PostsBloc();
-
   @override
   Widget build(BuildContext context){
     return BlocProvider(
-      builder: (context) => _postsBloc,
+      builder: (context) => PostsBloc(),
       child: PostsList(redditor, initialSource),
     );
   }

@@ -7,6 +7,7 @@ import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
+import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:markdown/markdown.dart' as prefix0;
 import '../../utils/redditUtils.dart';
 
@@ -136,8 +137,7 @@ class CommentContent extends StatelessWidget {
           padding: const EdgeInsets.only(
               left: _contentEdgePadding, right: 16.0, top: 6.0)),
         new Padding(
-          child: Text(comment.body),
-              //new Html(data: prefix0.markdownToHtml(comment.body),)
+          child: new Html(data: parseShittyFlutterHtml(comment.body),),
           padding: const EdgeInsets.only(
               left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0)),
         Container(height: _dividerWidth, color: _dividerColor,)
@@ -149,7 +149,7 @@ class CommentContent extends StatelessWidget {
 const _contentEdgePadding = 16.0;
 const double _dividerSpacer = 10.5;
 const double _dividerWidth = 0.75;
-final Color _dividerColor = Colors.grey[100];
+final Color _dividerColor = Colors.grey.withOpacity(0.3);
 
 List<Widget> _getDividers(int depth) {
   List<Widget> returnList = [];

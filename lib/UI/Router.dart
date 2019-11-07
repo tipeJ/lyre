@@ -1,7 +1,11 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Blocs/bloc/posts_bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/UI/Animations/transitions.dart';
+import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
 import 'package:lyre/UI/posts_list.dart';
@@ -19,12 +23,21 @@ class Router {
           redditor = args['redditor'] as String;
           source = args['content_source'] as ContentSource;
         }
-        return MaterialPageRoute(builder: (_) => PostsView(redditor, source));
+        if (redditor.isNotEmpty) {
+          source = ContentSource.Redditor;
+        }
+        return MaterialPageRoute(builder: (_) => BlocProvider(
+          builder: (context) => PostsBloc(),
+          child: PostsList(redditor, source),
+        ));
       case 'comments':
         Submission submission = settings.arguments as Submission;
         if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)
         recentlyViewed.add(submission); //Adds the submission to the top of the recently viewed list
-        return MaterialPageRoute(builder: (_) => CommentsList(submission));
+        return SlideUpRoute(widget: BlocProvider(
+          builder: (context) => CommentsBloc(),
+          child: CommentList(submission),
+        ));
       case 'settings':
         return MaterialPageRoute(builder: (_) => PreferencesView());
       case 'submit':

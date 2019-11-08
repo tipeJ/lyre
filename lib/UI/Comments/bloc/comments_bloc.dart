@@ -7,7 +7,10 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   final List<dynamic> firstState;
 
   CommentsBloc({this.firstState}) {
-    if (firstState != null && _comments.isEmpty) addCommentsFromForest(firstState);
+    if (firstState != null && _comments.isEmpty) {
+      //addCommentsFromForest(firstState);
+      _comments = this.firstState;
+    }
   }
 
   @override
@@ -39,8 +42,9 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
   ) async* {
     if(event is SortChanged){
         _comments = []; //Removes previous items from the comment list
-        var forest = await event.submission.refreshComments(sort: event.commentSortType);
-        addCommentsFromForest(forest.toList());
+        final forest = await event.submission.refreshComments(sort: event.commentSortType);
+        _comments = forest.toList();
+        //addCommentsFromForest(forest.toList());
     } else if(event is FetchMore){
       var more = event.moreComments;
       if(more.children != null && more.children.isNotEmpty){
@@ -54,7 +58,7 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
     }
     loadingMoreId = ""; //Resets the loadingMoreId value.
     yield _comments; //Return the updated list of dynamic comment objects.
-    }
+  }
   //Recursing function that adds the _comments to the list from a CommentForest
   void addCommentsFromForest(List<dynamic> forest){
     forest.forEach((f){

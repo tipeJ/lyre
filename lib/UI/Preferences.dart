@@ -54,6 +54,11 @@ class _PreferencesViewState extends State<PreferencesView> {
                     delegate: SliverChildListDelegate([
                       CustomExpansionTile(
                         initiallyExpanded: true,
+                        title: 'General',
+                        children: getGeneralSettings(context),
+                        ),
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
                         title: 'Submissions',
                         children: getSubmissionSettings(context),
                         ),

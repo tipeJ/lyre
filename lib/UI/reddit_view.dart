@@ -6,6 +6,7 @@ import 'package:lyre/Blocs/bloc/posts_state.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
+import 'package:lyre/UI/Comments/bloc/comments_state.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/posts_list.dart';
 
@@ -42,7 +43,8 @@ class RedditView extends StatelessWidget {
               child: PostsList("", ContentSource.Subreddit),
             );
           } else if (data is Submission) {
-            final CommentsBloc _commentsBloc = CommentsBloc(firstState: datadata);
+            print(datadata.toString());
+            final CommentsBloc _commentsBloc = CommentsBloc(firstState: CommentsState(comments: datadata.map<CommentM>((f) => CommentM(f, true)).toList(), sortType: CommentSortType.best));
             return BlocProvider(
               builder: (context) => _commentsBloc,
               child: CommentList(data),

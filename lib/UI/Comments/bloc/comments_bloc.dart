@@ -52,7 +52,6 @@ class CommentsBloc extends Bloc<CommentsEvent, List<dynamic>> {
         _comments.removeAt(event.location); //Removes the used MoreComments object
         _comments.insertAll(event.location, results.map((c) => CommentM.from(c)).toList()); //Inserts the received objects into the comment list
       }
-      
     } else if(event is Collapse){
       _collapse(event.location);
     }

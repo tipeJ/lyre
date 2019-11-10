@@ -28,7 +28,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     int ogdepth = _comments[location].c.data["depth"];
     bool visible = !_comments[location+1].visible;
     int lastIndex;
-    while (_comments[currentIndex].c.data["depth"] != ogdepth) {
+    while (currentIndex != _comments.length && _comments[currentIndex].c.data["depth"] != ogdepth) {
       lastIndex = currentIndex;
       currentIndex++;
     }

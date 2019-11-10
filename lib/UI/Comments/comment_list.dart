@@ -156,16 +156,21 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidgets(BuildContext context, List<dynamic> list){
     return SliverList(
       delegate: SliverChildBuilderDelegate((BuildContext context, int i){
-          return StatefulBuilder(
-            builder: (BuildContext context, setState) {
+          return BlocBuilder<CommentsBloc, CommentsState>(
+            builder: (BuildContext context, state) {
               return prefix0.Visibility(
-                child: getCommentWidget(list[i].c, i),
-                visible: list[i].visible,
+                child: getCommentWidget(state.comments[i].c, i,),
+                visible: state.comments[i].visible,
               );
             },
           );
       }, childCount: list.length),
     );
+  }
+  void x(){
+    setState(() {
+      
+    });
   }
 
   Future<bool> requestPop() {
@@ -176,7 +181,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
       return GestureDetector(
-        child: CommentContent(comment),
+        child: CommentWidget(comment),
         onTap: (){
           setState(() {
            BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 

@@ -149,7 +149,7 @@ class CommentContent extends StatelessWidget {
 const _contentEdgePadding = 16.0;
 const double _dividerSpacer = 10.5;
 const double _dividerWidth = 0.75;
-final Color _dividerColor = Colors.grey[100];
+final Color _dividerColor = Colors.grey.withOpacity(0.2);
 
 List<Widget> _getDividers(int depth) {
   List<Widget> returnList = [];

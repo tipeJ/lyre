@@ -18,11 +18,15 @@ class RedditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: PostsProvider().fetchRedditContent(query + ".json"),
+      future: PostsProvider().getCRef('f6yqinj'),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final data = snapshot.data.keys.first;
-          final datadata = snapshot.data.values.first;
+          final CommentsBloc _commentsBloc = CommentsBloc(snapshot.data);
+          return BlocProvider(
+            builder: (context) => _commentsBloc,
+            child: CommentList(),
+          );
+          /*
           if (data is Subreddit) {
             final PostsBloc _postsBloc = PostsBloc(firstState: PostsState(
               contentSource: ContentSource.Subreddit,
@@ -44,14 +48,15 @@ class RedditView extends StatelessWidget {
             );
           } else if (data is Submission) {
             print(datadata.toString());
-            final CommentsBloc _commentsBloc = CommentsBloc(firstState: CommentsState(comments: datadata.map<CommentM>((f) => CommentM(f, true)).toList(), sortType: CommentSortType.best));
+            final CommentsBloc _commentsBloc = CommentsBloc(CommentRef.withID(reddit, _id), datadata);
             return BlocProvider(
               builder: (context) => _commentsBloc,
-              child: CommentList(data),
+              child: CommentList(),
             );
           } else {
             return Center(child: Text(data.toString()));
           }
+          */
         } else if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,),);
         } 

@@ -21,8 +21,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
   final _repository = Repository();
 
-  final int allowNewRefresh = 700; //Refreshing buffer in milliseconds
-  DateTime lastRefresh;
+  final loading = ValueNotifier(LoadingState.notLoading);
 
   @override
   Stream<PostsState> mapEventToState(
@@ -59,7 +58,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           break;
       }
 
-      lastRefresh = DateTime.now();
       loading.value = LoadingState.notLoading;
       yield PostsState(
         userContent: _userContent, 
@@ -86,11 +84,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           break;
       }
 
-      lastRefresh = DateTime.now();
       loading.value = LoadingState.notLoading;
       yield getUpdatedstate(_userContent, false);
     } else if (event is FetchMore){
-      if (DateTime.now().difference(lastRefresh).inMilliseconds < allowNewRefresh) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
+      if (loading.value != LoadingState.notLoading) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
       
       loading.value = LoadingState.loadingMore;
       lastPost = state.userContent.last is Comment
@@ -111,13 +108,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           break;
       }
 
-      lastRefresh = DateTime.now();
       loading.value = LoadingState.notLoading;
       yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);
     }
   }
-
-  final loading = ValueNotifier(LoadingState.notLoading);
 
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(

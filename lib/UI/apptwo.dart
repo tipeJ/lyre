@@ -139,11 +139,13 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
         child: Stack(children: <Widget>[
           IgnorePointer(
             ignoring: isPreviewing,
-            child: Navigator(
+            child: 
+            /*Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ), 
+            ),*/
+            RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
           ),
           Visibility(
             visible: isPreviewing,

@@ -98,6 +98,10 @@ class PostsProvider {
     }
     return false;
   }
+  Future<CommentRef> getCRef(String id) async {
+    final r = await getRed();
+    return CommentRef.withID(r, 'f6yqinj');
+  }
 
   Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
     final r = await getRed();

@@ -82,6 +82,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     } else if(event is Collapse){
       _collapse(event.location);
       yield CommentsState(submission: state.submission, comments: _comments, sortType: state.sortType);
+    } else if(event is AddComment){
+      state.comments.insert(event.location+1, CommentM.from(event.comment));
+      yield CommentsState(submission: state.submission, comments: state.comments, sortType: state.sortType);
     }
     loadingMoreId = ""; //Resets the loadingMoreId value.
     _comments = [];

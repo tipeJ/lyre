@@ -858,7 +858,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                                     onPressed: () {
                                                       final snackBar = SnackBar(
                                                         content: Text(
-                                                            'Log in in order to post your submission'),
+                                                            'Log in to post your submission'),
                                                       );
                                                       setState(() {
                                                         if(PostsProvider().isLoggedIn()){

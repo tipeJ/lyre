@@ -12,6 +12,7 @@ Future<void> changeSubmissionSave(Submission s) async {
     return s.save();
   }
 }
+
 Future<void> changeCommentSave(Comment c) async {
   if(c.saved){
     return c.unsave();
@@ -78,4 +79,11 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
   } catch (e) {
     return e.toString();
   }  
+}
+Future<dynamic> reply(Comment comment, String body) async {
+  try {
+    return comment.reply(body);
+  } catch (e) {
+    return e.toString();
+  }
 }

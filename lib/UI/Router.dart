@@ -35,15 +35,18 @@ class Router {
         if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)
         recentlyViewed.add(submission); //Adds the submission to the top of the recently viewed list
         return SlideUpRoute(widget: BlocProvider(
-          builder: (context) => CommentsBloc(),
-          child: CommentList(submission),
+          builder: (context) => CommentsBloc(submission),
+          child: CommentList(),
         ));
       case 'settings':
         return MaterialPageRoute(builder: (_) => PreferencesView());
       case 'submit':
         return MaterialPageRoute(builder: (_) => SubmitWindow());
       case 'reply':
-        return MaterialPageRoute(builder: (_) => replyWindow(settings.arguments as Comment));
+        final args = settings.arguments as Map<String, Object>;
+        final comment = args['comment'] as Comment;
+        final text = args['reply_text'] as String;
+        return MaterialPageRoute(builder: (_) => replyWindow(comment, text));
       default:
         return MaterialPageRoute(builder: (_) {
           return Scaffold(

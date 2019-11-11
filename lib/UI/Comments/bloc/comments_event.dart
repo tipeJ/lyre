@@ -34,3 +34,13 @@ class Collapse extends CommentsEvent{
   });
   List<dynamic> get props => [location];
 }
+class AddComment extends CommentsEvent{
+  final int location;
+  final Comment comment;
+  
+  AddComment({
+    @required this.location,
+    @required this.comment
+  });
+  List<dynamic> get props => [location, comment];
+}

@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
-import 'package:lyre/utils/HtmlUtils.dart';
-import 'package:markdown/markdown.dart' as prefix0;
+import 'package:lyre/UI/reply.dart';
+import 'package:lyre/Resources/RedditHandler.dart';
 import '../../utils/redditUtils.dart';
 
 OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment comment) {
@@ -94,7 +93,8 @@ List<Color> colorList = [
 
 class CommentWidget extends StatefulWidget {
   final Comment comment;
-  CommentWidget(this.comment);
+  final int location;
+  CommentWidget(this.comment, this.location);
 
   @override
   _CommentWidgetState createState() => _CommentWidgetState();
@@ -103,7 +103,8 @@ class CommentWidget extends StatefulWidget {
 class _CommentWidgetState extends State<CommentWidget> {
 
   TextEditingController _replyController;
-  bool _visible = false;
+  bool _replyVisible = false;
+  ReplySendingState _replySendingState;
 
   @override
   void initState() { 
@@ -127,83 +128,75 @@ class _CommentWidgetState extends State<CommentWidget> {
       
       children: <Widget>[
         OnSlide(
-    backgroundColor: Colors.transparent,
-    //key: PageStorageKey(comment.hashCode),
-    items: <ActionItems>[
-      ActionItems(
-        icon: IconButton(
-          icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
-          color: widget.comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
-        onPress: (){
-          changeCommentVoteState(VoteState.upvoted, widget.comment).then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          Icons.keyboard_arrow_down,
-          color: widget.comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
-        onPress: (){
-          changeCommentVoteState(VoteState.downvoted, widget.comment).then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          Icons.bookmark,
-          color: widget.comment.saved ? Colors.yellow : Colors.grey,),
-        onPress: (){
-          changeCommentSave(widget.comment);
-          widget.comment.refresh().then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          _visible ? Icons.close : Icons.reply,
-          color: Colors.grey,),
-        onPress: (){
-          _handleReplyButtonToggle();
-        },
-      ),
-      ActionItems(
-        icon: Icon(Icons.person, color: Colors.grey),
-        onPress: (){
-          Navigator.pushNamed(context, 'posts', arguments: {
-            'redditor'        : widget.comment.author,
-            'content_source'  : ContentSource.Redditor
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(Icons.menu,color: Colors.grey,),
-        onPress: (){
+          backgroundColor: Colors.transparent,
+          //key: PageStorageKey(comment.hashCode),
+          items: <ActionItems>[
+            ActionItems(
+              icon: IconButton(
+                icon: const Icon(Icons.keyboard_arrow_up),onPressed: (){},
+                color: widget.comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
+              onPress: (){
+                changeCommentVoteState(VoteState.upvoted, widget.comment).then((_){
+                });
+              }
+            ),
+            ActionItems(
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: widget.comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
+              onPress: (){
+                changeCommentVoteState(VoteState.downvoted, widget.comment).then((_){
+                });
+              }
+            ),
+            ActionItems(
+              icon: Icon(
+                Icons.bookmark,
+                color: widget.comment.saved ? Colors.yellow : Colors.grey,),
+              onPress: (){
+                changeCommentSave(widget.comment);
+                widget.comment.refresh().then((_){
+                });
+              }
+            ),
+            ActionItems(
+              icon: Icon(
+                _replyVisible ? Icons.close : Icons.reply,
+                color: Colors.grey,),
+              onPress: (){
+                _handleReplyButtonToggle();
+              },
+            ),
+            ActionItems(
+              icon: Icon(Icons.person, color: Colors.grey),
+              onPress: (){
+                Navigator.pushNamed(context, 'posts', arguments: {
+                  'redditor'        : widget.comment.author,
+                  'content_source'  : ContentSource.Redditor
+                });
+              }
+            ),
+            ActionItems(
+              icon: Icon(Icons.menu,color: Colors.grey,),
+              onPress: (){
 
-        }
-      ),
-    ],
-    
-    child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _commentContentChildren(context, widget.comment)),
-  ),
-        
-        prefix1.Visibility(
-          child: _replyWidget(),
-          visible: _visible),
-        Container(height: _dividerWidth, color: _dividerColor,)
-      ]);
-  }
-  void _handleReplyButtonToggle() {
-    setState(() {
-      if (_visible) {
-        _visible = false;
-        _replyController?.dispose();
-      } else {
-        _replyController = TextEditingController();
-        _visible = !_visible;
-      }
-    });
+              }
+            ),
+          ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _commentContentChildren(context, widget.comment)),
+            ),
+              
+              StatefulBuilder(
+                builder: (BuildContext context, setState) {
+                  return prefix1.Visibility(
+                    child: _replyWidget(),
+                    visible: _replyVisible);
+                  },
+              ),
+              Container(height: _dividerWidth, color: _dividerColor,)
+            ]);
   }
 
   Widget _replyWidget() {
@@ -212,33 +205,88 @@ class _CommentWidgetState extends State<CommentWidget> {
         color: Theme.of(context).primaryColor,
         borderRadius: BorderRadius.circular(15.0)
       ),
-      margin: EdgeInsets.all(15.0),
+      margin: const EdgeInsets.all(15.0),
       child: Column(
         children: <Widget>[
           Padding(
             child: TextField(
                 keyboardType: TextInputType.multiline,
                 maxLines: null,
-                controller: _replyController,
+                controller: _replyController ?? null,
+                autofocus: true,
+                decoration: InputDecoration(hintText: 'Reply'),
+                onSubmitted: (s){
+                  _send();
+                },
             ),
-            padding: EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(10.0),
           ),
           //Divider(),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(children: <Widget>[
-              Text('Reply'),
-              IconButton(icon: Icon(Icons.close), onPressed: (){ _handleReplyButtonToggle();},),
-              Spacer(),
-              IconButton(icon: Icon(Icons.fullscreen), onPressed: (){
-                Navigator.of(context).pushNamed('reply', arguments: widget.comment);
-              },),
-              IconButton(icon: Icon(Icons.send), onPressed: (){},),
-            ],),
-          )
+          Row(children: <Widget>[
+            IconButton(icon: const Icon(Icons.close), onPressed: (){ _handleReplyButtonToggle();},),
+            const Spacer(),
+            IconButton(icon: const Icon(Icons.fullscreen), onPressed: (){
+              Navigator.of(context).pushNamed('reply', arguments: widget.comment);
+            },),
+            _replySendingState == ReplySendingState.Inactive
+              ? IconButton(icon: Icon(Icons.send), onPressed: _send,)
+              : Padding(
+                padding: EdgeInsets.only(right: 10),
+                child: CircularProgressIndicator()
+              )
+          ],),
         ],
       ),
     );
+  }
+
+  void _handleReplyButtonToggle() {
+    if (true) {
+        if (_replyVisible) {
+          setState(() {
+            _replyVisible = false;
+            _replySendingState = null;
+          });
+              
+        } else {
+          _replyController = TextEditingController();
+          setState(() {
+            _replySendingState = ReplySendingState.Inactive;
+            _replyVisible = !_replyVisible;
+          });
+          
+        }
+    } else {
+      final logInSnackBar = SnackBar(content: Text("Log in to reply"),);
+      Scaffold.of(context).showSnackBar(logInSnackBar);
+    }
+  }
+
+  void _send() {
+    //If the reply value is empty, show error snackbar.
+    if (_replyController.text.isEmpty) {
+      final textSnackBar = SnackBar(content: Text("Cannot reply with an empty message"),);
+      Scaffold.of(context).showSnackBar(textSnackBar);
+      return;
+    }
+    setState(() {
+      _replySendingState = ReplySendingState.Sending;
+    });
+    reply(widget.comment, _replyController.text).then((value) {
+      //Show Error
+      if (value is String) {
+        final textSnackBar = SnackBar(content: Text("Error sending comment: $value"),);
+        Scaffold.of(context).showSnackBar(textSnackBar);
+        setState(() {
+         _replySendingState = ReplySendingState.Inactive; 
+        });
+      } else {
+        setState(() {
+          _handleReplyButtonToggle();
+          BlocProvider.of<CommentsBloc>(context).add(AddComment(location: widget.location, comment: value));
+        });
+      }
+    });
   }
 }
 List<Widget> _commentContentChildren(BuildContext context, Comment comment) {

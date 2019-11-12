@@ -95,12 +95,12 @@ class _replyWindowState extends State<replyWindow> {
                  ignoring: _replySendingState != ReplySendingState.Inactive,
                  child: Column(
                   children: <Widget>[
+                    CommentContent(widget.comment),
                     TextField(
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
                       controller: _replyController,
                     ),
-                    CommentContent(widget.comment)
                   ]
                 ),
                ),

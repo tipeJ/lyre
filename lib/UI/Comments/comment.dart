@@ -315,8 +315,13 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment) {
             child: Text(
             "● u/${comment.author}",
             textScaleFactor: 0.7,
+            ),
           ),
-          ),
+          Spacer(),
+          Text(
+            getSubmissionAge(comment.createdUtc),
+            textScaleFactor: 0.7,
+            ),
         ],
       ),
       padding: const EdgeInsets.only(

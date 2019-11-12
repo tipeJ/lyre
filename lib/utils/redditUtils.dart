@@ -56,18 +56,22 @@ String getSubmissionAge(DateTime submittedAt){
     return 'less than an hour ago';
   } else if(difference.inHours < 24){
     //Accuracy is one hour
-    return '${difference.inHours} hours ago';
+    return '${difference.inHours} hour' + _getAgeMultiple(difference.inHours) + ' ago';
   } else if(difference.inDays < 7){
     //Accuracy is one day
-    return '${difference.inDays} days ago';
+    return '${difference.inDays} day' + _getAgeMultiple(difference.inDays) + ' ago';
   } else if(difference.inDays < 31){
     //Accuracy is (roughly) one week floored down to the previous whole week
-    return '${(difference.inDays / 7).floor()} weeks ago';
+    final int diff = (difference.inDays / 7).floor();
+    return '${diff} week' + _getAgeMultiple(diff) + ' ago';
   } else if(difference.inDays < 365){
     //Logic same as in the week argument, except for months (Avg.month length is 31 days).
-    return '${(difference.inDays / (365 / 12)).floor()} months ago';
+    final int diff = (difference.inDays / (365 / 12)).floor();
+    return '${diff} month' + _getAgeMultiple(diff) + ' ago';
   } else{
     //Logic same as before, except for years.
-    return '${(difference.inDays / 365).floor()} years ago';
+    final int diff = (difference.inDays / 365).floor();
+    return '${diff} year' + _getAgeMultiple(diff) + ' ago';
   }
 }
+String _getAgeMultiple(int x) => (x == 1 ? '' : 's');

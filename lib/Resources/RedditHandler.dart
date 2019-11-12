@@ -81,9 +81,6 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
   }  
 }
 Future<dynamic> reply(Comment comment, String body) async {
-  final r = await PostsProvider().getRed();
-  final c = r.comment(id: "f7a6o5f").populate();
-  return c;
   try {
     return comment.reply(body);
   } catch (e) {

@@ -97,6 +97,7 @@ class _replyWindowState extends State<replyWindow> {
                   children: <Widget>[
                     CommentContent(widget.comment),
                     TextField(
+                      enabled: _replySendingState == ReplySendingState.Inactive,
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
                       controller: _replyController,
@@ -110,13 +111,21 @@ class _replyWindowState extends State<replyWindow> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   color: Colors.black.withOpacity(0.6),
-                  child: Center(child: 
-                    _replySendingState == ReplySendingState.Sending
-                      ? CircularProgressIndicator()
+                  child: _replySendingState == ReplySendingState.Sending
+                      ? Center(
+                        child: CircularProgressIndicator()
+                      )
                       : Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Text(error, style: LyreTextStyles.errorMessage,),
-                          Row(children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 10.0),
+                            child: Text('ERROR: ' + error, style: LyreTextStyles.errorMessage,),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
                             RaisedButton(
                               child: Text('Close'),
                               onPressed:() => Navigator.of(context).maybePop(),
@@ -128,7 +137,6 @@ class _replyWindowState extends State<replyWindow> {
                           ],)
                         ],
                       )
-                  ,),
                 )
               )
              ],

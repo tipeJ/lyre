@@ -31,7 +31,14 @@ class _replyWindowState extends State<replyWindow> {
 
   bool popReady = true;
   Future<bool> _willPop(){
-    if (_replySendingState == ReplySendingState.Sending) return Future.value(false);
+    if (_replySendingState == ReplySendingState.Error) {
+      setState(() {
+       _replySendingState = ReplySendingState.Inactive; 
+      });
+      return Future.value(false);
+    } else if (_replySendingState == ReplySendingState.Sending){
+      return Future.value(false);
+    }
     return popReady ? Future.value(true) : Future.value(false);
   }
   List<Widget> parentWidgets = [];
@@ -77,21 +84,7 @@ class _replyWindowState extends State<replyWindow> {
                 padding: EdgeInsets.symmetric(horizontal: 15.0),
                 child: InkWell(
                   child: Icon(Icons.send),
-                  onTap: (){
-                    setState(() {
-                     _replySendingState = ReplySendingState.Sending; 
-                    });
-                    reply(widget.comment, _replyController.text).then((dynamic value){
-                      if (value is String) {
-                        setState(() {
-                          error = value;
-                          _replySendingState = ReplySendingState.Error;
-                        });
-                      } else if (value is Comment) {
-                        Navigator.pop(context, value);
-                      }
-                    });
-                  },
+                  onTap: _reply,
                 ),
               ),
             ]
@@ -109,7 +102,7 @@ class _replyWindowState extends State<replyWindow> {
                     ),
                     CommentContent(widget.comment)
                   ]
-                             ),
+                ),
                ),
               prefix0.Visibility (
                 visible: _replySendingState != ReplySendingState.Inactive,
@@ -120,7 +113,21 @@ class _replyWindowState extends State<replyWindow> {
                   child: Center(child: 
                     _replySendingState == ReplySendingState.Sending
                       ? CircularProgressIndicator()
-                      : Text(error, style: LyreTextStyles.errorMessage,)
+                      : Column(
+                        children: <Widget>[
+                          Text(error, style: LyreTextStyles.errorMessage,),
+                          Row(children: <Widget>[
+                            RaisedButton(
+                              child: Text('Close'),
+                              onPressed:() => Navigator.of(context).maybePop(),
+                            ),
+                            RaisedButton(
+                              child: Text('Retry'),
+                              onPressed: _reply,
+                            )
+                          ],)
+                        ],
+                      )
                   ,),
                 )
               )
@@ -128,6 +135,22 @@ class _replyWindowState extends State<replyWindow> {
            ),
          ),
        );
+  }
+  _reply() {
+    setState(() {
+      _replySendingState = ReplySendingState.Sending;
+    });
+    reply(widget.comment, _replyController.text).then((value) {
+      if (value is String) {
+        setState(() {
+          error = value;
+          _replySendingState = ReplySendingState.Error;
+        });
+      } else if (value is Comment) {
+        print('poping');
+        Navigator.of(context).pop(value);
+      }
+    });
   }
   Future<void> _addParentComment(Comment c) async {
     //Break the loop if comment is a root comment (parent is a submission, not a comment).

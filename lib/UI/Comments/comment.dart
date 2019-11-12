@@ -49,15 +49,18 @@ OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment commen
           Icons.reply,
           color: Colors.grey,),
         onPress: (){
-          Navigator.pushNamed(context, 'reply', arguments: comment);
+          Navigator.of(context).pushNamed('reply', arguments: {
+              'redditor'        : comment,
+              'content_source'  : ContentSource.Redditor
+            });
         }
       ),
       ActionItems(
         icon: Icon(Icons.person, color: Colors.grey),
         onPress: (){
-          Navigator.pushNamed(context, 'posts', arguments: {
-            'redditor'        : comment.author,
-            'content_source'  : ContentSource.Redditor
+          Navigator.pushNamed(context, 'reply', arguments: {
+            'comment'        : comment,
+            'reply_text'  : ""
           });
         }
       ),
@@ -106,10 +109,6 @@ class _CommentWidgetState extends State<CommentWidget> {
   bool _replyVisible = false;
   ReplySendingState _replySendingState;
 
-  @override
-  void initState() { 
-    super.initState();
-  }
   @override void dispose(){
     _replyController?.dispose();
     super.dispose();
@@ -169,7 +168,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             ),
             ActionItems(
               icon: Icon(Icons.person, color: Colors.grey),
-              onPress: (){
+              onPress: () {
                 Navigator.pushNamed(context, 'posts', arguments: {
                   'redditor'        : widget.comment.author,
                   'content_source'  : ContentSource.Redditor
@@ -226,7 +225,18 @@ class _CommentWidgetState extends State<CommentWidget> {
             IconButton(icon: const Icon(Icons.close), onPressed: (){ _handleReplyButtonToggle();},),
             const Spacer(),
             IconButton(icon: const Icon(Icons.fullscreen), onPressed: (){
-              Navigator.of(context).pushNamed('reply', arguments: widget.comment);
+              Navigator.pushNamed(context, 'reply', arguments: {
+                'comment'        : widget.comment,
+                'reply_text'  : _replyController?.text
+              }).then((returnValue) {
+                print('received');
+                if (returnValue is Comment) {
+                  setState(() {
+                    _handleReplyButtonToggle();
+                    BlocProvider.of<CommentsBloc>(context).add(AddComment(location: widget.location, comment: returnValue));
+                  });
+                }
+              }); 
             },),
             _replySendingState == ReplySendingState.Inactive
               ? IconButton(icon: Icon(Icons.send), onPressed: _send,)

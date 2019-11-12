@@ -167,11 +167,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
       }, childCount: list.length),
     );
   }
-  void x(){
-    setState(() {
-      
-    });
-  }
 
   Future<bool> requestPop() {
     //post.expanded = false;

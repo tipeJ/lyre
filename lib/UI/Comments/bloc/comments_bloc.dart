@@ -51,7 +51,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       final userContent = event.submission;
       //Only should occur when the submission is fetched from a comment permalink for the first time.
       if (userContent is CommentRef) {
-        print('ccc');
         parentComment = await userContent.populate();
         print(parentComment.id + 'parentid');
         final submissionRef = parentComment.submission;
@@ -61,7 +60,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         submission = userContent;
         _addCommentsFromForest(userContent.comments.comments);
       } else {
-        print('fff');
         submission = event.submission as Submission;
         var forest = await submission.refreshComments(sort: event.commentSortType);
         _addCommentsFromForest(forest.comments);

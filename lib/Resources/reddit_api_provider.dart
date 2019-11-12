@@ -338,9 +338,9 @@ class PostsProvider {
   }
 
   Future<WikiPage> getWikiPage(String args) async {
-    final r = await getRed();
-    final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
-    try {
+    try {    
+      final r = await getRed();
+      final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();
       return page;
     } catch (e) {

@@ -28,8 +28,8 @@ class App extends StatelessWidget{
         if(snapshot.hasData){
           final prefs = snapshot.data;
           final initialTheme = prefs.get(CURRENT_THEME) ?? "";
-          currentSubreddit = prefs.get(SUBREDDIT_HOME) ?? "all";
-          print(currentSubreddit);
+          homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "askreddit";
+          currentSubreddit = homeSubreddit;
           var _cTheme = LyreTheme.DarkTeal;
           LyreTheme.values.forEach((theme){
             if(theme.toString() == initialTheme){
@@ -141,12 +141,13 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           IgnorePointer(
             ignoring: isPreviewing,
             child: 
-            /*Navigator(
+            
+            Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ),*/
-            RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
+            ),
+            //RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
           ),
           Visibility(
             visible: isPreviewing,

@@ -251,7 +251,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   }
 
   void _handleReplyButtonToggle() {
-    if (true) {
+    if (PostsProvider().isLoggedIn()) {
         if (_replyVisible) {
           setState(() {
             _replyVisible = false;

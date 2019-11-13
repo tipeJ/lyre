@@ -1,4 +1,5 @@
 import 'package:draw/draw.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/posts_bloc.dart';
@@ -34,6 +35,10 @@ class Router {
         Submission submission = settings.arguments as Submission;
         if(recentlyViewed.contains(submission)) recentlyViewed.remove(submission); //removes the submission from the list (will be readded, to index 0)
         recentlyViewed.add(submission); //Adds the submission to the top of the recently viewed list
+        return CupertinoPageRoute(builder: (_) => BlocProvider(
+          builder: (context) => CommentsBloc(submission),
+          child: CommentList(),
+        ));
         return SlideUpRoute(widget: BlocProvider(
           builder: (context) => CommentsBloc(submission),
           child: CommentList(),

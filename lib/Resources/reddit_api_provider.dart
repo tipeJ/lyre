@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' show Client;
 import 'dart:convert';
 import '../Models/Comment.dart';
@@ -101,26 +102,6 @@ class PostsProvider {
   Future<CommentRef> getCRef(String id) async {
     final r = await getRed();
     return CommentRef.withID(r, 'f6yqinj');
-  }
-
-  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
-    final r = await getRed();
-    Map<String, String> headers = new Map<String, String>();
-      headers["api_type"] = "json";
-    
-    final x = await client.get(query);
-
-    final jsonResponse = json.decode(x.body);
-
-    final Map<dynamic, dynamic> map = Map();
-
-    if (jsonResponse.length > 1) {
-      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
-      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
-      map[o] = o2;
-
-    }
-    return map;    
   }
 
   Future<bool> logInToLatest() async {
@@ -234,19 +215,24 @@ class PostsProvider {
     );
   }
 
-  Future<CommentM> getC2(String ids, String fullname) async {
-    
+  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
+    final r = await getRed();
     Map<String, String> headers = new Map<String, String>();
-      headers["children"] = ids;
-      headers["link_id"] = "t3_$fullname";
-      headers["sort"] = "confidence";
-      headers["limit_children"] = "true";
       headers["api_type"] = "json";
-    var r = await getRed();
-    var response = await r.get("/api/morechildren.json", params: headers);
     
-    var b2 = CommentM.fromJson2(response);
-    return b2;
+    final x = await client.get(query);
+
+    final jsonResponse = json.decode(x.body);
+
+    final Map<dynamic, dynamic> map = Map();
+
+    if (jsonResponse.length > 1) {
+      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
+      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
+      map[o] = o2;
+
+    }
+    return map;    
   }
 
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
@@ -272,52 +258,52 @@ class PostsProvider {
     List<UserContent> v = [];
     if(timeFilter == ""){
       switch (typeFilter){
-            case TypeFilter.New:
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).newest(params: headers).toList();
-              }
-              break;
-            case TypeFilter.Rising:
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
-              }
-              break;
-            case TypeFilter.Gilded:
-              if(source == ContentSource.Subreddit){
-                // ! Implement?
-              }
-              break;
-            case TypeFilter.Comments:
-              // ! Implement?
-              break;
-            default: //Default to hot.
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).hot(params: headers).toList();
-              }
-              break;
-        }
+        case TypeFilter.New:
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).newest(params: headers).toList();
+          }
+          break;
+        case TypeFilter.Rising:
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+          }
+          break;
+        case TypeFilter.Gilded:
+          if(source == ContentSource.Subreddit){
+            // ! Implement?
+          }
+          break;
+        case TypeFilter.Comments:
+          // ! Implement?
+          break;
+        default: //Default to hot.
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).hot(params: headers).toList();
+          }
+          break;
+      }
     }else{
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
-            case TypeFilter.Controversial:
-              if(source == ContentSource.Subreddit){
-                  v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
-              }
-              break;
-            default: //Default to top
-              if(source == ContentSource.Subreddit){
-                  v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
-              }
-              break;
-        }
+        case TypeFilter.Controversial:
+          if(source == ContentSource.Subreddit){
+              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
+          }
+          break;
+        default: //Default to top
+          if(source == ContentSource.Subreddit){
+              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
+          }
+          break;
+      }
     }
     return v;
   }
@@ -331,9 +317,13 @@ class PostsProvider {
     return CommentM.fromJson(s.comments.comments);
   }
 
-  Future<List<StyleSheetImage>> getStyleSheetImages() async {
-    final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
+  Future<Subreddit> getSubreddit(String displayName) async {
+    return await reddit.subreddit(currentSubreddit).populate();
+  }
+
+  Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
     final styleSheet = await subreddit.stylesheet.call();
+    debugPrint(styleSheet.stylesheet);
     return styleSheet.images;
   }
 

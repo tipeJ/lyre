@@ -32,6 +32,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       var userNamesList = await readUsernames();
       userNamesList.insert(0, "Guest");
       WikiPage sideBar;
+      Subreddit subreddit;
       RedditUser currentUser = await PostsProvider().getLatestUser();
       List<UserContent> _userContent;
       List<StyleSheetImage> styleSheetImages;
@@ -48,7 +49,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
           sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS);
-          styleSheetImages = await _repository.fetchStyleSheetImages();
+          subreddit = await _repository.fetchSubreddit(currentSubreddit);
+          styleSheetImages = await _repository.fetchStyleSheetImages(subreddit);
           break;
         case ContentSource.Redditor:
           _userContent = await _repository.fetchPostsFromRedditor(false, event.redditor);
@@ -67,7 +69,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         targetRedditor: event.redditor, 
         sideBar: sideBar,
         styleSheetImages: styleSheetImages,
-        preferences: preferences
+        preferences: preferences,
+        subreddit: subreddit
         );
     } else if (event is ParamsChanged){
       loading.value = LoadingState.refreshing;

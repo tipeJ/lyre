@@ -5,9 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../Models/Subreddit.dart';
 import '../Blocs/subreddits_bloc.dart';
@@ -134,55 +136,96 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         }
         return true;
       },
-      child: new ListView.builder(
-          controller: scontrol,
-          itemCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
-          itemBuilder: (BuildContext context, int i) {
-            var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
-            if(i == finalIndex){
-              return Container(
-                color: Theme.of(context).primaryColor,
-                child: FlatButton(
-                    onPressed: () {
-                      setState(() {
-                        bloc.add(FetchMore());
-                      });
-                    },
-                    child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
-              );
-            } else if(state.contentSource == ContentSource.Redditor && i == 0){
-              if(headerWidget == null){
-                headerWidget = FutureBuilder(
-                  future: PostsProvider().getRedditor(state.targetRedditor),
-                  builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                    if(snapshot.connectionState == ConnectionState.done){
-                      return getSpaciousUserColumn(snapshot.data);
-                    }else{
-                      return Padding(
-                        child: Center(
-                          child: Container(
-                            child: const CircularProgressIndicator(),
-                            height: 25.0,
-                            width: 25.0
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10.0)
-                      );
-                    }
-                  },
-                );
-              }
-              return headerWidget;
-            } else {
-              int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
-              return posts[index] is prefix0.Submission
-                    ? new Hero(
-                      tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(posts[index] as prefix0.Submission, PreviewSource.PostsList)
-                    )
-                    : new CommentContent(posts[index] as prefix0.Comment);
-            }
-          }),
+      child: CustomScrollView(
+        controller: scontrol,
+        slivers: <Widget>[
+          SliverPadding(
+            padding: EdgeInsets.only(bottom: 5.0),
+            sliver: SliverAppBar(
+              expandedHeight: 125.0,
+              floating: false,
+              pinned: false,
+              backgroundColor: Theme.of(context).canvasColor,
+              actions: <Widget>[Container()],
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: EdgeInsets.only(
+                  left: 10.0,
+                  bottom: 5.0
+                  ),
+                title: Text(
+                  state.getSourceString(),
+                  style: LyreTextStyles.title,
+                ),
+                collapseMode: CollapseMode.parallax,
+                background: state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                  ? FadeInImage(
+                    placeholder: MemoryImage(kTransparentImage),
+                    image: AdvancedNetworkImage(
+                      state.subreddit.mobileHeaderImage.toString(),
+                      useDiskCache: true,
+                      cacheRule: CacheRule(maxAge: const Duration(days: 3)),
+                    ),
+                    fit: BoxFit.cover
+                  )
+                  : Container() // TODO: Placeholder image
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, i) {
+                var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
+                if(i == finalIndex){
+                  return Container(
+                    color: Theme.of(context).primaryColor,
+                    child: FlatButton(
+                        onPressed: () {
+                          setState(() {
+                            bloc.add(FetchMore());
+                          });
+                        },
+                        child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
+                  );
+                } else if(state.contentSource == ContentSource.Redditor && i == 0){
+                  if(headerWidget == null){
+                    headerWidget = FutureBuilder(
+                      future: PostsProvider().getRedditor(state.targetRedditor),
+                      builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
+                        if(snapshot.connectionState == ConnectionState.done){
+                          return getSpaciousUserColumn(snapshot.data);
+                        }else{
+                          return Padding(
+                            child: Center(
+                              child: Container(
+                                child: const CircularProgressIndicator(),
+                                height: 25.0,
+                                width: 25.0
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10.0)
+                          );
+                        }
+                      },
+                    );
+                  }
+                  return headerWidget;
+                } else {
+                  int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
+                  return posts[index] is prefix0.Submission
+                        ? new Hero(
+                          tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
+                          child: new postInnerWidget(posts[index] as prefix0.Submission, PreviewSource.PostsList)
+                        )
+                        : new CommentContent(posts[index] as prefix0.Comment);
+                }
+              },
+              childCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
+            )
+          )
+        ],
+      )
     );
   }
 
@@ -422,7 +465,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ].where((w) => notNull(w)).toList(),
           )
         ),
-        body: Container(
+        body: 
+        Container(
           child: new Stack(
             children: <Widget>[
               StreamBuilder(
@@ -451,10 +495,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               new FloatingNavigationBar(controller: navBarController,)
             ].where(notNull).toList(),
           ))
+          
       ),
       onWillPop: _willPop);
   }
 }
+
 
 class FloatingNavigationBar extends StatefulWidget {
   FloatingNavigationBar({
@@ -487,7 +533,8 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   AnimationController _navBarController;
 
-  bool isElevated = false;
+  bool isElevated;
+  get() => _navBarController.value > 0.9;
 
   @override void dispose(){
     controller?.dispose();
@@ -500,6 +547,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   @override
   void initState(){
+    super.initState();
     maxNavBarHeight = 400.0;
     _navBarController = AnimationController(
       //<-- initialize a controller
@@ -544,7 +592,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
       setState(() {
       });
     });
-    super.initState();
   }
 
   double navBarLerp(double min, double max) => lerpDouble(min, max, _navBarController.value);
@@ -660,13 +707,11 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   void _reverseNav() {
     _navBarController.fling(velocity: -2.0);
-    isElevated = false;
     widget.controller.isElevated = false;
   }
 
   void _handleNavDragEnd(DragEndDetails details) {
     if (_navBarController.status == AnimationStatus.completed) {
-      isElevated = true;
       widget.controller.isElevated = true;
     }
     if (_navBarController.isAnimating ||
@@ -677,12 +722,10 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     if (flingVelocity < 0.0) {
       _navBarController.fling(
           velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-      isElevated = true;
       widget.controller.isElevated = true;
     } else if (flingVelocity > 0.0) {
       _navBarController.fling(
           velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-      isElevated = false;
       widget.controller.isElevated = false;
     } else
       _navBarController.fling(
@@ -694,31 +737,75 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   void reverse(BuildContext context) {
     controller.reset();
     controller.reverse();
-    isElevated = false;
     widget.controller.isElevated = false;
   }
 
-  Widget buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
+  Widget _buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
     var subs = snapshot.data.results;
-    return new ListView.builder(
-        padding: new EdgeInsets.all(16.0),
-        itemCount: subs.length,
-        itemExtent: 50.0,
-        itemBuilder: (BuildContext context, int i) {
-          return new ListTile(
-              leading: const Icon(Icons.arrow_right),
-              title: new Text("r/" + subs[i].displayName,
-                  textScaleFactor: 1.0,
-                  style: DefaultTextStyle.of(context)
-                      .style
-                      .apply(fontSizeFactor: 1.5)),
-              onTap: () {
-                currentSubreddit = subs[i].displayName;
-                _reverseNav();
-                subsListHeight = 50.0;
-                refreshList();
-              });
-        });
+    return ListView.builder(
+      itemCount: subs.length+1,
+      itemBuilder: (context, i) {
+        return InkWell( //Subreddit entry
+          onTap: (){
+            _openSub(subs[i].displayName);
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(
+                  bottom: 0.0,
+                  left: 5.0,
+                  top: 0.0),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(subs[i].displayName)
+                    ),
+                    PopupMenuButton<String>(
+                      elevation: 3.2,
+                      onSelected: (s) {
+                        },
+                      itemBuilder: (context) {
+                        return subListOptions.map((s) {
+                          return PopupMenuItem<String>(
+                            value: s,
+                            child: Column(
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: <Widget>[
+                                    s == subListOptions[0]
+                                      ? Icon(Icons.remove_circle)
+                                      : Icon(Icons.add_circle),
+                                    VerticalDivider(),
+                                    Text(s),
+                                    
+                                  ]
+                                ,),
+                                s != subListOptions[subListOptions.length-1] ? Divider() : null
+                              ].where((w) => notNull(w)).toList(),
+                            ),
+                          );
+                        }).toList();
+                      },
+                    )
+                  ],
+                ),
+              ),
+              i != subs.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
+            ].where((w) => notNull(w)).toList(),
+          )
+        );
+      },
+    );
+  }
+  _openSub(String s) {
+    currentSubreddit = s;
+    _reverseNav();
+    subsListHeight = 50.0;
+    refreshList();
   }
 
   void refreshList(){
@@ -885,25 +972,72 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                               child: new StreamBuilder(
                                 stream: sub_bloc.getSubs,
                                 builder: (context,
-                                    AsyncSnapshot<SubredditM> snapshot) {
+                                AsyncSnapshot<SubredditM> snapshot) {
                                   if (widget.controller.isElevated) {
                                     if (snapshot.hasData) {
-                                      return buildSubsList(snapshot);
+                                      return _buildSubsList(snapshot);
                                     } else if (snapshot.hasError) {
-                                      return Text(snapshot.error.toString());
+                                      return Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,);
+                                    } else if (snapshot.connectionState == ConnectionState.none) {
+                                      return ListView.builder(
+                                        itemCount: subreddits.length,
+                                        itemBuilder: (context, i) {
+                                          return InkWell(
+                                            onTap: (){
+                                              _openSub(subreddits[i]);
+                                            },
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                Container(
+                                                  padding: EdgeInsets.only(
+                                                    bottom: 0.0,
+                                                    left: 5.0,
+                                                    top: 0.0),
+                                                  child: Row(
+                                                    children: <Widget>[
+                                                      Expanded(
+                                                        child: Text(subreddits[i])
+                                                      ),
+                                                      PopupMenuButton<String>(
+                                                        elevation: 3.2,
+                                                        onSelected: (s) {
+                                                          },
+                                                        itemBuilder: (context) {
+                                                          return subListOptions.map((s) {
+                                                            return PopupMenuItem<String>(
+                                                              value: s,
+                                                              child: Column(
+                                                                children: <Widget>[
+                                                                  Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                                    children: <Widget>[
+                                                                      s == subListOptions[0]
+                                                                        ? Icon(Icons.remove_circle)
+                                                                        : Icon(Icons.add_circle),
+                                                                      VerticalDivider(),
+                                                                      Text(s),
+                                                                      
+                                                                    ]
+                                                                  ,),
+                                                                  s != subListOptions[subListOptions.length-1] ? Divider() : null
+                                                                ].where((w) => notNull(w)).toList(),
+                                                              ),
+                                                            );
+                                                          }).toList();
+                                                        },
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                i != subreddits.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
+                                              ].where((w) => notNull(w)).toList(),
+                                            )
+                                          );
+                                        },
+                                      );
                                     }
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(
-                                            Icons.search,
-                                            size: max(50.0, MediaQuery.of(context).size.width/7),
-                                            ),
-                                          Text('Search For Subreddits')
-                                        ],
-                                      ));
                                   } else {
                                     return Container(
                                       height: 0.0,
@@ -971,6 +1105,12 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
         ignoring: !widget.controller.visible,
       );
   }
+  
+  List<String> subListOptions = [
+    "Remove",
+    "Subscribe"
+  ];
+
 }
 
 class FloatingNavBarController extends ChangeNotifier{

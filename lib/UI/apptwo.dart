@@ -28,7 +28,7 @@ class App extends StatelessWidget{
         if(snapshot.hasData){
           final prefs = snapshot.data;
           final initialTheme = prefs.get(CURRENT_THEME) ?? "";
-          homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "askreddit";
+          homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "Dota2";
           currentSubreddit = homeSubreddit;
           var _cTheme = LyreTheme.DarkTeal;
           LyreTheme.values.forEach((theme){

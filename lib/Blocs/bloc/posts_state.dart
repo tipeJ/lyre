@@ -29,7 +29,9 @@ class PostsState extends Equatable {
 
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   WikiPage sideBar;
+  Subreddit subreddit;
   List<StyleSheetImage> styleSheetImages;
+  String headerImage;
 
   Box preferences;
 
@@ -42,10 +44,12 @@ class PostsState extends Equatable {
     this.selfContentType,
     this.sideBar,
     this.styleSheetImages,
-    this.preferences
+    this.preferences,
+    this.subreddit,
+    this.headerImage
   });
 
-  List<dynamic> get props => [userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, preferences];
+  List<dynamic> get props => [userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, headerImage, subreddit];
 
   String getSourceString(){
     switch (contentSource) {

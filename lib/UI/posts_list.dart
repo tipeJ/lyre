@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Themes/textstyles.dart';
@@ -350,12 +351,54 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         child: RaisedButton(
                             child: const Text('Add an account'),
                             color: Theme.of(context).primaryColor,
-                            onPressed: () {
+                            onPressed: () async {
                               var pp = PostsProvider();
-                              setState(() {
+                              /*setState(() {
                                 pp.registerReddit();
                                 refreshList();
-                              });
+                              });*/
+                              final authUrl = await pp.redditAuthUrl();
+                              pp.auth(authUrl.values.first);
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => Material(
+                                  child: Dialog(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35.0)),
+                                    backgroundColor: Theme.of(context).primaryColor,
+                                    child: Column(children: <Widget>[
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 15.0),
+                                        height: 50.0,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
+                                            IconButton(icon: Icon(Icons.close),onPressed: (){
+                                              Navigator.pop(context);
+                                              pp.closeAuthServer();
+                                            },)
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: InAppWebView(
+                                          onLoadStop: (controller, s) async {
+                                            if (s.contains('localhost:8080')) {
+                                              Navigator.pop(context);
+                                              pp.closeAuthServer();
+                                            }
+                                          },
+                                          initialOptions: {
+                                            'clearCache' : false,
+                                            'clearSessionCache' : true
+                                          },
+                                          initialUrl: authUrl.keys.first
+                                        )
+                                      )
+                                    ],),
+                                  )
+                                )
+                              );
                             },
                           ),
                       )

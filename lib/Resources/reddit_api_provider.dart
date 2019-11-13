@@ -148,8 +148,7 @@ class PostsProvider {
     }
   }
 
-
-  void registerReddit() async {
+  Future<Map<String, Stream<String>>> redditAuthUrl() async {
     final userAgent = "$appName $appVersion by the developer u/tipezuke";
     final configUri = Uri.parse('draw.ini');
     final redirectUri = Uri.http("localhost:8080", "");
@@ -161,10 +160,21 @@ class PostsProvider {
         configUri: configUri,
         redirectUri: redirectUri,
       );
-    Stream<String> onCode = await _server();
-    final auth_url = reddit.auth.url(['*'], userAgent, compactLogin: true);
+    Stream<String> onCode = await _serverStream();
+    return {
+      reddit.auth.url(['*'], userAgent, compactLogin: true).toString() : onCode
+    };
+  }
 
-    launch(auth_url.toString());
+  void authorize(String code) async {
+    await reddit.auth.authorize(code);
+    
+    var user = await reddit.user.me();
+
+    writeCredentials(user.displayName, reddit.auth.credentials.toJson());
+  }
+
+  void auth(Stream<String> onCode) async {
     final String code = await onCode.first;
 
     await reddit.auth.authorize(code);
@@ -172,21 +182,26 @@ class PostsProvider {
     var user = await reddit.user.me();
 
     writeCredentials(user.displayName, reddit.auth.credentials.toJson());
-    
   }
 
-  Future<Stream<String>> _server() async {
+  void closeAuthServer() {
+    _server.close(force: true);
+  }
+
+  //Httpserver used for authenticating the App with a Reddit account
+  HttpServer _server;
+  
+  Future<Stream<String>> _serverStream() async {
     final StreamController<String> onCode = new StreamController();
-    HttpServer server =
-      await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
-    server.listen((HttpRequest request) async {
+    _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+    _server.listen((HttpRequest request) async {
       final String code = request.uri.queryParameters["code"];
       request.response
         ..statusCode = 200
         ..headers.set("Content-Type", ContentType.html.mimeType)
         ..write("<html><h1>You can now close this window</h1></html>");
       await request.response.close();
-      await server.close(force: true);
+      await _server.close(force: true);
       onCode.add(code);
       await onCode.close();
     });

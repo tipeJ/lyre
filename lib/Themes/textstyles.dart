@@ -12,5 +12,8 @@ class LyreTextStyles {
     fontSize: 16.0,
     fontWeight: FontWeight.bold
   );
+
   static const title = TextStyle(fontSize: 35.0);
+
+  static const dialogTitle = TextStyle(fontSize: 24.0);
 }

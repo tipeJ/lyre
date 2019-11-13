@@ -117,7 +117,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
                       builder: (BuildContext context){
                         return AlertDialog(
                           title: Text(_titleController.text),
-                          content: getPreviewWidget(),
+                          content: _getPreviewWidget(),
                           actions: <Widget>[
                             FlatButton(
                               child: Text('Close'),
@@ -321,7 +321,7 @@ class SubmitWidgetState extends State<SubmitWindow> with SingleTickerProviderSta
       Scaffold.of(context).showSnackBar(snackBar);
     });
   }
-  Widget getPreviewWidget(){
+  Widget _getPreviewWidget(){
     switch (_submitType) {
       case SubmitType.Selftext:
         return Html(data: prefix0.markdownToHtml(markdownData, extensionSet: prefix0.ExtensionSet.gitHubFlavored,));

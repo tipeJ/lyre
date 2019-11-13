@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Blocs/bloc/posts_bloc.dart';
+import 'package:lyre/Blocs/bloc/posts_state.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Animations/transitions.dart';
@@ -28,8 +29,12 @@ class Router {
           source = ContentSource.Redditor;
         }
         return MaterialPageRoute(builder: (_) => BlocProvider(
-          builder: (context) => PostsBloc(),
-          child: PostsList(redditor, source),
+          builder: (context) => PostsBloc(firstState: PostsState(
+            userContent: [],
+            contentSource: source,
+            selfContentType: SelfContentType.Comments
+          )),
+          child: PostsList(),
         ));
       case 'comments':
         Submission submission = settings.arguments as Submission;

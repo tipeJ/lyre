@@ -148,10 +148,11 @@ class PostsProvider {
     }
   }
 
+
   void registerReddit() async {
-    var userAgent = "$appName $appVersion by the developer u/tipezuke";
+    final userAgent = "$appName $appVersion by the developer u/tipezuke";
     final configUri = Uri.parse('draw.ini');
-    var redirectUri = Uri.http("localhost:8080", "");
+    final redirectUri = Uri.http("localhost:8080", "");
 
     reddit = await getRed();
     reddit = Reddit.createInstalledFlowInstance(
@@ -323,7 +324,6 @@ class PostsProvider {
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
     final styleSheet = await subreddit.stylesheet.call();
-    debugPrint(styleSheet.stylesheet);
     return styleSheet.images;
   }
 

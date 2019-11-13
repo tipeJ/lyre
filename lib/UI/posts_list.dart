@@ -21,33 +21,8 @@ import 'interfaces/previewCallback.dart';
 import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 
-class PostsView extends StatelessWidget {
-  PostsView(String targetRedditor, ContentSource source){
-    this.redditor = targetRedditor;
-    initialSource = targetRedditor.isNotEmpty
-      ? ContentSource.Redditor
-      : (source == null)
-        ? ContentSource.Subreddit
-        : source;
-  }
-
-  ContentSource initialSource;
-  String redditor;
-
-  @override
-  Widget build(BuildContext context){
-    return BlocProvider(
-      builder: (context) => PostsBloc(),
-      child: PostsList(redditor, initialSource),
-    );
-  }
-}
-
 class PostsList extends StatefulWidget {
-  PostsList(this.redditor, this.initialSource);
-
-  final ContentSource initialSource;
-  final String redditor;
+  PostsList({Key key}) : super(key: key);
 
   State<PostsList> createState() => new PostsListState();
 }
@@ -281,7 +256,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
-      bloc.add(PostsSourceChanged(redditor: widget.redditor, source: widget.initialSource));
+      bloc.add(PostsSourceChanged(source: bloc.state.contentSource, selfContentType: bloc.state.selfContentType));
     }
     bloc.loading.addListener((){
       if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
@@ -515,19 +490,7 @@ class FloatingNavigationBar extends StatefulWidget {
 }
 
 class _FloatingNavigationBarState extends State<FloatingNavigationBar> with TickerProviderStateMixin{
-  AnimationController controller;
-  Animation<double> edgeAnimation;
-  Tween edgeTween = new Tween<double>(begin: 55.0, end: 0.0);
-  Animation<double> height2Animation;
-  Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
-  Animation<double> heightAnimation;
   double maxNavBarHeight = 400.0; //<-- Get max height of the screen
-  Animation<double> opacityAnimation;
-  Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
-  Animation<double> padAnimation;
-  Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
-  Animation<double> roundAnimation;
-  Tween roundTween = new Tween<double>(begin: 30.0, end: 0.0);
   var subsListHeight = 50.0;
   String tempType = "";
 
@@ -537,7 +500,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   get() => _navBarController.value > 0.9;
 
   @override void dispose(){
-    controller?.dispose();
 
     _navBarController.dispose();
 
@@ -554,39 +516,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
       vsync: this,
       duration: Duration(milliseconds: 600),
     );
-    controller = new AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 325));
-    maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
-    padAnimation = padTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    roundAnimation = roundTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    edgeAnimation = edgeTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    height2Animation = height2Tween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-
-    height2Animation.addListener(() {
-      setState(() {});
-    });
-    padAnimation.addListener(() {
-      setState(() {});
-    });
-    edgeAnimation.addListener(() {
-      setState(() {});
-    });
-    roundAnimation.addListener(() {
-      setState(() {});
-    });
-    controller.reset();
+    // ! ENABLE IS PROFILE/RELEASE maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
     widget.controller.addListener((){
       if(widget.controller.isElevated != isElevated) _reverseNav();
       setState(() {
@@ -735,8 +665,6 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   void reverse(BuildContext context) {
-    controller.reset();
-    controller.reverse();
     widget.controller.isElevated = false;
   }
 
@@ -867,10 +795,8 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                   height: 45.0,
                                   child: new Stack(
                                     children: <Widget>[
-                                      new AnimatedOpacity(
+                                      new Opacity(
                                           opacity: navBarLerp(0, 1.0),
-                                          duration: const Duration(milliseconds: 200),
-                                          curve: Curves.easeInQuad,
                                           child: new Container(
                                             decoration: BoxDecoration(),
                                             padding: EdgeInsets.only(
@@ -894,10 +820,8 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                           )),
                                       new IgnorePointer(
                                         ignoring: widget.controller.isElevated,
-                                        child: new AnimatedOpacity(
+                                        child: new Opacity(
                                           opacity: 1.0 - navBarLerp(0.0, 1.0),
-                                          duration: const Duration(milliseconds: 150),
-                                          curve: Curves.easeInQuad,
                                           child: Container(
                                             padding: EdgeInsets.all(5.0),
                                             child: Row(
@@ -978,7 +902,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                       return _buildSubsList(snapshot);
                                     } else if (snapshot.hasError) {
                                       return Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,);
-                                    } else if (snapshot.connectionState == ConnectionState.none) {
+                                    } else {
                                       return ListView.builder(
                                         itemCount: subreddits.length,
                                         itemBuilder: (context, i) {

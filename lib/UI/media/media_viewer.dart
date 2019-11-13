@@ -84,8 +84,8 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       return false;
     } else if (_vController != null) {
       _vController.pause();
-      _videoController.dispose();
       _vController.dispose();
+      _videoController.dispose();
     }
     return true;
   }

@@ -1,29 +1,32 @@
-final BOX_SETTINGS = "settings";
+const BOX_SETTINGS = "settings";
 
 // ! Themes
-final CURRENT_THEME = "currentTheme";
+const CURRENT_THEME = "currentTheme";
+
+// ! Subreddits
+const SUBREDDIT_HOME = "startUpSubreddit";
 
 // ! Submissions
-final SUBMISSION_VIEWMODE = "submissionViewMode";
-final SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
-final SUBMISSION_DEFAULT_SORT_TYPE = "defaultSortType";
-final SUBMISSION_DEFAULT_SORT_TIME = "defaultSortTime";
-final SUBMISSION_RESET_SORTING = "resetSortingWhenRefreshing";
-final SUBMISSION_AUTO_LOAD = "autoLoadPosts";
+const SUBMISSION_VIEWMODE = "submissionViewMode";
+const SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
+const SUBMISSION_DEFAULT_SORT_TYPE = "defaultSortType";
+const SUBMISSION_DEFAULT_SORT_TIME = "defaultSortTime";
+const SUBMISSION_RESET_SORTING = "resetSortingWhenRefreshing";
+const SUBMISSION_AUTO_LOAD = "autoLoadPosts";
 
 // ! Comments
-final COMMENTS_DEFAULT_SORT = "defaultCommentsSort";
-final COMMENTS_PRECOLLAPSE = "preCollapse";
+const COMMENTS_DEFAULT_SORT = "defaultCommentsSort";
+const COMMENTS_PRECOLLAPSE = "preCollapse";
 
 // ! Images & Videos
-final IMAGE_ENABLE_ROTATION = "enableImageRotation";
-final IMAGE_BLUR_LEVEL = "imageBlurLever";
-final IMAGE_SHOW_FULLSIZE = "imageShowFullPreviews";
-final VIDEO_ENABLE_ROTATION = "enableVideoRotation";
-final VIDEO_LOOP = "videoLoop";
-final VIDEO_AUTO_MUTE = "videoAutoMute";
-final IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";
+const IMAGE_ENABLE_ROTATION = "enableImageRotation";
+const IMAGE_BLUR_LEVEL = "imageBlurLever";
+const IMAGE_SHOW_FULLSIZE = "imageShowFullPreviews";
+const VIDEO_ENABLE_ROTATION = "enableVideoRotation";
+const VIDEO_LOOP = "videoLoop";
+const VIDEO_AUTO_MUTE = "videoAutoMute";
+const IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";
 
 // ! Filters:
-final SHOW_NSFW_PREVIEWS = "showNSFWPreviews";
-final SHOW_SPOILER_PREVIEWS = "showSpoilerPreviews";
+const SHOW_NSFW_PREVIEWS = "showNSFWPreviews";
+const SHOW_SPOILER_PREVIEWS = "showSpoilerPreviews";

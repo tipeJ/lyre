@@ -14,6 +14,7 @@ String GFYCAT_CLIENT_ID = "2__lD9Ci";
 String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
 String currentSubreddit = "nocontextpics";
+String homeSubreddit;
 
 @HiveType(adapterName: "PostViewAdapter")
 enum PostView{

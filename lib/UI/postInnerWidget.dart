@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Blocs/bloc/bloc.dart';
-import 'package:lyre/Blocs/bloc/posts_bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -42,26 +41,17 @@ class postInnerWidget extends StatelessWidget {
       return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      if (previewSource == PreviewSource.PostsList) {
-        return BlocBuilder<PostsBloc, PostsState>(
-          builder: (context, state){
-            showCircle = state.preferences.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-            fullSizePreviews = state.preferences.get(IMAGE_SHOW_FULLSIZE) ?? false;
-            postView = viewSetting ?? state.preferences.get(SUBMISSION_VIEWMODE);
-            showNsfw = state.preferences.get(SHOW_NSFW_PREVIEWS) ?? false;
-            showSpoiler = state.preferences.get(SHOW_SPOILER_PREVIEWS) ?? false;
-            blurLevel = (state.preferences.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
-            return getMediaWidget(context);
-          }
-        );
-      } else {
-        showCircle = false;
-        fullSizePreviews = false;
-        postView = PostView.ImagePreview;
-        showNsfw = true;
-        showSpoiler = true;
-        return getMediaWidget(context);
-      }
+      return BlocBuilder<LyreBloc, LyreState>(
+        builder: (context, state){
+          showCircle = state.settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
+          fullSizePreviews = state.settings.get(IMAGE_SHOW_FULLSIZE) ?? false;
+          postView = viewSetting ?? state.settings.get(SUBMISSION_VIEWMODE);
+          showNsfw = state.settings.get(SHOW_NSFW_PREVIEWS) ?? false;
+          showSpoiler = state.settings.get(SHOW_SPOILER_PREVIEWS) ?? false;
+          blurLevel = (state.settings.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
+          return getMediaWidget(context);
+        }
+      );
     }
     return getDefaultSlideColumn(context);
   }
@@ -439,18 +429,13 @@ class defaultColumn extends StatelessWidget {
                             style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
                         padding:
                             const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                    new GestureDetector(
-                      child: new Text(
-                            "${submission.numComments} comments",
-                            style: TextStyle(
-                              fontSize: 10.0,
-                              color: Colors.white.withOpacity(0.9)
-                            ),
-                        ),
-                        onTap: (){
-                          //showComments(context);
-                        },
-                    ),
+                    new Text(
+                          "${submission.numComments} comments",
+                          style: TextStyle(
+                            fontSize: 10.0,
+                            color: Colors.white.withOpacity(0.9)
+                          ),
+                      ),
                     new Padding(
                       child: new Text(
                         getSubmissionAge(submission.createdUtc),
@@ -496,8 +481,6 @@ class defaultColumn extends StatelessWidget {
                         ),
                       padding: const EdgeInsets.symmetric(horizontal: 3.5),
                     ) : null,
-
-
                     submission.platinum != null && submission.platinum >= 1 ?
                     new Padding(
                       child: Container(
@@ -518,8 +501,10 @@ class defaultColumn extends StatelessWidget {
           )
         ]),
         onTap: (){
-          currentPostId = submission.id;
-          showComments(context);
+          if (previewSource != PreviewSource.Comments) {
+            currentPostId = submission.id;
+            showComments(context);
+          }
         },
     );
   }

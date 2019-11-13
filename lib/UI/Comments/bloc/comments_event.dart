@@ -8,10 +8,10 @@ abstract class CommentsEvent extends Equatable {
 }
 
 class SortChanged extends CommentsEvent{
-  final Submission submission;
+  final UserContent submission;
   final CommentSortType commentSortType;
 
-  SortChanged(this.submission, this.commentSortType);
+  SortChanged({this.submission, this.commentSortType});
 
   List<dynamic> get props => [submission, commentSortType];
 }
@@ -33,4 +33,14 @@ class Collapse extends CommentsEvent{
     @required this.location,
   });
   List<dynamic> get props => [location];
+}
+class AddComment extends CommentsEvent{
+  final int location;
+  final Comment comment;
+  
+  AddComment({
+    @required this.location,
+    @required this.comment
+  });
+  List<dynamic> get props => [location, comment];
 }

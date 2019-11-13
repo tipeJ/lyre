@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
+import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
 import 'package:lyre/UI/reddit_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatelessWidget{
-  Widget _buildWithTheme(BuildContext context, ThemeState themeState){
+  Widget _buildWithTheme(BuildContext context, LyreState themeState){
     return MaterialApp(
       title: 'Lyre',
       theme: themeState.themeData,
@@ -20,13 +23,25 @@ class App extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: SharedPreferences.getInstance(),
-      builder: (context, AsyncSnapshot<SharedPreferences> snapshot){
+      future: Hive.openBox('settings'),
+      builder: (context, AsyncSnapshot<Box> snapshot){
         if(snapshot.hasData){
           final prefs = snapshot.data;
+          final initialTheme = prefs.get(CURRENT_THEME) ?? "";
+          homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "askreddit";
+          currentSubreddit = homeSubreddit;
+          var _cTheme = LyreTheme.DarkTeal;
+          LyreTheme.values.forEach((theme){
+            if(theme.toString() == initialTheme){
+              _cTheme = theme;
+            }
+          });
           return BlocProvider(
-            builder: (context) => ThemeBloc(prefs.get('currentTheme') == null ? "" : prefs.get('currentTheme')),
-            child: BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context) => LyreBloc(LyreState(
+              themeData: lyreThemeData[_cTheme],
+              settings: prefs
+            )),
+            child: BlocBuilder<LyreBloc, LyreState>(
               builder: _buildWithTheme,
             ),
           );
@@ -125,12 +140,14 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
         child: Stack(children: <Widget>[
           IgnorePointer(
             ignoring: isPreviewing,
-            child: /*Navigator(
+            child: 
+            
+            Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ), */
-            RedditView(query: "https://old.reddit.com/r/AskReddit/comments/drfcqc/how_do_guys_feel_about_girls_making_the_first_move/f6hp97m/",)
+            ),
+            //RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
           ),
           Visibility(
             visible: isPreviewing,

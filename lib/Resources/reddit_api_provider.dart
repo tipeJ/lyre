@@ -98,6 +98,10 @@ class PostsProvider {
     }
     return false;
   }
+  Future<CommentRef> getCRef(String id) async {
+    final r = await getRed();
+    return CommentRef.withID(r, 'f6yqinj');
+  }
 
   Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
     final r = await getRed();
@@ -334,9 +338,9 @@ class PostsProvider {
   }
 
   Future<WikiPage> getWikiPage(String args) async {
-    final r = await getRed();
-    final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
-    try {
+    try {    
+      final r = await getRed();
+      final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();
       return page;
     } catch (e) {

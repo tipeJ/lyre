@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import '../UploadUtils/ImgurAPI.dart';
 import '../Themes/themes.dart';
-import '../Themes/bloc/theme_bloc.dart';
-import '../Themes/bloc/theme_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Resources/PreferenceValues.dart';
 
@@ -55,6 +54,11 @@ class _PreferencesViewState extends State<PreferencesView> {
                     delegate: SliverChildListDelegate([
                       CustomExpansionTile(
                         initiallyExpanded: true,
+                        title: 'General',
+                        children: getGeneralSettings(context),
+                        ),
+                      CustomExpansionTile(
+                        initiallyExpanded: true,
                         title: 'Submissions',
                         children: getSubmissionSettings(context),
                         ),
@@ -89,6 +93,30 @@ class _PreferencesViewState extends State<PreferencesView> {
         },
       )
     );
+  }
+  List<Widget> getGeneralSettings(BuildContext context) {
+    return [
+      settingsWidget(
+        children: [
+          WatchBoxBuilder(
+            box: Hive.box('settings'),
+            builder: (context, box){
+              return SettingsTitleRow(
+                title: "Home Subreddit",
+                leading: TextFormField(
+                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
+                  decoration: InputDecoration(prefixText: "r/"),   
+                  onChanged: (value) {
+                    box.put(SUBREDDIT_HOME, value);
+                  },               
+                )
+              );
+            },
+          ),
+        ],
+        isAdvanced: false
+      )
+    ];
   }
   List<Widget> getSubmissionSettings(BuildContext context){
     return [
@@ -383,7 +411,7 @@ class _PreferencesViewState extends State<PreferencesView> {
           onTap: (){
             //Make the bloc output a new ThemeState
             box.put(CURRENT_THEME, lyreAppTheme.toString());
-            BlocProvider.of<ThemeBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
+            BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
           },
         ),
       ));

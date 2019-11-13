@@ -1,23 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
+import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_html/flutter_html.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
+import '../Resources/RedditHandler.dart';
 
 class replyWindow extends StatefulWidget {
-  final Comment c;
+  final Comment comment;
+  final String initialText;
+  replyWindow(this.comment, [this.initialText]);
 
-  replyWindow(this.c);
+  _replyWindowState createState() => _replyWindowState();
+}
 
-  _replyWindowState createState() => _replyWindowState(c);
+enum ReplySendingState {
+  Sending,
+  Inactive,
+  Error
 }
 
 class _replyWindowState extends State<replyWindow> {
-  final Comment comment;
+  
+  TextEditingController _replyController;
 
-  _replyWindowState(this.comment);
+  _replyWindowState();
+
+  ReplySendingState _replySendingState = ReplySendingState.Inactive;
+  String error = "";
 
   bool popReady = true;
   Future<bool> _willPop(){
+    if (_replySendingState == ReplySendingState.Error) {
+      setState(() {
+       _replySendingState = ReplySendingState.Inactive; 
+      });
+      return Future.value(false);
+    } else if (_replySendingState == ReplySendingState.Sending){
+      return Future.value(false);
+    }
     return popReady ? Future.value(true) : Future.value(false);
   }
   List<Widget> parentWidgets = [];
@@ -26,20 +47,7 @@ class _replyWindowState extends State<replyWindow> {
 
   @override
   void initState() {
-    parentWidgets.add(
-      Container(
-        child: Hero(
-          child: CommentContent(comment),
-          tag: 'comment_hero ${comment.id}',
-        ),
-        color: Colors.black26,
-      )
-    );
-    addParentComment(comment).then((_){
-      setState(() {
-        
-      });
-    });
+    _replyController = TextEditingController(text: widget.initialText ?? "");
     super.initState();
   }
   
@@ -76,46 +84,87 @@ class _replyWindowState extends State<replyWindow> {
                 padding: EdgeInsets.symmetric(horizontal: 15.0),
                 child: InkWell(
                   child: Icon(Icons.send),
-                  onTap: (){
-                    
-                  },
+                  onTap: _reply,
                 ),
               ),
             ]
            ),
            body: Stack(
-               children: <Widget>[
-                 Container(
-                   padding: EdgeInsets.only(
-                    top: initialHeight,
-                    left: 15.0,
-                    right: 15.0
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      TextField()
-                    ],
-                  ),
-                 ),
-                Container(
-                  height: initialHeight,
-                  child: ListView.builder(
-                    itemCount: parentWidgets.length,
-                    itemBuilder: (BuildContext context, int i){
-                      return parentWidgets[i];
-                    },
-                  ),
+             children: <Widget>[
+               IgnorePointer(
+                 ignoring: _replySendingState != ReplySendingState.Inactive,
+                 child: Column(
+                  children: <Widget>[
+                    CommentContent(widget.comment),
+                    TextField(
+                      enabled: _replySendingState == ReplySendingState.Inactive,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      controller: _replyController,
+                    ),
+                  ]
+                ),
+               ),
+              prefix0.Visibility (
+                visible: _replySendingState != ReplySendingState.Inactive,
+                child: Container (
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  color: Colors.black.withOpacity(0.6),
+                  child: _replySendingState == ReplySendingState.Sending
+                      ? Center(
+                        child: CircularProgressIndicator()
+                      )
+                      : Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 10.0),
+                            child: Text('ERROR: ' + error, style: LyreTextStyles.errorMessage,),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                            RaisedButton(
+                              child: Text('Close'),
+                              onPressed:() => Navigator.of(context).maybePop(),
+                            ),
+                            RaisedButton(
+                              child: Text('Retry'),
+                              onPressed: _reply,
+                            )
+                          ],)
+                        ],
+                      )
                 )
-               ],
-             ),
+              )
+             ],
+           ),
          ),
        );
   }
-  Future<void> addParentComment(Comment c) async {
+  _reply() {
+    setState(() {
+      _replySendingState = ReplySendingState.Sending;
+    });
+    reply(widget.comment, _replyController.text).then((value) {
+      if (value is String) {
+        setState(() {
+          error = value;
+          _replySendingState = ReplySendingState.Error;
+        });
+      } else if (value is Comment) {
+        print('poping');
+        Navigator.of(context).pop(value);
+      }
+    });
+  }
+  Future<void> _addParentComment(Comment c) async {
     //Break the loop if comment is a root comment (parent is a submission, not a comment).
     if(c.isRoot)return;
     var parent = await c.parent() as Comment;
     parentWidgets.add(CommentContent(parent));
-    addParentComment(parent);
+    _addParentComment(parent);
   }
 }

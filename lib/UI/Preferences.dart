@@ -55,31 +55,37 @@ class _PreferencesViewState extends State<PreferencesView> {
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'General',
+                        showDivider: true,
                         children: getGeneralSettings(context),
                         ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Submissions',
+                        showDivider: true,
                         children: getSubmissionSettings(context),
                         ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Comments',
+                        showDivider: true,
                         children: getCommentsSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Filters',
+                        showDivider: true,
                         children: getFiltersSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Media',
+                        showDivider: true,
                         children: getMediaSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: false,
                         title: 'Themes',
+                        showDivider: true,
                         children: getThemeSettings(context),
                       ),
                     ]),
@@ -96,7 +102,7 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getGeneralSettings(BuildContext context) {
     return [
-      settingsWidget(
+      _settingsWidget(
         children: [
           WatchBoxBuilder(
             box: Hive.box('settings'),
@@ -120,7 +126,7 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getSubmissionSettings(BuildContext context){
     return [
-      settingsWidget(
+      _settingsWidget(
         children: [
           WatchBoxBuilder(
             box: Hive.box('settings'),
@@ -196,7 +202,7 @@ class _PreferencesViewState extends State<PreferencesView> {
         ],
         isAdvanced: false
       ),
-      settingsWidget(
+      _settingsWidget(
         children:[
           SettingsTitleRow(
             title: "Reset Sorting When Refreshing Submission List",
@@ -223,7 +229,7 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getCommentsSettings(BuildContext context){
     return [
-      settingsWidget(
+      _settingsWidget(
         children: [
           WatchBoxBuilder(
             watchKeys: [COMMENTS_DEFAULT_SORT],
@@ -267,7 +273,7 @@ class _PreferencesViewState extends State<PreferencesView> {
   double blurLevel = 20.0;
   List<Widget> getFiltersSettings(BuildContext context){
     return [
-      settingsWidget(
+      _settingsWidget(
         children: [
           SettingsTitleRow(
             title: 'Show NSFW Previews', 
@@ -288,7 +294,7 @@ class _PreferencesViewState extends State<PreferencesView> {
         ],
         isAdvanced: false
       ),
-      settingsWidget(
+      _settingsWidget(
         children: [
           Text('Blur level'),
           StatefulBuilder(
@@ -320,7 +326,7 @@ class _PreferencesViewState extends State<PreferencesView> {
   }
   List<Widget> getMediaSettings(BuildContext context){
     return [
-      settingsWidget(
+      _settingsWidget(
         children: [
           SettingsTitleRow(
             title: "Show Full Size Previews",
@@ -359,7 +365,7 @@ class _PreferencesViewState extends State<PreferencesView> {
         ],
         isAdvanced: false
       ),
-      settingsWidget(
+      _settingsWidget(
         children: [
           WatchBoxBuilder(
             watchKeys: [IMGUR_THUMBNAIL_QUALITY],
@@ -418,7 +424,7 @@ class _PreferencesViewState extends State<PreferencesView> {
     });
     return list;
   }
-  Widget settingsWidget({@required List<Widget> children, @required  bool isAdvanced}){
+  Widget _settingsWidget({@required List<Widget> children, @required  bool isAdvanced}){
     return Visibility(
       child: Column(children: children,),
       visible: isAdvanced == advanced,

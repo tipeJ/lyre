@@ -24,11 +24,11 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
   void _collapse(int location){
     _comments = state.comments;
     var currentIndex = location+1;
-    if (currentIndex == _comments.length) return;
-    int ogdepth = _comments[location].c.data["depth"];
+    int parentDepth = _comments[location].c.data["depth"];
+    if (currentIndex == _comments.length || _comments[currentIndex].c.data['depth'] == parentDepth) return;
     bool visible = !_comments[location+1].visible;
     int lastIndex;
-    while (currentIndex != _comments.length && _comments[currentIndex].c.data["depth"] != ogdepth) {
+    while (currentIndex != _comments.length && _comments[currentIndex].c.data["depth"] != parentDepth) {
       lastIndex = currentIndex;
       currentIndex++;
     }

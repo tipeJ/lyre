@@ -28,6 +28,41 @@ enum PostView{
   NoPreview
 }
 
+List<String> subreddits = [
+  "popular",
+  "all",
+  "announcements",
+  "funny",
+  "AskReddit",
+  "gaming",
+  "pics",
+  "science",
+  "worldnews",
+  "aww",
+  "movies",
+  "todayilearned",
+  "videos",
+  "Music",
+  "IAmA",
+  "news",
+  "gifs",
+  "EarthPorn",
+  "Showerthoughts",
+  "askscience",
+  "blog",
+  "Jokes",
+  "explainlikeimfive",
+  "books",
+  "food",
+  "LifeProTips",
+  "DIY",
+  "mildlyinteresting",
+  "Art",
+  "sports",
+  "space",
+  "gadgets",
+];
+
 List<String> sortTypes = [
   "hot",
   "new",
@@ -93,7 +128,6 @@ void parseTypeFilter(String typeFilter){
 
 String currentPostId = "";
 bool notNull(Object o) => o != null;
-final currentUser = ValueNotifier("");
 
 String appName = "Lyre";
 String appVersion = "0.1";

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' show Client;
 import 'dart:convert';
 import '../Models/Comment.dart';
@@ -49,7 +50,7 @@ class PostsProvider {
   Reddit reddit;
 
   Future<Redditor> getLoggedInUser(){
-    if(reddit == null){
+    if(reddit == null || reddit.readOnly){
       return null;
     }
     return reddit.user.me();
@@ -64,7 +65,6 @@ class PostsProvider {
 
   logInAsGuest() async {
     reddit = await getReadOnlyReddit();
-    currentUser.value = "Guest";
   }
 
   Future<Redditor> getRedditor(String fullname) async {
@@ -72,78 +72,49 @@ class PostsProvider {
     return r.redditor(fullname).populate();
   }
 
-  Future<bool> logIn(String username) async{
-    var credentials = await readCredentials(username);
-    if(credentials != null){
-      reddit = await getRed();
-      var cUserDisplayname = "";
-      if(!reddit.readOnly){
-        reddit.user.me().then((redditor){
-          cUserDisplayname = redditor.displayName;
-        });
+  Future<Redditor> logIn(String username) async{
+    if (username.isEmpty) { //Read-only
+      reddit = await getReadOnlyReddit();
+      return null;
+    } else {
+      var credentials = await readCredentials(username);
+      if(credentials != null){
+        reddit = await getRed();
+        var cUserDisplayname = "";
+        if(!reddit.readOnly){
+          reddit.user.me().then((redditor){
+            cUserDisplayname = redditor.displayName;
+          });
+        }
+        if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
+          //Prevent useless logins
+          reddit = await restoreAuth(credentials);
+          updateLogInDate(username);
+        }
+        if(reddit.readOnly){
+          return null;
+        }else{
+          return reddit.user.me();
+        }
       }
-      if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
-        //Prevent useless logins
-        reddit = await restoreAuth(credentials);
-        updateLogInDate(username);
-      }
-      if(reddit.readOnly){
-        currentUser.value = "Guest";
-      }else{
-        reddit.user.me().then((me){
-          currentUser.value = me.displayName;
-        });
-      }
-      return true;
+      return null;
     }
-    return false;
   }
   Future<CommentRef> getCRef(String id) async {
     final r = await getRed();
     return CommentRef.withID(r, 'f6yqinj');
   }
 
-  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
-    final r = await getRed();
-    Map<String, String> headers = new Map<String, String>();
-      headers["api_type"] = "json";
-    
-    final x = await client.get(query);
-
-    final jsonResponse = json.decode(x.body);
-
-    final Map<dynamic, dynamic> map = Map();
-
-    if (jsonResponse.length > 1) {
-      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
-      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
-      map[o] = o2;
-
-    }
-    return map;    
-  }
-
-  Future<bool> logInToLatest() async {
+  Future<Redditor> logInToLatest() async {
     if(reddit != null && !reddit.readOnly){
-      return true;
+      return reddit.user.me();
     }
-    //TODO: FIX (THIS IS NOT GOOD)
-    if(currentUser.value == "Guest"){
-      return true;
+    final latestUser = await getLatestUser();
+    if(latestUser != null){
+      final user = await logIn(latestUser.username);
+      return user;
     }
-    getLatestUser().then((latestUser){
-      if(latestUser != null){
-        logIn(latestUser.username).then((_){
-          return true;
-      });
-    }else{
-      getRed().then((r){
-        reddit = r;
-        return false;
-      });
-    }
-    });
-    return false;
+    return null;
   }
 
   Future<Reddit> restoreAuth(String jsonCredentials) async {
@@ -167,10 +138,10 @@ class PostsProvider {
     }
   }
 
-  void registerReddit() async {
-    var userAgent = "$appName $appVersion by the developer u/tipezuke";
+  Future<Map<String, Stream<String>>> redditAuthUrl() async {
+    final userAgent = "$appName $appVersion by the developer u/tipezuke";
     final configUri = Uri.parse('draw.ini');
-    var redirectUri = Uri.http("localhost:8080", "");
+    final redirectUri = Uri.http("localhost:8080", "");
 
     reddit = await getRed();
     reddit = Reddit.createInstalledFlowInstance(
@@ -179,10 +150,21 @@ class PostsProvider {
         configUri: configUri,
         redirectUri: redirectUri,
       );
-    Stream<String> onCode = await _server();
-    final auth_url = reddit.auth.url(['*'], userAgent, compactLogin: true);
+    Stream<String> onCode = await _serverStream();
+    return {
+      reddit.auth.url(['*'], userAgent, compactLogin: true).toString() : onCode
+    };
+  }
 
-    launch(auth_url.toString());
+  void authorize(String code) async {
+    await reddit.auth.authorize(code);
+    
+    var user = await reddit.user.me();
+
+    writeCredentials(user.displayName, reddit.auth.credentials.toJson());
+  }
+
+  void auth(Stream<String> onCode) async {
     final String code = await onCode.first;
 
     await reddit.auth.authorize(code);
@@ -190,21 +172,26 @@ class PostsProvider {
     var user = await reddit.user.me();
 
     writeCredentials(user.displayName, reddit.auth.credentials.toJson());
-    
   }
 
-  Future<Stream<String>> _server() async {
+  void closeAuthServer() {
+    _server.close(force: true);
+  }
+
+  //Httpserver used for authenticating the App with a Reddit account
+  HttpServer _server;
+  
+  Future<Stream<String>> _serverStream() async {
     final StreamController<String> onCode = new StreamController();
-    HttpServer server =
-      await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
-    server.listen((HttpRequest request) async {
+    _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+    _server.listen((HttpRequest request) async {
       final String code = request.uri.queryParameters["code"];
       request.response
         ..statusCode = 200
         ..headers.set("Content-Type", ContentType.html.mimeType)
         ..write("<html><h1>You can now close this window</h1></html>");
       await request.response.close();
-      await server.close(force: true);
+      await _server.close(force: true);
       onCode.add(code);
       await onCode.close();
     });
@@ -234,23 +221,27 @@ class PostsProvider {
     );
   }
 
-  Future<CommentM> getC2(String ids, String fullname) async {
-    
+  Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
+    final r = await getRed();
     Map<String, String> headers = new Map<String, String>();
-      headers["children"] = ids;
-      headers["link_id"] = "t3_$fullname";
-      headers["sort"] = "confidence";
-      headers["limit_children"] = "true";
       headers["api_type"] = "json";
-    var r = await getRed();
-    var response = await r.get("/api/morechildren.json", params: headers);
     
-    var b2 = CommentM.fromJson2(response);
-    return b2;
+    final x = await client.get(query);
+
+    final jsonResponse = json.decode(x.body);
+
+    final Map<dynamic, dynamic> map = Map();
+
+    if (jsonResponse.length > 1) {
+      final o = r.objector.objectify(jsonResponse[0]).values.first.first;
+      final o2 = r.objector.objectify(jsonResponse[1]).values.first;
+      map[o] = o2;
+
+    }
+    return map;    
   }
 
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
-    await logInToLatest();
     reddit = await getRed();
 
     Map<String, String> headers = new Map<String, String>();
@@ -272,52 +263,53 @@ class PostsProvider {
     List<UserContent> v = [];
     if(timeFilter == ""){
       switch (typeFilter){
-            case TypeFilter.New:
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).newest(params: headers).toList();
-              }
-              break;
-            case TypeFilter.Rising:
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
-              }
-              break;
-            case TypeFilter.Gilded:
-              if(source == ContentSource.Subreddit){
-                // ! Implement?
-              }
-              break;
-            case TypeFilter.Comments:
-              // ! Implement?
-              break;
-            default: //Default to hot.
-              if(source == ContentSource.Subreddit){
-                v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).hot(params: headers).toList();
-              }
-              break;
-        }
+        case TypeFilter.New:
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).newest(params: headers).toList();
+          }
+          break;
+        case TypeFilter.Rising:
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+          }
+          break;
+        case TypeFilter.Gilded:
+          if(source == ContentSource.Subreddit){
+            // ! Implement?
+          }
+          break;
+        case TypeFilter.Comments:
+          // ! Implement?
+          break;
+        default: //Default to hot.
+          if(source == ContentSource.Subreddit){
+            v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            print(redditor);
+            v = await reddit.redditor(redditor).hot(params: headers).toList();
+          }
+          break;
+      }
     }else{
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
-            case TypeFilter.Controversial:
-              if(source == ContentSource.Subreddit){
-                  v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
-              }
-              break;
-            default: //Default to top
-              if(source == ContentSource.Subreddit){
-                  v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-              }else if(source == ContentSource.Redditor){
-                v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
-              }
-              break;
-        }
+        case TypeFilter.Controversial:
+          if(source == ContentSource.Subreddit){
+              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
+          }
+          break;
+        default: //Default to top
+          if(source == ContentSource.Subreddit){
+              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+          }else if(source == ContentSource.Redditor){
+            v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
+          }
+          break;
+      }
     }
     return v;
   }
@@ -331,8 +323,15 @@ class PostsProvider {
     return CommentM.fromJson(s.comments.comments);
   }
 
-  Future<List<StyleSheetImage>> getStyleSheetImages() async {
-    final subreddit = await reddit.subreddit(currentSubreddit).populate(); //Populate the subreddit
+  Future<Subreddit> getSubreddit(String displayName) async {
+    try {
+      return await reddit.subreddit(currentSubreddit).populate();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
     final styleSheet = await subreddit.stylesheet.call();
     return styleSheet.images;
   }

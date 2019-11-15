@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
-import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
 import './bloc.dart';
@@ -17,7 +16,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsBloc({this.firstState});
 
   @override //Default: Empty list of UserContent
-  PostsState get initialState => firstState == null ? PostsState(userContent: [], contentSource : ContentSource.Subreddit, usernamesList: [], targetRedditor: "") : firstState;
+  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, target: currentSubreddit);
 
   final _repository = Repository();
 
@@ -29,16 +28,13 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   ) async* {
     if(event is PostsSourceChanged){
       loading.value = LoadingState.refreshing;
-      var userNamesList = await readUsernames();
-      userNamesList.insert(0, "Guest");
       WikiPage sideBar;
+      Subreddit subreddit;
       RedditUser currentUser = await PostsProvider().getLatestUser();
       List<UserContent> _userContent;
       List<StyleSheetImage> styleSheetImages;
 
-      final source = event.source != null
-        ? event.source
-        : state.contentSource;
+      final source = event.source ?? state.contentSource;
       final preferences = await Hive.openBox(BOX_SETTINGS);
       if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
         parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0]);
@@ -48,13 +44,14 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
           sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS);
-          styleSheetImages = await _repository.fetchStyleSheetImages();
+          subreddit = await _repository.fetchSubreddit(currentSubreddit);
+          styleSheetImages = subreddit != null ? await _repository.fetchStyleSheetImages(subreddit) : null;
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, event.redditor);
+          _userContent = await _repository.fetchPostsFromRedditor(false, event.target);
           break;
         case ContentSource.Self:
-          _userContent = await _repository.fetchPostsFromSelf(false, event.selfContentType);
+          _userContent = await _repository.fetchPostsFromSelf(false, event.target);
           break;
       }
 
@@ -62,12 +59,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       yield PostsState(
         userContent: _userContent, 
         contentSource : source,
-        usernamesList: userNamesList, 
         currentUser: currentUser, 
-        targetRedditor: event.redditor, 
+        target: event.target, 
         sideBar: sideBar,
         styleSheetImages: styleSheetImages,
-        preferences: preferences
+        preferences: preferences,
+        subreddit: subreddit
         );
     } else if (event is ParamsChanged){
       loading.value = LoadingState.refreshing;
@@ -77,7 +74,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           _userContent = await _repository.fetchPostsFromSubreddit(false);
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, state.targetRedditor);
+          _userContent = await _repository.fetchPostsFromRedditor(false, state.target);
           break;
         case ContentSource.Self:
           _userContent = await _repository.fetchPostsFromSelf(false, state.selfContentType);
@@ -101,7 +98,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           fetchedContent = await _repository.fetchPostsFromSubreddit(true);
           break;
         case ContentSource.Redditor:
-          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.targetRedditor);
+          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.target);
           break;
         case ContentSource.Self:
           fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.selfContentType);
@@ -117,9 +114,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     return PostsState(
       userContent: notNull(userContent) ? userContent : state.userContent,
       contentSource: state.contentSource,
-      usernamesList: state.usernamesList,
       currentUser: state.currentUser,
-      targetRedditor: state.targetRedditor,
+      target: state.target,
       sideBar: state.sideBar,
       styleSheetImages: state.styleSheetImages,
       preferences: state.preferences

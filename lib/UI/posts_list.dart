@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../Models/Subreddit.dart';
 import '../Blocs/subreddits_bloc.dart';
@@ -19,33 +23,8 @@ import 'interfaces/previewCallback.dart';
 import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 
-class PostsView extends StatelessWidget {
-  PostsView(String targetRedditor, ContentSource source){
-    this.redditor = targetRedditor;
-    initialSource = targetRedditor.isNotEmpty
-      ? ContentSource.Redditor
-      : (source == null)
-        ? ContentSource.Subreddit
-        : source;
-  }
-
-  ContentSource initialSource;
-  String redditor;
-
-  @override
-  Widget build(BuildContext context){
-    return BlocProvider(
-      builder: (context) => PostsBloc(),
-      child: PostsList(redditor, initialSource),
-    );
-  }
-}
-
 class PostsList extends StatefulWidget {
-  PostsList(this.redditor, this.initialSource);
-
-  final ContentSource initialSource;
-  final String redditor;
+  PostsList({Key key}) : super(key: key);
 
   State<PostsList> createState() => new PostsListState();
 }
@@ -72,42 +51,92 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   void initState() {
-   
-    currentUser.addListener((){
-      setState(() {
-        
-      });
-    });
     super.initState();
   }
 
 
-  List<Widget> getRegisteredUsernamesList(List<String> list) {
+  List<Widget> _getRegisteredUsernamesList(List<String> list, String currentUserName) {
     List<Widget> widgets = [];
     for(int i = 0; i < list.length; i++){
       widgets.add(InkWell(
           child: Container(
             child: Text(
               list[i],
-              style: const TextStyle(fontSize: 18.0, fontStyle: FontStyle.italic),
+              style: TextStyle(fontSize: 18.0, fontWeight: ((i == 0 && currentUserName.isEmpty) || (i != 0 && currentUserName == list[i])) ? FontWeight.bold : FontWeight.w400),
             ),
-            margin: EdgeInsets.all(18.0),
+            padding: EdgeInsets.symmetric(vertical: 18.0),
           ),
           onTap: () {
             if (i == 0) {
-              PostsProvider().logInAsGuest().then((_) {
-                setState(() {
-                  refreshList();
-                });
-              });
+              BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only           
+            } else {
+              BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: list[i]));
             }
-            PostsProvider().logIn(list[i]).then((success){
-              if(success) refreshList();
+            Navigator.of(context).pop();
+            setState(() {
+              _refreshList();
             });
           },
         ));
     }
+    widgets.add(_registrationButton());
     return widgets;
+  }
+
+  Widget _registrationButton() {
+   return OutlineButton(
+    child: const Text('Add an account'),
+      color: Theme.of(context).primaryColor,
+      onPressed: () async {
+        var pp = PostsProvider();
+        /*setState(() {
+          pp.registerReddit();
+          _refreshList();
+        });*/
+        final authUrl = await pp.redditAuthUrl();
+        pp.auth(authUrl.values.first);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => Material(
+            child: Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Column(children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15.0),
+                  height: 50.0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
+                      IconButton(icon: Icon(Icons.close),onPressed: (){
+                        Navigator.pop(context);
+                        pp.closeAuthServer();
+                      },)
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: InAppWebView(
+                    onLoadStop: (controller, s) async {
+                      if (s.contains('localhost:8080')) {
+                        Navigator.pop(context);
+                        pp.closeAuthServer();
+                      }
+                    },
+                    initialOptions: {
+                      'clearCache' : false,
+                      'clearSessionCache' : true
+                    },
+                    initialUrl: authUrl.keys.first
+                  )
+                )
+              ],),
+            )
+          )
+        );
+      },
+    );
   }
 
   Future<bool> _willPop() {
@@ -118,7 +147,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     return new Future.value(true);
   }
 
-  Widget buildList(PostsState state) {
+  Widget _buildList(PostsState state) {
     var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
@@ -134,59 +163,75 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         }
         return true;
       },
-      child: new ListView.builder(
-          controller: scontrol,
-          itemCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
-          itemBuilder: (BuildContext context, int i) {
-            var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
-            if(i == finalIndex){
-              return Container(
-                color: Theme.of(context).primaryColor,
-                child: FlatButton(
-                    onPressed: () {
-                      setState(() {
-                        bloc.add(FetchMore());
-                      });
-                    },
-                    child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
-              );
-            } else if(state.contentSource == ContentSource.Redditor && i == 0){
-              if(headerWidget == null){
-                headerWidget = FutureBuilder(
-                  future: PostsProvider().getRedditor(state.targetRedditor),
-                  builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                    if(snapshot.connectionState == ConnectionState.done){
-                      return getSpaciousUserColumn(snapshot.data);
-                    }else{
-                      return Padding(
-                        child: Center(
-                          child: Container(
-                            child: const CircularProgressIndicator(),
-                            height: 25.0,
-                            width: 25.0
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10.0)
-                      );
-                    }
-                  },
-                );
-              }
-              return headerWidget;
-            } else {
-              int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
-              return posts[index] is prefix0.Submission
-                    ? new Hero(
-                      tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                      child: new postInnerWidget(posts[index] as prefix0.Submission, PreviewSource.PostsList)
-                    )
-                    : new CommentContent(posts[index] as prefix0.Comment);
-            }
-          }),
+      child: CustomScrollView(
+        controller: scontrol,
+        slivers: <Widget>[
+          SliverPadding(
+            padding: EdgeInsets.only(bottom: 5.0),
+            sliver: SliverAppBar(
+              expandedHeight: 125.0,
+              floating: false,
+              pinned: false,
+              backgroundColor: Theme.of(context).canvasColor,
+              actions: <Widget>[Container()],
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: EdgeInsets.only(
+                  left: 10.0,
+                  bottom: 5.0
+                  ),
+                title: Text(
+                  state.getSourceString(),
+                  style: LyreTextStyles.title,
+                ),
+                collapseMode: CollapseMode.parallax,
+                background: state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                  ? FadeInImage(
+                    placeholder: MemoryImage(kTransparentImage),
+                    image: AdvancedNetworkImage(
+                      state.subreddit.mobileHeaderImage.toString(),
+                      useDiskCache: true,
+                      cacheRule: CacheRule(maxAge: const Duration(days: 3)),
+                    ),
+                    fit: BoxFit.cover
+                  )
+                  : Container() // TODO: Placeholder image
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, i) {
+                if(i == posts.length){
+                  return Container(
+                    color: Theme.of(context).primaryColor,
+                    child: FlatButton(
+                        onPressed: () {
+                          setState(() {
+                            bloc.add(FetchMore());
+                          });
+                        },
+                        child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
+                  );
+                } else {
+                  return posts[i] is prefix0.Submission
+                        ? new Hero(
+                          tag: 'post_hero ${(posts[i] as prefix0.Submission).id}',
+                          child: new postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
+                        )
+                        : new CommentContent(posts[i] as prefix0.Comment);
+                }
+              },
+              childCount: posts.length+1,
+            )
+          )
+        ],
+      )
     );
   }
 
-  Widget getSpaciousUserColumn(prefix0.Redditor redditor){
+  Widget _getSpaciousUserColumn(prefix0.Redditor redditor){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
@@ -226,11 +271,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
   }
 
-  void showComments(BuildContext context, prefix0.Submission inside) {
+  void _showComments(BuildContext context, prefix0.Submission inside) {
     Navigator.of(context).pushNamed('comments', arguments: inside);
   }
 
-  void refreshList(){
+  void _refreshList(){
     bloc.add(PostsSourceChanged());
   }
 
@@ -238,7 +283,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
-      bloc.add(PostsSourceChanged(redditor: widget.redditor, source: widget.initialSource));
+      bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
     bloc.loading.addListener((){
       if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
@@ -250,106 +295,90 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         drawer: new Drawer(
-            child: new Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Stack(
                 children: <Widget>[
-                  CustomScrollView(
-                    slivers: <Widget>[
-                      SliverToBoxAdapter(
-                        child: Container(height: 150,),
-                      ),
-                      SliverToBoxAdapter(
-                        child: BlocBuilder<PostsBloc, PostsState>(
-                          builder: (context, PostsState state){
-                            return CustomExpansionTile(
-                              fontSize: 32.0,
-                              title: currentUser.value,
-                              children: getRegisteredUsernamesList(state.usernamesList),
-                            );
-                          },
-                        )
-                      ),
-                      PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
-                        child: FutureBuilder(
-                          future: PostsProvider().getLoggedInUser(),
-                          builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                            switch (snapshot.connectionState) {
-                              case ConnectionState.done:
-                                if(snapshot.hasError){
-                                  return const Text('Error loading user data');
-                                }
-                                return CustomExpansionTile(
-                                  title: "Profile",
+                  BlocBuilder<LyreBloc, LyreState>(
+                    builder: (context, LyreState state) {
+                      final currentUser = state.readOnly ? "" : state.currentUser.displayName;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0),
+                        child: CustomScrollView(
+                          slivers: <Widget>[
+                            SliverSafeArea(
+                              sliver: SliverToBoxAdapter(
+                                child: CustomExpansionTile(
+                                  title: currentUser.isNotEmpty ? currentUser : "Guest",
+                                  showDivider: true,
                                   initiallyExpanded: true,
-                                  fontSize: 32.0,
-                                  children: <Widget>[
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Column(children: <Widget>[
-                                          Text(
-                                            snapshot.data.commentKarma.toString(),
-                                            style: const TextStyle(fontSize: 28.0),
-                                          ),
-                                          const Text(
-                                            'Comment karma',
-                                            style: const TextStyle(fontSize: 22.0),
-                                          )
-                                        ],),
-                                        const Spacer(),
-                                        const VerticalDivider(),
-                                        const Spacer(),
-                                        Column(children: <Widget>[
-                                          Text(
-                                            snapshot.data.linkKarma.toString(),
-                                            style: const  TextStyle(fontSize: 28.0),
-                                          ),
-                                          const Text(
-                                            'Link karma',
-                                            style: TextStyle(fontSize: 22.0),
-                                          )
-                                        ],)
-                                      ],
+                                  children: _getRegisteredUsernamesList(state.userNames, currentUser),
+                                ),
+                              )
+                            ),
+                            state.currentUser != null ? SliverToBoxAdapter(
+                              child: CustomExpansionTile(
+                                title: "Profile",
+                                initiallyExpanded: true,
+                                showDivider: true,
+                                children: <Widget>[
+                                  Text(
+                                    state.currentUser.commentKarma.toString(),
+                                    style: LyreTextStyles.title,
+                                    textScaleFactor: 0.8,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 5.0),
+                                    child: const Text(
+                                      'Comment karma',
+                                      style: const TextStyle(fontSize: 18.0, color: Colors.grey),
                                     ),
-                                    const Divider(),
-                                    const SelfContentTypeWidget("Comments"),
-                                    const SelfContentTypeWidget("Submitted"),
-                                    const SelfContentTypeWidget("Upvoted"),
-                                    const SelfContentTypeWidget("Saved"),
-                                    const SelfContentTypeWidget("Hidden"),
-                                    const SelfContentTypeWidget("Watching"),
-                                    const SelfContentTypeWidget("Friends")
-                                  ],
-                                );
-                              default:
-                                return Container();
-                            }
-                        },
+                                  ),
+                                  Text(
+                                    state.currentUser.linkKarma.toString(),
+                                    style: const  TextStyle(fontSize: 28.0),
+                                  ),
+                                  const Text(
+                                      'Link karma',
+                                      style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                                  ),
+                                  const Divider(),
+                                  const SelfContentTypeWidget("Comments"),
+                                  const SelfContentTypeWidget("Submitted"),
+                                  const SelfContentTypeWidget("Upvoted"),
+                                  const SelfContentTypeWidget("Saved"),
+                                  const SelfContentTypeWidget("Hidden"),
+                                  const SelfContentTypeWidget("Watching"),
+                                  const SelfContentTypeWidget("Friends")
+                                ],
+                              )
+                            ) : null,
+                          ].where(notNull).toList(),
+                        )
+                      );
+                    },
+                  ),
+                  
+                  Positioned(
+                    bottom: 0.0,
+                    child: Container(
+                      height: 50.0,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).canvasColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 25.0,
+                            spreadRadius: 20.0,
+                            offset: Offset(0.0, -5)
+                          )
+                        ]
                       ),
-                      ) : null,
-                      SliverToBoxAdapter(
-                        child: RaisedButton(
-                            child: const Text('Add an account'),
-                            color: Theme.of(context).primaryColor,
-                            onPressed: () {
-                              var pp = PostsProvider();
-                              setState(() {
-                                pp.registerReddit();
-                                refreshList();
-                              });
-                            },
-                          ),
-                      )
-                    ].where(notNull).toList(),
+                    ),
                   ),
                   Positioned(
                     bottom: 0.0,
                     right: 0.0,
-                    child: Container(
-                      height: 50.0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                    child: Row(
                         children: <Widget>[
                           Text(appName + ' v.' + appVersion),
                           IconButton(
@@ -360,11 +389,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           )
                         ],
                       ),
-                    ),
                   )
                 ],
               )
-        )),
+        ),
         endDrawer: new Drawer(
           child: CustomScrollView(
             slivers: <Widget>[
@@ -373,27 +401,30 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 floating: false,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                automaticallyImplyLeading: false,
                 actions: <Widget>[Container()],
                 leading: Container(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
+                  titlePadding: EdgeInsets.only(left: 10.0),
                   title: Text(
-                    'r/' + currentSubreddit,
-                    style: prefix1.TextStyle(fontSize: 32.0),
+                    'Sidebar',
+                    style: LyreTextStyles.title,
                     ),
                   background: BlocBuilder<PostsBloc, PostsState>(
                     builder: (context, state){
-                      return state.styleSheetImages.isNotEmpty
-                        ? prefix1.Image(
+                      return state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                        ? FadeInImage(
+                          placeholder: MemoryImage(kTransparentImage),
                           image: AdvancedNetworkImage(
-                            state.styleSheetImages[0].url.toString(),
+                            state.subreddit.mobileHeaderImage.toString(),
                             useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: const Duration(days: 28)),
+                            cacheRule: CacheRule(maxAge: const Duration(days: 3)),
                           ),
-                          fit: BoxFit.fitHeight
+                          fit: BoxFit.cover
                         )
                         : Container(); // TODO: Placeholder image
-                    },
+                    }
                   ),
                 ),
               ),
@@ -422,7 +453,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ].where((w) => notNull(w)).toList(),
           )
         ),
-        body: Container(
+        body: 
+        Container(
           child: new Stack(
             children: <Widget>[
               StreamBuilder(
@@ -433,11 +465,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     if(state.userContent != null && state.userContent.isNotEmpty){
                       autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
                       if(state.contentSource == ContentSource.Redditor){
-                        return state.targetRedditor.isNotEmpty
-                          ? buildList(state)
+                        return state.target.isNotEmpty
+                          ? _buildList(state)
                           : Center(child: CircularProgressIndicator());
                       } else {
-                        return buildList(state);
+                        return _buildList(state);
                       }
                     } else {
                       return Center(child: CircularProgressIndicator());
@@ -451,10 +483,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               new FloatingNavigationBar(controller: navBarController,)
             ].where(notNull).toList(),
           ))
+          
       ),
       onWillPop: _willPop);
   }
 }
+
 
 class FloatingNavigationBar extends StatefulWidget {
   FloatingNavigationBar({
@@ -469,28 +503,16 @@ class FloatingNavigationBar extends StatefulWidget {
 }
 
 class _FloatingNavigationBarState extends State<FloatingNavigationBar> with TickerProviderStateMixin{
-  AnimationController controller;
-  Animation<double> edgeAnimation;
-  Tween edgeTween = new Tween<double>(begin: 55.0, end: 0.0);
-  Animation<double> height2Animation;
-  Tween height2Tween = new Tween<double>(begin: 0.0, end: 350.0);
-  Animation<double> heightAnimation;
   double maxNavBarHeight = 400.0; //<-- Get max height of the screen
-  Animation<double> opacityAnimation;
-  Tween opacityTween = new Tween<double>(begin: 0.0, end: 1.0);
-  Animation<double> padAnimation;
-  Tween padTween = new Tween<double>(begin: 25.0, end: 0.0);
-  Animation<double> roundAnimation;
-  Tween roundTween = new Tween<double>(begin: 30.0, end: 0.0);
   var subsListHeight = 50.0;
   String tempType = "";
 
   AnimationController _navBarController;
 
-  bool isElevated = false;
+  bool isElevated;
+  get() => _navBarController.value > 0.9;
 
   @override void dispose(){
-    controller?.dispose();
 
     _navBarController.dispose();
 
@@ -500,51 +522,19 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   @override
   void initState(){
+    super.initState();
     maxNavBarHeight = 400.0;
     _navBarController = AnimationController(
       //<-- initialize a controller
       vsync: this,
       duration: Duration(milliseconds: 600),
     );
-    controller = new AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 325));
-    maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
-    padAnimation = padTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    roundAnimation = roundTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    edgeAnimation = edgeTween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-    height2Animation = height2Tween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut));
-
-    height2Animation.addListener(() {
-      setState(() {});
-    });
-    padAnimation.addListener(() {
-      setState(() {});
-    });
-    edgeAnimation.addListener(() {
-      setState(() {});
-    });
-    roundAnimation.addListener(() {
-      setState(() {});
-    });
-    controller.reset();
+    // ! ENABLE IS PROFILE/RELEASE maxNavBarHeight = MediaQuery.of(context).size.height / 2.5;
     widget.controller.addListener((){
       if(widget.controller.isElevated != isElevated) _reverseNav();
       setState(() {
       });
     });
-    super.initState();
   }
 
   double navBarLerp(double min, double max) => lerpDouble(min, max, _navBarController.value);
@@ -589,12 +579,12 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   List<Widget> sortTypeParamsUser(){
-    return new List<Widget>.generate(sortTypes.length, (int index) {
+    return new List<Widget>.generate(sortTypesuser.length, (int index) {
       return InkWell(
         child: Text(sortTypesuser[index]),
         onTap: () {
           setState(() {
-            var q = sortTypes[index];
+            var q = sortTypesuser[index];
             if (q == "hot" || q == "new" || q == "rising") {
               parseTypeFilter(q);
               currentSortTime = "";
@@ -660,13 +650,11 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   void _reverseNav() {
     _navBarController.fling(velocity: -2.0);
-    isElevated = false;
     widget.controller.isElevated = false;
   }
 
   void _handleNavDragEnd(DragEndDetails details) {
     if (_navBarController.status == AnimationStatus.completed) {
-      isElevated = true;
       widget.controller.isElevated = true;
     }
     if (_navBarController.isAnimating ||
@@ -677,12 +665,10 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     if (flingVelocity < 0.0) {
       _navBarController.fling(
           velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-      isElevated = true;
       widget.controller.isElevated = true;
     } else if (flingVelocity > 0.0) {
       _navBarController.fling(
           velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-      isElevated = false;
       widget.controller.isElevated = false;
     } else
       _navBarController.fling(
@@ -692,37 +678,79 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   void reverse(BuildContext context) {
-    controller.reset();
-    controller.reverse();
-    isElevated = false;
     widget.controller.isElevated = false;
   }
 
-  Widget buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
+  Widget _buildSubsList(AsyncSnapshot<SubredditM> snapshot) {
     var subs = snapshot.data.results;
-    return new ListView.builder(
-        padding: new EdgeInsets.all(16.0),
-        itemCount: subs.length,
-        itemExtent: 50.0,
-        itemBuilder: (BuildContext context, int i) {
-          return new ListTile(
-              leading: const Icon(Icons.arrow_right),
-              title: new Text("r/" + subs[i].displayName,
-                  textScaleFactor: 1.0,
-                  style: DefaultTextStyle.of(context)
-                      .style
-                      .apply(fontSizeFactor: 1.5)),
-              onTap: () {
-                currentSubreddit = subs[i].displayName;
-                _reverseNav();
-                subsListHeight = 50.0;
-                refreshList();
-              });
-        });
+    return ListView.builder(
+      itemCount: subs.length+1,
+      itemBuilder: (context, i) {
+        return InkWell( //Subreddit entry
+          onTap: (){
+            _openSub(subs[i].displayName);
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(
+                  bottom: 0.0,
+                  left: 5.0,
+                  top: 0.0),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(subs[i].displayName)
+                    ),
+                    PopupMenuButton<String>(
+                      elevation: 3.2,
+                      onSelected: (s) {
+                        },
+                      itemBuilder: (context) {
+                        return subListOptions.map((s) {
+                          return PopupMenuItem<String>(
+                            value: s,
+                            child: Column(
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: <Widget>[
+                                    s == subListOptions[0]
+                                      ? Icon(Icons.remove_circle)
+                                      : Icon(Icons.add_circle),
+                                    VerticalDivider(),
+                                    Text(s),
+                                    
+                                  ]
+                                ,),
+                                s != subListOptions[subListOptions.length-1] ? Divider() : null
+                              ].where((w) => notNull(w)).toList(),
+                            ),
+                          );
+                        }).toList();
+                      },
+                    )
+                  ],
+                ),
+              ),
+              i != subs.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
+            ].where((w) => notNull(w)).toList(),
+          )
+        );
+      },
+    );
+  }
+  _openSub(String s) {
+    currentSubreddit = s;
+    _reverseNav();
+    subsListHeight = 50.0;
+    _refreshList();
   }
 
-  void refreshList(){
-    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged());
+  void _refreshList(){
+    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
 
   @override
@@ -780,10 +808,8 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                   height: 45.0,
                                   child: new Stack(
                                     children: <Widget>[
-                                      new AnimatedOpacity(
+                                      new Opacity(
                                           opacity: navBarLerp(0, 1.0),
-                                          duration: const Duration(milliseconds: 200),
-                                          curve: Curves.easeInQuad,
                                           child: new Container(
                                             decoration: BoxDecoration(),
                                             padding: EdgeInsets.only(
@@ -800,17 +826,15 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                               onEditingComplete: () {
                                                 currentSubreddit = widget.controller.searchQuery;
                                                 _reverseNav();
-                                                refreshList();
+                                                _refreshList();
                                                 subsListHeight = 50.0;
                                               },
                                             ),
                                           )),
                                       new IgnorePointer(
                                         ignoring: widget.controller.isElevated,
-                                        child: new AnimatedOpacity(
+                                        child: new Opacity(
                                           opacity: 1.0 - navBarLerp(0.0, 1.0),
-                                          duration: const Duration(milliseconds: 150),
-                                          curve: Curves.easeInQuad,
                                           child: Container(
                                             padding: EdgeInsets.all(5.0),
                                             child: Row(
@@ -870,7 +894,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                                     },
                                                   )
                                                   : null,
-                                              ].where(notNull).toList(),
+                                              ].where((w) => notNull(w)).toList(),
                                             ),
                                           ),
                                         ),
@@ -885,25 +909,72 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                               child: new StreamBuilder(
                                 stream: sub_bloc.getSubs,
                                 builder: (context,
-                                    AsyncSnapshot<SubredditM> snapshot) {
+                                AsyncSnapshot<SubredditM> snapshot) {
                                   if (widget.controller.isElevated) {
                                     if (snapshot.hasData) {
-                                      return buildSubsList(snapshot);
+                                      return _buildSubsList(snapshot);
                                     } else if (snapshot.hasError) {
-                                      return Text(snapshot.error.toString());
+                                      return Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,);
+                                    } else {
+                                      return ListView.builder(
+                                        itemCount: subreddits.length,
+                                        itemBuilder: (context, i) {
+                                          return InkWell(
+                                            onTap: (){
+                                              _openSub(subreddits[i]);
+                                            },
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                Container(
+                                                  padding: EdgeInsets.only(
+                                                    bottom: 0.0,
+                                                    left: 5.0,
+                                                    top: 0.0),
+                                                  child: Row(
+                                                    children: <Widget>[
+                                                      Expanded(
+                                                        child: Text(subreddits[i])
+                                                      ),
+                                                      PopupMenuButton<String>(
+                                                        elevation: 3.2,
+                                                        onSelected: (s) {
+                                                          },
+                                                        itemBuilder: (context) {
+                                                          return subListOptions.map((s) {
+                                                            return PopupMenuItem<String>(
+                                                              value: s,
+                                                              child: Column(
+                                                                children: <Widget>[
+                                                                  Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                                    children: <Widget>[
+                                                                      s == subListOptions[0]
+                                                                        ? Icon(Icons.remove_circle)
+                                                                        : Icon(Icons.add_circle),
+                                                                      VerticalDivider(),
+                                                                      Text(s),
+                                                                      
+                                                                    ]
+                                                                  ,),
+                                                                  s != subListOptions[subListOptions.length-1] ? Divider() : null
+                                                                ].where((w) => notNull(w)).toList(),
+                                                              ),
+                                                            );
+                                                          }).toList();
+                                                        },
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                i != subreddits.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
+                                              ].where((w) => notNull(w)).toList(),
+                                            )
+                                          );
+                                        },
+                                      );
                                     }
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          Icon(
-                                            Icons.search,
-                                            size: max(50.0, MediaQuery.of(context).size.width/7),
-                                            ),
-                                          Text('Search For Subreddits')
-                                        ],
-                                      ));
                                   } else {
                                     return Container(
                                       height: 0.0,
@@ -971,6 +1042,12 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
         ignoring: !widget.controller.visible,
       );
   }
+  
+  List<String> subListOptions = [
+    "Remove",
+    "Subscribe"
+  ];
+
 }
 
 class FloatingNavBarController extends ChangeNotifier{
@@ -1027,37 +1104,37 @@ class SelfContentTypeWidget extends StatelessWidget {
           case "Comments":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Comments
+              target: SelfContentType.Comments
             ));
             break;
           case "Submitted":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Submitted
+              target: SelfContentType.Submitted
             ));
             break;
           case "Upvoted":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Upvoted
+              target: SelfContentType.Upvoted
             ));
             break;
           case "Saved":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Saved
+              target: SelfContentType.Saved
             ));
             break;
           case "Hidden":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Hidden
+              target: SelfContentType.Hidden
             ));
             break;
           case "Watching":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Watching
+              target: SelfContentType.Watching
             ));
             break;
           //Non-Posts sources:

@@ -24,4 +24,11 @@ class SettingsChanged extends LyreEvent{
   });
   List<dynamic> get props => [settings];
 }
+class UserChanged extends LyreEvent{
+  final String userName;
 
+  UserChanged({
+    @required this.userName,
+  });
+  List<dynamic> get props => [userName];
+}

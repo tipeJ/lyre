@@ -7,7 +7,6 @@ writeCredentials(String usern, String creds) async {
 
   String lowercase = usern.toLowerCase();
 
-  print("WTYFSAFASDF: $usern,$creds");
   var res = await db.rawInsert(
       "INSERT Into User (username,credentials,date) "
       " VALUES(?, ?, ?)",[

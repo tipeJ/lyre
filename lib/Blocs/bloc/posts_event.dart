@@ -11,23 +11,17 @@ class PostsSourceChanged extends PostsEvent {
   final ContentSource source;
   final String typeFilter; //Will be converted to TypeFilter later in posts_bloc
   final String timeFilter;
+  final dynamic target;
 
   //Optional parameters:
-
-  String redditor;
-  SelfContentType selfContentType;
 
   PostsSourceChanged({
     this.typeFilter,
     this.timeFilter,
     this.source,
-
-    //Optional parameters:
-
-    this.redditor,
-    this.selfContentType
+    this.target
   });
-  List<dynamic> get props => [source, typeFilter, timeFilter, redditor, selfContentType];
+  List<dynamic> get props => [source, typeFilter, timeFilter, target];
 }
 
 class ParamsChanged extends PostsEvent{

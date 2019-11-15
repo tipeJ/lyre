@@ -47,10 +47,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         readOnly: state.readOnly
       );
     } else if (event is UserChanged) {
-      print('before' + event.userName);
       final currentUser = await PostsProvider().logIn(event.userName);
-      print(PostsProvider().reddit.readOnly.toString() + 'readonly');
-      print("XCXXX: " + currentUser.toString());
       yield LyreState(
         themeData: state.themeData,
         settings: state.settings,

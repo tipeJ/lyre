@@ -50,7 +50,7 @@ class PostsProvider {
   Reddit reddit;
 
   Future<Redditor> getLoggedInUser(){
-    if(reddit == null){
+    if(reddit == null || reddit.readOnly){
       return null;
     }
     return reddit.user.me();
@@ -65,7 +65,6 @@ class PostsProvider {
 
   logInAsGuest() async {
     reddit = await getReadOnlyReddit();
-    currentUser.value = "Guest";
   }
 
   Future<Redditor> getRedditor(String fullname) async {
@@ -73,58 +72,49 @@ class PostsProvider {
     return r.redditor(fullname).populate();
   }
 
-  Future<bool> logIn(String username) async{
-    var credentials = await readCredentials(username);
-    if(credentials != null){
-      reddit = await getRed();
-      var cUserDisplayname = "";
-      if(!reddit.readOnly){
-        reddit.user.me().then((redditor){
-          cUserDisplayname = redditor.displayName;
-        });
+  Future<Redditor> logIn(String username) async{
+    if (username.isEmpty) { //Read-only
+      reddit = await getReadOnlyReddit();
+      return null;
+    } else {
+      var credentials = await readCredentials(username);
+      if(credentials != null){
+        reddit = await getRed();
+        var cUserDisplayname = "";
+        if(!reddit.readOnly){
+          reddit.user.me().then((redditor){
+            cUserDisplayname = redditor.displayName;
+          });
+        }
+        if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
+          //Prevent useless logins
+          reddit = await restoreAuth(credentials);
+          updateLogInDate(username);
+        }
+        if(reddit.readOnly){
+          return null;
+        }else{
+          return reddit.user.me();
+        }
       }
-      if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
-        //Prevent useless logins
-        reddit = await restoreAuth(credentials);
-        updateLogInDate(username);
-      }
-      if(reddit.readOnly){
-        currentUser.value = "Guest";
-      }else{
-        reddit.user.me().then((me){
-          currentUser.value = me.displayName;
-        });
-      }
-      return true;
+      return null;
     }
-    return false;
   }
   Future<CommentRef> getCRef(String id) async {
     final r = await getRed();
     return CommentRef.withID(r, 'f6yqinj');
   }
 
-  Future<bool> logInToLatest() async {
+  Future<Redditor> logInToLatest() async {
     if(reddit != null && !reddit.readOnly){
-      return true;
+      return reddit.user.me();
     }
-    //TODO: FIX (THIS IS NOT GOOD)
-    if(currentUser.value == "Guest"){
-      return true;
+    final latestUser = await getLatestUser();
+    if(latestUser != null){
+      final user = await logIn(latestUser.username);
+      return user;
     }
-    getLatestUser().then((latestUser){
-      if(latestUser != null){
-        logIn(latestUser.username).then((_){
-          return true;
-      });
-    }else{
-      getRed().then((r){
-        reddit = r;
-        return false;
-      });
-    }
-    });
-    return false;
+    return null;
   }
 
   Future<Reddit> restoreAuth(String jsonCredentials) async {
@@ -252,7 +242,6 @@ class PostsProvider {
   }
 
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
-    await logInToLatest();
     reddit = await getRed();
 
     Map<String, String> headers = new Map<String, String>();
@@ -298,6 +287,7 @@ class PostsProvider {
           if(source == ContentSource.Subreddit){
             v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
           }else if(source == ContentSource.Redditor){
+            print(redditor);
             v = await reddit.redditor(redditor).hot(params: headers).toList();
           }
           break;
@@ -334,7 +324,11 @@ class PostsProvider {
   }
 
   Future<Subreddit> getSubreddit(String displayName) async {
-    return await reddit.subreddit(currentSubreddit).populate();
+    try {
+      return await reddit.subreddit(currentSubreddit).populate();
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {

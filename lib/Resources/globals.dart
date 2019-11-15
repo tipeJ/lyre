@@ -128,7 +128,6 @@ void parseTypeFilter(String typeFilter){
 
 String currentPostId = "";
 bool notNull(Object o) => o != null;
-final currentUser = ValueNotifier("");
 
 String appName = "Lyre";
 String appVersion = "0.1";

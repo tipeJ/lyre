@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
-import 'package:lyre/Resources/PreferenceValues.dart';
-import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
-import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
-import 'package:lyre/UI/reddit_view.dart';
 
 class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){
@@ -23,29 +18,16 @@ class App extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Hive.openBox('settings'),
-      builder: (context, AsyncSnapshot<Box> snapshot){
+      future: getFirstLyreState(),
+      builder: (context, AsyncSnapshot<LyreState> snapshot){
         if(snapshot.hasData){
-          final prefs = snapshot.data;
-          final initialTheme = prefs.get(CURRENT_THEME) ?? "";
-          homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "Dota2";
-          currentSubreddit = homeSubreddit;
-          var _cTheme = LyreTheme.DarkTeal;
-          LyreTheme.values.forEach((theme){
-            if(theme.toString() == initialTheme){
-              _cTheme = theme;
-            }
-          });
           return BlocProvider(
-            builder: (context) => LyreBloc(LyreState(
-              themeData: lyreThemeData[_cTheme],
-              settings: prefs
-            )),
+            builder: (context) => LyreBloc(snapshot.data),
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: _buildWithTheme,
             ),
           );
-        }else{
+        } else {
           return Container(
             width: 25.0,
             height: 25.0,

@@ -32,7 +32,7 @@ class Router {
           builder: (context) => PostsBloc(firstState: PostsState(
             userContent: [],
             contentSource: source,
-            selfContentType: SelfContentType.Comments
+            target: source == ContentSource.Redditor ? redditor : SelfContentType.Comments
           )),
           child: PostsList(),
         ));

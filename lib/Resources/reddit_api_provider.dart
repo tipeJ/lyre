@@ -365,13 +365,20 @@ class PostsProvider {
     var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
-      Comment s;
     } else {
       throw Exception('Failed to load subreddits');
     }
   }
 
-  // * Profile data fetching:
+  Future<List<UserContent>> search({String query, String subReddit, String timeFilter}) {
+    if (notNull(subReddit)) {
+      return reddit.subreddit(subReddit).search(query, timeFilter: parseTimeFilter(timeFilter)).toList();
+    } else {
+      return reddit.subreddit('all').search(query, timeFilter: parseTimeFilter(timeFilter)).toList();
+    }
+  }
+
+  //* Profile data fetching:
 
   Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
     var r = await getRed();

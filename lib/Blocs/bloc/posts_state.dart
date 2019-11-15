@@ -12,17 +12,14 @@ class PostsState extends Equatable {
   //CONTENT
   final List<UserContent> userContent;
   final ContentSource contentSource;
+  final dynamic target;
 
   //SORTING
   TypeFilter temporaryType = currentSortType;
   String temporaryTime = currentSortTime;
 
   //LOGGED IN USER INFORMATION
-  List<String> usernamesList;
   RedditUser currentUser;
-
-  //WHEN TARGETING REDDITOR
-  String targetRedditor;
 
   //WHEN TARGETING SELF
   SelfContentType selfContentType;
@@ -37,11 +34,9 @@ class PostsState extends Equatable {
 
   PostsState({
     @required this.contentSource,
+    @required this.target,
     @required this.userContent,
-    this.usernamesList,
     this.currentUser,
-    this.targetRedditor,
-    this.selfContentType,
     this.sideBar,
     this.styleSheetImages,
     this.preferences,
@@ -49,14 +44,14 @@ class PostsState extends Equatable {
     this.headerImage
   });
 
-  List<dynamic> get props => [userContent, usernamesList, currentUser, targetRedditor, selfContentType, styleSheetImages, headerImage, subreddit];
+  List<dynamic> get props => [userContent, target];
 
   String getSourceString(){
     switch (contentSource) {
       case ContentSource.Subreddit:
         return 'r/$currentSubreddit';
       case ContentSource.Redditor:
-        return 'u/$targetRedditor';
+        return 'u/$target';
       case ContentSource.Self:
         return currentUser.username;
       default:

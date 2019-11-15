@@ -82,9 +82,7 @@ class PostsProvider {
         reddit = await getRed();
         var cUserDisplayname = "";
         if(!reddit.readOnly){
-          reddit.user.me().then((redditor){
-            cUserDisplayname = redditor.displayName;
-          });
+          cUserDisplayname = (await reddit.user.me()).displayName;
         }
         if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
           //Prevent useless logins
@@ -367,12 +365,13 @@ class PostsProvider {
     var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
+      Comment s;
     } else {
       throw Exception('Failed to load subreddits');
     }
   }
 
-  //* Profile data fetching:
+  // * Profile data fetching:
 
   Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
     var r = await getRed();

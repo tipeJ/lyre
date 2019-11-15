@@ -99,7 +99,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           context: context,
           builder: (BuildContext context) => Material(
             child: Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35.0)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
               backgroundColor: Theme.of(context).primaryColor,
               child: Column(children: <Widget>[
                 Container(
@@ -309,6 +309,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                 child: CustomExpansionTile(
                                   title: currentUser.isNotEmpty ? currentUser : "Guest",
                                   showDivider: true,
+                                  initiallyExpanded: true,
                                   children: _getRegisteredUsernamesList(state.userNames, currentUser),
                                 ),
                               )

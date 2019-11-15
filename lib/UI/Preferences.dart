@@ -55,31 +55,37 @@ class _PreferencesViewState extends State<PreferencesView> {
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'General',
+                        showDivider: true,
                         children: getGeneralSettings(context),
                         ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Submissions',
+                        showDivider: true,
                         children: getSubmissionSettings(context),
                         ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Comments',
+                        showDivider: true,
                         children: getCommentsSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Filters',
+                        showDivider: true,
                         children: getFiltersSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: true,
                         title: 'Media',
+                        showDivider: true,
                         children: getMediaSettings(context),
                       ),
                       CustomExpansionTile(
                         initiallyExpanded: false,
                         title: 'Themes',
+                        showDivider: true,
                         children: getThemeSettings(context),
                       ),
                     ]),

@@ -6,6 +6,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
@@ -50,42 +51,92 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   void initState() {
-   
-    currentUser.addListener((){
-      setState(() {
-        
-      });
-    });
     super.initState();
   }
 
 
-  List<Widget> getRegisteredUsernamesList(List<String> list) {
+  List<Widget> _getRegisteredUsernamesList(List<String> list, String currentUserName) {
     List<Widget> widgets = [];
     for(int i = 0; i < list.length; i++){
       widgets.add(InkWell(
           child: Container(
             child: Text(
               list[i],
-              style: const TextStyle(fontSize: 18.0, fontStyle: FontStyle.italic),
+              style: TextStyle(fontSize: 18.0, fontWeight: ((i == 0 && currentUserName.isEmpty) || (i != 0 && currentUserName == list[i])) ? FontWeight.bold : FontWeight.w400),
             ),
-            margin: EdgeInsets.all(18.0),
+            padding: EdgeInsets.symmetric(vertical: 18.0),
           ),
           onTap: () {
             if (i == 0) {
-              PostsProvider().logInAsGuest().then((_) {
-                setState(() {
-                  refreshList();
-                });
-              });
+              BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only           
+            } else {
+              BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: list[i]));
             }
-            PostsProvider().logIn(list[i]).then((success){
-              if(success) refreshList();
+            Navigator.of(context).pop();
+            setState(() {
+              _refreshList();
             });
           },
         ));
     }
+    widgets.add(_registrationButton());
     return widgets;
+  }
+
+  Widget _registrationButton() {
+   return OutlineButton(
+    child: const Text('Add an account'),
+      color: Theme.of(context).primaryColor,
+      onPressed: () async {
+        var pp = PostsProvider();
+        /*setState(() {
+          pp.registerReddit();
+          _refreshList();
+        });*/
+        final authUrl = await pp.redditAuthUrl();
+        pp.auth(authUrl.values.first);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) => Material(
+            child: Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35.0)),
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Column(children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15.0),
+                  height: 50.0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
+                      IconButton(icon: Icon(Icons.close),onPressed: (){
+                        Navigator.pop(context);
+                        pp.closeAuthServer();
+                      },)
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: InAppWebView(
+                    onLoadStop: (controller, s) async {
+                      if (s.contains('localhost:8080')) {
+                        Navigator.pop(context);
+                        pp.closeAuthServer();
+                      }
+                    },
+                    initialOptions: {
+                      'clearCache' : false,
+                      'clearSessionCache' : true
+                    },
+                    initialUrl: authUrl.keys.first
+                  )
+                )
+              ],),
+            )
+          )
+        );
+      },
+    );
   }
 
   Future<bool> _willPop() {
@@ -96,7 +147,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     return new Future.value(true);
   }
 
-  Widget buildList(PostsState state) {
+  Widget _buildList(PostsState state) {
     var posts = state.userContent;
     return new NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
@@ -152,8 +203,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, i) {
-                var finalIndex = state.contentSource == ContentSource.Redditor ? posts.length + 1 : posts.length;
-                if(i == finalIndex){
+                if(i == posts.length){
                   return Container(
                     color: Theme.of(context).primaryColor,
                     child: FlatButton(
@@ -164,40 +214,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         },
                         child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
                   );
-                } else if(state.contentSource == ContentSource.Redditor && i == 0){
-                  if(headerWidget == null){
-                    headerWidget = FutureBuilder(
-                      future: PostsProvider().getRedditor(state.targetRedditor),
-                      builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                        if(snapshot.connectionState == ConnectionState.done){
-                          return getSpaciousUserColumn(snapshot.data);
-                        }else{
-                          return Padding(
-                            child: Center(
-                              child: Container(
-                                child: const CircularProgressIndicator(),
-                                height: 25.0,
-                                width: 25.0
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 10.0)
-                          );
-                        }
-                      },
-                    );
-                  }
-                  return headerWidget;
                 } else {
-                  int index = state.contentSource == ContentSource.Redditor ? i-1 : i;
-                  return posts[index] is prefix0.Submission
+                  return posts[i] is prefix0.Submission
                         ? new Hero(
-                          tag: 'post_hero ${(posts[index] as prefix0.Submission).id}',
-                          child: new postInnerWidget(posts[index] as prefix0.Submission, PreviewSource.PostsList)
+                          tag: 'post_hero ${(posts[i] as prefix0.Submission).id}',
+                          child: new postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
                         )
-                        : new CommentContent(posts[index] as prefix0.Comment);
+                        : new CommentContent(posts[i] as prefix0.Comment);
                 }
               },
-              childCount: state.contentSource == ContentSource.Redditor ? posts.length + 2 : posts.length + 1,
+              childCount: posts.length+1,
             )
           )
         ],
@@ -205,7 +231,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
   }
 
-  Widget getSpaciousUserColumn(prefix0.Redditor redditor){
+  Widget _getSpaciousUserColumn(prefix0.Redditor redditor){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
@@ -245,11 +271,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
   }
 
-  void showComments(BuildContext context, prefix0.Submission inside) {
+  void _showComments(BuildContext context, prefix0.Submission inside) {
     Navigator.of(context).pushNamed('comments', arguments: inside);
   }
 
-  void refreshList(){
+  void _refreshList(){
     bloc.add(PostsSourceChanged());
   }
 
@@ -257,7 +283,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
-      bloc.add(PostsSourceChanged(source: bloc.state.contentSource, selfContentType: bloc.state.selfContentType));
+      bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
     bloc.loading.addListener((){
       if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
@@ -269,148 +295,89 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         drawer: new Drawer(
-            child: new Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Stack(
                 children: <Widget>[
-                  CustomScrollView(
-                    slivers: <Widget>[
-                      SliverToBoxAdapter(
-                        child: Container(height: 150,),
-                      ),
-                      SliverToBoxAdapter(
-                        child: BlocBuilder<PostsBloc, PostsState>(
-                          builder: (context, PostsState state){
-                            return CustomExpansionTile(
-                              fontSize: 32.0,
-                              title: currentUser.value,
-                              children: getRegisteredUsernamesList(state.usernamesList),
-                            );
-                          },
-                        )
-                      ),
-                      PostsProvider().isLoggedIn() ? SliverToBoxAdapter(
-                        child: FutureBuilder(
-                          future: PostsProvider().getLoggedInUser(),
-                          builder: (BuildContext context, AsyncSnapshot<prefix0.Redditor> snapshot){
-                            switch (snapshot.connectionState) {
-                              case ConnectionState.done:
-                                if(snapshot.hasError){
-                                  return const Text('Error loading user data');
-                                }
-                                return CustomExpansionTile(
-                                  title: "Profile",
-                                  initiallyExpanded: true,
-                                  fontSize: 32.0,
-                                  children: <Widget>[
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Column(children: <Widget>[
-                                          Text(
-                                            snapshot.data.commentKarma.toString(),
-                                            style: const TextStyle(fontSize: 28.0),
-                                          ),
-                                          const Text(
-                                            'Comment karma',
-                                            style: const TextStyle(fontSize: 22.0),
-                                          )
-                                        ],),
-                                        const Spacer(),
-                                        const VerticalDivider(),
-                                        const Spacer(),
-                                        Column(children: <Widget>[
-                                          Text(
-                                            snapshot.data.linkKarma.toString(),
-                                            style: const  TextStyle(fontSize: 28.0),
-                                          ),
-                                          const Text(
-                                            'Link karma',
-                                            style: TextStyle(fontSize: 22.0),
-                                          )
-                                        ],)
-                                      ],
+                  BlocBuilder<LyreBloc, LyreState>(
+                    builder: (context, LyreState state) {
+                      final currentUser = state.readOnly ? "" : state.currentUser.displayName;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0),
+                        child: CustomScrollView(
+                          slivers: <Widget>[
+                            SliverSafeArea(
+                              sliver: SliverToBoxAdapter(
+                                child: CustomExpansionTile(
+                                  title: currentUser.isNotEmpty ? currentUser : "Guest",
+                                  showDivider: true,
+                                  children: _getRegisteredUsernamesList(state.userNames, currentUser),
+                                ),
+                              )
+                            ),
+                            state.currentUser != null ? SliverToBoxAdapter(
+                              child: CustomExpansionTile(
+                                title: "Profile",
+                                initiallyExpanded: true,
+                                showDivider: true,
+                                children: <Widget>[
+                                  Text(
+                                    state.currentUser.commentKarma.toString(),
+                                    style: LyreTextStyles.title,
+                                    textScaleFactor: 0.8,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 5.0),
+                                    child: const Text(
+                                      'Comment karma',
+                                      style: const TextStyle(fontSize: 18.0, color: Colors.grey),
                                     ),
-                                    const Divider(),
-                                    const SelfContentTypeWidget("Comments"),
-                                    const SelfContentTypeWidget("Submitted"),
-                                    const SelfContentTypeWidget("Upvoted"),
-                                    const SelfContentTypeWidget("Saved"),
-                                    const SelfContentTypeWidget("Hidden"),
-                                    const SelfContentTypeWidget("Watching"),
-                                    const SelfContentTypeWidget("Friends")
-                                  ],
-                                );
-                              default:
-                                return Container();
-                            }
-                        },
+                                  ),
+                                  Text(
+                                    state.currentUser.linkKarma.toString(),
+                                    style: const  TextStyle(fontSize: 28.0),
+                                  ),
+                                  const Text(
+                                      'Link karma',
+                                      style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                                  ),
+                                  const Divider(),
+                                  const SelfContentTypeWidget("Comments"),
+                                  const SelfContentTypeWidget("Submitted"),
+                                  const SelfContentTypeWidget("Upvoted"),
+                                  const SelfContentTypeWidget("Saved"),
+                                  const SelfContentTypeWidget("Hidden"),
+                                  const SelfContentTypeWidget("Watching"),
+                                  const SelfContentTypeWidget("Friends")
+                                ],
+                              )
+                            ) : null,
+                          ].where(notNull).toList(),
+                        )
+                      );
+                    },
+                  ),
+                  
+                  Positioned(
+                    bottom: 0.0,
+                    child: Container(
+                      height: 50.0,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).canvasColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 25.0,
+                            spreadRadius: 20.0,
+                            offset: Offset(0.0, -5)
+                          )
+                        ]
                       ),
-                      ) : null,
-                      SliverToBoxAdapter(
-                        child: RaisedButton(
-                            child: const Text('Add an account'),
-                            color: Theme.of(context).primaryColor,
-                            onPressed: () async {
-                              var pp = PostsProvider();
-                              /*setState(() {
-                                pp.registerReddit();
-                                refreshList();
-                              });*/
-                              final authUrl = await pp.redditAuthUrl();
-                              pp.auth(authUrl.values.first);
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) => Material(
-                                  child: Dialog(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35.0)),
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    child: Column(children: <Widget>[
-                                      Container(
-                                        padding: EdgeInsets.symmetric(horizontal: 15.0),
-                                        height: 50.0,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: <Widget>[
-                                            Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
-                                            IconButton(icon: Icon(Icons.close),onPressed: (){
-                                              Navigator.pop(context);
-                                              pp.closeAuthServer();
-                                            },)
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: InAppWebView(
-                                          onLoadStop: (controller, s) async {
-                                            if (s.contains('localhost:8080')) {
-                                              Navigator.pop(context);
-                                              pp.closeAuthServer();
-                                            }
-                                          },
-                                          initialOptions: {
-                                            'clearCache' : false,
-                                            'clearSessionCache' : true
-                                          },
-                                          initialUrl: authUrl.keys.first
-                                        )
-                                      )
-                                    ],),
-                                  )
-                                )
-                              );
-                            },
-                          ),
-                      )
-                    ].where(notNull).toList(),
+                    ),
                   ),
                   Positioned(
                     bottom: 0.0,
                     right: 0.0,
-                    child: Container(
-                      height: 50.0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                    child: Row(
                         children: <Widget>[
                           Text(appName + ' v.' + appVersion),
                           IconButton(
@@ -421,11 +388,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           )
                         ],
                       ),
-                    ),
                   )
                 ],
               )
-        )),
+        ),
         endDrawer: new Drawer(
           child: CustomScrollView(
             slivers: <Widget>[
@@ -495,11 +461,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     if(state.userContent != null && state.userContent.isNotEmpty){
                       autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
                       if(state.contentSource == ContentSource.Redditor){
-                        return state.targetRedditor.isNotEmpty
-                          ? buildList(state)
+                        return state.target.isNotEmpty
+                          ? _buildList(state)
                           : Center(child: CircularProgressIndicator());
                       } else {
-                        return buildList(state);
+                        return _buildList(state);
                       }
                     } else {
                       return Center(child: CircularProgressIndicator());
@@ -609,12 +575,12 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
   }
 
   List<Widget> sortTypeParamsUser(){
-    return new List<Widget>.generate(sortTypes.length, (int index) {
+    return new List<Widget>.generate(sortTypesuser.length, (int index) {
       return InkWell(
         child: Text(sortTypesuser[index]),
         onTap: () {
           setState(() {
-            var q = sortTypes[index];
+            var q = sortTypesuser[index];
             if (q == "hot" || q == "new" || q == "rising") {
               parseTypeFilter(q);
               currentSortTime = "";
@@ -776,11 +742,11 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
     currentSubreddit = s;
     _reverseNav();
     subsListHeight = 50.0;
-    refreshList();
+    _refreshList();
   }
 
-  void refreshList(){
-    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged());
+  void _refreshList(){
+    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
 
   @override
@@ -856,7 +822,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                               onEditingComplete: () {
                                                 currentSubreddit = widget.controller.searchQuery;
                                                 _reverseNav();
-                                                refreshList();
+                                                _refreshList();
                                                 subsListHeight = 50.0;
                                               },
                                             ),
@@ -924,7 +890,7 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
                                                     },
                                                   )
                                                   : null,
-                                              ].where(notNull).toList(),
+                                              ].where((w) => notNull(w)).toList(),
                                             ),
                                           ),
                                         ),
@@ -1134,37 +1100,37 @@ class SelfContentTypeWidget extends StatelessWidget {
           case "Comments":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Comments
+              target: SelfContentType.Comments
             ));
             break;
           case "Submitted":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Submitted
+              target: SelfContentType.Submitted
             ));
             break;
           case "Upvoted":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Upvoted
+              target: SelfContentType.Upvoted
             ));
             break;
           case "Saved":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Saved
+              target: SelfContentType.Saved
             ));
             break;
           case "Hidden":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Hidden
+              target: SelfContentType.Hidden
             ));
             break;
           case "Watching":
             bloc.add(PostsSourceChanged(
               source: ContentSource.Self,
-              selfContentType: SelfContentType.Watching
+              target: SelfContentType.Watching
             ));
             break;
           //Non-Posts sources:

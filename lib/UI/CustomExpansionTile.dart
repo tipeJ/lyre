@@ -4,6 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:lyre/Themes/textstyles.dart';
 
 const Duration _kExpand = Duration(milliseconds: 225);
 
@@ -33,7 +34,8 @@ class CustomExpansionTile extends StatefulWidget {
     this.fontSize,
     this.backgroundColor,
     this.onExpansionChanged,
-    this.children = const <Widget>[],
+    this.children,
+    this.showDivider,
     this.initiallyExpanded = false,
   }) : assert(initiallyExpanded != null),
         super(key: key);
@@ -62,6 +64,8 @@ class CustomExpansionTile extends StatefulWidget {
   /// Typically [ListTile] widgets.
   final List<Widget> children;
 
+  final bool showDivider;
+
   /// The color to display behind the sublist when expanded.
   final Color backgroundColor;
 
@@ -69,7 +73,10 @@ class CustomExpansionTile extends StatefulWidget {
   final bool initiallyExpanded;
 
   @override
-  _CustomExpansionTileState createState() => _CustomExpansionTileState();
+  _CustomExpansionTileState createState() {
+    if (showDivider ?? false) children.insert(0, const Divider());
+    return _CustomExpansionTileState();
+  }
 }
 
 class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTickerProviderStateMixin {
@@ -135,17 +142,11 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
   }
 
   Widget _buildChildren(BuildContext context, Widget child) {
-    final Color borderSideColor = _borderColor.value ?? Colors.transparent;
 
     return Container(
-      /*
       decoration: BoxDecoration(
           color: _backgroundColor.value ?? Colors.transparent,
-          border: Border(
-            top: BorderSide(color: borderSideColor),
-            bottom: BorderSide(color: borderSideColor),
-          )
-      ),*/
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +165,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
               child: Text(
                 widget.title,
                 style: TextStyle(
-                  fontSize: widget.fontSize != null ? widget.fontSize : 25.0, //25.0 Is the default font size for this type of widget
+                  fontSize: widget.fontSize != null ? widget.fontSize : LyreTextStyles.title.fontSize, //25.0 Is the default font size for this type of widget
                   color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
                 ),
               ),
@@ -205,7 +206,9 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
     return AnimatedBuilder(
       animation: _controller.view,
       builder: _buildChildren,
-      child: closed ? null : Column(children: widget.children),
+      child: closed ? null : Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: widget.children),
     );
 
   }

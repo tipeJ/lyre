@@ -400,27 +400,30 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 floating: false,
                 pinned: true,
                 backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                automaticallyImplyLeading: false,
                 actions: <Widget>[Container()],
                 leading: Container(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
+                  titlePadding: EdgeInsets.only(left: 10.0),
                   title: Text(
-                    'r/' + currentSubreddit,
-                    style: prefix1.TextStyle(fontSize: 32.0),
+                    'Sidebar',
+                    style: LyreTextStyles.title,
                     ),
                   background: BlocBuilder<PostsBloc, PostsState>(
                     builder: (context, state){
-                      return state.styleSheetImages.isNotEmpty
-                        ? prefix1.Image(
+                      return state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                        ? FadeInImage(
+                          placeholder: MemoryImage(kTransparentImage),
                           image: AdvancedNetworkImage(
-                            state.styleSheetImages[0].url.toString(),
+                            state.subreddit.mobileHeaderImage.toString(),
                             useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: const Duration(days: 28)),
+                            cacheRule: CacheRule(maxAge: const Duration(days: 3)),
                           ),
-                          fit: BoxFit.fitHeight
+                          fit: BoxFit.cover
                         )
                         : Container(); // TODO: Placeholder image
-                    },
+                    }
                   ),
                 ),
               ),

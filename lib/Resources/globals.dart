@@ -29,7 +29,7 @@ enum PostView{
 }
 
 List<String> subreddits = [
-  "popular",
+  "Popular",
   "all",
   "announcements",
   "funny",

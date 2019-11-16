@@ -82,9 +82,7 @@ class PostsProvider {
         reddit = await getRed();
         var cUserDisplayname = "";
         if(!reddit.readOnly){
-          reddit.user.me().then((redditor){
-            cUserDisplayname = redditor.displayName;
-          });
+          cUserDisplayname = (await reddit.user.me()).displayName;
         }
         if(cUserDisplayname.toLowerCase() != username.toLowerCase()){
           //Prevent useless logins
@@ -369,6 +367,14 @@ class PostsProvider {
       return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');
+    }
+  }
+
+  Future<List<UserContent>> search({String query, String subReddit, String timeFilter}) {
+    if (notNull(subReddit)) {
+      return reddit.subreddit(subReddit).search(query, timeFilter: parseTimeFilter(timeFilter)).toList();
+    } else {
+      return reddit.subreddit('all').search(query, timeFilter: parseTimeFilter(timeFilter)).toList();
     }
   }
 

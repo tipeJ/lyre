@@ -126,11 +126,11 @@ class _replyWindowState extends State<replyWindow> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                            RaisedButton(
+                            OutlineButton(
                               child: Text('Close'),
                               onPressed:() => Navigator.of(context).maybePop(),
                             ),
-                            RaisedButton(
+                            OutlineButton(
                               child: Text('Retry'),
                               onPressed: _reply,
                             )

@@ -33,7 +33,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
               controller: _vController,
             );
           } else {
-            return const Center(child: CircularProgressIndicator(),);
+            return const Center(child: const CircularProgressIndicator(),);
           }
         },
       );

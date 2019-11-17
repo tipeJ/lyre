@@ -124,33 +124,40 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           IgnorePointer(
             ignoring: isPreviewing,
             child: 
+            /*
             Scaffold(
               body: Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
                 child: PersistentBottomAppbarWrapper(
                   fullSizeHeight: MediaQuery.of(context).size.height,
                   expandingSheetContent: testList(),
                   child: Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.orange,),
-                  appBarContent: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text('appbar'),
-                      OutlineButton(
-                        child: Text('test button'),
-                        onPressed: () {
-                          final snackBar = SnackBar(content: Text("Test snackbar"),);
-                          Scaffold.of(context).showSnackBar(snackBar);
-                        },
-                      )
-                  ],),
+                  appBarContent: Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('appbar'),
+                        OutlineButton(
+                          child: Text('test button'),
+                          onPressed: () {
+                            final snackBar = SnackBar(content: Text("Test snackbar"),);
+                            Scaffold.of(context).showSnackBar(snackBar);
+                          },
+                        )
+                    ],),
+                  ),
                 ),
               ),
-            )
-            /*
+            )*/
+            
             Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ),*/
+            ),
             //RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
           ),
           Visibility(
@@ -169,12 +176,10 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 class testList extends State<ExpandingSheetContent> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-       child: ListView.builder(
+    return ListView.builder(
          controller: widget.innerController,
          physics: widget.scrollEnabled ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
         itemBuilder: (BuildContext context, int index) => Card(child: Center(child: Text(index.toString()),),)
-       ),
-    );
+       );
   }
 }

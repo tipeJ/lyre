@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class PersistentBottomAppbarWrapper extends StatefulWidget {
   /// The body content
@@ -40,6 +41,8 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
   //current height of widget (bottom sheet)
   double height;
 
+  RefreshController _refreshController;
+
   @override
   void initState() { 
     super.initState();
@@ -55,6 +58,8 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
     _innerController = ScrollController();
     _innerController.addListener(_scrollOffsetChanged);
     isInnerScrollDoingDown = false;
+
+    _refreshController = RefreshController();
   }
 
   _lerp(double min, double max) => lerpDouble(min, max, _controller.value);
@@ -62,6 +67,7 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
   @override
   Widget build(BuildContext context) {
     fullSizeHeight = MediaQuery.of(context).size.height;
+    /*
     return GestureDetector(
       onVerticalDragUpdate: (DragUpdateDetails dragDetails) => dyOffset += dragDetails.delta.dy,
       onVerticalDragStart: (DragStartDetails dragDetails) {
@@ -74,30 +80,47 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
         color: Colors.deepOrange,
         child: ExpandingSheetContent(state: widget.expandingSheetContent, innerController: _innerController, scrollEnabled: _getInnerScrollEnabled(),)        
       ),
-    );
+    );*/
     return Stack(
       children: <Widget>[
         widget.child,
         Positioned(
           bottom: 0.0,
-          child: Column(children: <Widget>[
-            Container(
-              constraints: BoxConstraints(maxHeight: _lerp(50.0, 0.0)),
-              color: Theme.of(context).canvasColor,
-              child: ExpandingSheetContent(state: widget.expandingSheetContent, innerController: _innerController, scrollEnabled: _getInnerScrollEnabled(),)
-            ),
-            Container(
-              constraints: BoxConstraints(maxHeight: _lerp(0.0, widget.fullSizeHeight)),
-              color: Theme.of(context).canvasColor,
-              child: widget.appBarContent,
-            ),
-          ],),
+          child: GestureDetector(
+            onVerticalDragUpdate: (DragUpdateDetails dragDetails) {
+              dyOffset += dragDetails.delta.dy;
+              },
+      onVerticalDragStart: (DragStartDetails dragDetails) {
+        startPosition = dragDetails.globalPosition;
+        dyOffset = 0;
+      },
+      onVerticalDragEnd: (DragEndDetails dragDetails) => _changeHeight(),
+            child: Column(children: <Widget>[
+              Container(
+                constraints: BoxConstraints(maxHeight: _lerp(50.0, 0.0)),
+                color: Theme.of(context).canvasColor,
+                child: widget.appBarContent
+              ),
+              Container(
+                height: height,
+                width: MediaQuery.of(context).size.width,
+                color: Theme.of(context).canvasColor,
+                child: SmartRefresher(
+                  controller: _refreshController,
+                  enablePullUp: true,
+                  header: WaterDropHeader(),
+                  child: ExpandingSheetContent(state: widget.expandingSheetContent, scrollEnabled: _getInnerScrollEnabled(), innerController: _innerController,),
+
+                )
+              ),
+            ],),
+          ),
         )
       ],
     );
   }
   bool _getInnerScrollEnabled(){
-    bool isFullSize = _controller.value == 1.0;
+    bool isFullSize = heights.last == height;
     bool isScrollZeroOffset = _innerController.hasClients ? _innerController.offset == 0.0 && isInnerScrollDoingDown: false;
     bool result = isFullSize && !isScrollZeroOffset;
 
@@ -134,6 +157,31 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
             : heights[newIndex];
       });
     }
+  }
+}
+class InnerList extends StatelessWidget{
+  final bool scrollEnabled;
+  final ScrollController listViewScrollController;
+
+  InnerList({
+    @required this.scrollEnabled,
+    @required this.listViewScrollController
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Text("persistant text"),
+        Expanded(
+          child: ListView.builder(
+            controller: listViewScrollController,
+            physics: scrollEnabled ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) => Card(child: Center(child: Text(index.toString()),),)
+          ),
+        )
+      ],
+    );
   }
 }
 class ExpandingSheetContent extends StatefulWidget {

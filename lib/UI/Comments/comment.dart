@@ -229,7 +229,6 @@ class _CommentWidgetState extends State<CommentWidget> {
                 'comment'        : widget.comment,
                 'reply_text'  : _replyController?.text
               }).then((returnValue) {
-                print('received');
                 if (returnValue is Comment) {
                   setState(() {
                     _handleReplyButtonToggle();
@@ -407,7 +406,9 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
                   ? new Padding(
                       padding: EdgeInsets.all(5.0),
                       child: SizedBox(
-                        child: CircularProgressIndicator(),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
                         height: 18.0,
                         width: 18.0,
                       ),

@@ -52,7 +52,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       //Only should occur when the submission is fetched from a comment permalink for the first time.
       if (userContent is CommentRef) {
         parentComment = await userContent.populate();
-        print(parentComment.id + 'parentid');
         final submissionRef = parentComment.submission;
         submission = await submissionRef.populate();
         _addCommentsFromForest([parentComment]);
@@ -64,7 +63,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         var forest = await submission.refreshComments(sort: event.commentSortType);
         _addCommentsFromForest(forest.comments);
       }
-      print(_comments.length.toString() + 'length');
       yield CommentsState(submission: submission, comments: _comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
     } else if(event is FetchMore){
       var more = event.moreComments;
@@ -81,7 +79,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       _collapse(event.location);
       yield CommentsState(submission: state.submission, comments: _comments, sortType: state.sortType);
     } else if(event is AddComment){
-      state.comments.insert(event.location+1, CommentM.from(event.comment));
+      final c = event.comment;
+      c.data['depth'] = state.comments[event.location].c.data['depth'] + 1;
+      state.comments.insert(event.location+1, CommentM.from(c));
       yield CommentsState(submission: state.submission, comments: state.comments, sortType: state.sortType);
     }
     loadingMoreId = ""; //Resets the loadingMoreId value.

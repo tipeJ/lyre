@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';
+import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
@@ -123,7 +124,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           IgnorePointer(
             ignoring: isPreviewing,
             child: 
-            
             Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
@@ -142,5 +142,40 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       );
     },
     );
+  }
+}
+
+class testAppbar extends StatelessWidget {
+  const testAppbar({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text('appbar'),
+        OutlineButton(
+          child: Text('test button'),
+          onPressed: () {
+            final snackBar = SnackBar(content: Text("Test snackbar"),);
+            Scaffold.of(context).showSnackBar(snackBar);
+          },
+        )
+    ],);
+  }
+}
+class testList extends State<ExpandingSheetContent> {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+               controller: widget.innerController,
+               physics: widget.scrollEnabled ? BouncingScrollPhysics() : NeverScrollableScrollPhysics(),
+              itemBuilder: (BuildContext context, int index) => InkWell(
+                onTap: () => widget.appbarController.expansionController.animateTo(0.0),
+                child: Card(child: Center(child: Text(index.toString()),),)
+              )
+             );
   }
 }

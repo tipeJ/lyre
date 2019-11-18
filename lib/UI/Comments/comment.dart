@@ -116,8 +116,8 @@ class _CommentWidgetState extends State<CommentWidget> {
   @override
   Widget build(BuildContext context) {
     return widget.comment.isRoot
-            ? _commentContent(context)
-            : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context));
+      ? _commentContent(context)
+      : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context));
   }
 
   Column _commentContent(BuildContext context) {

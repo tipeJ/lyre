@@ -6,6 +6,7 @@ import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
+import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/postInnerWidget.dart';
 import '../../Resources/globals.dart';
@@ -74,9 +75,9 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                 ),
               ),
             ),
-            body: Stack(
-              children:  <Widget>[
-                StatefulBuilder(
+            body: PersistentBottomAppbarWrapper(
+              fullSizeHeight: null,
+              body: StatefulBuilder(
                   builder: (BuildContext context, setState) {
                     return BlocBuilder<CommentsBloc, CommentsState>(
                       builder: (context, state) {
@@ -100,56 +101,49 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                     
                   },
                 ),
-                Positioned(
-                  bottom: 0.0,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
-                    width: MediaQuery.of(context).size.width,
-                    height: 50.0,
-                    color: Theme.of(context).primaryColor,
-                    child: BlocBuilder<CommentsBloc, CommentsState> (
-                      builder: (context, state) {
-                        return notNull(state) && state.parentComment == null
-                          ? Row(
-                              children: <Widget>[
-                                IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
-                                Text("Comments"),
-                                Spacer(),
-                                DropdownButton<CommentSortType>(
-                                  value: state.sortType,
-                                  items: CommentSortType.values.map((CommentSortType value) {
-                                    return new DropdownMenuItem<CommentSortType>(
-                                      value: value,
-                                      child: new Text(value.toString().split(".")[1]),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
-                                    setState(() {
-                                    });
-                                  },
-                                )
-                              ],
+                appBarContent: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: BlocBuilder<CommentsBloc, CommentsState> (
+                    builder: (context, state) {
+                      return notNull(state) && state.parentComment == null
+                        ? Row(
+                          children: <Widget>[
+                            IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
+                            Text("Comments"),
+                            Spacer(),
+                            DropdownButton<CommentSortType>(
+                              value: state.sortType,
+                              items: CommentSortType.values.map((CommentSortType value) {
+                                return new DropdownMenuItem<CommentSortType>(
+                                  value: value,
+                                  child: new Text(value.toString().split(".")[1]),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
+                                setState(() {
+                                });
+                              },
                             )
-                          : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text("You are viewing a single comment"),
-                              RaisedButton(
-                                child: Text("View All Comments"),
-                                onPressed: (){
-                                  BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
-                                },
-                              )
-                            ],
-                          );
-                      }
-                    )
-                    
-                  ),
-                )
-              ],
-            )),
+                          ],
+                        )
+                        : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text("You are viewing a single comment"),
+                            RaisedButton(
+                              child: Text("View All Comments"),
+                              onPressed: (){
+                                BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
+                              },
+                            )
+                          ],
+                        );
+                    }
+                  )
+                ),
+              )
+            ),
         onWillPop: requestPop);
   }
 

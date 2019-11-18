@@ -29,15 +29,36 @@ class App extends StatelessWidget{
             ),
           );
         } else {
-          return Container(
-            width: 25.0,
-            height: 25.0,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+          return MaterialApp(
+            home: LyreSplashScreen(),
           );
         }
       },
+    );
+  }
+}
+//TODO: Create a splashscreen animation
+class LyreSplashScreen extends StatelessWidget {
+  const LyreSplashScreen({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: Center(child: Material(
+        color: Colors.grey[900],
+        child: Text('Lyre', style: TextStyle(fontFamily: 'Roboto', fontSize: 32.0, color: Colors.white70, letterSpacing: 3.5,),)
+      ),),
+      color: Colors.grey[900],
+    );
+    return Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.red,);
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        child: Material(child: Center(child: Text('Lyre', style: TextStyle(fontFamily: 'Roboto', fontSize: 32.0),),),),
+        color: Colors.black,
+      )
     );
   }
 }
@@ -142,40 +163,5 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       );
     },
     );
-  }
-}
-
-class testAppbar extends StatelessWidget {
-  const testAppbar({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text('appbar'),
-        OutlineButton(
-          child: Text('test button'),
-          onPressed: () {
-            final snackBar = SnackBar(content: Text("Test snackbar"),);
-            Scaffold.of(context).showSnackBar(snackBar);
-          },
-        )
-    ],);
-  }
-}
-class testList extends State<ExpandingSheetContent> {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-               controller: widget.innerController,
-               physics: widget.scrollEnabled ? BouncingScrollPhysics() : NeverScrollableScrollPhysics(),
-              itemBuilder: (BuildContext context, int index) => InkWell(
-                onTap: () => widget.appbarController.expansionController.animateTo(0.0),
-                child: Card(child: Center(child: Text(index.toString()),),)
-              )
-             );
   }
 }

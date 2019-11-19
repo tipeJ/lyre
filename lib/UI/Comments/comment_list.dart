@@ -84,10 +84,12 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty) {
                           return CustomScrollView(
                             slivers: <Widget>[
-                              SliverToBoxAdapter(
-                                child:  Hero(
-                                  tag: 'post_hero ${(state.submission as Submission).id}',
-                                  child:  postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
+                              SliverSafeArea(
+                                sliver: SliverToBoxAdapter(
+                                  child:  Hero(
+                                    tag: 'post_hero ${(state.submission as Submission).id}',
+                                    child:  postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
+                                  ),
                                 ),
                               ),
                               getCommentWidgets(context, state.comments),

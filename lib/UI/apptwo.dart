@@ -6,6 +6,7 @@ import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
+import 'package:lyre/UI/reddit_view.dart';
 
 class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){
@@ -145,12 +146,13 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           IgnorePointer(
             ignoring: isPreviewing,
             child: 
+            /*
             Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
-            ),
-            //RedditView(query: "https://old.reddit.com/r/AskReddit/comments/dtttsl/you_must_die_in_next_48_hours_if_you_get_a_darwin/f6yqinj/",) 
+            ),*/
+            RedditView(query: "https://old.reddit.com/r/wallpaperdump/comments/dshmke/assorted_backgrounds/f6rmvk8/",) 
           ),
           Visibility(
             visible: isPreviewing,

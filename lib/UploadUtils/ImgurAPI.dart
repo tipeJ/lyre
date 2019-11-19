@@ -66,7 +66,10 @@ class ImgurAPI {
     final qualityValue = imgurThumbnailsQuality[qualityKey];
     imagesJson.forEach((image){
       final imageUrl = image['link'];
-      final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last + qualityValue + "." + imageUrl.split(",").last;
+      print(imageUrl + ' image');
+      print(imageUrl.split('/').last);
+      final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last.split('.').first + qualityValue + "." + imageUrl.split(".").last;
+      print(thumbNailUrl + ' thumbnail');
 
       images.add(LyreImage(description: image['description'], url: imageUrl, thumbnailUrl: thumbNailUrl));
     });

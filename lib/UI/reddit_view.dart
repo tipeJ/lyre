@@ -18,7 +18,7 @@ class RedditView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: PostsProvider().getCRef('f6yqinj'),
+      future: PostsProvider().getCRef('f6rmvk8'),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final CommentsBloc _commentsBloc = CommentsBloc(snapshot.data);

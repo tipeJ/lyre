@@ -37,7 +37,6 @@ class _ImageViewerState extends State<ImageViewer> {
 
   @override 
   void dispose() {
-    _albumController?.dispose();
     super.dispose();
   }
 
@@ -116,7 +115,6 @@ class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
   }
   @override
   void dispose() { 
-    _albumController.dispose();
     super.dispose();
   }
   @override
@@ -152,7 +150,6 @@ class AlbumController extends ChangeNotifier{
   }
 
   void setCurrentIndex(int newIndex){
-    print("UPDATE" + currentIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -206,8 +203,11 @@ class _AlbumViewerState extends State<AlbumViewer> {
   @override void dispose(){
     pageController.dispose();
     _albumController.dispose();
+    _scrollController = ScrollController();
     super.dispose();
   }
+
+  ScrollController _scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -232,8 +232,8 @@ class _AlbumViewerState extends State<AlbumViewer> {
               maxScale: 5.0,
               imageProvider: AdvancedNetworkImage(
                 image,
-                useDiskCache: false,
-                cacheRule: const CacheRule(maxAge: Duration(days: 7))
+                useDiskCache: true,
+                cacheRule: const CacheRule(maxAge: const Duration(minutes: 40))
               )
             );
           default:
@@ -380,7 +380,6 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   @override
   void dispose() { 
     _expansionController.dispose();
-    _albumController.dispose();
     super.dispose();
   }
 
@@ -447,13 +446,13 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
             color: Colors.black87,
             child: GridView.builder(
               controller: gridController,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (4).round()),
+              physics: BouncingScrollPhysics(),
+              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: (4).round()),
               itemCount: _albumController.images.length,
               scrollDirection: Axis.vertical,
               itemBuilder: (context, i){
                 final url = _albumController.images[i].thumbnailUrl;
+                print(url);
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
                   return GestureDetector(
                     child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
@@ -506,12 +505,6 @@ class _PreviewImageState extends State<PreviewImage> {
   bool selected = false;
 
   @override
-  void dispose() { 
-    _albumController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     _albumController = AlbumController.of(context);
     if (_albumController.currentIndex == widget.index) selected = true;
@@ -547,21 +540,23 @@ class ImageControlsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _albumController = isAlbum ? AlbumController.of(context) : null;
-    return Container(
-      height: 50.0,
-      width: MediaQuery.of(context).size.width,
-      color: Colors.black.withOpacity(0.6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          _buildCopyButton(context),
-          _buildOpenUrlButton(context),
-          submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
-          _buildDownloadButton(context),
-          _buildShareButton(context),
-          _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
-        ].where((w) => notNull(w)).toList(),
-      ),
+    return Material(
+      child: Container(
+        height: 50.0,
+        width: MediaQuery.of(context).size.width,
+        color: Colors.black.withOpacity(0.6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            _buildCopyButton(context),
+            _buildOpenUrlButton(context),
+            submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
+            _buildDownloadButton(context),
+            _buildShareButton(context),
+            _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
+          ].where((w) => notNull(w)).toList(),
+        ),
+      )
     );
   }
   Widget _buildCopyButton(BuildContext context){

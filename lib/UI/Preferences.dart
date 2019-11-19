@@ -347,6 +347,16 @@ class _PreferencesViewState extends State<PreferencesView> {
           ),
           */
           SettingsTitleRow(
+            title: "Album Column Amount",
+            leading: OutlineButton(
+              child: Text(box.get(ALBUM_COLUMN_AMOUNT) != null ? box.get(ALBUM_COLUMN_AMOUNT).toString() : 'Auto'),
+              onPressed: () {
+                _columnAmount = box.get(ALBUM_COLUMN_AMOUNT);
+                _showAlbumColumnsDialog();
+              },
+            )
+          ),
+          SettingsTitleRow(
             title: "Loop Videos",
             leading: Switch(
               value: box.get(VIDEO_LOOP) ?? true,
@@ -428,6 +438,61 @@ class _PreferencesViewState extends State<PreferencesView> {
     return Visibility(
       child: Column(children: children,),
       visible: isAdvanced == advanced,
+    );
+  }
+
+  int _columnAmount;
+  Widget _columnIndicators() {
+    return _columnAmount == null
+      ? Center(child: Text('Auto'),)
+      : Row(children: List<Widget>.generate(_columnAmount, (i) => Container(
+        padding: EdgeInsets.symmetric(horizontal: 1.0),
+        width: 45.0,
+        height: 45.0,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black54)
+        ),
+      )),);
+  }
+  void _showAlbumColumnsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Amount of columns'),
+          content: Column(
+            children: <Widget>[
+              _columnIndicators(),
+              Slider(
+                divisions: 5,
+                min: 2,
+                max: 7,
+                onChanged: (double newValue) {
+                  setState(() {
+                   _columnAmount = newValue.round(); 
+                  });
+                },
+                value: _columnAmount ?? 1,
+              )
+            ],
+          ),
+          actions: <Widget>[
+            OutlineButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            OutlineButton(
+              child: Text('OK'),
+              onPressed: () {
+                box.put(ALBUM_COLUMN_AMOUNT, _columnAmount);
+                Navigator.pop(context);
+              },
+            )
+          ],
+        );
+      }
     );
   }
 }

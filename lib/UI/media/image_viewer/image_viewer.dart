@@ -173,6 +173,13 @@ class AlbumController extends ChangeNotifier{
     }
     notifyListeners();
   }
+  void closeExpanded(){
+    if (fullyExpanded){
+      fullyExpanded = false;
+      expanded = false;
+      notifyListeners();
+    }
+  }
 }
 class _AlbumControllerProvider extends InheritedWidget {
   const _AlbumControllerProvider({
@@ -278,7 +285,10 @@ class SingleImageViewer extends StatelessWidget {
   }
 }
 class AlbumControlsBar extends StatefulWidget {
-  AlbumControlsBar({Key key}) : super(key: key);
+  ///The minimum height for the horizontal previewsBar. Will get one-tenths of gallery height if it's larger that way.
+  final double minimumHeight;
+
+  AlbumControlsBar({Key key, this.minimumHeight = 75.00}) : super(key: key);
 
   _AlbumControlsBarState createState() => _AlbumControlsBarState();
 }
@@ -295,7 +305,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       //TODO: ! ADD CUSTOM FLING ANIMATION FOR GRID
     } else {
       _expansionController.value -= details.primaryDelta /
-      maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
+      _maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
     }
     
   }
@@ -361,9 +371,9 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   bool isExpanded() => _expansionController.value >= 0.1;
   bool fullyExpanded() => _expansionController.value == 1.0;
   double getExpandedBarHeight(){
-    return min(maxExpandedBarHeight * 0.1, 125);
+    return min(_maxExpandedBarHeight * 0.1, 125);
   }
-  double maxExpandedBarHeight = 500.0; //Fallback value
+  double _maxExpandedBarHeight = 500.0; //Fallback value
 
   @override
   void didUpdateWidget(AlbumControlsBar oldWidget) {
@@ -385,6 +395,13 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
       });
     });
     _gridController = ScrollController();
+    _gridController.addListener(() {
+      if (_gridController.offset < 0.0) {
+        setState(() {
+         _popIndicatorOpacity = min(1.0, -_gridController.offset / (_maxExpandedBarHeight / 6)); 
+        });
+      }
+    });
     super.initState();
   }
 
@@ -397,7 +414,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     _albumController = AlbumController.of(context);
-    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
+    _maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
     _albumController.addListener((){
       if (_albumController.expanded != isExpanded() || _albumController.fullyExpanded != fullyExpanded()) {
         if (_albumController.fullyExpanded) {
@@ -421,16 +438,19 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
        )
     );
   }
+  double _popIndicatorOpacity = 0.0;
 
   ScrollController _gridController;  
   Widget getPreviewsBar(BuildContext context){
     return Container(
-      height: lerp(0, maxExpandedBarHeight),
+      height: _maxExpandedBarHeight,
       width: MediaQuery.of(context).size.width,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget> [
          Container(
-            height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
+            //Height of horizontal-scrolling previewsBar
+            height: min((_expansionController.value * 10) * max(_maxExpandedBarHeight * 0.1, widget.minimumHeight), (1.1-(_expansionController.value * _expansionController.value+0.1)) * max(_maxExpandedBarHeight * 0.1, widget.minimumHeight)),//min(_maxExpandedBarHeight * min(1 - _expansionController.value, 0.1), _expansionController.value * _maxExpandedBarHeight),
             child: ListView.builder(
               itemCount: _albumController.images.length,
               scrollDirection: Axis.horizontal,
@@ -453,35 +473,58 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
             ),
           ),
           Container(
-            height: maxExpandedBarHeight,
+            //Height of gallery
+            height: max((_expansionController.value - 0.1) * _maxExpandedBarHeight, 0.0),
             //Color that overlays the pageview underneath.
             color: Colors.black87,
-            child: GridView.builder(
-              controller: _gridController,
-              physics: BouncingScrollPhysics(),
-              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: (4).round()),
-              itemCount: _albumController.images.length,
-              scrollDirection: Axis.vertical,
-              itemBuilder: (context, i){
-                final url = _albumController.images[i].thumbnailUrl;
-                if (url != null && getLinkType(url) == LinkType.DirectImage){
-                  return GestureDetector(
-                    child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
-                    onTap: (){
-                      setState(() {
-                        _albumController.setCurrentIndex(i);                
-                        _reverseExpanded();
-                      });
-                    },
-                  );
-                }
-                //Empty widget in case of error
-                return Container();
+            //Listens for scroll end events. if the indicator opacity is high enough, reverse the animation.
+            child: Listener(
+              onPointerUp: (PointerUpEvent event) {
+                  if (_popIndicatorOpacity > 0.9) {
+                    _albumController.closeExpanded();
+                  }
+                return true;
               },
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 25.0),
+                      child: Opacity(
+                        opacity: _popIndicatorOpacity,
+                        child: Icon(Icons.arrow_downward, size: 45.0,),
+                      ),
+                    ),
+                  ),
+                  GridView.builder(
+                    controller: _gridController,
+                    physics: BouncingScrollPhysics(),
+                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: (4).round()),
+                    itemCount: _albumController.images.length,
+                    scrollDirection: Axis.vertical,
+                    itemBuilder: (context, i){
+                      final url = _albumController.images[i].thumbnailUrl;
+                      if (url != null && getLinkType(url) == LinkType.DirectImage){
+                        return GestureDetector(
+                          child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
+                          onTap: (){
+                            setState(() {
+                              _albumController.setCurrentIndex(i);                
+                              _reverseExpanded();
+                            });
+                          },
+                        );
+                      }
+                      //Empty widget in case of error
+                      return Container();
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ]
-        
       )
     );
   }

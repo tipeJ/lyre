@@ -26,6 +26,7 @@ const VIDEO_ENABLE_ROTATION = "enableVideoRotation";
 const VIDEO_LOOP = "videoLoop";
 const VIDEO_AUTO_MUTE = "videoAutoMute";
 const IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";
+const ALBUM_COLUMN_AMOUNT = "albumColumnAmount";
 
 // * Filters:
 const SHOW_NSFW_PREVIEWS = "showNSFWPreviews";

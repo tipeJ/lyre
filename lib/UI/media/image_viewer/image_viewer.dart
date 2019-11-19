@@ -4,8 +4,11 @@ import 'dart:ui' as prefix0;
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Models/image.dart';
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Themes/bloc/lyre_bloc.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
@@ -442,6 +445,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 
   ScrollController _gridController;  
   Widget getPreviewsBar(BuildContext context){
+    final int columnCount = BlocProvider.of<LyreBloc>(context).state.settings.get(ALBUM_COLUMN_AMOUNT) ?? max(3, (MediaQuery.of(context).size.width / 125.0).floor()); //The amount of columns in gallery. Minimum is 3. Can be overridden by user.
     return Container(
       height: _maxExpandedBarHeight,
       width: MediaQuery.of(context).size.width,
@@ -500,7 +504,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                   GridView.builder(
                     controller: _gridController,
                     physics: BouncingScrollPhysics(),
-                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: (4).round()),
+                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columnCount),
                     itemCount: _albumController.images.length,
                     scrollDirection: Axis.vertical,
                     itemBuilder: (context, i){

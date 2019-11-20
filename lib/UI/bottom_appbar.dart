@@ -10,7 +10,6 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
   final Widget appBarContent;
   /// The content for the expanding part of the bottom sheet
   final State<ExpandingSheetContent> expandingSheetContent;
-  final height = 75.0;
   /// The full expanded height of the expanded bottom sheet
   final double fullSizeHeight;
 
@@ -65,44 +64,50 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        widget.body,
-        Positioned(
-          bottom: 0.0,
-          child: GestureDetector(
-            onVerticalDragUpdate: (DragUpdateDetails details) => _controller.value -= details.primaryDelta / widget.fullSizeHeight, //<-- Update the _controller.value by the movement done by user.
-            onVerticalDragEnd: _changeHeight,
-            child: Column(children: <Widget>[
-              Container(
-                constraints: BoxConstraints(maxHeight: _lerp(widget.height, 0.0)),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(_lerp(15.0, 0.0)),
-                    topRight: Radius.circular(_lerp(15.0, 0.0)),
+    final _height = 56.0;
+    print(_height.toString());
+    return WillPopScope(
+      onWillPop: _willPop,
+      child: Stack(
+        children: <Widget>[
+          widget.body,
+          Positioned(
+            bottom: 0.0,
+            child: GestureDetector(
+              onVerticalDragUpdate: (DragUpdateDetails details) => _controller.value -= details.primaryDelta / widget.fullSizeHeight, //<-- Update the _controller.value by the movement done by user.
+              onVerticalDragEnd: _changeHeight,
+              child: Column(children: <Widget>[
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: _height,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(_lerp(15.0, 0.0)),
+                      topRight: Radius.circular(_lerp(15.0, 0.0)),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(_lerp(0.38, 0.85)),
+                        blurRadius: _lerp(12.0, 50.0),
+                        spreadRadius: _lerp(5.0, 25.0),
+                        offset: Offset(0.0, -2.5)
+                      )
+                    ]
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 12.0,
-                      spreadRadius: 5.0,
-                      offset: Offset(0.0, -2.5)
-                    )
-                  ]
+                  child: widget.appBarContent
                 ),
-                child: widget.appBarContent
-              ),
-              Container(
-                height: _lerp(0.0, widget.fullSizeHeight),
-                width: MediaQuery.of(context).size.width,
-                color: Theme.of(context).canvasColor,
-                child: ExpandingSheetContent(state: widget.expandingSheetContent, scrollEnabled: _getInnerScrollEnabled(), innerController: _innerController, appbarController: _appbarController,)
-              ),
-            ],),
-          ),
-        )
-      ],
+                Container(
+                  height: _lerp(0.0, widget.fullSizeHeight),
+                  width: MediaQuery.of(context).size.width,
+                  color: Theme.of(context).canvasColor,
+                  child: ExpandingSheetContent(state: widget.expandingSheetContent, scrollEnabled: _getInnerScrollEnabled(), innerController: _innerController, appbarController: _appbarController,)
+                ),
+              ],),
+            ),
+          )
+        ],
+      )
     );
   }
   bool _getInnerScrollEnabled(){
@@ -132,15 +137,15 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
     final double flingVelocity = details.velocity.pixelsPerSecond.dy / widget.fullSizeHeight; //<-- calculate the velocity of the gesture
     if (flingVelocity < 0.0) {
       _controller.fling(
-          velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
+        velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
     } else if (flingVelocity > 0.0) {
       _controller.fling(
-          velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
+        velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
     } else
       _controller.fling(
-          velocity: _controller.value < 0.5
-              ? -2.0
-              : 2.0); //<-- or just continue to whichever edge is closer
+        velocity: _controller.value < 0.5
+          ? -2.0
+          : 2.0); //<-- or just continue to whichever edge is closer
   }
 }
 class ExpandingAppbarController extends ChangeNotifier {
@@ -164,6 +169,7 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
 
   @override
   Widget build(BuildContext context) {
+    final _height = min(MediaQuery.of(context).size.height / 10, 75.0);
     return Stack(
       children: <Widget>[
         widget.body,
@@ -172,7 +178,7 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
           child: Container(
             width: MediaQuery.of(context).size.width,
             color: Theme.of(context).canvasColor,
-            constraints: BoxConstraints(maxHeight: widget.height),
+            constraints: BoxConstraints(maxHeight: _height),
             child: widget.appBarContent,
           ),
         )

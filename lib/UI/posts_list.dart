@@ -184,6 +184,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   ),
                 title: Text(
                   state.getSourceString(),
+                  overflow: TextOverflow.fade,
                   style: LyreTextStyles.title,
                 ),
                 collapseMode: CollapseMode.parallax,
@@ -478,17 +479,38 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               }
             },
           ),
-          appBarContent: Container(
-            color: Theme.of(context).canvasColor,
-            width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+          appBarContent: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
               children: <Widget>[
-                Text(currentSubreddit),
-                OutlineButton(
-                  child: Text('CCC'),
-                  onPressed: () {},
+                BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 0.0),
+                      child: Wrap(
+                        direction: Axis.vertical,
+                        children: <Widget>[
+                          Text(
+                            state.getSourceString(),
+                            style: LyreTextStyles.typeParams
+                          ),
+                          Text(
+                            state.getFilterString(),
+                            style: LyreTextStyles.timeParams,
+                          )
+                        ],
+                      )
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.create),
+                  onPressed: () {
+                    
+                  },
                 )
               ],
             ),

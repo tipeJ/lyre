@@ -445,7 +445,8 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
 
   ScrollController _gridController;  
   Widget getPreviewsBar(BuildContext context){
-    final int columnCount = BlocProvider.of<LyreBloc>(context).state.settings.get(ALBUM_COLUMN_AMOUNT) ?? max(3, (MediaQuery.of(context).size.width / 125.0).floor()); //The amount of columns in gallery. Minimum is 3. Can be overridden by user.
+    final preferenceString = MediaQuery.of(context).orientation == Orientation.portrait ? ALBUM_COLUMN_AMOUNT_PORTRAIT : ALBUM_COLUMN_AMOUNT_LANDSCAPE;
+    final int columnCount = BlocProvider.of<LyreBloc>(context).state.settings.get(preferenceString) ?? max(3, (MediaQuery.of(context).size.width / 125.0).floor()); //The amount of columns in gallery. Minimum is 3. Can be overridden by user.
     return Container(
       height: _maxExpandedBarHeight,
       width: MediaQuery.of(context).size.width,

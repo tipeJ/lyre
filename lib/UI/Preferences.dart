@@ -14,7 +14,7 @@ class PreferencesView extends StatefulWidget {
 
   _PreferencesViewState createState() => _PreferencesViewState();
 }
-class _PreferencesViewState extends State<PreferencesView> {
+class _PreferencesViewState extends State<PreferencesView> with SingleTickerProviderStateMixin{
 
   Box box;
   bool advanced = false;
@@ -349,9 +349,9 @@ class _PreferencesViewState extends State<PreferencesView> {
           SettingsTitleRow(
             title: "Album Column Amount",
             leading: OutlineButton(
-              child: Text(box.get(ALBUM_COLUMN_AMOUNT) != null ? box.get(ALBUM_COLUMN_AMOUNT).toString() : 'Auto'),
+              child: Text(MediaQuery.of(context).orientation == Orientation.portrait ? (box.get(ALBUM_COLUMN_AMOUNT_PORTRAIT) != null ? box.get(ALBUM_COLUMN_AMOUNT_PORTRAIT).toString() : 'Auto') : (box.get(ALBUM_COLUMN_AMOUNT_LANDSCAPE) != null ? box.get(ALBUM_COLUMN_AMOUNT_LANDSCAPE).toString() : 'Auto')),
               onPressed: () {
-                _columnAmount = box.get(ALBUM_COLUMN_AMOUNT);
+                _columnAmountPortrait = box.get(ALBUM_COLUMN_AMOUNT_PORTRAIT);
                 _showAlbumColumnsDialog();
               },
             )
@@ -441,57 +441,137 @@ class _PreferencesViewState extends State<PreferencesView> {
     );
   }
 
-  int _columnAmount;
-  Widget _columnIndicators() {
-    return _columnAmount == null
-      ? Center(child: Text('Auto'),)
-      : Row(children: List<Widget>.generate(_columnAmount, (i) => Container(
+  int _columnAmountPortrait;
+  int _columnAmountLandscape;
+  Widget _columnIndicators(int amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List<Widget>.generate(amount, (i) => Container(
         padding: EdgeInsets.symmetric(horizontal: 1.0),
-        width: 45.0,
-        height: 45.0,
+        width: 225 / amount,
+        height: 225 / amount,
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black54)
         ),
-      )),);
+        child: Center(child: Icon(Icons.image),),
+    )),);
   }
   void _showAlbumColumnsDialog() {
+    final _tabController = TabController(vsync: this, length: 2);
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Amount of columns'),
-          content: Column(
-            children: <Widget>[
-              _columnIndicators(),
-              Slider(
-                divisions: 5,
-                min: 2,
-                max: 7,
-                onChanged: (double newValue) {
-                  setState(() {
-                   _columnAmount = newValue.round(); 
-                  });
-                },
-                value: _columnAmount ?? 1,
-              )
-            ],
-          ),
-          actions: <Widget>[
-            OutlineButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            OutlineButton(
-              child: Text('OK'),
-              onPressed: () {
-                box.put(ALBUM_COLUMN_AMOUNT, _columnAmount);
-                Navigator.pop(context);
-              },
-            )
-          ],
+        return StatefulBuilder(
+          builder: (BuildContext context, setState) {
+             return AlertDialog(
+              title: Text('Amount of Columns'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TabBar(
+                    controller: _tabController,
+                    tabs: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 3.5),
+                        child: Text('Portrait'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 3.5),
+                        child: Text('Landscape'),
+                      ),
+                    ],
+                  ),
+                  TabBarView(
+                    controller: _tabController,
+                    children: <Widget>[
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Row(children: <Widget>[
+                            Text('Select Automatically'),
+                            Checkbox(
+                              value: _columnAmountPortrait == null,
+                              onChanged: (bool newValue) {
+                                setState(() {
+                                  _columnAmountPortrait = newValue ? null : 3;
+                                });
+                              },
+                            )
+                          ],),
+                          _columnAmountPortrait != null
+                            ? _columnIndicators(_columnAmountPortrait)
+                            : null,
+                          _columnAmountPortrait != null
+                            ? Slider(
+                                divisions: 5,
+                                min: 2,
+                                max: 7,
+                                onChanged: (double newValue) {
+                                  setState(() {
+                                    _columnAmountPortrait = newValue.round(); 
+                                  });
+                                },
+                                value: _columnAmountPortrait == null ? 3.0 : _columnAmountPortrait.toDouble(),
+                              )
+                            : null,
+                        ].where((w) => notNull(w)).toList(),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Row(children: <Widget>[
+                            Text('Select Automatically'),
+                            Checkbox(
+                              value: _columnAmountLandscape == null,
+                              onChanged: (bool newValue) {
+                                setState(() {
+                                  _columnAmountLandscape = newValue ? null : 3;
+                                });
+                              },
+                            )
+                          ],),
+                          _columnAmountLandscape != null
+                            ? _columnIndicators(_columnAmountLandscape)
+                            : null,
+                          _columnAmountLandscape != null
+                            ? Slider(
+                                divisions: 5,
+                                min: 2,
+                                max: 7,
+                                onChanged: (double newValue) {
+                                  setState(() {
+                                    _columnAmountLandscape = newValue.round(); 
+                                  });
+                                },
+                                value: _columnAmountLandscape == null ? 3.0 : _columnAmountLandscape.toDouble(),
+                              )
+                            : null,
+                        ].where((w) => notNull(w)).toList(),
+                      )
+                    ],
+                  )
+                ],
+              ),
+              actions: <Widget>[
+                OutlineButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                OutlineButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    box.put(ALBUM_COLUMN_AMOUNT_PORTRAIT, _columnAmountPortrait);
+                    box.put(ALBUM_COLUMN_AMOUNT_LANDSCAPE, _columnAmountLandscape);
+                    Navigator.pop(context);
+                  },
+                )
+              ],
+            );
+          },
         );
+       
       }
     );
   }

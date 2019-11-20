@@ -26,7 +26,8 @@ const VIDEO_ENABLE_ROTATION = "enableVideoRotation";
 const VIDEO_LOOP = "videoLoop";
 const VIDEO_AUTO_MUTE = "videoAutoMute";
 const IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";
-const ALBUM_COLUMN_AMOUNT = "albumColumnAmount";
+const ALBUM_COLUMN_AMOUNT_PORTRAIT = "albumColumnAmountPortrait";
+const ALBUM_COLUMN_AMOUNT_LANDSCAPE = "albumColumnAmountLandscape";
 
 // * Filters:
 const SHOW_NSFW_PREVIEWS = "showNSFWPreviews";

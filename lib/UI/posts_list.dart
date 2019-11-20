@@ -1,3 +1,6 @@
+import 'dart:ui' as prefix2;
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:draw/draw.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix1;
@@ -12,6 +15,7 @@ import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../Models/Subreddit.dart';
@@ -28,6 +32,12 @@ class PostsList extends StatefulWidget {
   PostsList({Key key}) : super(key: key);
 
   State<PostsList> createState() => new PostsListState();
+}
+
+enum ParamsVisibility {
+  Type,
+  Time,
+  None    
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
@@ -479,43 +489,226 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               }
             },
           ),
-          appBarContent: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                BlocBuilder<PostsBloc, PostsState>(
-                  builder: (context, state) {
-                    return Wrap(
-                      direction: Axis.vertical,
-                      children: <Widget>[
-                        Text(
-                          state.getSourceString(),
-                          style: LyreTextStyles.typeParams
-                        ),
-                        Text(
-                          state.getFilterString(),
-                          style: LyreTextStyles.timeParams,
+          appBarContent: BlocBuilder<PostsBloc, PostsState>(
+            builder: (context, state) {
+              return _paramsVisibility == ParamsVisibility.None
+                ? Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Expanded(
+                        child: Material(
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _paramsVisibility = ParamsVisibility.Type; 
+                              });
+                            },
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              children: <Widget>[
+                                Text(
+                                  state.getSourceString(),
+                                  style: LyreTextStyles.typeParams
+                                ),
+                                Text(
+                                  state.getFilterString(),
+                                  style: LyreTextStyles.timeParams.apply(
+                                    color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
+                                  ),
+                                )
+                              ],
+                            )
+                          )
                         )
-                      ],
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.create),
-                  onPressed: () {
-                    
-                  },
+                      ),
+                      Material(
+                        child: IconButton(
+                          icon: Icon(Icons.create),
+                          onPressed: () {
+                            setState(() {
+                              if (PostsProvider().isLoggedIn()) {
+                                Navigator.of(context).pushNamed('submit');
+                              } else {
+                                final snackBar = SnackBar(
+                                  content: Text(
+                                      'Log in to post your submission'),
+                                );
+                                Scaffold.of(context).showSnackBar(snackBar);
+                              }
+                            });
+                          },
+                        )
+                      )
+                    ],
+                  )
                 )
-              ],
-            ),
+              : Material(
+                child: AnimatedCrossFade(
+                    firstChild: Row(children: sortTypeParams(),),
+                    secondChild: Row(children: sortTimeParams(),),
+                    crossFadeState: _paramsVisibility == ParamsVisibility.Type ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                    duration: Duration(milliseconds: 300),
+                  )
+              );
+            },
           ),
           expandingSheetContent: _subredditsList(),
         )
       ),
       onWillPop: _willPop);
+  }
+
+  List<Widget> sortTimeParams() {
+    return new List<Widget>.generate(sortTimes.length, (int index) {
+      return Expanded(
+        child: InkWell(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _getTypeIcon(sortTimes[index]),
+              AutoSizeText(
+                sortTimes[index],
+                softWrap: false,
+                maxFontSize: 12.0,
+                minFontSize: 8.0,
+                ),
+            ],
+          ),
+          onLongPress: () {
+            setState(() {
+             _paramsVisibility = ParamsVisibility.Type; 
+            });
+          },
+          onTap: () {
+            if (tempType != "") {
+              parseTypeFilter(tempType);
+              currentSortTime = sortTimes[index];
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+              tempType = "";
+            }
+            _changeTypeVisibility();
+            _changeParamsVisibility();
+          },
+        )
+      );
+    });
+  }
+  
+  List<Widget> sortTypeParams() {
+    return new List<Widget>.generate(sortTypes.length, (int index) {
+      return Expanded(
+        child: InkWell(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _getTypeIcon(sortTypes[index]),
+              AutoSizeText(
+                sortTypes[index],
+                softWrap: false,
+                maxFontSize: 12.0,
+                minFontSize: 8.0,
+                ),
+            ],
+          ),
+          onLongPress: () {
+            setState(() {
+             _paramsVisibility = ParamsVisibility.None; 
+            });
+          },
+          onTap: () {
+            setState(() {
+              var q = sortTypes[index];
+              if (q == "hot" || q == "new" || q == "rising") {
+                parseTypeFilter(q);
+                currentSortTime = "";
+                  BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+                  _changeParamsVisibility();
+              } else {
+                tempType = q;
+                _changeTypeVisibility();
+              }
+            });
+          },
+        )
+      );
+    });
+  }
+  Widget _getTypeIcon(String type) {
+    switch (type) {
+      // * Type sort icons:
+      case 'new':
+        return Icon(MdiIcons.newBox);
+      case 'rising':
+        return Icon(MdiIcons.trendingUp);
+      case 'top':
+        return Icon(MdiIcons.trophy);
+      case 'controversial':
+        return Icon(MdiIcons.swordCross);
+      // * Age sort icons:
+      case 'hour':
+        return Icon(MdiIcons.clock);
+      case '24h':
+        return Text('24', style: LyreTextStyles.iconText);
+      case 'week':
+        return Icon(MdiIcons.calendarWeek);
+      case 'month':
+        return Icon(MdiIcons.calendarMonth);
+      case 'year':
+        return Text('365', style: LyreTextStyles.iconText);
+      case 'all time':
+        return Icon(MdiIcons.infinity);
+      default:
+        //Defaults to hot
+        return Icon(MdiIcons.fire);
+    }
+  }
+
+  List<Widget> sortTypeParamsUser(){
+    return new List<Widget>.generate(sortTypesuser.length, (int index) {
+      return InkWell(
+        child: Text(sortTypesuser[index]),
+        onTap: () {
+          setState(() {
+            var q = sortTypesuser[index];
+            if (q == "hot" || q == "new" || q == "rising") {
+              parseTypeFilter(q);
+              currentSortTime = "";
+
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+
+              _changeParamsVisibility();
+            } else {
+              tempType = q;
+              _changeTypeVisibility();
+            }
+          });
+        },
+      );
+    });
+  }
+  String tempType = "";
+  ParamsVisibility _paramsVisibility = ParamsVisibility.None;
+  _changeParamsVisibility() {
+    //Resets the bloc:s tempType filter in case of continuity errors.
+    tempType = "";
+    setState(() {
+      if (_paramsVisibility == ParamsVisibility.None) {
+        _paramsVisibility = ParamsVisibility.Type;
+      } else {
+        _paramsVisibility = ParamsVisibility.None;
+      }
+    });
+  }
+  _changeTypeVisibility() {
+    if (_paramsVisibility == ParamsVisibility.Type) {
+      _paramsVisibility = ParamsVisibility.Time;
+    } else {
+      _paramsVisibility = ParamsVisibility.Type;
+    }
   }
 }
 class _subredditsList extends State<ExpandingSheetContent> {
@@ -561,15 +754,18 @@ class _subredditsList extends State<ExpandingSheetContent> {
       ],
     );
   }
+
   _openSub(String s) {
     currentSubreddit = s;
     widget.appbarController.expansionController.animateTo(0.0);
     BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
+
   List<String> subListOptions = [
     "Remove",
     "Subscribe"
   ];
+
   Widget _defaultSubredditList() {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, i) {
@@ -815,27 +1011,27 @@ class _FloatingNavigationBarState extends State<FloatingNavigationBar> with Tick
 
   List<Widget> sortTypeParams() {
     return new List<Widget>.generate(sortTypes.length, (int index) {
-          return InkWell(
-            child: Text(sortTypes[index]),
-            onTap: () {
-              setState(() {
-                var q = sortTypes[index];
-                if (q == "hot" || q == "new" || q == "rising") {
-                  parseTypeFilter(q);
-                  currentSortTime = "";
+      return InkWell(
+        child: Text(sortTypes[index]),
+        onTap: () {
+          setState(() {
+            var q = sortTypes[index];
+            if (q == "hot" || q == "new" || q == "rising") {
+              parseTypeFilter(q);
+              currentSortTime = "";
 
-                  BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
-                  //bloc.resetFilters();
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+              //bloc.resetFilters();
 
-                  _changeParamsVisibility();
-                } else {
-                  tempType = q;
-                  _changeTypeVisibility();
-                }
-              });
-            },
-          );
-        });
+              _changeParamsVisibility();
+            } else {
+              tempType = q;
+              _changeTypeVisibility();
+            }
+          });
+        },
+      );
+    });
   }
 
   _changeParamsVisibility() {

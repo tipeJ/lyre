@@ -13,6 +13,8 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
   /// The full expanded height of the expanded bottom sheet
   final double fullSizeHeight;
 
+  final height = 56.0;
+
   final bool showShadow = true;
 
   const PersistentBottomAppbarWrapper({Key key, @required this.body, @required this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight}) : super(key: key);
@@ -64,8 +66,6 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
 
   @override
   Widget build(BuildContext context) {
-    final _height = 56.0;
-    print(_height.toString());
     return WillPopScope(
       onWillPop: _willPop,
       child: Stack(
@@ -79,7 +79,7 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
               child: Column(children: <Widget>[
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  height: _height,
+                  height: widget.height,
                   decoration: BoxDecoration(
                     color: Theme.of(context).canvasColor,
                     borderRadius: BorderRadius.only(
@@ -169,7 +169,6 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
 
   @override
   Widget build(BuildContext context) {
-    final _height = min(MediaQuery.of(context).size.height / 10, 75.0);
     return Stack(
       children: <Widget>[
         widget.body,
@@ -178,7 +177,7 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
           child: Container(
             width: MediaQuery.of(context).size.width,
             color: Theme.of(context).canvasColor,
-            constraints: BoxConstraints(maxHeight: _height),
+            height: widget.height,
             child: widget.appBarContent,
           ),
         )

@@ -19,4 +19,5 @@ class LyreTextStyles {
 
   static const typeParams = TextStyle(fontSize: 26.0);
   static const timeParams = TextStyle(fontSize: 13.0);
+  static const iconText = TextStyle(fontSize: 20.0, fontWeight: FontWeight.w500);
 }

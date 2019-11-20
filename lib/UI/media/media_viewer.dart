@@ -43,9 +43,9 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
     if (linkType == LinkType.Gfycat){
-      getGfyVideoUrl(url).then((videoUrl) {
-        _videoInitialized = _initializeVideo(videoUrl);
-      });
+      final videoUrl = await getGfyVideoUrl(url);
+      print(videoUrl);
+      _videoInitialized = _initializeVideo(videoUrl);
     } else if (linkType == LinkType.RedditVideo){
       _videoInitialized = _initializeVideo(url, VideoFormat.dash);
     } else if (linkType == LinkType.TwitchClip){
@@ -57,7 +57,6 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
   Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
     
     _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
-    //showVideoOverlay();
     await _videoController.initialize();
     _vController = LyreVideoController(
       showControls: true,
@@ -83,9 +82,11 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       _vController.exitFullScreen();
       return false;
     } else if (_vController != null) {
-      _vController.pause();
-      _vController.dispose();
-      _videoController.dispose();
+      _vController?.pause();
+      _videoController?.dispose();
+      _vController?.dispose();
+      _vController = null;
+      _videoController = null;
     }
     return true;
   }

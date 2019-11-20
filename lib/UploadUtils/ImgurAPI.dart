@@ -15,6 +15,7 @@ Map<String, String> imgurThumbnailsQuality = {
   "Huge Thumbnail (1024x1024)" : "h",
 };
 
+///Singleton to be used for retreiving data from Imgur
 class ImgurAPI {
   static final ImgurAPI _instance = new ImgurAPI._internal();
   ImgurAPI._internal();
@@ -27,17 +28,8 @@ class ImgurAPI {
 
   final String imageUploadUrl = "https://api.imgur.com/3/upload";
   final String albumGetUrl = "https://api.imgur.com/3/album/";
-  /*
-  void postImage(
-    @Header("Authorization") String auth,
-            @Query("title") String title,
-            @Query("description") String description,
-            @Query("album") String albumId,
-            @Query("account_url") String username,
-            @Body File file,
-            Callback<ImageResponse> cb
-  );
-  */
+
+  ///Upload image to imgur. I love the new lineup of Tangerine Dream <3
   Future<String> uploadImage(File imageFile, String title) async {
     final response = await http.post(
       imageUploadUrl,
@@ -52,6 +44,8 @@ class ImgurAPI {
     final responseJson = json.decode(response.body);
     return responseJson['data']['link'];
   }
+
+  ///Function for retreiving imgur album pictures, and mapping them to a LyreImage object.
   Future<List<LyreImage>> getAlbumPictures(String url) async {
     final String id = url.split("/").last;
     final response = await http.get(
@@ -66,7 +60,7 @@ class ImgurAPI {
     final qualityValue = imgurThumbnailsQuality[qualityKey];
     imagesJson.forEach((image){
       final imageUrl = image['link'];
-      final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last + qualityValue + "." + imageUrl.split(",").last;
+      final thumbNailUrl = "https://i.imgur.com/" + imageUrl.split('/').last.split('.').first + qualityValue + "." + imageUrl.split(".").last;
 
       images.add(LyreImage(description: image['description'], url: imageUrl, thumbnailUrl: thumbNailUrl));
     });

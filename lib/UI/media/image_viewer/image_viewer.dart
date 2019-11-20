@@ -4,8 +4,11 @@ import 'dart:ui' as prefix0;
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Models/image.dart';
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Themes/bloc/lyre_bloc.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
@@ -15,9 +18,12 @@ import 'package:photo_view/photo_view_gallery.dart';
 const selection_image = "Image";
 const selection_album = "Album";
 
+///Class for viewing both single images and Albums
 class ImageViewer extends StatefulWidget {
+  //Submission which contains methods for opening comments, etc (optional)
   Submission submission;
   LinkType linkType;
+  ///The Url for the image/album
   String url;
 
   ImageViewer(String url, [Submission submission]){
@@ -37,7 +43,7 @@ class _ImageViewerState extends State<ImageViewer> {
 
   @override 
   void dispose() {
-    _albumController?.dispose();
+    _albumController.dispose();
     super.dispose();
   }
 
@@ -116,7 +122,6 @@ class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
   }
   @override
   void dispose() { 
-    _albumController.dispose();
     super.dispose();
   }
   @override
@@ -132,6 +137,7 @@ class _CurrentImageIndicatorState extends State<CurrentImageIndicator> {
   }
 }
 
+///Class for controlling Album behaviour in image_viewer
 class AlbumController extends ChangeNotifier{
   List<LyreImage> images;
   String url;
@@ -152,7 +158,6 @@ class AlbumController extends ChangeNotifier{
   }
 
   void setCurrentIndex(int newIndex){
-    print("UPDATE" + currentIndex.toString());
     currentIndex = newIndex;
     notifyListeners();
   }
@@ -171,6 +176,13 @@ class AlbumController extends ChangeNotifier{
     }
     notifyListeners();
   }
+  void closeExpanded(){
+    if (fullyExpanded){
+      fullyExpanded = false;
+      expanded = false;
+      notifyListeners();
+    }
+  }
 }
 class _AlbumControllerProvider extends InheritedWidget {
   const _AlbumControllerProvider({
@@ -188,7 +200,7 @@ class _AlbumControllerProvider extends InheritedWidget {
       controller != old.controller;
 }
 
-
+///Class that contains the necessary widgets for displaying Album images and galleries.
 class AlbumViewer extends StatefulWidget {
   AlbumViewer({Key key}) : super(key: key);
 
@@ -203,11 +215,19 @@ class _AlbumViewerState extends State<AlbumViewer> {
     if (_albumController.currentIndex != pageController.page.round()) _albumController.setCurrentIndex(pageController.page.round());
   }
 
+  @override
+  void initState() {
+    _scrollController = ScrollController();
+    super.initState();
+  }
+
   @override void dispose(){
     pageController.dispose();
-    _albumController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
+
+  ScrollController _scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -232,8 +252,8 @@ class _AlbumViewerState extends State<AlbumViewer> {
               maxScale: 5.0,
               imageProvider: AdvancedNetworkImage(
                 image,
-                useDiskCache: false,
-                cacheRule: const CacheRule(maxAge: Duration(days: 7))
+                useDiskCache: true,
+                cacheRule: const CacheRule(maxAge: const Duration(minutes: 40))
               )
             );
           default:
@@ -268,7 +288,10 @@ class SingleImageViewer extends StatelessWidget {
   }
 }
 class AlbumControlsBar extends StatefulWidget {
-  AlbumControlsBar({Key key}) : super(key: key);
+  ///The minimum height for the horizontal previewsBar. Will get one-tenths of gallery height if it's larger that way.
+  final double minimumHeight;
+
+  AlbumControlsBar({Key key, this.minimumHeight = 75.00}) : super(key: key);
 
   _AlbumControlsBarState createState() => _AlbumControlsBarState();
 }
@@ -280,12 +303,12 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   double lerp(double min, double max) => prefix0.lerpDouble(min, max, _expansionController.value);
 
   void _handleExpandedDragUpdate(DragUpdateDetails details) {
-    if(_expansionController.value == 1 && ((gridController.offset == 0.0 && details.delta.dy < 0.0) || gridController.offset != 0.0)){
-      gridController.jumpTo(gridController.offset - details.delta.dy);
+    if(_expansionController.value == 1 && ((_gridController.offset == 0.0 && details.delta.dy < 0.0) || _gridController.offset != 0.0)){
+      _gridController.jumpTo(_gridController.offset - details.delta.dy);
       //TODO: ! ADD CUSTOM FLING ANIMATION FOR GRID
     } else {
       _expansionController.value -= details.primaryDelta /
-      maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
+      _maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
     }
     
   }
@@ -351,9 +374,9 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   bool isExpanded() => _expansionController.value >= 0.1;
   bool fullyExpanded() => _expansionController.value == 1.0;
   double getExpandedBarHeight(){
-    return min(maxExpandedBarHeight * 0.1, 125);
+    return min(_maxExpandedBarHeight * 0.1, 125);
   }
-  double maxExpandedBarHeight = 500.0; //Fallback value
+  double _maxExpandedBarHeight = 500.0; //Fallback value
 
   @override
   void didUpdateWidget(AlbumControlsBar oldWidget) {
@@ -374,20 +397,27 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
         
       });
     });
+    _gridController = ScrollController();
+    _gridController.addListener(() {
+      if (_gridController.offset < 0.0) {
+        setState(() {
+         _popIndicatorOpacity = min(1.0, -_gridController.offset / (_maxExpandedBarHeight / 6)); 
+        });
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() { 
     _expansionController.dispose();
-    _albumController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     _albumController = AlbumController.of(context);
-    maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
+    _maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
     _albumController.addListener((){
       if (_albumController.expanded != isExpanded() || _albumController.fullyExpanded != fullyExpanded()) {
         if (_albumController.fullyExpanded) {
@@ -411,16 +441,21 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
        )
     );
   }
+  double _popIndicatorOpacity = 0.0;
 
-  ScrollController gridController = ScrollController();  
+  ScrollController _gridController;  
   Widget getPreviewsBar(BuildContext context){
+    final preferenceString = MediaQuery.of(context).orientation == Orientation.portrait ? ALBUM_COLUMN_AMOUNT_PORTRAIT : ALBUM_COLUMN_AMOUNT_LANDSCAPE;
+    final int columnCount = BlocProvider.of<LyreBloc>(context).state.settings.get(preferenceString) ?? max(3, (MediaQuery.of(context).size.width / 125.0).floor()); //The amount of columns in gallery. Minimum is 3. Can be overridden by user.
     return Container(
-      height: lerp(0, maxExpandedBarHeight),
+      height: _maxExpandedBarHeight,
       width: MediaQuery.of(context).size.width,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget> [
          Container(
-            height: maxExpandedBarHeight * min(1 - _expansionController.value, 0.1),
+            //Height of horizontal-scrolling previewsBar
+            height: min((_expansionController.value * 10) * max(_maxExpandedBarHeight * 0.1, widget.minimumHeight), (1.1-(_expansionController.value * _expansionController.value+0.1)) * max(_maxExpandedBarHeight * 0.1, widget.minimumHeight)),//min(_maxExpandedBarHeight * min(1 - _expansionController.value, 0.1), _expansionController.value * _maxExpandedBarHeight),
             child: ListView.builder(
               itemCount: _albumController.images.length,
               scrollDirection: Axis.horizontal,
@@ -443,39 +478,64 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
             ),
           ),
           Container(
-            height: maxExpandedBarHeight,
+            //Height of gallery
+            height: max((_expansionController.value - 0.1) * _maxExpandedBarHeight, 0.0),
+            //Color that overlays the pageview underneath.
             color: Colors.black87,
-            child: GridView.builder(
-              controller: gridController,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (4).round()),
-              itemCount: _albumController.images.length,
-              scrollDirection: Axis.vertical,
-              itemBuilder: (context, i){
-                final url = _albumController.images[i].thumbnailUrl;
-                if (url != null && getLinkType(url) == LinkType.DirectImage){
-                  return GestureDetector(
-                    child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
-                    onTap: (){
-                      setState(() {
-                        _albumController.setCurrentIndex(i);                
-                        _reverseExpanded();
-                      });
-                    },
-                  );
-                }
-                return Container();
+            //Listens for scroll end events. if the indicator opacity is high enough, reverse the animation.
+            child: Listener(
+              onPointerUp: (PointerUpEvent event) {
+                  if (_popIndicatorOpacity > 0.9) {
+                    _albumController.closeExpanded();
+                  }
+                return true;
               },
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 25.0),
+                      child: Opacity(
+                        opacity: _popIndicatorOpacity,
+                        child: Icon(Icons.arrow_downward, size: 45.0,),
+                      ),
+                    ),
+                  ),
+                  GridView.builder(
+                    controller: _gridController,
+                    physics: BouncingScrollPhysics(),
+                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columnCount),
+                    itemCount: _albumController.images.length,
+                    scrollDirection: Axis.vertical,
+                    itemBuilder: (context, i){
+                      final url = _albumController.images[i].thumbnailUrl;
+                      if (url != null && getLinkType(url) == LinkType.DirectImage){
+                        return GestureDetector(
+                          child: new PreviewImage(url: url, index: i, size: Size(125.0, 125.0),),
+                          onTap: (){
+                            setState(() {
+                              _albumController.setCurrentIndex(i);                
+                              _reverseExpanded();
+                            });
+                          },
+                        );
+                      }
+                      //Empty widget in case of error
+                      return Container();
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ]
-        
       )
     );
   }
 }
 
+//Class for showing Thumbnail images, with lower quality than the full-size ones and with an indicator for selected image.
 class PreviewImage extends StatefulWidget {
   const PreviewImage({
     Key key,
@@ -504,12 +564,6 @@ class _PreviewImageState extends State<PreviewImage> {
   }
 
   bool selected = false;
-
-  @override
-  void dispose() { 
-    _albumController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -547,21 +601,23 @@ class ImageControlsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _albumController = isAlbum ? AlbumController.of(context) : null;
-    return Container(
-      height: 50.0,
-      width: MediaQuery.of(context).size.width,
-      color: Colors.black.withOpacity(0.6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          _buildCopyButton(context),
-          _buildOpenUrlButton(context),
-          submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
-          _buildDownloadButton(context),
-          _buildShareButton(context),
-          _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
-        ].where((w) => notNull(w)).toList(),
-      ),
+    return Material(
+      child: Container(
+        height: 50.0,
+        width: MediaQuery.of(context).size.width,
+        color: Colors.black.withOpacity(0.6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            _buildCopyButton(context),
+            _buildOpenUrlButton(context),
+            submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
+            _buildDownloadButton(context),
+            _buildShareButton(context),
+            _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
+          ].where((w) => notNull(w)).toList(),
+        ),
+      )
     );
   }
   Widget _buildCopyButton(BuildContext context){
@@ -603,6 +659,8 @@ class ImageControlsBar extends StatelessWidget {
         },
       );
   }
+
+  ///Button which opens the image/album in external browser
   Widget _buildOpenUrlButton(BuildContext context){
     return IconButton(
       icon: Icon(Icons.open_in_browser),
@@ -612,6 +670,7 @@ class ImageControlsBar extends StatelessWidget {
       },
     );
   }
+  ///Button which opens comments for the image. Only appears when a submission has been assigned to the image_viewer
   Widget _buildCommentsButton(BuildContext context){
     return IconButton(
       icon: Icon(Icons.comment),
@@ -621,6 +680,7 @@ class ImageControlsBar extends StatelessWidget {
       },
     );
   }
+  ///Button which toggles the gallery expand state
   Widget _buildExpandButton(BuildContext context){
     return IconButton(
       icon: Icon(Icons.grid_on),
@@ -630,6 +690,7 @@ class ImageControlsBar extends StatelessWidget {
       },
     );
   }
+  ///Button which is used to download images/albums
   Widget _buildDownloadButton(BuildContext context){
     return _albumController == null ?
       IconButton(
@@ -660,6 +721,7 @@ class ImageControlsBar extends StatelessWidget {
         },
       );
   }
+  ///Button which is used to share the image/album
   Widget _buildShareButton(BuildContext context){
     return _albumController == null ?
       IconButton(

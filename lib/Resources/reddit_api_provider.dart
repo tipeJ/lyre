@@ -100,7 +100,7 @@ class PostsProvider {
   }
   Future<CommentRef> getCRef(String id) async {
     final r = await getRed();
-    return CommentRef.withID(r, 'f6yqinj');
+    return CommentRef.withID(r, id);
   }
 
   Future<Redditor> logInToLatest() async {
@@ -335,7 +335,9 @@ class PostsProvider {
   }
 
   Future<WikiPage> getWikiPage(String args) async {
+    return null;
     try {    
+    return null;
       final r = await getRed();
       final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();

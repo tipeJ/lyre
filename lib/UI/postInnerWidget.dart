@@ -168,7 +168,7 @@ class postInnerWidget extends StatelessWidget {
         handleClick(context);
       },
       onLongPress: (){
-        handlePress(context);
+        _handlePress(context);
       },
       onLongPressUp: (){
           PreviewCall().callback.previewEnd();
@@ -198,7 +198,7 @@ class postInnerWidget extends StatelessWidget {
     }
   }
 
-  void handlePress(BuildContext context){
+  void _handlePress(BuildContext context){
     switch (linkType) {
       case LinkType.YouTube:
         PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(submission.url.toString())));
@@ -358,6 +358,7 @@ class defaultColumn extends StatelessWidget {
                       launchURL(context, submission);
                       break;
                     default:
+                      PreviewCall().callback.preview(submission.url.toString());
                       break;
                   }
                 },

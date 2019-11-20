@@ -60,9 +60,12 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 }
 
 Future<LyreState> getFirstLyreState() async {
+    // The first LyreState that the application receives when it starts for the first time,
+    // aka the splash-screen FutureBuilder
+    
     final prefs = await Hive.openBox('settings');
     final initialTheme = prefs.get(CURRENT_THEME) ?? "";
-    prefix0.homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "dota2";
+    prefix0.homeSubreddit = prefs.get(SUBREDDIT_HOME) ?? "wallpaperdump";
     prefix0.currentSubreddit = prefix0.homeSubreddit;
     var _cTheme = LyreTheme.DarkTeal;
     LyreTheme.values.forEach((theme){

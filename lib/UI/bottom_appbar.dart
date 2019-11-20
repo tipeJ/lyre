@@ -54,6 +54,14 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
     _appbarController.dispose();
     super.dispose();
   }
+  Future<bool> _willPop() {
+    print('received');
+    if (_controller.value > 0.9) {
+      _controller.animateTo(0.0, curve: Curves.ease);
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
 
   @override
   Widget build(BuildContext context) {

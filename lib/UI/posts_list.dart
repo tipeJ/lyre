@@ -488,21 +488,18 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               children: <Widget>[
                 BlocBuilder<PostsBloc, PostsState>(
                   builder: (context, state) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 0.0),
-                      child: Wrap(
-                        direction: Axis.vertical,
-                        children: <Widget>[
-                          Text(
-                            state.getSourceString(),
-                            style: LyreTextStyles.typeParams
-                          ),
-                          Text(
-                            state.getFilterString(),
-                            style: LyreTextStyles.timeParams,
-                          )
-                        ],
-                      )
+                    return Wrap(
+                      direction: Axis.vertical,
+                      children: <Widget>[
+                        Text(
+                          state.getSourceString(),
+                          style: LyreTextStyles.typeParams
+                        ),
+                        Text(
+                          state.getFilterString(),
+                          style: LyreTextStyles.timeParams,
+                        )
+                      ],
                     );
                   },
                 ),

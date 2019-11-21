@@ -5,6 +5,7 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/UI/bottom_appbar_expanding.dart';
 import 'package:lyre/UI/bottom_appbar_expanding.dart' as prefix0;
 
+///Class for wrapping a scaffold body for a custom bottom expanding appBar
 class PersistentBottomAppbarWrapper extends StatefulWidget {
   /// The body content
   final Widget body;
@@ -34,21 +35,6 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
       setState(() {
         
       });
-    });
-  }
-
-
-  @override
-  void dispose() { 
-    super.dispose();
-  }
-  Future<bool> _willPop() {
-    return Future.value(true);
-  }
-
-  void _setExtent() {
-    setState(() {
-      
     });
   }
 

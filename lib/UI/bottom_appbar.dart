@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/UI/bottom_appbar_expanding.dart';
+import 'package:lyre/UI/bottom_appbar_expanding.dart' as prefix0;
 
 class PersistentBottomAppbarWrapper extends StatefulWidget {
   /// The body content
@@ -40,7 +42,7 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
       setState(() {});
     });
     _appbarController = ExpandingAppbarController(expansionController: _controller);
-    _innerController = ScrollController();
+    _innerController =  ScrollController();
     _innerController.addListener(_scrollOffsetChanged);
     isInnerScrollDoingDown = false;
 
@@ -56,7 +58,6 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
     super.dispose();
   }
   Future<bool> _willPop() {
-    print('received');
     if (_controller.value > 0.9) {
       _controller.animateTo(0.0, curve: Curves.ease);
       return Future.value(false);
@@ -64,60 +65,51 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
     return Future.value(true);
   }
 
+  void _setExtent() {
+    setState(() {
+      
+    });
+  }
+  final x = true;
+
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _willPop,
-      child: Stack(
-        children: <Widget>[
-          widget.body,
-          Positioned(
-            bottom: 0.0,
-            child: GestureDetector(
-              onVerticalDragUpdate: (DragUpdateDetails details) => _controller.value -= details.primaryDelta / widget.fullSizeHeight, //<-- Update the _controller.value by the movement done by user.
-              onVerticalDragEnd: _changeHeight,
-              child: Column(children: <Widget>[
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: widget.height,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(_lerp(15.0, 0.0)),
-                      topRight: Radius.circular(_lerp(15.0, 0.0)),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(_lerp(0.38, 0.85)),
-                        blurRadius: _lerp(12.0, 50.0),
-                        spreadRadius: _lerp(5.0, 25.0),
-                        offset: Offset(0.0, -2.5)
-                      )
-                    ]
-                  ),
-                  child: widget.appBarContent
+    return Stack(
+      children: <Widget>[
+        widget.body,
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: x ?prefix0.DraggableScrollableSheet(
+              expand: true,
+              maxChildSize: 1,
+              minChildSize: 56 / MediaQuery.of(context).size.height,
+              initialChildSize: 56 / MediaQuery.of(context).size.height,
+              builder: (context, scontrol) {
+                return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
+              },
+            )
+            : Container(
+              child: widget.appBarContent,
+              constraints: BoxConstraints(maxHeight: 56.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).canvasColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15.0),
+                  topRight: Radius.circular(15.0),
                 ),
-                Container(
-                  height: _lerp(0.0, widget.fullSizeHeight),
-                  width: MediaQuery.of(context).size.width,
-                  color: Theme.of(context).canvasColor,
-                  child: ExpandingSheetContent(state: widget.expandingSheetContent, scrollEnabled: _getInnerScrollEnabled(), innerController: _innerController, appbarController: _appbarController,)
-                ),
-              ],),
-            ),
-          )
-        ],
-      )
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.38),
+                    blurRadius: 12.0,
+                    spreadRadius: 5.0,
+                    offset: Offset(0.0, -2.5)
+                  )
+                ]
+              ),
+            )
+        )
+      ],
     );
-  }
-  bool _getInnerScrollEnabled(){
-    bool isFullSize = _controller.value == 1.0;
-    bool isScrollZeroOffset = _innerController.hasClients ? _innerController.offset == 0.0 && isInnerScrollDoingDown: false;
-    bool result = isFullSize && !isScrollZeroOffset;
-
-    //reset isInnerScrollDoingDown
-    if(!result) isInnerScrollDoingDown = false;
-    return result;
   }
   void _scrollOffsetChanged(){
     if (_innerController.offset < 0.0) {
@@ -157,11 +149,10 @@ class ExpandingAppbarController extends ChangeNotifier {
 }
 class ExpandingSheetContent extends StatefulWidget {
   final State<ExpandingSheetContent> state;
-  final bool scrollEnabled;
-  final ScrollController innerController;
-  final ExpandingAppbarController appbarController;
+  final Widget appBarContent;
+  final DraggableScrollableSheetScrollController innerController;
 
-  ExpandingSheetContent({@required this.state, @required this.scrollEnabled, @required this.innerController, @required this.appbarController});
+  ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent});
   @override
   State<ExpandingSheetContent> createState() => state;
 }

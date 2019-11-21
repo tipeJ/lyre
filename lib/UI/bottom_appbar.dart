@@ -54,52 +54,54 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        widget.body,
-        IgnorePointer(
-          ignoring: !widget.listener.value,
-          child: AnimatedOpacity(
-            opacity: widget.listener.value ? 1.0 : 0.0,
-            duration: Duration(milliseconds: 500),
-            curve: Curves.ease,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              //Expandable appbar
-              child: widget.expandingSheetContent != null 
-                ? prefix0.DraggableScrollableSheet(
-                  expand: true,
-                  maxChildSize: 1,
-                  minChildSize: 56 / MediaQuery.of(context).size.height,
-                  initialChildSize: 56 / MediaQuery.of(context).size.height,
-                  builder: (context, scontrol) {
-                    return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
-                  },
-                )
-                //Static appbar
-                : Container(
-                  child: widget.appBarContent,
-                  constraints: BoxConstraints(maxHeight: 56.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(15.0),
-                      topRight: Radius.circular(15.0),
+    return Container(
+      child: Stack(
+        children: <Widget>[
+          widget.body,
+          IgnorePointer(
+            ignoring: !widget.listener.value,
+            child: AnimatedOpacity(
+              opacity: widget.listener.value ? 1.0 : 0.0,
+              duration: Duration(milliseconds: 500),
+              curve: Curves.ease,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                //Expandable appbar
+                child: widget.expandingSheetContent != null 
+                  ? prefix0.DraggableScrollableSheet(
+                    expand: true,
+                    maxChildSize: 1,
+                    minChildSize: 56 / MediaQuery.of(context).size.height,
+                    initialChildSize: 56 / MediaQuery.of(context).size.height,
+                    builder: (context, scontrol) {
+                      return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
+                    },
+                  )
+                  //Static appbar
+                  : Container(
+                    child: widget.appBarContent,
+                    constraints: BoxConstraints(maxHeight: 56.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).canvasColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(15.0),
+                        topRight: Radius.circular(15.0),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.38),
+                          blurRadius: 12.0,
+                          spreadRadius: 5.0,
+                          offset: Offset(0.0, -2.5)
+                        )
+                      ]
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.38),
-                        blurRadius: 12.0,
-                        spreadRadius: 5.0,
-                        offset: Offset(0.0, -2.5)
-                      )
-                    ]
-                  ),
-                )
+                  )
+              )
             )
           )
-        )
-      ],
+        ],
+      )
     );
   }
 }

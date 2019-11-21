@@ -583,7 +583,14 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
 
   }
   double _lerp(double min, double max) => lerpDouble(min, max, (_extent.currentExtent / _extent.maxExtent));
-  
+  Future<bool> _willPop() {
+    if (_extent.currentExtent != _extent.minExtent) {
+      _scrollController.jumpTo(0.0);
+      _extent.currentExtent = _extent.minExtent;
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -614,9 +621,13 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
             )
           )
         );
-        return widget.expand ? SizedBox.expand(child: sheet) : sheet;
+        return WillPopScope(
+          onWillPop: _willPop,
+          child: widget.expand ? SizedBox.expand(child: sheet) : sheet
+        );
       },
     );
+    
   }
 
   @override

@@ -17,51 +17,32 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
 
   final height = 56.0;
 
-  final bool showShadow = true;
+  final ValueNotifier<bool> listener;
 
-  const PersistentBottomAppbarWrapper({Key key, @required this.body, @required this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight}) : super(key: key);
+  const PersistentBottomAppbarWrapper({Key key, @required this.body, @required this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight, this.listener}) : super(key: key);
 
   @override
   State<PersistentBottomAppbarWrapper> createState() => notNull(expandingSheetContent) ? _PersistentBottomAppbarWrapperState() : _PersistentBottomAppBarWrapperStateWithoutExpansion();
 }
 
 class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWrapper> with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-
-  ScrollController _innerController;
-  bool isInnerScrollDoingDown;
-
-  ExpandingAppbarController _appbarController;
 
   @override
   void initState() { 
     super.initState();
-
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 325));
-    _controller.addListener(() {
-      setState(() {});
+    widget.listener.addListener(() {
+      setState(() {
+        
+      });
     });
-    _appbarController = ExpandingAppbarController(expansionController: _controller);
-    _innerController =  ScrollController();
-    _innerController.addListener(_scrollOffsetChanged);
-    isInnerScrollDoingDown = false;
-
   }
 
-  _lerp(double min, double max) => lerpDouble(min, max, _controller.value);
 
   @override
   void dispose() { 
-    _controller.dispose();
-    _innerController.dispose();
-    _appbarController.dispose();
     super.dispose();
   }
   Future<bool> _willPop() {
-    if (_controller.value > 0.9) {
-      _controller.animateTo(0.0, curve: Curves.ease);
-      return Future.value(false);
-    }
     return Future.value(true);
   }
 
@@ -70,87 +51,63 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
       
     });
   }
-  final x = true;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
         widget.body,
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: x ?prefix0.DraggableScrollableSheet(
-              expand: true,
-              maxChildSize: 1,
-              minChildSize: 56 / MediaQuery.of(context).size.height,
-              initialChildSize: 56 / MediaQuery.of(context).size.height,
-              builder: (context, scontrol) {
-                return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
-              },
+        IgnorePointer(
+          ignoring: !widget.listener.value,
+          child: AnimatedOpacity(
+            opacity: widget.listener.value ? 1.0 : 0.0,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.ease,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              //Expandable appbar
+              child: widget.expandingSheetContent != null 
+                ? prefix0.DraggableScrollableSheet(
+                  expand: true,
+                  maxChildSize: 1,
+                  minChildSize: 56 / MediaQuery.of(context).size.height,
+                  initialChildSize: 56 / MediaQuery.of(context).size.height,
+                  builder: (context, scontrol) {
+                    return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
+                  },
+                )
+                //Static appbar
+                : Container(
+                  child: widget.appBarContent,
+                  constraints: BoxConstraints(maxHeight: 56.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15.0),
+                      topRight: Radius.circular(15.0),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.38),
+                        blurRadius: 12.0,
+                        spreadRadius: 5.0,
+                        offset: Offset(0.0, -2.5)
+                      )
+                    ]
+                  ),
+                )
             )
-            : Container(
-              child: widget.appBarContent,
-              constraints: BoxConstraints(maxHeight: 56.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(15.0),
-                  topRight: Radius.circular(15.0),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.38),
-                    blurRadius: 12.0,
-                    spreadRadius: 5.0,
-                    offset: Offset(0.0, -2.5)
-                  )
-                ]
-              ),
-            )
+          )
         )
       ],
     );
   }
-  void _scrollOffsetChanged(){
-    if (_innerController.offset < 0.0) {
-      isInnerScrollDoingDown = true;
-    } else if (_innerController.offset > 0.0){
-      isInnerScrollDoingDown = false;
-    }
-
-    if (_innerController.offset <= 0.0) {
-      setState(() {});
-    }
-  }
-  void _changeHeight(DragEndDetails details) {
-    if (_controller.isAnimating ||
-        _controller.status == AnimationStatus.completed) return;
-
-    final double flingVelocity = details.velocity.pixelsPerSecond.dy / widget.fullSizeHeight; //<-- calculate the velocity of the gesture
-    if (flingVelocity < 0.0) {
-      _controller.fling(
-        velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-    } else if (flingVelocity > 0.0) {
-      _controller.fling(
-        velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-    } else
-      _controller.fling(
-        velocity: _controller.value < 0.5
-          ? -2.0
-          : 2.0); //<-- or just continue to whichever edge is closer
-  }
-}
-class ExpandingAppbarController extends ChangeNotifier {
-  final AnimationController expansionController;
-
-  bool expanded() => expansionController.value == 1.0;
-
-  ExpandingAppbarController({@required this.expansionController});
 }
 class ExpandingSheetContent extends StatefulWidget {
   final State<ExpandingSheetContent> state;
   final Widget appBarContent;
   final DraggableScrollableSheetScrollController innerController;
+  final ValueNotifier<bool> visible = ValueNotifier(true);
 
   ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent});
   @override

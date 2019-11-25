@@ -210,23 +210,20 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, i) {
-                if(i == posts.length){
+                if (i == posts.length) {
                   return Container(
                     color: Theme.of(context).primaryColor,
                     child: FlatButton(
-                        onPressed: () {
-                          setState(() {
-                            bloc.add(FetchMore());
-                          });
-                        },
-                        child: bloc.loading.value == LoadingState.loadingMore ? CircularProgressIndicator() : Text("Load More")),
+                      onPressed: () {
+                        setState(() {
+                          bloc.add(FetchMore());
+                        });
+                      },
+                      child: bloc.loading.value == LoadingState.loadingMore ? const CircularProgressIndicator() : const Text("Load More")),
                   );
                 } else {
                   return posts[i] is prefix0.Submission
-                        ? new Hero(
-                          tag: 'post_hero ${(posts[i] as prefix0.Submission).id}',
-                          child: new postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
-                        )
+                        ? postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
                         : new CommentContent(posts[i] as prefix0.Comment);
                 }
               },

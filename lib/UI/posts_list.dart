@@ -170,7 +170,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     if (_paramsVisibility != ParamsVisibility.None) {
       setState(() {
         _paramsVisibility = _paramsVisibility == ParamsVisibility.Time ? ParamsVisibility.Type : ParamsVisibility.None;
-        _replyController?.dispose();
       });
       return Future.value(false);
     }

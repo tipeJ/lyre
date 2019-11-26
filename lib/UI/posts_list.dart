@@ -116,10 +116,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       color: Theme.of(context).primaryColor,
       onPressed: () async {
         var pp = PostsProvider();
-        /*setState(() {
-          pp.registerReddit();
-          _refreshList();
-        });*/
         final authUrl = await pp.redditAuthUrl();
         pp.auth(authUrl.values.first);
         showDialog(
@@ -149,6 +145,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       if (s.contains('localhost:8080')) {
                         Navigator.pop(context);
                         pp.closeAuthServer();
+                        final newUser = await pp.getLatestUser();
+                        BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: newUser.username));
                       }
                     },
                     initialOptions: {

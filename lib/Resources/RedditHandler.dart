@@ -81,10 +81,6 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
   }  
 }
 Future<dynamic> reply(UserContent content, String body) async {
-  final r = await PostsProvider().getRed();
-  final sub = await r.comment(id: 'f8shxsc').populate();
-  return sub;
-  return Future.delayed(Duration(milliseconds: 1500), () => 9);
   try {
     if (content is Comment) {
       return content.reply(body);

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -18,8 +19,16 @@ import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
+class PostReplyNotification extends Notification {
+  final Submission submission;
+
+  const PostReplyNotification({@required this.submission});
+}
+
 class postInnerWidget extends StatelessWidget {
-  postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded]);
+  postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded])
+    : linkType = getLinkType(submission.url.toString())
+  ;
 
   bool expanded = false;
   bool fullSizePreviews;
@@ -112,13 +121,13 @@ class postInnerWidget extends StatelessWidget {
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black,
                   child: getDefaultSlideColumn(context),
                 ),
               )
               : new Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black,
                   child: getDefaultSlideColumn(context),
                 ),
         ),
@@ -152,7 +161,7 @@ class postInnerWidget extends StatelessWidget {
   Widget getImageWrapper(BuildContext context, BoxFit fit){
     return new GestureDetector(
       child: Image(
-        color: Colors.black.withOpacity(0.22),
+        color: Colors.black,
         colorBlendMode: BlendMode.luminosity,
         width: double.infinity,
         height: double.infinity,
@@ -227,7 +236,7 @@ class postInnerWidget extends StatelessWidget {
           width: 50,
           height: 50,
           child: getIndicator(type),
-        );
+      );
   }
 
   Widget getIndicator(LinkType type){
@@ -299,15 +308,10 @@ class postInnerWidget extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
-    linkType = getLinkType(submission.url.toString());
     return Padding(
-      child: ClipRRect(
-        child: Container(
-          child: getWidget(context),
-          color: Theme.of(context).primaryColor,
-        ),
-        //The circular radius for post widgets. Set 0.0 for rectangular.
-        borderRadius: BorderRadius.circular(10.0),
+      child: Container(
+        child: getWidget(context),
+        color: Theme.of(context).cardColor,
       ),
       padding: const EdgeInsets.only(
         //The gap bewtween the widgets.
@@ -333,22 +337,17 @@ class defaultColumn extends StatelessWidget {
     return new InkWell(
       child: new Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           new Padding(
               child: GestureDetector(
                 child: Text(
-                    submission.title,
-                    style:
-                    new TextStyle(
-                      fontWeight: FontWeight.normal, 
-                      fontSize: 12.0,
-                      color: (submission.stickied)
-                        ? Color.fromARGB(255, 0, 200, 53)
-                        : Colors.white
-                      ),
-                    textScaleFactor: 1.0,
-                  ),
+                  submission.title,
+                  style: LyreTextStyles.submissionTitle.apply(
+                    color: (submission.stickied)
+                      ? Color.fromARGB(255, 0, 200, 53)
+                      : Colors.white),
+                ),
                 onTap: (){
                   switch (linkType) {
                     case LinkType.YouTube:
@@ -367,19 +366,24 @@ class defaultColumn extends StatelessWidget {
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
           (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
             ? Container(
-              child: Container(
-                child: Text(
-                  submission.selftext,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 11.0,
-                    fontFamily: "Roboto"
-                  ),
-                  overflow: TextOverflow.fade,
-                  maxLines: previewSource == PreviewSource.Comments ? null : 5,
-                ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(10.0)
+              ),
+              child: Text(
+                submission.selftext,
+                overflow: TextOverflow.ellipsis,
+                // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
+                maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
+                style: LyreTextStyles.submissionPreviewSelftext.apply(color: Theme.of(context).textTheme.body1.color.withOpacity(0.8)),
               ),
               padding: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+              margin: const EdgeInsets.only(
                 left: 8.0,
                 right: 8.0,
                 top: 8.0,
@@ -388,113 +392,113 @@ class defaultColumn extends StatelessWidget {
             )
           : Container(height: 3.5),
           new ButtonTheme.bar(
-              child: new Row(
-                  children: <Widget>[
-                    submission.over18
-                      ? Padding(
-                        padding: const EdgeInsets.only(left: 6.0, right: 4.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(2.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3.5),
-                            color: Colors.red
-                          ),
-                          child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
-                        )
-                      )
-                      : null,
-                    
-                    new Padding(
-                        child: new Text(
-                            "${submission.score}",
-                            textAlign: TextAlign.left,
-                            textScaleFactor: 1.0,
-                            style: new TextStyle(
-                              color: getScoreColor(submission, context),
-                              fontSize: 9.0)),
-                        padding:
-                            const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                    new Padding(
-                        child: new Text(
-                            "u/${submission.author}",
-                            textAlign: TextAlign.left,
-                            textScaleFactor: 1.0,
-                            style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 9.0)),
-                        padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                    new Padding(
-                        child: new Text(
-                            "r/${submission.subreddit.displayName}",
-                            textAlign: TextAlign.left,
-                            textScaleFactor: 1.0,
-                            style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
-                        padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                    new Text(
-                          "${submission.numComments} comments",
-                          style: TextStyle(
-                            fontSize: 10.0,
-                            color: Colors.white.withOpacity(0.9)
-                          ),
+            child: Row(
+              children: <Widget>[
+                submission.over18
+                  ? Padding(
+                    padding: const EdgeInsets.only(left: 6.0, right: 4.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3.5),
+                        color: Colors.red
                       ),
-                    new Padding(
-                      child: new Text(
-                        getSubmissionAge(submission.createdUtc),
-                        style: TextStyle(
-                              fontSize: 10.0,
-                              color: Colors.white.withOpacity(0.9)
-                        ),
+                      child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
+                    )
+                  )
+                  : null,
+                
+                new Padding(
+                    child: new Text(
+                        "${submission.score}",
+                        textAlign: TextAlign.left,
+                        textScaleFactor: 1.0,
+                        style: new TextStyle(
+                          color: getScoreColor(submission, context),
+                          fontSize: 9.0)),
+                    padding:
+                        const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
+                new Padding(
+                    child: new Text(
+                        "u/${submission.author}",
+                        textAlign: TextAlign.left,
+                        textScaleFactor: 1.0,
+                        style: TextStyle(color: Colors.white, fontSize: 9.0)),
+                    padding:
+                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                new Padding(
+                    child: new Text(
+                        "r/${submission.subreddit.displayName}",
+                        textAlign: TextAlign.left,
+                        textScaleFactor: 1.0,
+                        style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
+                    padding:
+                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                new Text(
+                      "${submission.numComments} comments",
+                      style: TextStyle(
+                        fontSize: 10.0,
+                        color: Colors.white
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  ),
+                new Padding(
+                  child: new Text(
+                    getSubmissionAge(submission.createdUtc),
+                    style: TextStyle(
+                          fontSize: 10.0,
+                          color: Colors.white
                     ),
-                    submission.isSelf ? null :
-                    new Padding(
-                        child: new Text(
-                            submission.domain,
-                            textAlign: TextAlign.left,
-                            textScaleFactor: 1.0,
-                            style: new TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9.0)),
-                        padding:
-                            const EdgeInsets.only(left: 4.0)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                ),
+                submission.isSelf ? null :
+                new Padding(
+                    child: new Text(
+                        submission.domain,
+                        textAlign: TextAlign.left,
+                        textScaleFactor: 1.0,
+                        style: new TextStyle(color: Colors.white, fontSize: 9.0)),
+                    padding:
+                        const EdgeInsets.only(left: 4.0)),
 
-                    submission.gold != null && submission.gold >= 1 ?
-                    new Padding(
-                      child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 255, 223, 0),
-                          ),
-                          width: 8.0,
-                          height: 8.0
-                        ),
-                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                    ) : null,
+                submission.gold != null && submission.gold >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 255, 223, 0),
+                      ),
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
 
-                    submission.silver != null && submission.silver >= 1 ?
-                    new Padding(
-                      child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 192, 192, 192),
-                          ),
-                          width: 8.0,
-                          height: 8.0
-                        ),
-                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                    ) : null,
-                    submission.platinum != null && submission.platinum >= 1 ?
-                    new Padding(
-                      child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 229, 228, 226),
-                          ),
-                          width: 8.0,
-                          height: 8.0
-                        ),
-                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                    ) : null,
-                    
+                submission.silver != null && submission.silver >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 192, 192, 192),
+                      ),
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
+                submission.platinum != null && submission.platinum >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 229, 228, 226),
+                      ),
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
+                  
           ].where(notNull).toList()
           )),
           const SizedBox(

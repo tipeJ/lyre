@@ -88,7 +88,7 @@ class PostsState extends Equatable {
     }
 
     if(temporaryType == TypeFilter.Top || temporaryType == TypeFilter.Controversial){
-      filterString += parseTypeFilter() + " ● " + temporaryTime;
+      filterString += parseTypeFilter() + " | " + temporaryTime;
     }else{
       filterString += parseTypeFilter();
     }

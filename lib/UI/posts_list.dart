@@ -159,7 +159,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
           bloc.add(FetchMore());
         }
-        if (scrollInfo is ScrollUpdateNotification) {
+        if (scrollInfo.depth == 0 && scrollInfo is ScrollUpdateNotification) {
           if (scrollInfo.scrollDelta >= 10.0) {
             appBarVisibleNotifier.value = false;
           } else if (scrollInfo.scrollDelta <= -10.0){

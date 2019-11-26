@@ -19,10 +19,10 @@ import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
 
-class PostReplyNotification extends Notification {
+class SubmissionReplyNotification extends Notification {
   final Submission submission;
 
-  const PostReplyNotification({@required this.submission});
+  const SubmissionReplyNotification({@required this.submission});
 }
 
 class postInnerWidget extends StatelessWidget {
@@ -262,24 +262,24 @@ class postInnerWidget extends StatelessWidget {
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.keyboard_arrow_up),onPressed: (){},
+          icon: Icon(
+            Icons.keyboard_arrow_up,
             color: submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.upvoted, submission);
           }
         ),
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.keyboard_arrow_down),onPressed: (){},
+          icon: Icon(
+            Icons.keyboard_arrow_down,
             color: submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.downvoted, submission);
           }
         ),
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.bookmark),onPressed: (){},
+          icon: Icon(
+            Icons.bookmark,
             color: submission.saved ? Colors.yellow : Colors.grey,),
           onPress: (){
             changeSubmissionSave(submission);
@@ -287,7 +287,7 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
         ActionItems(
-          icon: IconButton(icon: const Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+          icon: Icon(Icons.person,color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
               'redditor'        : submission.author,
@@ -296,9 +296,12 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
+          icon: Icon(Icons.menu,color: Colors.grey,),
           onPress: (){
-
+            showDialog(
+              context: context,
+              builder: (context) =>_optionsDialog(context)
+            );
           }
         ),
       ],
@@ -306,8 +309,85 @@ class postInnerWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
     );
   }
-
+  Widget _optionsDialog(BuildContext context)
+  => SimpleDialog(
+    titlePadding: EdgeInsets.all(10.0),
+    contentPadding: EdgeInsets.all(0.0),
+    title: Text(
+      submission.title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+    children: <Widget>[
+      !submission.archived
+        ? InkWell(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              alignment: Alignment.centerLeft,
+              height: 50.0,
+              child: Text('Reply'),
+            ),
+            onTap: () {
+              Navigator.of(context).pop();
+              SubmissionReplyNotification(submission: this.submission)..dispatch(_innerContext);
+            },
+          )
+        : null,
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0),
+          alignment: Alignment.centerLeft,
+          height: 50.0,
+          child: Text('Share'),
+        ),
+      ),
+      currentSubreddit.toLowerCase() != submission.subreddit.displayName.toLowerCase()
+        ? InkWell(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              alignment: Alignment.centerLeft,
+              height: 50.0,
+              child: Text('r/${submission.subreddit.displayName}'),
+            ),
+        )
+        : null,
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0),
+          alignment: Alignment.centerLeft,
+          height: 50.0,
+          child: Text('Launch In Browser'),
+        ),
+      ),
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0),
+          alignment: Alignment.centerLeft,
+          height: 50.0,
+          child: Text('Report'),
+        ),
+      ),
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0),
+          alignment: Alignment.centerLeft,
+          height: 50.0,
+          child: Text('Copy'),
+        ),
+      ),
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.0),
+          alignment: Alignment.centerLeft,
+          height: 50.0,
+          child: Text('Filter'),
+        ),
+      )
+    ].where((w) => notNull(w)).toList()
+  );
+  BuildContext _innerContext;
   Widget build(BuildContext context) {
+    _innerContext = context;
     return Padding(
       child: Container(
         child: getWidget(context),
@@ -319,6 +399,7 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
+  
 }
 
 class defaultColumn extends StatelessWidget {

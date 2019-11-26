@@ -6,6 +6,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -38,6 +39,7 @@ enum ParamsVisibility {
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
+  static const titletext = "Lyre for Reddit";
   PostsListState();
 
   bool autoLoad;
@@ -47,13 +49,29 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   ScrollController scontrol = new ScrollController();
   ValueNotifier<bool> appBarVisibleNotifier;
-  var titletext = "Lyre for Reddit";
+
+  TextEditingController _replyController;
+  ReplySendingState _replySendingState = ReplySendingState.Inactive;
+  String _replyErrorMessage;
+
+  Widget _replyTrailingAction() {
+    if (_replySendingState == ReplySendingState.Inactive) { //Submit icon
+      return Icon(Icons.send);
+    } else if (_replySendingState == ReplySendingState.Sending) { // Loading indicator
+      return CircularProgressIndicator();
+    }
+    //Error widget:
+    return Icon(Icons.close);
+  }
+
+  prefix0.UserContent _replySubmission;
 
   @override
   void dispose() {
     scontrol.dispose();
     bloc.drain();
     appBarVisibleNotifier.dispose();
+    _replyController?.dispose();
     super.dispose();
   }
 
@@ -168,16 +186,18 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           bloc.add(FetchMore());
           }
           if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-            if (notification.scrollDelta >= 10.0) {
+            if (notification.scrollDelta >= 10.0 && _paramsVisibility != ParamsVisibility.Reply) {
               appBarVisibleNotifier.value = false;
             } else if (notification.scrollDelta <= -10.0){
               appBarVisibleNotifier.value = true;
               //navBarController.setVisibility(true);
             }
           }
-        } else if (notification is PostReplyNotification) {
+        } else if (notification is SubmissionReplyNotification) {
           setState(() {
-            
+            _replyController = TextEditingController();
+            _replySubmission = notification.submission;
+            _paramsVisibility = ParamsVisibility.Reply;
           });
         }
         return true;
@@ -203,6 +223,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 title: Text(
                   state.getSourceString(),
                   overflow: TextOverflow.fade,
+                  maxLines: 1,
                   style: LyreTextStyles.title,
                 ),
                 collapseMode: CollapseMode.parallax,
@@ -246,6 +267,52 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         ],
       )
     );
+  }
+
+  void _quickReply(BuildContext context) {
+    // If the reply message is empty, show a short warning snackbar
+    if (_replyController?.text.isEmpty) {
+      final emptyTextSnackBar = SnackBar(
+        content: Text("Cannot Send an Empty Reply"),
+        duration: Duration(seconds: 1),
+      );
+      Scaffold.of(context).showSnackBar(emptyTextSnackBar);
+      return;
+    }
+
+    setState(() {
+      _replySendingState = ReplySendingState.Sending;
+    });
+
+    reply(_replySubmission, _replyController.text).then((returnValue) {
+      // Show error message if return value is a string (an error), or dismiss QuickReply window.
+      if (returnValue is String) {
+        // Error
+        setState(() {
+          _replySendingState = ReplySendingState.Error;
+          _replyErrorMessage = returnValue;
+        });
+      } else {
+        // Success
+        _handleSuccessfulReply(context, returnValue);
+      }
+    });
+  }
+  _handleSuccessfulReply(BuildContext context, prefix0.Comment comment) {
+    final successSnackBar = SnackBar(
+      content: Text('Reply Sent'),
+      action: SnackBarAction(
+        label: 'Open',
+        onPressed: () {
+          Navigator.of(context).pushNamed('comments', arguments: comment);
+        },
+      ),
+    );
+    setState(() {
+      _paramsVisibility = ParamsVisibility.None;
+      _replySendingState = ReplySendingState.Inactive;
+    });
+    Scaffold.of(context).showSnackBar(successSnackBar);
   }
 
   Widget _getSpaciousUserColumn(prefix0.Redditor redditor){
@@ -503,79 +570,156 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                  AnimatedContainer(
-                    height: _paramsVisibility == ParamsVisibility.None ? 56.0 : 0.0,
-                    duration: Duration(milliseconds: 250),
-                    curve: Curves.ease,
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Expanded(
-                          child: Material(
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _paramsVisibility = ParamsVisibility.Type; 
-                                });
-                              },
-                              child: Wrap(
-                                direction: Axis.vertical,
-                                children: <Widget>[
-                                  Text(
-                                    state.getSourceString(),
-                                    style: LyreTextStyles.typeParams
-                                  ),
-                                  Text(
-                                    state.getFilterString(),
-                                    style: LyreTextStyles.timeParams.apply(
-                                      color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
-                                    ),
-                                  )
-                                ],
+                    // * Reply container
+                    AnimatedContainer(
+                      height: _paramsVisibility == ParamsVisibility.Reply ? 56.0 : 0.0,
+                      duration: Duration(milliseconds: 250),
+                      curve: Curves.ease,
+                      child: Material(
+                        child:  Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Visibility(
+                                  visible: _paramsVisibility == ParamsVisibility.Reply,
+                                  child: _replySendingState == ReplySendingState.Error
+                                    ? Text(_replyErrorMessage ?? "Error Sending Reply")
+                                    : Visibility(
+                                      visible: _replySendingState != ReplySendingState.Error,
+                                        child: TextField(
+                                          enabled: _paramsVisibility == ParamsVisibility.Reply && _replySendingState == ReplySendingState.Inactive,
+                                          autofocus: true,
+                                          controller: _replyController,
+                                          decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                                      )
+                                    )
+                                ),
+                              ),
+                              IconButton(
+                                icon: _replySendingState == ReplySendingState.Error
+                                  ? Icon(Icons.refresh)
+                                  : Icon(Icons.fullscreen),
+                                onPressed: () {
+                                  if (_replySendingState == ReplySendingState.Error) {
+                                    setState(() {
+                                      _replySendingState = ReplySendingState.Inactive;
+                                    });
+                                  } else if (_replySendingState == ReplySendingState.Inactive) {
+                                    // Expand quickreply to a full Reply window
+                                    Navigator.pushNamed(context, 'reply', arguments: {
+                                      'content'        : _replySubmission,
+                                      'reply_text'  : _replyController?.text
+                                    }).then((returnValue) {
+                                      if (returnValue is prefix0.Comment) {
+                                        setState(() {
+                                          //Successful return
+                                          _handleSuccessfulReply(context, returnValue);
+                                        });
+                                      } else {
+                                        setState(() {
+                                          _replySendingState = ReplySendingState.Inactive;
+                                          _paramsVisibility = ParamsVisibility.None;
+                                        });
+                                      }
+                                    }); 
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: _replyTrailingAction(),
+                                onPressed: () {
+                                  if (_replySendingState == ReplySendingState.Inactive) {
+                                    _quickReply(context);
+                                  } else if (_replySendingState == ReplySendingState.Error) {
+                                    setState(() {
+                                      _paramsVisibility = ParamsVisibility.None;
+                                      _replySendingState = ReplySendingState.Inactive;
+                                    });
+                                  }
+                                },
                               )
-                            )
+                            ]
                           )
                         ),
-                        Material(
-                          child: IconButton(
-                            icon: Icon(Icons.create),
-                            onPressed: () {
-                              setState(() {
-                                if (PostsProvider().isLoggedIn()) {
-                                  Navigator.of(context).pushNamed('submit');
-                                } else {
-                                  final snackBar = SnackBar(
-                                    content: Text(
-                                        'Log in to post your submission'),
-                                  );
-                                  Scaffold.of(context).showSnackBar(snackBar);
-                                }
-                              });
-                            },
+                      ),
+                    ),
+                    // * Default appBar contents
+                    AnimatedContainer(
+                      height: _paramsVisibility == ParamsVisibility.None ? 56.0 : 0.0,
+                      duration: Duration(milliseconds: 250),
+                      curve: Curves.ease,
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: <Widget>[
+                          Expanded(
+                            child: Material(
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _paramsVisibility = ParamsVisibility.Type; 
+                                  });
+                                },
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  children: <Widget>[
+                                    Text(
+                                      state.getSourceString(),
+                                      style: LyreTextStyles.typeParams
+                                    ),
+                                    Text(
+                                      state.getFilterString(),
+                                      style: LyreTextStyles.timeParams.apply(
+                                        color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
+                                      ),
+                                    )
+                                  ],
+                                )
+                              )
+                            )
+                          ),
+                          Material(
+                            child: IconButton(
+                              icon: Icon(Icons.create),
+                              onPressed: () {
+                                setState(() {
+                                  if (PostsProvider().isLoggedIn()) {
+                                    Navigator.of(context).pushNamed('submit');
+                                  } else {
+                                    final snackBar = SnackBar(
+                                      content: Text(
+                                          'Log in to post your submission'),
+                                    );
+                                    Scaffold.of(context).showSnackBar(snackBar);
+                                  }
+                                });
+                              },
+                            )
                           )
-                        )
-                      ],
-                    )
+                        ],
+                      )
+                    ),
+                  // * Type Params
+                  AnimatedContainer(
+                    height: _paramsVisibility == ParamsVisibility.Type ? 56.0 : 0.0,
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: Material(
+                      child: Row(children: _sortTypeParams(),),
+                    ),
                   ),
-                AnimatedContainer(
-                  height: _paramsVisibility == ParamsVisibility.Type ? 56.0 : 0.0,
-                  duration: Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: Material(
-                    child: Row(children: sortTypeParams(),),
+                  // * Time Params
+                  AnimatedContainer(
+                    height: _paramsVisibility == ParamsVisibility.Time ? 56.0 : 0.0,
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: Material(
+                      child: Row(children: _sortTimeParams(),),
+                    ),
                   ),
-                ),
-                AnimatedContainer(
-                  height: _paramsVisibility == ParamsVisibility.Time ? 56.0 : 0.0,
-                  duration: Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: Material(
-                    child: Row(children: sortTimeParams(),),
-                  ),
-                ),
                 ],)
               );
             },
@@ -586,7 +730,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       onWillPop: _willPop);
   }
 
-  List<Widget> sortTimeParams() {
+  List<Widget> _sortTimeParams() {
     return new List<Widget>.generate(sortTimes.length, (int index) {
       return Expanded(
         child: InkWell(
@@ -608,11 +752,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             });
           },
           onTap: () {
-            if (tempType != "") {
-              parseTypeFilter(tempType);
+            if (_tempType != "") {
+              parseTypeFilter(_tempType);
               currentSortTime = sortTimes[index];
               BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
-              tempType = "";
+              _tempType = "";
             }
             _changeTypeVisibility();
             _changeParamsVisibility();
@@ -622,7 +766,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     });
   }
   
-  List<Widget> sortTypeParams() {
+  List<Widget> _sortTypeParams() {
     return new List<Widget>.generate(sortTypes.length, (int index) {
       return Expanded(
         child: InkWell(
@@ -652,7 +796,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
                   _changeParamsVisibility();
               } else {
-                tempType = q;
+                _tempType = q;
                 _changeTypeVisibility();
               }
             });
@@ -691,7 +835,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
-  List<Widget> sortTypeParamsUser(){
+  List<Widget> _sortTypeParamsUser(){
     return new List<Widget>.generate(sortTypesuser.length, (int index) {
       return InkWell(
         child: Text(sortTypesuser[index]),
@@ -706,7 +850,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
               _changeParamsVisibility();
             } else {
-              tempType = q;
+              _tempType = q;
               _changeTypeVisibility();
             }
           });
@@ -715,8 +859,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     });
   }
   _changeParamsVisibility() {
-    //Resets the bloc:s tempType filter in case of continuity errors.
-    tempType = "";
+    //Resets the bloc:s _tempType filter in case of continuity errors.
+    _tempType = "";
     setState(() {
       if (_paramsVisibility == ParamsVisibility.None) {
         _paramsVisibility = ParamsVisibility.Type;
@@ -733,7 +877,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 }
-String tempType = "";
+String _tempType = "";
 ParamsVisibility _paramsVisibility = ParamsVisibility.None;
 
 class _subredditsList extends State<ExpandingSheetContent> {
@@ -798,7 +942,8 @@ class _subredditsList extends State<ExpandingSheetContent> {
     BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
 
-  List<String> subListOptions = [
+  // List of options for subRedditView
+  List<String> _subListOptions = [
     "Remove",
     "Subscribe"
   ];
@@ -829,7 +974,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                       onSelected: (s) {
                         },
                       itemBuilder: (context) {
-                        return subListOptions.map((s) {
+                        return _subListOptions.map((s) {
                           return PopupMenuItem<String>(
                             value: s,
                             child: Column(
@@ -837,7 +982,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: <Widget>[
-                                    s == subListOptions[0]
+                                    s == _subListOptions[0]
                                       ? Icon(Icons.remove_circle)
                                       : Icon(Icons.add_circle),
                                     VerticalDivider(),
@@ -845,7 +990,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                                     
                                   ]
                                 ,),
-                                s != subListOptions[subListOptions.length-1] ? Divider() : null
+                                s != _subListOptions[_subListOptions.length-1] ? Divider() : null
                               ].where((w) => notNull(w)).toList(),
                             ),
                           );
@@ -889,7 +1034,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                       onSelected: (s) {
                         },
                       itemBuilder: (context) {
-                        return subListOptions.map((s) {
+                        return _subListOptions.map((s) {
                           return PopupMenuItem<String>(
                             value: s,
                             child: Column(
@@ -897,7 +1042,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: <Widget>[
-                                    s == subListOptions[0]
+                                    s == _subListOptions[0]
                                       ? Icon(Icons.remove_circle)
                                       : Icon(Icons.add_circle),
                                     VerticalDivider(),
@@ -905,7 +1050,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                                     
                                   ]
                                 ,),
-                                s != subListOptions[subListOptions.length-1] ? Divider() : null
+                                s != _subListOptions[_subListOptions.length-1] ? Divider() : null
                               ].where((w) => notNull(w)).toList(),
                             ),
                           );

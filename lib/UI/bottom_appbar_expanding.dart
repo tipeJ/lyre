@@ -416,10 +416,10 @@ class _DraggableScrollableSheetScrollPosition
       lastDelta = ballisticController.value;
 
       if (extent.currentExtent < extent.maxExtent) {
-      extent.addPixelDelta(delta * 3.5, context.notificationContext);
+        // * My addition; slightly faster scrolling when not fully expanded
+        extent.addPixelDelta(delta * 2.0, context.notificationContext);
       } else {
-      extent.addPixelDelta(delta, context.notificationContext);
-
+        extent.addPixelDelta(delta, context.notificationContext);
       }
       if ((velocity > 0 && extent.isAtMax) || (velocity < 0 && extent.isAtMin)) {
         // Make sure we pass along enough velocity to keep scrolling - otherwise

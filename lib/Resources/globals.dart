@@ -96,6 +96,12 @@ List<String> commentSortTypes = [
   "Blank"
 ];
 
+enum ReplySendingState {
+  Sending,
+  Inactive,
+  Error
+}
+
 ContentSource currentContentSource = ContentSource.Subreddit;
 
 final TypeFilter defaultSortType = TypeFilter.Hot;

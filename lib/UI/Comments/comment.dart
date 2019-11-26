@@ -3,11 +3,11 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
-import 'package:lyre/UI/reply.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import '../../utils/redditUtils.dart';
 
@@ -226,7 +226,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             const Spacer(),
             IconButton(icon: const Icon(Icons.fullscreen), onPressed: (){
               Navigator.pushNamed(context, 'reply', arguments: {
-                'comment'        : widget.comment,
+                'content'        : widget.comment,
                 'reply_text'  : _replyController?.text
               }).then((returnValue) {
                 if (returnValue is Comment) {

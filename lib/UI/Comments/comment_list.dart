@@ -132,8 +132,15 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         : Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Text("You are viewing a single comment"),
-                            RaisedButton(
+                            Flexible(
+                              child: Text(
+                                "You are viewing a single comment",
+                                style: TextStyle(fontSize: 15.0),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ),
+                            OutlineButton(
                               child: Text("View All Comments"),
                               onPressed: (){
                                 BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));

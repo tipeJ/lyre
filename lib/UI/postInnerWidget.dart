@@ -364,11 +364,11 @@ class defaultColumn extends StatelessWidget {
           (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
             ? Container(
               child: Container(
-                child: Text(
-                  submission.selftext,
-                  overflow: TextOverflow.ellipsis,
-                  // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
-                  maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
+              child: Text(
+                submission.selftext,
+                overflow: TextOverflow.ellipsis,
+                // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
+                maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
                 ),
               ),
               padding: const EdgeInsets.only(

@@ -20,4 +20,8 @@ class LyreTextStyles {
   static const typeParams = TextStyle(fontSize: 26.0);
   static const timeParams = TextStyle(fontSize: 13.0);
   static const iconText = TextStyle(fontSize: 20.0, fontWeight: FontWeight.w500);
+
+  static const submissionTitle = TextStyle(fontSize: 18.0, fontWeight: FontWeight.w400);
+  static const submissionPreviewSelftext = TextStyle(fontSize: 13.0, fontWeight: FontWeight.normal);
+
 }

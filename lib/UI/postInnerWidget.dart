@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -17,6 +18,12 @@ import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
+
+class PostReplyNotification extends Notification {
+  final Submission submission;
+
+  const PostReplyNotification({@required this.submission});
+}
 
 class postInnerWidget extends StatelessWidget {
   postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded])
@@ -229,7 +236,7 @@ class postInnerWidget extends StatelessWidget {
           width: 50,
           height: 50,
           child: getIndicator(type),
-        );
+      );
   }
 
   Widget getIndicator(LinkType type){
@@ -303,9 +310,9 @@ class postInnerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       child: Container(
-          child: getWidget(context),
-          color: Theme.of(context).primaryColor,
-        ),
+        child: getWidget(context),
+        color: Theme.of(context).cardColor,
+      ),
       padding: const EdgeInsets.only(
         //The gap bewtween the widgets.
         bottom: 5.0
@@ -330,20 +337,16 @@ class defaultColumn extends StatelessWidget {
     return new InkWell(
       child: new Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           new Padding(
               child: GestureDetector(
                 child: Text(
                   submission.title,
-                  style:
-                  new TextStyle(
-                    fontWeight: FontWeight.normal, 
-                    fontSize: 12.0,
+                  style: LyreTextStyles.submissionTitle.apply(
                     color: (submission.stickied)
                       ? Color.fromARGB(255, 0, 200, 53)
-                      : Colors.white
-                    ),
+                      : Colors.white),
                 ),
                 onTap: (){
                   switch (linkType) {
@@ -363,15 +366,24 @@ class defaultColumn extends StatelessWidget {
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
           (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
             ? Container(
-              child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(10.0)
+              ),
               child: Text(
                 submission.selftext,
                 overflow: TextOverflow.ellipsis,
                 // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
                 maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
-                ),
+                style: LyreTextStyles.submissionPreviewSelftext.apply(color: Theme.of(context).textTheme.body1.color.withOpacity(0.8)),
               ),
               padding: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+              margin: const EdgeInsets.only(
                 left: 8.0,
                 right: 8.0,
                 top: 8.0,

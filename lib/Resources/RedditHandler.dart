@@ -80,9 +80,13 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
     return e.toString();
   }  
 }
-Future<dynamic> reply(Comment comment, String body) async {
+Future<dynamic> reply(UserContent content, String body) async {
   try {
-    return comment.reply(body);
+    if (content is Comment) {
+      return content.reply(body);
+    } else if (content is Submission) {
+      return content.reply(body);
+    }
   } catch (e) {
     return e.toString();
   }

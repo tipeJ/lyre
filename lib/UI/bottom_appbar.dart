@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
-import 'package:lyre/UI/bottom_appbar_expanding.dart';
 import 'package:lyre/UI/bottom_appbar_expanding.dart' as prefix0;
 
 ///Class for wrapping a scaffold body for a custom bottom expanding appBar
@@ -95,7 +94,7 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
 class ExpandingSheetContent extends StatefulWidget {
   final State<ExpandingSheetContent> state;
   final Widget appBarContent;
-  final DraggableScrollableSheetScrollController innerController;
+  final prefix0.DraggableScrollableSheetScrollController innerController;
   final ValueNotifier<bool> visible = ValueNotifier(true);
 
   ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent});
@@ -111,11 +110,18 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
         widget.body,
         Positioned(
           bottom: 0.0,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            color: Theme.of(context).canvasColor,
-            height: widget.height,
-            child: widget.appBarContent,
+          child: ClipRRect(
+            clipBehavior: Clip.antiAlias,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15.0),
+              topRight: Radius.circular(15.0),
+            ),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              color: Theme.of(context).canvasColor,
+              height: widget.height,
+              child: widget.appBarContent,
+            ),
           ),
         )
       ],

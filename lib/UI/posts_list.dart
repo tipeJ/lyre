@@ -22,7 +22,6 @@ import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'postInnerWidget.dart';
 import 'interfaces/previewCallback.dart';
-import 'dart:math';
 import '../Resources/reddit_api_provider.dart';
 
 class PostsList extends StatefulWidget {
@@ -34,7 +33,8 @@ class PostsList extends StatefulWidget {
 enum ParamsVisibility {
   Type,
   Time,
-  None    
+  None,
+  Reply,
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
@@ -154,18 +154,24 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   Widget _buildList(PostsState state) {
     var posts = state.userContent;
-    return new NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if ((autoLoad ?? false) && (scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
+    return new NotificationListener(
+      onNotification: (Notification notification) {
+        if (notification is ScrollNotification) {
+          if ((autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
           bloc.add(FetchMore());
-        }
-        if (scrollInfo.depth == 0 && scrollInfo is ScrollUpdateNotification) {
-          if (scrollInfo.scrollDelta >= 10.0) {
-            appBarVisibleNotifier.value = false;
-          } else if (scrollInfo.scrollDelta <= -10.0){
-            appBarVisibleNotifier.value = true;
-            //navBarController.setVisibility(true);
           }
+          if (notification.depth == 0 && notification is ScrollUpdateNotification) {
+            if (notification.scrollDelta >= 10.0) {
+              appBarVisibleNotifier.value = false;
+            } else if (notification.scrollDelta <= -10.0){
+              appBarVisibleNotifier.value = true;
+              //navBarController.setVisibility(true);
+            }
+          }
+        } else if (notification is PostReplyNotification) {
+          setState(() {
+            
+          });
         }
         return true;
       },
@@ -223,8 +229,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   );
                 } else {
                   return posts[i] is prefix0.Submission
-                        ? postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
-                        : new CommentContent(posts[i] as prefix0.Comment);
+                    ? postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
+                    : new CommentContent(posts[i] as prefix0.Comment);
                 }
               },
               childCount: posts.length+1,

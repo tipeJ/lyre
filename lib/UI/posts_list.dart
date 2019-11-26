@@ -149,6 +149,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 
   Future<bool> _willPop() {
+    if (_paramsVisibility != ParamsVisibility.None) {
+      setState(() {
+        _paramsVisibility = _paramsVisibility == ParamsVisibility.Time ? ParamsVisibility.Type : ParamsVisibility.None;
+        _replyController?.dispose();
+      });
+      return Future.value(false);
+    }
     return new Future.value(true);
   }
 

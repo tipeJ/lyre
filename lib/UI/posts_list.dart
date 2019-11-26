@@ -487,8 +487,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               return Container(
                 width: MediaQuery.of(context).size.width,
                 height: 56.0,
-                child: _paramsVisibility == ParamsVisibility.None
-                  ? Padding(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                  AnimatedContainer(
+                    height: _paramsVisibility == ParamsVisibility.None ? 56.0 : 0.0,
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.ease,
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -541,15 +546,24 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         )
                       ],
                     )
-                  )
-                : Material(
-                  child: AnimatedCrossFade(
-                      firstChild: Row(children: sortTypeParams(),),
-                      secondChild: Row(children: sortTimeParams(),),
-                      crossFadeState: _paramsVisibility == ParamsVisibility.Type ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-                      duration: Duration(milliseconds: 300),
-                    )
-                )
+                  ),
+                AnimatedContainer(
+                  height: _paramsVisibility == ParamsVisibility.Type ? 56.0 : 0.0,
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.ease,
+                  child: Material(
+                    child: Row(children: sortTypeParams(),),
+                  ),
+                ),
+                AnimatedContainer(
+                  height: _paramsVisibility == ParamsVisibility.Time ? 56.0 : 0.0,
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.ease,
+                  child: Material(
+                    child: Row(children: sortTimeParams(),),
+                  ),
+                ),
+                ],)
               );
             },
           ),

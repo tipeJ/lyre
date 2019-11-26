@@ -46,13 +46,14 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
           widget.body,
           IgnorePointer(
             ignoring: !widget.listener.value,
-            child: AnimatedOpacity(
-              opacity: widget.listener.value ? 1.0 : 0.0,
-              duration: Duration(milliseconds: 500),
-              curve: Curves.ease,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                //Expandable appbar
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              //Expandable appbar
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 800),
+                // ? Could possibly be more elegant. Currently switches between fullsizeHeight and 0, instead of default appbar height and 0
+                height: widget.listener.value ? widget.fullSizeHeight : 0.0,
+                curve: Curves.ease,
                 child: widget.expandingSheetContent != null 
                   ? prefix0.DraggableScrollableSheet(
                     expand: true,
@@ -83,8 +84,8 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
                       ]
                     ),
                   )
+                )
               )
-            )
           )
         ],
       )

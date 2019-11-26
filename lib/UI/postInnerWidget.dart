@@ -367,7 +367,7 @@ class defaultColumn extends StatelessWidget {
                 child: Text(
                   submission.selftext,
                   overflow: TextOverflow.ellipsis,
-                  // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it looks like dogshit
+                  // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
                   maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
                 ),
               ),
@@ -380,7 +380,7 @@ class defaultColumn extends StatelessWidget {
             )
           : Container(height: 3.5),
           new ButtonTheme.bar(
-            child: new Row(
+            child: Row(
               children: <Widget>[
                 submission.over18
                   ? Padding(

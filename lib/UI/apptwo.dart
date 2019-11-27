@@ -134,8 +134,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   void dispose() {
     super.dispose();
   }
-
-
+  
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(

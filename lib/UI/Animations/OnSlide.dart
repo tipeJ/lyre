@@ -113,29 +113,29 @@ class _OnSlideState extends State<OnSlide>{
         }
     Widget items = Opacity(
       child: new Container(
-            width: childSize.width,
-            height: childSize.height,
-            color: Colors.transparent,
-            child: new Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: under,
-            ),
+        width: childSize.width,
+        height: childSize.height,
+        color: Colors.transparent,
+        child: new Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: under,
         ),
-        opacity: _opacity,
+      ),
+      opacity: _opacity,
     );
     Widget scrollview = new NotificationListener(
-            child: new ListView(
-                controller: controller,
-                scrollDirection: Axis.horizontal,
-                children: above,
-            ),
-            onNotification: _handleScrollNotification,
-        );
+      child: new ListView(
+        controller: controller,
+        scrollDirection: Axis.horizontal,
+        children: above,
+      ),
+      onNotification: _handleScrollNotification,
+    );
     return Stack(
-        children: <Widget>[
-            items,
-            new Positioned(child: scrollview, left: 0.0, bottom: 0.0, right: 0.0, top: 0.0,)
-        ],
+      children: <Widget>[
+        items,
+        new Positioned(child: scrollview, left: 0.0, bottom: 0.0, right: 0.0, top: 0.0,)
+      ],
     );
   }
 

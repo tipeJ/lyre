@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +6,7 @@ import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
+import 'package:lyre/UI/Animations/transitions.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
@@ -18,11 +20,10 @@ import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
-
-class PostReplyNotification extends Notification {
+class SubmissionOptionsNotification extends Notification {
   final Submission submission;
 
-  const PostReplyNotification({@required this.submission});
+  const SubmissionOptionsNotification({@required this.submission});
 }
 
 class postInnerWidget extends StatelessWidget {
@@ -79,7 +80,7 @@ class postInnerWidget extends StatelessWidget {
   }
 
   Widget compactWidget(BuildContext context) {
-    return getSlideColumn(
+    return _getSlideColumn(
       context,
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -255,31 +256,31 @@ class postInnerWidget extends StatelessWidget {
 
   // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
-    return getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
+    return _getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
   }
 
-  Widget getSlideColumn(BuildContext context, {Widget child}){
+  Widget _getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.keyboard_arrow_up),onPressed: (){},
+          icon: Icon(
+            Icons.keyboard_arrow_up,
             color: submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.upvoted, submission);
           }
         ),
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.keyboard_arrow_down),onPressed: (){},
+          icon: Icon(
+            Icons.keyboard_arrow_down,
             color: submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: (){
             changeSubmissionVoteState(VoteState.downvoted, submission);
           }
         ),
         ActionItems(
-          icon: IconButton(
-            icon: const Icon(Icons.bookmark),onPressed: (){},
+          icon: Icon(
+            Icons.bookmark,
             color: submission.saved ? Colors.yellow : Colors.grey,),
           onPress: (){
             changeSubmissionSave(submission);
@@ -287,7 +288,7 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
         ActionItems(
-          icon: IconButton(icon: const Icon(Icons.person),onPressed: (){},color: Colors.grey,),
+          icon: Icon(Icons.person,color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
               'redditor'        : submission.author,
@@ -296,9 +297,9 @@ class postInnerWidget extends StatelessWidget {
           }
         ),
         ActionItems(
-          icon: IconButton(icon: Icon(Icons.menu),onPressed: (){},color: Colors.grey,),
+          icon: Icon(Icons.menu,color: Colors.grey,),
           onPress: (){
-
+            SubmissionOptionsNotification(submission: this.submission)..dispatch(context);
           }
         ),
       ],
@@ -319,6 +320,7 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
+  
 }
 
 class defaultColumn extends StatelessWidget {

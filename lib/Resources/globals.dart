@@ -5,13 +5,13 @@ import 'package:hive/hive.dart';
 import 'reddit_api_provider.dart';
 part 'globals.g.dart';
 
-String WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
+const WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
 
-String SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
+const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 
-String GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
-String GFYCAT_CLIENT_ID = "2__lD9Ci";
-String GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
+const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
+const GFYCAT_CLIENT_ID = "2__lD9Ci";
+const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
 String currentSubreddit = "nocontextpics";
 String homeSubreddit;
@@ -96,6 +96,12 @@ List<String> commentSortTypes = [
   "Blank"
 ];
 
+enum ReplySendingState {
+  Sending,
+  Inactive,
+  Error
+}
+
 ContentSource currentContentSource = ContentSource.Subreddit;
 
 final TypeFilter defaultSortType = TypeFilter.Hot;
@@ -141,3 +147,6 @@ String lastPost = "";
 bool preCollapsed = false;
 
 List<Submission> recentlyViewed = [];
+
+// * String constants
+const clipBoardErrorMessage = "Clipboard is not Available";

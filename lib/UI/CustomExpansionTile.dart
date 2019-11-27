@@ -74,7 +74,7 @@ class CustomExpansionTile extends StatefulWidget {
 
   @override
   _CustomExpansionTileState createState() {
-    if (showDivider ?? false) children.insert(0, const Divider());
+    if ((showDivider ?? false) && !(children[0] is Divider)) children.insert(0, const Divider());
     return _CustomExpansionTileState();
   }
 }

@@ -4,20 +4,17 @@ import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
+import 'package:lyre/UI/interfaces/previewCallback.dart';
+import 'package:lyre/UI/postInnerWidget.dart';
 import '../Resources/RedditHandler.dart';
+import '../Resources/globals.dart';
 
 class replyWindow extends StatefulWidget {
-  final Comment comment;
+  final UserContent content;
   final String initialText;
-  replyWindow(this.comment, [this.initialText]);
+  replyWindow(this.content, [this.initialText]);
 
   _replyWindowState createState() => _replyWindowState();
-}
-
-enum ReplySendingState {
-  Sending,
-  Inactive,
-  Error
 }
 
 class _replyWindowState extends State<replyWindow> {
@@ -95,7 +92,9 @@ class _replyWindowState extends State<replyWindow> {
                  ignoring: _replySendingState != ReplySendingState.Inactive,
                  child: Column(
                   children: <Widget>[
-                    CommentContent(widget.comment),
+                    widget.content is Comment
+                      ? CommentContent(widget.content)
+                      : postInnerWidget(widget.content, PreviewSource.Comments, PostView.ImagePreview),
                     TextField(
                       enabled: _replySendingState == ReplySendingState.Inactive,
                       keyboardType: TextInputType.multiline,
@@ -148,7 +147,7 @@ class _replyWindowState extends State<replyWindow> {
     setState(() {
       _replySendingState = ReplySendingState.Sending;
     });
-    reply(widget.comment, _replyController.text).then((value) {
+    reply(widget.content, _replyController.text).then((value) {
       if (value is String) {
         setState(() {
           error = value;

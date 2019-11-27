@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:draw/draw.dart' as prefix0;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -13,6 +14,7 @@ import 'package:lyre/UI/Comments/comment.dart';
 import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
+import 'package:lyre/utils/share_utils.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
@@ -31,28 +33,42 @@ class PostsList extends StatefulWidget {
   State<PostsList> createState() => new PostsListState();
 }
 
-enum ParamsVisibility {
+enum _ParamsVisibility {
   Type,
   Time,
   None,
   Reply,
 }
+enum _SubmissionSelectionVisibility {
+  Default,
+  Copy,
+  Share
+}
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
+
   static const titletext = "Lyre for Reddit";
+  //Needed for weird bug when switching between usercontentoptionspages. (Shows inkwell animation in next page if instantly switched)
+  static const _userContentOptionsTransitionDelay = Duration(milliseconds: 200);
+
   PostsListState();
 
   bool autoLoad;
   PostsBloc bloc;
-  //Represents the topmost widget, in Subreddits it's the subreddit header; in users it's the user info header.
-  Widget headerWidget;
 
   ScrollController scontrol = new ScrollController();
   ValueNotifier<bool> appBarVisibleNotifier;
 
+  PersistentBottomSheetController _submissionOptionsController;
+  _SubmissionSelectionVisibility _submissionSelectionVisibility;
+
   TextEditingController _replyController;
   ReplySendingState _replySendingState = ReplySendingState.Inactive;
   String _replyErrorMessage;
+
+  prefix0.UserContent __selectedUserContent;
+  prefix0.Submission get _selectedSubmission => __selectedUserContent as prefix0.Submission;
+  prefix0.Comment get _selectedComment => __selectedUserContent as prefix0.Comment;
 
   Widget _replyTrailingAction() {
     if (_replySendingState == ReplySendingState.Inactive) { //Submit icon
@@ -64,7 +80,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     return Icon(Icons.close);
   }
 
-  prefix0.UserContent _replySubmission;
 
   @override
   void dispose() {
@@ -164,17 +179,170 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
   }
 
+  Widget _submissionOptionsSheet(BuildContext context) {
+    switch (_submissionSelectionVisibility) {
+      case _SubmissionSelectionVisibility.Copy:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Link'),
+              ),
+              onTap: () {
+                //Copy to Clipboard, and show a snackbar response message
+                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
+                  final snackBar = SnackBar(
+                    content: Text(success ? "Copied to Clipboard" : "Clipboard not Available"),
+                    duration: Duration(seconds: 1),
+                  );
+                  Scaffold.of(context).showSnackBar(snackBar);
+                  //Close the Sheet
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Comments'),
+              ),
+              onTap: () {
+                //Copy to Clipboard, and show a snackbar response message
+                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
+                  final snackBar = SnackBar(
+                    content: Text(success ? "Copied to Clipboard" : "Clipboard not Available"),
+                    duration: Duration(seconds: 1),
+                  );
+                  Scaffold.of(context).showSnackBar(snackBar);
+                  //Close the Sheet
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Row(children: <Widget>[
+                  Icon(Icons.arrow_back),
+                  Text('Back')
+                ],),
+              ),
+              onTap: () {
+                Future.delayed(_userContentOptionsTransitionDelay).then((_) {
+                  _submissionOptionsController.setState((){
+                    _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
+                  });
+                });
+                
+              },
+            )
+          ],
+        );
+      case _SubmissionSelectionVisibility.Share:
+
+      default:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            !_selectedSubmission.archived
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('Reply'),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _replyController = TextEditingController();
+                      _paramsVisibility = _ParamsVisibility.Reply;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Share'),
+              ),
+            ),
+            currentSubreddit.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase()
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('r/${_selectedSubmission.subreddit.displayName}'),
+                  ),
+              )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Launch In Browser'),
+              ),
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Report'),
+              ),
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Copy'),
+              ),
+              onTap: () {
+                Future.delayed(_userContentOptionsTransitionDelay).then((_){
+                  _submissionOptionsController.setState(() {
+                    _submissionSelectionVisibility = _SubmissionSelectionVisibility.Copy;
+                  });
+                });
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Filter'),
+              ),
+            )
+          ].where((w) => notNull(w)).toList()
+        );
+    }
+  }
+    
+      
   Future<bool> _willPop() {
-    if (_paramsVisibility != ParamsVisibility.None) {
+    if (_paramsVisibility != _ParamsVisibility.None) {
       setState(() {
-        _paramsVisibility = _paramsVisibility == ParamsVisibility.Time ? ParamsVisibility.Type : ParamsVisibility.None;
+        _paramsVisibility = _paramsVisibility == _ParamsVisibility.Time ? _ParamsVisibility.Type : _ParamsVisibility.None;
       });
       return Future.value(false);
     }
     return new Future.value(true);
   }
 
-  Widget _buildList(PostsState state) {
+  Widget _buildList(PostsState state, BuildContext context) {
     var posts = state.userContent;
     return new NotificationListener(
       onNotification: (Notification notification) {
@@ -183,18 +351,20 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           bloc.add(FetchMore());
           }
           if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-            if (notification.scrollDelta >= 10.0 && _paramsVisibility != ParamsVisibility.Reply) {
+            if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.Reply) {
               appBarVisibleNotifier.value = false;
             } else if (notification.scrollDelta <= -10.0){
               appBarVisibleNotifier.value = true;
               //navBarController.setVisibility(true);
             }
           }
-        } else if (notification is SubmissionReplyNotification) {
+        } else if (notification is SubmissionOptionsNotification) {
           setState(() {
-            _replyController = TextEditingController();
-            _replySubmission = notification.submission;
-            _paramsVisibility = ParamsVisibility.Reply;
+            __selectedUserContent = notification.submission;
+            _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
+            _submissionOptionsController = Scaffold.of(context).showBottomSheet(
+              (context) => _submissionOptionsSheet(context)
+            );
           });
         }
         return true;
@@ -281,7 +451,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _replySendingState = ReplySendingState.Sending;
     });
 
-    reply(_replySubmission, _replyController.text).then((returnValue) {
+    reply(__selectedUserContent, _replyController.text).then((returnValue) {
       // Show error message if return value is a string (an error), or dismiss QuickReply window.
       if (returnValue is String) {
         // Error
@@ -306,7 +476,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       ),
     );
     setState(() {
-      _paramsVisibility = ParamsVisibility.None;
+      _paramsVisibility = _ParamsVisibility.None;
       _replySendingState = ReplySendingState.Inactive;
     });
     Scaffold.of(context).showSnackBar(successSnackBar);
@@ -546,10 +716,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
                   if(state.contentSource == ContentSource.Redditor){
                     return state.target.isNotEmpty
-                      ? _buildList(state)
+                      ? _buildList(state, context)
                       : Center(child: CircularProgressIndicator());
                   } else {
-                    return _buildList(state);
+                    return _buildList(state, context);
                   }
                 } else {
                   return Center(child: CircularProgressIndicator());
@@ -569,7 +739,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   children: <Widget>[
                     // * Reply container
                     AnimatedContainer(
-                      height: _paramsVisibility == ParamsVisibility.Reply ? 56.0 : 0.0,
+                      height: _paramsVisibility == _ParamsVisibility.Reply ? 56.0 : 0.0,
                       duration: Duration(milliseconds: 250),
                       curve: Curves.ease,
                       child: Material(
@@ -579,13 +749,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                             children: <Widget>[
                               Expanded(
                                 child: Visibility(
-                                  visible: _paramsVisibility == ParamsVisibility.Reply,
+                                  visible: _paramsVisibility == _ParamsVisibility.Reply,
                                   child: _replySendingState == ReplySendingState.Error
                                     ? Text(_replyErrorMessage ?? "Error Sending Reply")
                                     : Visibility(
                                       visible: _replySendingState != ReplySendingState.Error,
                                         child: TextField(
-                                          enabled: _paramsVisibility == ParamsVisibility.Reply && _replySendingState == ReplySendingState.Inactive,
+                                          enabled: _paramsVisibility == _ParamsVisibility.Reply && _replySendingState == ReplySendingState.Inactive,
                                           autofocus: true,
                                           controller: _replyController,
                                           decoration: InputDecoration.collapsed(hintText: 'Reply'),
@@ -605,7 +775,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   } else if (_replySendingState == ReplySendingState.Inactive) {
                                     // Expand quickreply to a full Reply window
                                     Navigator.pushNamed(context, 'reply', arguments: {
-                                      'content'        : _replySubmission,
+                                      'content'        : __selectedUserContent,
                                       'reply_text'  : _replyController?.text
                                     }).then((returnValue) {
                                       if (returnValue is prefix0.Comment) {
@@ -616,7 +786,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                       } else {
                                         setState(() {
                                           _replySendingState = ReplySendingState.Inactive;
-                                          _paramsVisibility = ParamsVisibility.None;
+                                          _paramsVisibility = _ParamsVisibility.None;
                                         });
                                       }
                                     }); 
@@ -630,7 +800,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                     _quickReply(context);
                                   } else if (_replySendingState == ReplySendingState.Error) {
                                     setState(() {
-                                      _paramsVisibility = ParamsVisibility.None;
+                                      _paramsVisibility = _ParamsVisibility.None;
                                       _replySendingState = ReplySendingState.Inactive;
                                     });
                                   }
@@ -643,7 +813,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     ),
                     // * Default appBar contents
                     AnimatedContainer(
-                      height: _paramsVisibility == ParamsVisibility.None ? 56.0 : 0.0,
+                      height: _paramsVisibility == _ParamsVisibility.None ? 56.0 : 0.0,
                       duration: Duration(milliseconds: 250),
                       curve: Curves.ease,
                       padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -657,7 +827,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                               child: InkWell(
                                 onTap: () {
                                   setState(() {
-                                    _paramsVisibility = ParamsVisibility.Type; 
+                                    _paramsVisibility = _ParamsVisibility.Type; 
                                   });
                                 },
                                 child: Wrap(
@@ -701,7 +871,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     ),
                   // * Type Params
                   AnimatedContainer(
-                    height: _paramsVisibility == ParamsVisibility.Type ? 56.0 : 0.0,
+                    height: _paramsVisibility == _ParamsVisibility.Type ? 56.0 : 0.0,
                     duration: Duration(milliseconds: 250),
                     curve: Curves.ease,
                     child: Material(
@@ -710,7 +880,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   ),
                   // * Time Params
                   AnimatedContainer(
-                    height: _paramsVisibility == ParamsVisibility.Time ? 56.0 : 0.0,
+                    height: _paramsVisibility == _ParamsVisibility.Time ? 56.0 : 0.0,
                     duration: Duration(milliseconds: 250),
                     curve: Curves.ease,
                     child: Material(
@@ -745,7 +915,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ),
           onLongPress: () {
             setState(() {
-             _paramsVisibility = ParamsVisibility.Type; 
+             _paramsVisibility = _ParamsVisibility.Type; 
             });
           },
           onTap: () {
@@ -756,7 +926,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               _tempType = "";
             }
             _changeTypeVisibility();
-            _changeParamsVisibility();
+            _change_ParamsVisibility();
           },
         )
       );
@@ -781,7 +951,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ),
           onLongPress: () {
             setState(() {
-             _paramsVisibility = ParamsVisibility.None; 
+             _paramsVisibility = _ParamsVisibility.None; 
             });
           },
           onTap: () {
@@ -791,7 +961,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 parseTypeFilter(q);
                 currentSortTime = "";
                   BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
-                  _changeParamsVisibility();
+                  _change_ParamsVisibility();
               } else {
                 _tempType = q;
                 _changeTypeVisibility();
@@ -845,7 +1015,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
               BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
 
-              _changeParamsVisibility();
+              _change_ParamsVisibility();
             } else {
               _tempType = q;
               _changeTypeVisibility();
@@ -855,27 +1025,27 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       );
     });
   }
-  _changeParamsVisibility() {
+  _change_ParamsVisibility() {
     //Resets the bloc:s _tempType filter in case of continuity errors.
     _tempType = "";
     setState(() {
-      if (_paramsVisibility == ParamsVisibility.None) {
-        _paramsVisibility = ParamsVisibility.Type;
+      if (_paramsVisibility == _ParamsVisibility.None) {
+        _paramsVisibility = _ParamsVisibility.Type;
       } else {
-        _paramsVisibility = ParamsVisibility.None;
+        _paramsVisibility = _ParamsVisibility.None;
       }
     });
   }
   _changeTypeVisibility() {
-    if (_paramsVisibility == ParamsVisibility.Type) {
-      _paramsVisibility = ParamsVisibility.Time;
+    if (_paramsVisibility == _ParamsVisibility.Type) {
+      _paramsVisibility = _ParamsVisibility.Time;
     } else {
-      _paramsVisibility = ParamsVisibility.Type;
+      _paramsVisibility = _ParamsVisibility.Type;
     }
   }
 }
 String _tempType = "";
-ParamsVisibility _paramsVisibility = ParamsVisibility.None;
+_ParamsVisibility _paramsVisibility = _ParamsVisibility.None;
 
 class _subredditsList extends State<ExpandingSheetContent> {
   String searchQuery = "";
@@ -885,7 +1055,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
     return Container(
       child: CustomScrollView(
         controller: widget.innerController,
-        physics: _paramsVisibility == ParamsVisibility.None ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
+        physics: _paramsVisibility == _ParamsVisibility.None ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
         slivers: <Widget>[
           SliverToBoxAdapter(
             child: widget.appBarContent,

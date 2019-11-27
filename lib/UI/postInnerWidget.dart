@@ -20,11 +20,10 @@ import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
-
-class SubmissionReplyNotification extends Notification {
+class SubmissionOptionsNotification extends Notification {
   final Submission submission;
 
-  const SubmissionReplyNotification({@required this.submission});
+  const SubmissionOptionsNotification({@required this.submission});
 }
 
 class postInnerWidget extends StatelessWidget {
@@ -81,7 +80,7 @@ class postInnerWidget extends StatelessWidget {
   }
 
   Widget compactWidget(BuildContext context) {
-    return getSlideColumn(
+    return _getSlideColumn(
       context,
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,10 +256,10 @@ class postInnerWidget extends StatelessWidget {
 
   // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
-    return getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
+    return _getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
   }
 
-  Widget getSlideColumn(BuildContext context, {Widget child}){
+  Widget _getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
@@ -300,12 +299,7 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: Icon(Icons.menu,color: Colors.grey,),
           onPress: (){
-            showDialog(
-              context: context,
-              builder: (context) {
-                return _optionsDialog(context);
-              }
-            );
+            SubmissionOptionsNotification(submission: this.submission)..dispatch(context);
           }
         ),
       ],
@@ -313,34 +307,8 @@ class postInnerWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
     );
   }
-  Widget _optionsDialog(BuildContext context)
-  => AlertDialog(
-    titlePadding: EdgeInsets.all(10.0),
-    contentPadding: EdgeInsets.all(0.0),
-    title: Text(
-      submission.title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    ),
-    content: Navigator(
-      initialRoute: '/',
-      onGenerateRoute: (RouteSettings settings) {
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(builder: (_) => new postColumn(submission: submission, innerContext: _innerContext));
-          case 'share':
-            return CupertinoPageRoute(builder: (_) => Container(width: 500, height: 500, color: Colors.green,));
-          default:
-            return SlideRightRoute(widget: Material(
-              child: Center(child: Text('No Route defined for ${settings.name}'),)
-            ));
-        }
-      },
-    ),
-  );
-  BuildContext _innerContext;
+
   Widget build(BuildContext context) {
-    _innerContext = context;
     return Padding(
       child: Container(
         child: getWidget(context),
@@ -353,92 +321,6 @@ class postInnerWidget extends StatelessWidget {
     );
   }
   
-}
-
-class postColumn extends StatelessWidget {
-  const postColumn({
-    Key key,
-    @required this.submission,
-    @required BuildContext innerContext,
-  }) : _innerContext = innerContext, super(key: key);
-
-  final Submission submission;
-  final BuildContext _innerContext;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        !submission.archived
-          ? InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Reply'),
-              ),
-              onTap: () {
-                Navigator.of(context).pop();
-                SubmissionReplyNotification(submission: this.submission)..dispatch(_innerContext);
-              },
-            )
-          : null,
-        InkWell(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.centerLeft,
-            height: 50.0,
-            child: Text('Share'),
-          ),
-          onTap: () {
-            Navigator.of(context).pushNamed('share');
-          },
-        ),
-        currentSubreddit.toLowerCase() != submission.subreddit.displayName.toLowerCase()
-          ? InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('r/${submission.subreddit.displayName}'),
-              ),
-          )
-          : null,
-        InkWell(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.centerLeft,
-            height: 50.0,
-            child: Text('Launch In Browser'),
-          ),
-        ),
-        InkWell(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.centerLeft,
-            height: 50.0,
-            child: Text('Report'),
-          ),
-        ),
-        InkWell(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.centerLeft,
-            height: 50.0,
-            child: Text('Copy'),
-          ),
-        ),
-        InkWell(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.centerLeft,
-            height: 50.0,
-            child: Text('Filter'),
-          ),
-        )
-      ].where((w) => notNull(w)).toList()
-    );
-  }
 }
 
 class defaultColumn extends StatelessWidget {

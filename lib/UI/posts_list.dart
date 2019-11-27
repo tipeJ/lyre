@@ -15,6 +15,7 @@ import 'package:lyre/UI/CustomExpansionTile.dart';
 import 'package:lyre/UI/bottom_appbar.dart';
 import 'package:lyre/utils/HtmlUtils.dart';
 import 'package:lyre/utils/share_utils.dart';
+import 'package:lyre/utils/urlUtils.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
@@ -1060,6 +1061,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 height: 50.0,
                 child: Text('Launch In Browser'),
               ),
+              onTap: () {
+                launchURL(context, _selectedSubmission);
+              },
             ),
             InkWell(
               child: Container(

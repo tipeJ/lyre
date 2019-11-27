@@ -477,7 +477,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               Positioned(
                 bottom: 0.0,
                 right: 0.0,
-                child: Row(
+                child: Material(
+                  child: Row(
                     children: <Widget>[
                       Text(appName + ' v.' + appVersion),
                       IconButton(
@@ -487,7 +488,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         },
                       )
                     ],
-                  ),
+                  )
+                ),
               )
             ],
           )

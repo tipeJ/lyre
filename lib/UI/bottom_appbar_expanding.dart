@@ -315,7 +315,8 @@ class DraggableScrollableSheetScrollController extends ScrollController {
       extent: extent,
     );
   }
-  voia() {
+  ///Scroll to zero and dismiss sheet
+  reset() {
     this.jumpTo(0.0);
     extent.currentExtent = extent.minExtent;
   }

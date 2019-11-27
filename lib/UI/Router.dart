@@ -46,7 +46,7 @@ class Router {
         //   builder: (context) => CommentsBloc(content),
         //   child: CommentList(),
         // ));
-        return SlideUpRoute(widget: BlocProvider(
+        return CupertinoPageRoute(builder: (_) => BlocProvider(
           builder: (context) => CommentsBloc(content),
           child: CommentList(),
         ));

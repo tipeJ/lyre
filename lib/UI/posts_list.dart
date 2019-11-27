@@ -1162,7 +1162,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                 decoration: InputDecoration(hintText: 'Search'),
                 onEditingComplete: () {
                   currentSubreddit = searchQuery;
-                  widget.innerController.voia();
+                  widget.innerController.reset();
                   BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
                 },
               ),
@@ -1190,7 +1190,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
 
   _openSub(String s) {
     currentSubreddit = s;
-    widget.innerController.voia();
+    widget.innerController.reset();
     BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
 

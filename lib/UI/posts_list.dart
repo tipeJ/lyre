@@ -675,6 +675,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           Expanded(
                             child: Material(
                               child: InkWell(
+                                onDoubleTap: () {
+                                  currentSubreddit = homeSubreddit;
+                                  BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit)));
+                                },
                                 onTap: () {
                                   setState(() {
                                     _paramsVisibility = _ParamsVisibility.Type; 

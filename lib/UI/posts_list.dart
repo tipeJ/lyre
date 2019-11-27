@@ -47,7 +47,7 @@ enum _SubmissionSelectionVisibility {
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
-  static const titletext = "Lyre for Reddit";
+  static const _titletext = "Lyre for Reddit";
   //Needed for weird bug when switching between usercontentoptionspages. (Shows inkwell animation in next page if instantly switched)
   static const _userContentOptionsTransitionDelay = Duration(milliseconds: 200);
 
@@ -178,159 +178,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       },
     );
   }
-
-  Widget _submissionOptionsSheet(BuildContext context) {
-    switch (_submissionSelectionVisibility) {
-      case _SubmissionSelectionVisibility.Copy:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Link'),
-              ),
-              onTap: () {
-                //Copy to Clipboard, and show a snackbar response message
-                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
-                  final snackBar = SnackBar(
-                    content: Text(success ? "Copied to Clipboard" : "Clipboard not Available"),
-                    duration: Duration(seconds: 1),
-                  );
-                  Scaffold.of(context).showSnackBar(snackBar);
-                  //Close the Sheet
-                  Navigator.of(context).pop();
-                });
-              },
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Comments'),
-              ),
-              onTap: () {
-                //Copy to Clipboard, and show a snackbar response message
-                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
-                  final snackBar = SnackBar(
-                    content: Text(success ? "Copied to Clipboard" : "Clipboard not Available"),
-                    duration: Duration(seconds: 1),
-                  );
-                  Scaffold.of(context).showSnackBar(snackBar);
-                  //Close the Sheet
-                  Navigator.of(context).pop();
-                });
-              },
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Row(children: <Widget>[
-                  Icon(Icons.arrow_back),
-                  Text('Back')
-                ],),
-              ),
-              onTap: () {
-                Future.delayed(_userContentOptionsTransitionDelay).then((_) {
-                  _submissionOptionsController.setState((){
-                    _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
-                  });
-                });
-                
-              },
-            )
-          ],
-        );
-      case _SubmissionSelectionVisibility.Share:
-
-      default:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            !_selectedSubmission.archived
-              ? InkWell(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    alignment: Alignment.centerLeft,
-                    height: 50.0,
-                    child: Text('Reply'),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _replyController = TextEditingController();
-                      _paramsVisibility = _ParamsVisibility.Reply;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                )
-              : null,
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Share'),
-              ),
-            ),
-            currentSubreddit.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase()
-              ? InkWell(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    alignment: Alignment.centerLeft,
-                    height: 50.0,
-                    child: Text('r/${_selectedSubmission.subreddit.displayName}'),
-                  ),
-              )
-              : null,
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Launch In Browser'),
-              ),
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Report'),
-              ),
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Copy'),
-              ),
-              onTap: () {
-                Future.delayed(_userContentOptionsTransitionDelay).then((_){
-                  _submissionOptionsController.setState(() {
-                    _submissionSelectionVisibility = _SubmissionSelectionVisibility.Copy;
-                  });
-                });
-              },
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Filter'),
-              ),
-            )
-          ].where((w) => notNull(w)).toList()
-        );
-    }
-  }
-    
       
   Future<bool> _willPop() {
     if (_paramsVisibility != _ParamsVisibility.None) {
@@ -1043,6 +890,234 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _paramsVisibility = _ParamsVisibility.Type;
     }
   }
+
+  Widget _submissionOptionsSheet(BuildContext context) {
+    switch (_submissionSelectionVisibility) {
+      case _SubmissionSelectionVisibility.Copy:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('Post Preview'),
+                  ),
+                  onTap: () {
+                    //Copy to Clipboard, and show a snackbar response message
+                    copyToClipboard(_selectedSubmission.preview.last.source.url.toString()).then((success) {
+                      final snackBar = SnackBar(
+                        content: Text(success ? "Copied Image to Clipboard" : clipBoardErrorMessage),
+                        duration: Duration(seconds: 1),
+                      );
+                      Scaffold.of(context).showSnackBar(snackBar);
+                      //Close the Sheet
+                      Navigator.of(context).pop();
+                    });
+                  },
+                )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Link'),
+              ),
+              onTap: () {
+                //Copy to Clipboard, and show a snackbar response message
+                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
+                  final snackBar = SnackBar(
+                    content: Text(success ? "Copied Link to Clipboard" : clipBoardErrorMessage),
+                    duration: Duration(seconds: 1),
+                  );
+                  Scaffold.of(context).showSnackBar(snackBar);
+                  //Close the Sheet
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Comments'),
+              ),
+              onTap: () {
+                //Copy to Clipboard, and show a snackbar response message
+                copyToClipboard(_selectedSubmission.shortlink.toString()).then((success) {
+                  final snackBar = SnackBar(
+                    content: Text(success ? "Copied Comments Link to Clipboard" : clipBoardErrorMessage),
+                    duration: Duration(seconds: 1),
+                  );
+                  Scaffold.of(context).showSnackBar(snackBar);
+                  //Close the Sheet
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            _optionsBackButton
+          ].where((w) => notNull(w)).toList(),
+        );
+      case _SubmissionSelectionVisibility.Share:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            //Only show preview sharing if a preview exists
+            _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('Post Preview'),
+                  ),
+                  onTap: () {
+                    //Share the image and pop the sheet
+                    Navigator.of(context).pop();
+                    shareString(_selectedSubmission.preview.last.source.url.toString());
+                  },
+                )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Link'),
+              ),
+              onTap: () {
+                //Share the link and pop the sheet
+                Navigator.of(context).pop();
+                shareString(_selectedSubmission.url.toString());
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Comments'),
+              ),
+              onTap: () {
+                //Share the link and pop the sheet
+                Navigator.of(context).pop();
+                shareString(_selectedSubmission.shortlink.toString());
+              },
+            ),
+            _optionsBackButton
+          ].where((w) => notNull(w)).toList(),
+        );
+      default:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            !_selectedSubmission.archived
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('Reply'),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _replyController = TextEditingController();
+                      _paramsVisibility = _ParamsVisibility.Reply;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Share'),
+              ),
+              onTap: () {
+                _switchSelectionOptions(_SubmissionSelectionVisibility.Share);
+              },
+            ),
+            currentSubreddit.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase()
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text('r/${_selectedSubmission.subreddit.displayName}'),
+                  ),
+              )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Launch In Browser'),
+              ),
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Report'),
+              ),
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Copy'),
+              ),
+              onTap: () {
+                _switchSelectionOptions(_SubmissionSelectionVisibility.Copy);
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Filter'),
+              ),
+            )
+          ].where((w) => notNull(w)).toList()
+        );
+    }
+  }
+  Widget get _optionsBackButton => InkWell(
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      alignment: Alignment.centerLeft,
+      height: 50.0,
+      child: Row(children: <Widget>[
+        Icon(Icons.arrow_back),
+        Padding(
+          padding: EdgeInsets.only(left: 10.0),
+          child: Text('Back')
+        )
+      ],),
+    ),
+    onTap: () {
+      _switchSelectionOptions(_SubmissionSelectionVisibility.Default);
+    },
+  );
+
+  _switchSelectionOptions(_SubmissionSelectionVisibility _visibility) {
+    Future.delayed(_userContentOptionsTransitionDelay).then((_){
+      _submissionOptionsController.setState(() {
+        _submissionSelectionVisibility = _visibility;
+      });
+    });
+  }
+
 }
 String _tempType = "";
 _ParamsVisibility _paramsVisibility = _ParamsVisibility.None;

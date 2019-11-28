@@ -339,6 +339,15 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         ],
         isAdvanced: true
       ),
+      InkWell(
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Text('Filter Blacklist'),
+        ),
+        onTap: () {
+          Navigator.of(context).pushNamed('filters');
+        },
+      )
     ];
   }
   List<Widget> getMediaSettings(BuildContext context){

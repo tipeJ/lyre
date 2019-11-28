@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' show Client;
+import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
 import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
@@ -236,6 +237,7 @@ class PostsProvider {
     return map;    
   }
 
+  ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
     reddit = await getRed();
 
@@ -259,19 +261,19 @@ class PostsProvider {
     if(timeFilter == ""){
       switch (typeFilter){
         case TypeFilter.New:
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
             v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
-          }else if(source == ContentSource.Redditor){
+          } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(redditor).newest(params: headers).toList();
           }
           break;
         case TypeFilter.Rising:
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
             v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
           }
           break;
         case TypeFilter.Gilded:
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
             // ! Implement?
           }
           break;
@@ -279,10 +281,9 @@ class PostsProvider {
           // ! Implement?
           break;
         default: //Default to hot.
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
             v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
-          }else if(source == ContentSource.Redditor){
-            print(redditor);
+          } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(redditor).hot(params: headers).toList();
           }
           break;
@@ -291,20 +292,26 @@ class PostsProvider {
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
         case TypeFilter.Controversial:
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
               v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
-          }else if(source == ContentSource.Redditor){
+          } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
           }
           break;
         default: //Default to top
-          if(source == ContentSource.Subreddit){
+          if (source == ContentSource.Subreddit){
               v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
-          }else if(source == ContentSource.Redditor){
+          } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
           }
           break;
       }
+    }
+    //Filter nothing if the contentsource is Self
+    if (source != ContentSource.Self) {
+      await FilterManager().openFiltersDB();
+      //Remove submissions using FilterManager
+      v.removeWhere((u) => FilterManager().isFiltered(source, u, source == ContentSource.Redditor ? redditor : currentSubreddit));
     }
     return v;
   }

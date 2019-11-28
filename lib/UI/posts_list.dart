@@ -1033,6 +1033,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   ),
                   onTap: () {
                     setState(() {
+                      appBarVisibleNotifier.value = true;
                       _replyController = TextEditingController();
                       _paramsVisibility = _ParamsVisibility.Reply;
                     });

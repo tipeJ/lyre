@@ -167,7 +167,7 @@ class postInnerWidget extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         image: AdvancedNetworkImage(
-          submission.preview.first.source.url.toString(),
+          submission.preview.last.source.url.toString(),
           useDiskCache: true,
           cacheRule: const CacheRule(maxAge: const Duration(days: 7))
         ),

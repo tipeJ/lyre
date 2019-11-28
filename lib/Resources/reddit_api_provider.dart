@@ -154,26 +154,23 @@ class PostsProvider {
     };
   }
 
-  void authorize(String code) async {
-    await reddit.auth.authorize(code);
-    
-    var user = await reddit.user.me();
-
-    writeCredentials(user.displayName, reddit.auth.credentials.toJson());
-  }
-
-  void auth(Stream<String> onCode) async {
+  Future<String> auth(Stream<String> onCode) async {
     final String code = await onCode.first;
 
+    //Close the no-longer needed server
+    await closeAuthServer();
+
     await reddit.auth.authorize(code);
     
     var user = await reddit.user.me();
 
-    writeCredentials(user.displayName, reddit.auth.credentials.toJson());
+    await writeCredentials(user.displayName, reddit.auth.credentials.toJson());
+
+    return user.displayName;
   }
 
-  void closeAuthServer() {
-    _server.close(force: true);
+  Future<void> closeAuthServer() {
+    return _server.close(force: true);
   }
 
   //Httpserver used for authenticating the App with a Reddit account

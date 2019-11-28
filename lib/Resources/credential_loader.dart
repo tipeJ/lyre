@@ -2,7 +2,7 @@ import '../Database/database.dart';
 import '../Models/User.dart';
 import 'dart:core';
 
-writeCredentials(String usern, String creds) async {
+Future<int> writeCredentials(String usern, String creds) async {
   final db = await DBProvider.db.database;
 
   String lowercase = usern.toLowerCase();

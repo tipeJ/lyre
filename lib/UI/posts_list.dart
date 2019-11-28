@@ -128,12 +128,15 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   Widget _registrationButton() {
    return OutlineButton(
-    child: const Text('Add an account'),
+    child: const Text('Add an Account'),
       color: Theme.of(context).primaryColor,
       onPressed: () async {
         var pp = PostsProvider();
         final authUrl = await pp.redditAuthUrl();
-        pp.auth(authUrl.values.first);
+        PostsProvider().auth(authUrl.values.first).then((loggedInUserName) async {
+          BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: loggedInUserName));
+          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit));
+        });
         showDialog(
           context: context,
           builder: (BuildContext context) => Material(
@@ -148,9 +151,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
-                      IconButton(icon: Icon(Icons.close),onPressed: (){
+                      IconButton(icon: Icon(Icons.close),onPressed: () async {
+                        await pp.closeAuthServer();
                         Navigator.pop(context);
-                        pp.closeAuthServer();
                       },)
                     ],
                   ),
@@ -159,10 +162,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   child: InAppWebView(
                     onLoadStop: (controller, s) async {
                       if (s.contains('localhost:8080')) {
+                        //Exit on successful authorization;
                         Navigator.pop(context);
-                        pp.closeAuthServer();
-                        final newUser = await pp.getLatestUser();
-                        BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: newUser.username));
                       }
                     },
                     initialOptions: {
@@ -562,7 +563,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
               if (snapshot.hasData) {
                 final state = snapshot.data;
-                if(state.userContent != null && state.userContent.isNotEmpty){
+                if(state.userContent != null && state.userContent.isNotEmpty && bloc.loading.value != LoadingState.refreshing){
                   autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
                   if(state.contentSource == ContentSource.Redditor){
                     return state.target.isNotEmpty

@@ -107,15 +107,22 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
-                title: "Home Subreddit",
-                leading: TextFormField(
-                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
-                  decoration: InputDecoration(prefixText: "r/"),   
-                  onChanged: (value) {
-                    box.put(SUBREDDIT_HOME, value);
-                  },               
-                )
+              return Row(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(right: 10.0),
+                    child: Text("Home Subreddit")
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: box.get(SUBREDDIT_HOME) ?? "",
+                      decoration: InputDecoration(prefixText: "r/"),   
+                      onChanged: (value) {
+                        box.put(SUBREDDIT_HOME, value);
+                      },               
+                    )
+                  )
+                ],
               );
             },
           ),
@@ -133,6 +140,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: "Default Sorting Type",
+                description: "Your Subreddit Submissions will by default take this value (Hot, Top, etc..)",
                 leading: new DropdownButton<String>(
                   value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
                   items: sortTypes.map((String value) {
@@ -155,6 +163,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: "Default Sorting Time",
+                description: "Your Subreddit Submissions will by default take this value when the sorting type is Time-Based (Top, Controversial)",
                 leading: new DropdownButton<String>(
                   value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
                   items: sortTimes.map((String value) {
@@ -172,6 +181,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           ),
           SettingsTitleRow(
             title: "Auto-Load Posts",
+            description: "Enables Never-Ending scrolling",
             leading: Switch(
               value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
               onChanged: (value){
@@ -183,6 +193,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: "Post View Mode",
+                description: "What form will the submissions cards take",
                 leading: new DropdownButton<PostView>(
                   value: box.get(SUBMISSION_VIEWMODE) ?? PostView.Compact,
                   items: PostView.values.map((PostView value) {
@@ -206,6 +217,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children:[
           SettingsTitleRow(
             title: "Reset Sorting When Refreshing Submission List",
+            description: "Will refreshing Submission list or entering a new submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
             leading: Switch(
               value: box.get(SUBMISSION_RESET_SORTING) ?? true,
               onChanged: (value){
@@ -214,6 +226,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           ),
           SettingsTitleRow(
             title: "Show Circle Around Preview Indicator",
+            description: "When enabled, show a circle around the link indicator (video, image, etc..)",
             leading: Switch(
               value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? true,
               onChanged: (value){
@@ -237,6 +250,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: "Default Comments Sort",
+                description: "Default Sorting Params of Comments list",
                 leading: new DropdownButton<String>(
                   value: box.get(COMMENTS_DEFAULT_SORT) ?? commentSortTypes[1],
                   items: commentSortTypes.map((String value) {
@@ -257,6 +271,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: 'Precollapse Threads', 
+                description: "Collapse all Comment threads to the top level comments by default",
                 leading: Switch(
                   value: box.get(COMMENTS_PRECOLLAPSE) ?? false,
                   onChanged: (value){
@@ -277,6 +292,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children: [
           SettingsTitleRow(
             title: 'Show NSFW Previews', 
+            description: "When disabled, Lyre will automatically blur previews that contain NSFW content",
             leading: Switch(
               value: box.get(SHOW_NSFW_PREVIEWS) ?? false,
               onChanged: (value){
@@ -285,6 +301,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           ),
           SettingsTitleRow(
             title: 'Show Spoiler Previews', 
+            description: "When disabled, Lyre will automatically blur previews that contain spoilers",
             leading: Switch(
               value: box.get(SHOW_SPOILER_PREVIEWS) ?? false,
               onChanged: (value){
@@ -330,6 +347,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children: [
           SettingsTitleRow(
             title: "Show Full Size Previews",
+            description: "When enabled, shows the full-height images in large cards",
             leading: Switch(
               value: box.get(IMAGE_SHOW_FULLSIZE) ?? false,
               onChanged: (value){
@@ -348,6 +366,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           */
           SettingsTitleRow(
             title: "Album Column Amount",
+            description: "Set the amount of columns in grid image view",
             leading: OutlineButton(
               child: Text(MediaQuery.of(context).orientation == Orientation.portrait ? (box.get(ALBUM_COLUMN_AMOUNT_PORTRAIT) != null ? box.get(ALBUM_COLUMN_AMOUNT_PORTRAIT).toString() : 'Auto') : (box.get(ALBUM_COLUMN_AMOUNT_LANDSCAPE) != null ? box.get(ALBUM_COLUMN_AMOUNT_LANDSCAPE).toString() : 'Auto')),
               onPressed: () {
@@ -358,6 +377,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           ),
           SettingsTitleRow(
             title: "Loop Videos",
+            description: "When enabled, all videos will automatically start again after ending",
             leading: Switch(
               value: box.get(VIDEO_LOOP) ?? true,
               onChanged: (value){
@@ -366,6 +386,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           ),
           SettingsTitleRow(
             title: "Auto-Mute Videos",
+            description: "When enabled, all videos will automatically be muted at start",
             leading: Switch(
               value: box.get(VIDEO_AUTO_MUTE) ?? false,
               onChanged: (value){
@@ -383,6 +404,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             builder: (context, box){
               return SettingsTitleRow(
                 title: "Imgur Thumbnail Quality",
+                description: "Choose the quality in which imgur thumbnails are shown in album preview views",
                 leading: new DropdownButton<String>(
                   value: box.get(IMGUR_THUMBNAIL_QUALITY) ?? imgurThumbnailsQuality.keys.first,
                   items: imgurThumbnailsQuality.keys.map((String value) {
@@ -578,19 +600,35 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
 }
 
 class SettingsTitleRow extends StatelessWidget {
-  const SettingsTitleRow({this.title, this.leading});
+  const SettingsTitleRow({@required this.title, @required this.leading, @required this.description}
+  ):  assert(title != null),
+      assert(leading != null),
+      assert(description != null);
 
   final Widget leading;
   final String title;
+  final String description;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5.0),
-          child: Text(title),
+        Expanded(
+          child: InkWell(
+            child: Padding(
+              padding: EdgeInsets.all(5.0),
+              child: Text(title),
+            ),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: Text(title),
+                  children: <Widget>[Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),child: Text(description)
+                )],)
+              );
+            },
+          ),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 5.0),

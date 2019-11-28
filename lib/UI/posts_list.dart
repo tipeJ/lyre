@@ -843,6 +843,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
+  ///Returns the Submission options sheet.
   Widget _submissionOptionsSheet(BuildContext context) {
     switch (_submissionSelectionVisibility) {
       case _SubmissionSelectionVisibility.Copy:
@@ -1049,7 +1050,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
-  //Builds the Quick Text Input content Row
+  ///Builds the Quick Text Input content Row
   Row _buildQuickTextInput(BuildContext context) {
     switch (_quickTextSelection) {
       case _QuickText.Reply:

@@ -57,7 +57,8 @@ Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, b
     return e.toString();
   }
 }
-Future<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
+Future
+<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
   try {
@@ -72,6 +73,7 @@ Future<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bo
     return e.toString();
   }  
 }
+
 Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile) async {
   try {
     var url = await ImgurAPI().uploadImage(imageFile, title);
@@ -80,12 +82,25 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
     return e.toString();
   }  
 }
+
 Future<dynamic> reply(UserContent content, String body) async {
   try {
     if (content is Comment) {
       return content.reply(body);
     } else if (content is Submission) {
       return content.reply(body);
+    }
+  } catch (e) {
+    return e.toString();
+  }
+}
+
+Future<dynamic> report(UserContent content, String reason) async {
+  try {
+    if (content is Comment) {
+      return content.report(reason);
+    } else if (content is Submission) {
+      return content.report(reason);
     }
   } catch (e) {
     return e.toString();

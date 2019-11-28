@@ -38,12 +38,17 @@ enum _ParamsVisibility {
   Type,
   Time,
   None,
-  Reply,
+  QuickText,
 }
 enum _SubmissionSelectionVisibility {
   Default,
   Copy,
   Share
+}
+enum _QuickText {
+  Reply,
+  Report,
+  QuickAction
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
@@ -63,13 +68,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   PersistentBottomSheetController _submissionOptionsController;
   _SubmissionSelectionVisibility _submissionSelectionVisibility;
 
-  TextEditingController _replyController;
+  TextEditingController _quickTextController;
+  _QuickText _quickTextSelection;
   ReplySendingState _replySendingState = ReplySendingState.Inactive;
   String _replyErrorMessage;
 
-  prefix0.UserContent __selectedUserContent;
-  prefix0.Submission get _selectedSubmission => __selectedUserContent as prefix0.Submission;
-  prefix0.Comment get _selectedComment => __selectedUserContent as prefix0.Comment;
+  prefix0.UserContent _selectedUserContent;
+  prefix0.Submission get _selectedSubmission => _selectedUserContent as prefix0.Submission;
+  prefix0.Comment get _selectedComment => _selectedUserContent as prefix0.Comment;
 
   Widget _replyTrailingAction() {
     if (_replySendingState == ReplySendingState.Inactive) { //Submit icon
@@ -87,7 +93,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     scontrol.dispose();
     bloc.drain();
     appBarVisibleNotifier.dispose();
-    _replyController?.dispose();
+    _quickTextController?.dispose();
     super.dispose();
   }
 
@@ -200,7 +206,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           bloc.add(FetchMore());
           }
           if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-            if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.Reply) {
+            if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
               appBarVisibleNotifier.value = false;
             } else if (notification.scrollDelta <= -10.0){
               appBarVisibleNotifier.value = true;
@@ -209,7 +215,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           }
         } else if (notification is SubmissionOptionsNotification) {
           setState(() {
-            __selectedUserContent = notification.submission;
+            _selectedUserContent = notification.submission;
             _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
             _submissionOptionsController = Scaffold.of(context).showBottomSheet(
               (context) => _submissionOptionsSheet(context)
@@ -287,7 +293,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   void _quickReply(BuildContext context) {
     // If the reply message is empty, show a short warning snackbar
-    if (_replyController?.text.isEmpty) {
+    if (_quickTextController?.text.isEmpty) {
       final emptyTextSnackBar = SnackBar(
         content: Text("Cannot Send an Empty Reply"),
         duration: Duration(seconds: 1),
@@ -300,7 +306,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _replySendingState = ReplySendingState.Sending;
     });
 
-    reply(__selectedUserContent, _replyController.text).then((returnValue) {
+    reply(_selectedUserContent, _quickTextController.text).then((returnValue) {
       // Show error message if return value is a string (an error), or dismiss QuickReply window.
       if (returnValue is String) {
         // Error
@@ -590,75 +596,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   children: <Widget>[
                     // * Reply container
                     AnimatedContainer(
-                      height: _paramsVisibility == _ParamsVisibility.Reply ? 56.0 : 0.0,
+                      height: _paramsVisibility == _ParamsVisibility.QuickText ? 56.0 : 0.0,
                       duration: Duration(milliseconds: 250),
                       curve: Curves.ease,
                       child: Material(
                         child:  Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Visibility(
-                                  visible: _paramsVisibility == _ParamsVisibility.Reply,
-                                  child: _replySendingState == ReplySendingState.Error
-                                    ? Text(_replyErrorMessage ?? "Error Sending Reply")
-                                    : Visibility(
-                                      visible: _replySendingState != ReplySendingState.Error,
-                                        child: TextField(
-                                          enabled: _paramsVisibility == _ParamsVisibility.Reply && _replySendingState == ReplySendingState.Inactive,
-                                          autofocus: true,
-                                          controller: _replyController,
-                                          decoration: InputDecoration.collapsed(hintText: 'Reply'),
-                                      )
-                                    )
-                                ),
-                              ),
-                              IconButton(
-                                icon: _replySendingState == ReplySendingState.Error
-                                  ? Icon(Icons.refresh)
-                                  : Icon(Icons.fullscreen),
-                                onPressed: () {
-                                  if (_replySendingState == ReplySendingState.Error) {
-                                    setState(() {
-                                      _replySendingState = ReplySendingState.Inactive;
-                                    });
-                                  } else if (_replySendingState == ReplySendingState.Inactive) {
-                                    // Expand quickreply to a full Reply window
-                                    Navigator.pushNamed(context, 'reply', arguments: {
-                                      'content'        : __selectedUserContent,
-                                      'reply_text'  : _replyController?.text
-                                    }).then((returnValue) {
-                                      if (returnValue is prefix0.Comment) {
-                                        setState(() {
-                                          //Successful return
-                                          _handleSuccessfulReply(context, returnValue);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          _replySendingState = ReplySendingState.Inactive;
-                                          _paramsVisibility = _ParamsVisibility.None;
-                                        });
-                                      }
-                                    }); 
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: _replyTrailingAction(),
-                                onPressed: () {
-                                  if (_replySendingState == ReplySendingState.Inactive) {
-                                    _quickReply(context);
-                                  } else if (_replySendingState == ReplySendingState.Error) {
-                                    setState(() {
-                                      _paramsVisibility = _ParamsVisibility.None;
-                                      _replySendingState = ReplySendingState.Inactive;
-                                    });
-                                  }
-                                },
-                              )
-                            ]
-                          )
+                          child: _buildQuickTextInput(context)
                         ),
                       ),
                     ),
@@ -1032,11 +976,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     child: Text('Reply'),
                   ),
                   onTap: () {
-                    setState(() {
-                      appBarVisibleNotifier.value = true;
-                      _replyController = TextEditingController();
-                      _paramsVisibility = _ParamsVisibility.Reply;
-                    });
+                    _prepareQuickTextInput(_QuickText.Reply);
                     Navigator.of(context).pop();
                   },
                 )
@@ -1080,6 +1020,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 height: 50.0,
                 child: Text('Report'),
               ),
+              onTap: () {
+                _prepareQuickTextInput(_QuickText.Report);
+                Navigator.of(context).pop();
+              },
             ),
             InkWell(
               child: Container(
@@ -1104,6 +1048,106 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         );
     }
   }
+
+  //Builds the Quick Text Input content Row
+  Row _buildQuickTextInput(BuildContext context) {
+    switch (_quickTextSelection) {
+      case _QuickText.Reply:
+        return Row(
+          children: <Widget>[
+            Expanded(
+              child: Visibility(
+                visible: _paramsVisibility == _ParamsVisibility.QuickText,
+                child: _replySendingState == ReplySendingState.Error
+                  ? Text(_replyErrorMessage ?? "Error Sending Reply")
+                  : Visibility(
+                    visible: _replySendingState != ReplySendingState.Error,
+                      child: TextField(
+                        enabled: _paramsVisibility == _ParamsVisibility.QuickText && _replySendingState == ReplySendingState.Inactive,
+                        autofocus: true,
+                        controller: _quickTextController,
+                        decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                    )
+                  )
+              ),
+            ),
+            IconButton(
+              icon: _replySendingState == ReplySendingState.Error
+                ? Icon(Icons.refresh)
+                : Icon(Icons.fullscreen),
+              onPressed: () {
+                if (_replySendingState == ReplySendingState.Error) {
+                  setState(() {
+                    _replySendingState = ReplySendingState.Inactive;
+                  });
+                } else if (_replySendingState == ReplySendingState.Inactive) {
+                  // Expand quickreply to a full Reply window
+                  Navigator.pushNamed(context, 'reply', arguments: {
+                    'content'        : _selectedUserContent,
+                    'reply_text'  : _quickTextController?.text
+                  }).then((returnValue) {
+                    if (returnValue is prefix0.Comment) {
+                      setState(() {
+                        //Successful return
+                        _handleSuccessfulReply(context, returnValue);
+                      });
+                    } else {
+                      setState(() {
+                        _replySendingState = ReplySendingState.Inactive;
+                        _paramsVisibility = _ParamsVisibility.None;
+                      });
+                    }
+                  }); 
+                }
+              },
+            ),
+            IconButton(
+              icon: _replyTrailingAction(),
+              onPressed: () {
+                if (_replySendingState == ReplySendingState.Inactive) {
+                  _quickReply(context);
+                } else if (_replySendingState == ReplySendingState.Error) {
+                  setState(() {
+                    _paramsVisibility = _ParamsVisibility.None;
+                    _replySendingState = ReplySendingState.Inactive;
+                  });
+                }
+              },
+            )
+          ]
+        );
+      case _QuickText.Report:
+        return Row(
+          children: <Widget>[
+            Expanded(
+              child: Visibility(
+                visible: _paramsVisibility == _ParamsVisibility.QuickText,
+                child: TextField(
+                  enabled: _paramsVisibility == _ParamsVisibility.QuickText,
+                  autofocus: true,
+                  controller: _quickTextController,
+                  decoration: InputDecoration.collapsed(hintText: 'Report'),
+                )
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.flag),
+              onPressed: () async {
+                final res = await report(_selectedUserContent, _quickTextController.text);
+                final snackBar = SnackBar(content: Text(res is String ? "Error Sending Report: $res" : "Report Sent"),);
+                setState(() {
+                  _paramsVisibility = _ParamsVisibility.None;
+                });
+                Scaffold.of(context).showSnackBar(snackBar);
+              },
+            )
+          ],
+        );
+      default:
+        return Row(children: <Widget>[],);
+    }    
+  }
+  ///Returns the back button used in some options (Share, Copy) 
   Widget get _optionsBackButton => InkWell(
     child: Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -1127,6 +1171,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _submissionOptionsController.setState(() {
         _submissionSelectionVisibility = _visibility;
       });
+    });
+  }
+  _prepareQuickTextInput(_QuickText selection) {
+    setState(() {
+      appBarVisibleNotifier.value = true;
+      _quickTextController = TextEditingController();
+      _quickTextSelection = selection;
+      _paramsVisibility = _ParamsVisibility.QuickText;
     });
   }
 

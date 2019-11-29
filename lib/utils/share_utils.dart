@@ -4,6 +4,7 @@ import 'package:share/share.dart';
 Future<bool> copyToClipboard(String value) {
   return ClipboardManager.copyToClipBoard(value);
 }
+//Shares a String value
 void shareString(String value){
   Share.share(value);
 }

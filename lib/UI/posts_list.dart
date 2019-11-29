@@ -990,7 +990,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 child: Text('Share'),
               ),
               onTap: () {
-                _switchSelectionOptions(_SubmissionSelectionVisibility.Share);
+                if (_selectedSubmission.isSelf) {
+                  //If Selected submission is a self-post, There is no need for extra options as the link redirects to the comments
+                  Navigator.of(context).pop();
+                  shareString(_selectedSubmission.url.toString());
+                } else {
+                  //Show Sharing options (Link, Image, Comments)
+                  _switchSelectionOptions(_SubmissionSelectionVisibility.Share);
+                }
               },
             ),
             currentSubreddit.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase()

@@ -138,7 +138,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: "Default Sorting Type",
                 description: "Your Subreddit Submissions will by default take this value (Hot, Top, etc..)",
                 leading: new DropdownButton<String>(
@@ -161,7 +161,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: "Default Sorting Time",
                 description: "Your Subreddit Submissions will by default take this value when the sorting type is Time-Based (Top, Controversial)",
                 leading: new DropdownButton<String>(
@@ -179,7 +179,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               );
             },
           ),
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Auto-Load Posts",
             description: "Enables Never-Ending scrolling",
             leading: Switch(
@@ -191,7 +191,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: "Post View Mode",
                 description: "What form will the submissions cards take",
                 leading: new DropdownButton<PostView>(
@@ -215,7 +215,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       ),
       _settingsWidget(
         children:[
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Reset Sorting When Refreshing Submission List",
             description: "Will refreshing Submission list or entering a new submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
             leading: Switch(
@@ -224,7 +224,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 box.put(SUBMISSION_RESET_SORTING, value);
               },)
           ),
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Show Circle Around Preview Indicator",
             description: "When enabled, show a circle around the link indicator (video, image, etc..)",
             leading: Switch(
@@ -248,7 +248,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             watchKeys: [COMMENTS_DEFAULT_SORT],
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: "Default Comments Sort",
                 description: "Default Sorting Params of Comments list",
                 leading: new DropdownButton<String>(
@@ -269,7 +269,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: 'Precollapse Threads', 
                 description: "Collapse all Comment threads to the top level comments by default",
                 leading: Switch(
@@ -290,7 +290,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     return [
       _settingsWidget(
         children: [
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: 'Show NSFW Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain NSFW content",
             leading: Switch(
@@ -299,7 +299,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 box.put(SHOW_NSFW_PREVIEWS, value);
               },)
           ),
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: 'Show Spoiler Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain spoilers",
             leading: Switch(
@@ -341,7 +341,11 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       ),
       InkWell(
         child: Container(
-          padding: EdgeInsets.all(10.0),
+          padding: EdgeInsets.only(
+            left: 5.0,
+            top: 10.0,
+            bottom: 10.0
+          ),
           child: Text('Filter Blacklist'),
         ),
         onTap: () {
@@ -354,7 +358,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     return [
       _settingsWidget(
         children: [
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Show Full Size Previews",
             description: "When enabled, shows the full-height images in large cards",
             leading: Switch(
@@ -364,7 +368,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },)
           ),
           /*
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Enable Video Rotation",
             leading: Switch(
               value: box.get(VIDEO_ENABLE_ROTATION) ?? false,
@@ -373,7 +377,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },)
           ),
           */
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Album Column Amount",
             description: "Set the amount of columns in grid image view",
             leading: OutlineButton(
@@ -384,7 +388,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               },
             )
           ),
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Loop Videos",
             description: "When enabled, all videos will automatically start again after ending",
             leading: Switch(
@@ -393,7 +397,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 box.put(VIDEO_LOOP, value);
             },)
           ),
-          SettingsTitleRow(
+          _SettingsTitleRow(
             title: "Auto-Mute Videos",
             description: "When enabled, all videos will automatically be muted at start",
             leading: Switch(
@@ -411,7 +415,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             watchKeys: [IMGUR_THUMBNAIL_QUALITY],
             box: Hive.box('settings'),
             builder: (context, box){
-              return SettingsTitleRow(
+              return _SettingsTitleRow(
                 title: "Imgur Thumbnail Quality",
                 description: "Choose the quality in which imgur thumbnails are shown in album preview views",
                 leading: new DropdownButton<String>(
@@ -608,8 +612,8 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
   }
 }
 
-class SettingsTitleRow extends StatelessWidget {
-  const SettingsTitleRow({@required this.title, @required this.leading, @required this.description}
+class _SettingsTitleRow extends StatelessWidget {
+  const _SettingsTitleRow({@required this.title, @required this.leading, @required this.description}
   ):  assert(title != null),
       assert(leading != null),
       assert(description != null);

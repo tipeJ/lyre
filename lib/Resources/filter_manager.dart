@@ -1,5 +1,6 @@
 import 'package:draw/draw.dart';
 import 'package:hive/hive.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 
 const FILTER_SUBREDDITS_BOX = "subredditsfilters";
@@ -41,13 +42,13 @@ class FilterManager {
   ///Filters Target. Can be a Domain, User or a Subreddit
   Future<int> filter(String target, FilterType type) async {
     if (type == FilterType.Subreddit) {
-      if (!_filteredSubredditsBox.isOpen) _filteredSubredditsBox = await Hive.openBox(FILTER_SUBREDDITS_BOX);
+      if (!notNull(_filteredSubredditsBox) && !_filteredSubredditsBox.isOpen) _filteredSubredditsBox = await Hive.openBox(FILTER_SUBREDDITS_BOX);
       return _filteredSubredditsBox.add(target.toLowerCase());
     } else if (type == FilterType.Redditor) {
-      if (!_filteredUsersBox.isOpen) _filteredUsersBox = await Hive.openBox(FILTER_USERS_BOX);
+      if (!notNull(_filteredUsersBox) && !_filteredUsersBox.isOpen) _filteredUsersBox = await Hive.openBox(FILTER_USERS_BOX);
       return _filteredUsersBox.add(target.toLowerCase());
     } else {
-      if (!_filteredDomainsBox.isOpen) _filteredDomainsBox = await Hive.openBox(FILTER_DOMAINS_BOX);
+      if (!notNull(_filteredDomainsBox) && !_filteredDomainsBox.isOpen) _filteredDomainsBox = await Hive.openBox(FILTER_DOMAINS_BOX);
       return _filteredDomainsBox.add(target.toLowerCase());
     }
   }

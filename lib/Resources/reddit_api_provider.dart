@@ -311,7 +311,7 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      v.removeWhere((u) => FilterManager().isFiltered(source, u, source == ContentSource.Redditor ? redditor : currentSubreddit));
+      v.removeWhere((u) => FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
     }
     return v;
   }
@@ -326,8 +326,9 @@ class PostsProvider {
   }
 
   Future<Subreddit> getSubreddit(String displayName) async {
+    if (displayName == 'all') return null;
     try {
-      return await reddit.subreddit(currentSubreddit).populate();
+      return await reddit.subreddit(displayName).populate();
     } catch (e) {
       return null;
     }
@@ -338,10 +339,10 @@ class PostsProvider {
     return styleSheet.images;
   }
 
-  Future<WikiPage> getWikiPage(String args) async {
+  Future<WikiPage> getWikiPage(String args, String displayName) async {
+    if (displayName == 'all') return null;
     return null;
     try {    
-    return null;
       final r = await getRed();
       final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();

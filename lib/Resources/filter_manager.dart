@@ -30,9 +30,8 @@ class FilterManager {
   }
 
   ///Checks whether given [Submission] should be filtered
-  bool isFiltered(ContentSource source, Submission submission, [String target]) {
+  bool isFiltered({ContentSource source, Submission submission, String target}) {
     bool equalsTarget;
-    /*
     if (source == ContentSource.Subreddit) {
       equalsTarget = submission.subreddit.displayName.toLowerCase() == target;
     } else {
@@ -41,7 +40,6 @@ class FilterManager {
 
     //Return false if target is the same as the possibly filtered content (Filters do not go into effect if, for example, user visits a filtered subreddit)
     if (equalsTarget) return false;
-    */
     if (_filteredSubredditsBox.values.contains(submission.subreddit.displayName.toLowerCase()) || _filteredUsersBox.values.contains(submission.author.toLowerCase())) return true;
     return false;
   }

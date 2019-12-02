@@ -47,6 +47,10 @@ enum _SubmissionSelectionVisibility {
   Share,
   Filter
 }
+enum _OptionsVisibility {
+  Default,
+  Search,
+}
 enum _QuickText {
   Reply,
   Report,
@@ -66,6 +70,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   ScrollController scontrol = new ScrollController();
   ValueNotifier<bool> appBarVisibleNotifier;
+
+  _OptionsVisibility _optionsVisibility;
+  PersistentBottomSheetController _optionsController;
 
   PersistentBottomSheetController _submissionOptionsController;
   _SubmissionSelectionVisibility _submissionSelectionVisibility;
@@ -622,6 +629,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           Expanded(
                             child: Material(
                               child: InkWell(
+                                onLongPress: () {
+                                  _optionsVisibility = _OptionsVisibility.Default;
+                                  _optionsController = Scaffold.of(context).showBottomSheet(
+                                    (context) => _optionsSheet(context)
+                                  );
+                                },
                                 onDoubleTap: () {
                                   currentSubreddit = homeSubreddit;
                                   BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit)));
@@ -845,6 +858,69 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
+  //Options sheet content
+  Widget _optionsSheet(BuildContext context) {
+    switch (_optionsVisibility) {
+      case _OptionsVisibility.Search:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Submissions'),
+              ),
+              onTap: () {
+                // TODO: Implement search
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Users'),
+              ),
+              onTap: () {
+                // TODO: Implement Search
+              },
+            ),
+            _optionsBackButton
+          ],
+        );
+      default:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Search'),
+              ),
+              onTap: () {
+                _switchOptionsVisibility(_OptionsVisibility.Search);
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('Open'),
+              ),
+              onTap: () {
+                // TODO: Implement Open
+              },
+            ),
+          ],
+        );
+    }
+  }
+
   ///Returns the Submission options sheet.
   Widget _submissionOptionsSheet(BuildContext context) {
     switch (_submissionSelectionVisibility) {
@@ -914,7 +990,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 });
               },
             ),
-            _optionsBackButton
+            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Share:
@@ -963,7 +1039,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 shareString(_selectedSubmission.shortlink.toString());
               },
             ),
-            _optionsBackButton
+            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Filter:
@@ -1012,7 +1088,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 FilterManager().filter(_selectedSubmission.subreddit.displayName, FilterType.Subreddit);
               },
             ),
-            _optionsBackButton
+            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       default:
@@ -1210,7 +1286,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }    
   }
   ///Returns the back button used in some options (Share, Copy) 
-  Widget get _optionsBackButton => InkWell(
+  Widget get _submissionOptionsBackButton => InkWell(
     child: Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0),
       alignment: Alignment.centerLeft,
@@ -1227,6 +1303,24 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _switchSelectionOptions(_SubmissionSelectionVisibility.Default);
     },
   );
+  ///Returns the back button used in some options (Share, Copy) 
+  Widget get _optionsBackButton => InkWell(
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      alignment: Alignment.centerLeft,
+      height: 50.0,
+      child: Row(children: <Widget>[
+        Icon(Icons.arrow_back),
+        Padding(
+          padding: EdgeInsets.only(left: 10.0),
+          child: Text('Back')
+        )
+      ],),
+    ),
+    onTap: () {
+      _switchOptionsVisibility(_OptionsVisibility.Default);
+    },
+  );
 
   _switchSelectionOptions(_SubmissionSelectionVisibility _visibility) {
     Future.delayed(_userContentOptionsTransitionDelay).then((_){
@@ -1235,6 +1329,15 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       });
     });
   }
+
+  _switchOptionsVisibility(_OptionsVisibility _visibility) {
+    Future.delayed(_userContentOptionsTransitionDelay).then((_){
+      _optionsController.setState(() {
+        _optionsVisibility = _visibility;
+      });
+    });
+  }
+
   _prepareQuickTextInput(_QuickText selection) {
     setState(() {
       appBarVisibleNotifier.value = true;
@@ -1243,8 +1346,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       _paramsVisibility = _ParamsVisibility.QuickText;
     });
   }
-
 }
+
 String _tempType = "";
 _ParamsVisibility _paramsVisibility = _ParamsVisibility.None;
 

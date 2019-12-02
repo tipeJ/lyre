@@ -162,7 +162,7 @@ class postInnerWidget extends StatelessWidget {
   Widget getImageWrapper(BuildContext context, BoxFit fit){
     return new GestureDetector(
       child: Image(
-        color: Colors.black,
+        color: Colors.black38,
         colorBlendMode: BlendMode.luminosity,
         width: double.infinity,
         height: double.infinity,

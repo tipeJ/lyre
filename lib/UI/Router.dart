@@ -10,6 +10,7 @@ import 'package:lyre/UI/Animations/transitions.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
+import 'package:lyre/UI/filters.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import 'package:lyre/UI/submit.dart';
@@ -52,6 +53,8 @@ class Router {
         ));
       case 'settings':
         return MaterialPageRoute(builder: (_) => PreferencesView());
+      case 'filters':
+        return MaterialPageRoute(builder: (_) => FiltersView());
       case 'submit':
         return MaterialPageRoute(builder: (_) => SubmitWindow());
       case 'reply':

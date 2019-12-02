@@ -43,7 +43,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       switch (source) {
         case ContentSource.Subreddit:
           _userContent = await _repository.fetchPostsFromSubreddit(false);
-          sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS);
+          sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, currentSubreddit);
           subreddit = await _repository.fetchSubreddit(currentSubreddit);
           styleSheetImages = subreddit != null ? await _repository.fetchStyleSheetImages(subreddit) : null;
           break;

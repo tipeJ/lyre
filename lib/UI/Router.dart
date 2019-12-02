@@ -13,6 +13,8 @@ import 'package:lyre/UI/Preferences.dart';
 import 'package:lyre/UI/filters.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
+import 'package:lyre/UI/search/bloc/bloc.dart';
+import 'package:lyre/UI/search/search.dart';
 import 'package:lyre/UI/submit.dart';
 
 class Router {
@@ -55,6 +57,18 @@ class Router {
         return MaterialPageRoute(builder: (_) => PreferencesView());
       case 'filters':
         return MaterialPageRoute(builder: (_) => FiltersView());
+      case 'search':
+        return CupertinoPageRoute(builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider<SearchUsersBloc>(
+              builder: (BuildContext context) => SearchUsersBloc()
+            ),
+            BlocProvider<SearchSubmissionsBloc>(
+              builder: (BuildContext context) => SearchSubmissionsBloc()
+            ),
+          ],
+          child: SearchView(initialSearchType: SearchType.User,),
+        ));
       case 'submit':
         return MaterialPageRoute(builder: (_) => SubmitWindow());
       case 'reply':

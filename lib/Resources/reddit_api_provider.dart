@@ -377,6 +377,8 @@ class PostsProvider {
     }
   }
 
+  // * Search
+
   Future<List<UserContent>> search({String query, String subReddit, String timeFilter}) {
     if (notNull(subReddit)) {
       return reddit.subreddit(subReddit).search(query, timeFilter: parseTimeFilter(timeFilter)).toList();
@@ -385,7 +387,20 @@ class PostsProvider {
     }
   }
 
-  //* Profile data fetching:
+  Future<List<dynamic>> searchUsers(String query) async {
+    Map<String, String> params = {
+      'q' : query,
+      'raw_json' : '1'
+    };
+    params["User-Agent"] = "$appName $appVersion";
+    print(Uri.https(r'oauth.reddit.com', r'/api/profiles/search').toString());
+    dynamic x = await reddit.get(r'/api/profiles/search', params: params);
+    print(x.toString());
+    print(x.length.toString());
+    return x;
+  }
+
+  // * Profile data fetching:
 
   Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
     var r = await getRed();

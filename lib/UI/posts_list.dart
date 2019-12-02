@@ -8,6 +8,7 @@ import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -43,7 +44,8 @@ enum _ParamsVisibility {
 enum _SubmissionSelectionVisibility {
   Default,
   Copy,
-  Share
+  Share,
+  Filter
 }
 enum _QuickText {
   Reply,
@@ -964,6 +966,55 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             _optionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
+      case _SubmissionSelectionVisibility.Filter:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            //Only show domain filtering if post is a link submission
+            !_selectedSubmission.isSelf
+              ? InkWell(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    alignment: Alignment.centerLeft,
+                    height: 50.0,
+                    child: Text(_selectedSubmission.url.authority),
+                  ),
+                  onTap: () {
+                    //Filter the domain and pop the sheet
+                    Navigator.of(context).pop();
+                    FilterManager().filter(_selectedSubmission.url.authority, FilterType.Domain);
+                  },
+                )
+              : null,
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('u/${_selectedSubmission.author}'),
+              ),
+              onTap: () {
+                //Filter the User and pop the sheet
+                Navigator.of(context).pop();
+                FilterManager().filter(_selectedSubmission.author, FilterType.Redditor);
+              },
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                alignment: Alignment.centerLeft,
+                height: 50.0,
+                child: Text('r/${_selectedSubmission.subreddit.displayName}'),
+              ),
+              onTap: () {
+                //Filter the Subreddit and pop the sheet
+                Navigator.of(context).pop();
+                FilterManager().filter(_selectedSubmission.subreddit.displayName, FilterType.Subreddit);
+              },
+            ),
+            _optionsBackButton
+          ].where((w) => notNull(w)).toList(),
+        );
       default:
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -1051,6 +1102,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 height: 50.0,
                 child: Text('Filter'),
               ),
+              onTap: () {
+                _switchSelectionOptions(_SubmissionSelectionVisibility.Filter);
+              },
             )
           ].where((w) => notNull(w)).toList()
         );

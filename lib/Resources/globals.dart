@@ -8,6 +8,7 @@ part 'globals.g.dart';
 const WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
 
 const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
+const SEARCH_BASE_URL = "https://www.reddit.com/search.json";
 
 const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 const GFYCAT_CLIENT_ID = "2__lD9Ci";

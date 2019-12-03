@@ -388,16 +388,24 @@ class PostsProvider {
   }
 
   Future<List<dynamic>> searchUsers(String query) async {
-    Map<String, String> params = {
+    final Map<String, String> headers = <String, String>{
+      'raw_json' : '1',
       'q' : query,
-      'raw_json' : '1'
+      'sort' : 'relevance',
+      'syntax' : 'lucene',
+      'type' : 'user,sr'
     };
-    params["User-Agent"] = "$appName $appVersion";
-    print(Uri.https(r'oauth.reddit.com', r'/api/profiles/search').toString());
-    dynamic x = await reddit.get(r'/api/profiles/search', params: params);
-    print(x.toString());
-    print(x.length.toString());
-    return x;
+    headers["User-Agent"] = "$appName $appVersion";
+    dynamic x = await reddit.get('r/all/search/', params: headers, objectify: true);
+    List<dynamic> values = [];
+    x.values.first.forEach((o) {
+      if(o is Subreddit || o is Redditor) {
+        values.add(o);
+      } else {
+        values.add(reddit.objector.objectify(o));
+      }
+    });
+    return values;
   }
 
   // * Profile data fetching:

@@ -145,7 +145,8 @@ class _SearchUsersViewState extends State<SearchView> with SingleTickerProviderS
                         child: Text('r/' + object.displayName),
                       );
                     }
-                  }
+                  },
+                  childCount: state.users.length
                 ),
               );
             }

@@ -5,11 +5,13 @@ import 'bloc.dart';
 @immutable
 class SearchCommunitiesState extends Equatable {
   final bool loading;
-  final List<dynamic> users;
+  final List<dynamic> communities;
+  final String query;
 
   SearchCommunitiesState({
     @required this.loading,
-    @required this.users,
+    @required this.communities,
+    @required this.query
   });
-  List<dynamic> get props => [loading, users];
+  List<dynamic> get props => [loading, communities, query];
 }

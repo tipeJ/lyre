@@ -19,7 +19,7 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
 
   final ValueNotifier<bool> listener;
 
-  const PersistentBottomAppbarWrapper({Key key, @required this.body, @required this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight, this.listener}) : super(key: key);
+  const PersistentBottomAppbarWrapper({Key key, @required this.body, this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight, this.listener}) : super(key: key);
 
   @override
   State<PersistentBottomAppbarWrapper> createState() => notNull(expandingSheetContent) ? _PersistentBottomAppbarWrapperState() : _PersistentBottomAppBarWrapperStateWithoutExpansion();
@@ -30,12 +30,14 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
   @override
   void initState() { 
     super.initState();
-    widget.listener.addListener(() {
+    widget.listener?.addListener(() {
       setState(() {
         
       });
     });
   }
+
+  bool get _visible => widget.listener != null ? widget.listener.value : true;
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +46,19 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
         children: <Widget>[
           widget.body,
           IgnorePointer(
-            ignoring: !widget.listener.value,
+            ignoring: !_visible,
             child: Align(
               alignment: Alignment.bottomCenter,
               //Expandable appbar
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 800),
                 // ? Could possibly be more elegant. Currently switches between fullsizeHeight and 0, instead of default appbar height and 0
-                height: widget.listener.value ? widget.fullSizeHeight : 0.0,
+                height: _visible ? widget.fullSizeHeight : 0.0,
                 curve: Curves.ease,
                 child: widget.expandingSheetContent != null 
                   ? prefix0.DraggableScrollableSheet(
                     expand: true,
-                    maxChildSize: 1,
+                    maxChildSize: min(widget.fullSizeHeight / MediaQuery.of(context).size.height, 1.0),
                     minChildSize: 56 / MediaQuery.of(context).size.height,
                     initialChildSize: 56 / MediaQuery.of(context).size.height,
                     builder: (context, scontrol) {

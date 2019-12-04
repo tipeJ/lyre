@@ -388,7 +388,7 @@ class PostsProvider {
   }
 
   ///Function which will return a list of Draw objects, either Subreddits or Redditors
-  Future<List<dynamic>> searchCommunities(String query, {bool loadMore, String lastId}) async {
+  Future<List<dynamic>> searchCommunities(String query, {bool loadMore = false, String lastId = ""}) async {
     final Map<String, String> params = <String, String>{
       'raw_json' : '1',
       'q' : query,

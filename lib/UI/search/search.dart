@@ -2,6 +2,9 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/UI/search/bloc/bloc.dart';
+import 'package:lyre/UI/search/bloc/search_communities_bloc.dart';
+import 'package:lyre/UI/search/bloc/search_communities_event.dart';
+import 'package:lyre/UI/search/bloc/search_communities_state.dart';
 
 enum SearchType {
   User,
@@ -63,7 +66,7 @@ class _SearchUsersViewState extends State<SearchView> with SingleTickerProviderS
                 child: TabBar(
                   controller: _tabController,
                   tabs: <Widget>[
-                    Text('Users'),
+                    Text('Communities'),
                     Text('Submissions'),
                     Text('Comments'),
                   ],
@@ -102,21 +105,21 @@ class _SearchUsersViewState extends State<SearchView> with SingleTickerProviderS
                 IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () {
-                    BlocProvider.of<SearchUsersBloc>(context).add(UserSearchQueryChanged(query: _usersController.text));
+                    BlocProvider.of<SearchCommunitiesBloc>(context).add(UserSearchQueryChanged(query: _usersController.text));
                   },
                 )
               ],
             )
           ),
         ),
-        BlocBuilder<SearchUsersBloc, SearchUsersState>(
+        BlocBuilder<SearchCommunitiesBloc, SearchCommunitiesState>(
           builder: (context, state) {
             if (!state.loading && state.users.isEmpty) {
               return SliverToBoxAdapter(
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height / 2,
-                  child: Center(child: Icon(Icons.search, size: 32.0,),),
+                  child: Center(child: Icon(Icons.search, size: 55.0,),),
                 ),
               );
             } else if (state.loading) {
@@ -144,6 +147,8 @@ class _SearchUsersViewState extends State<SearchView> with SingleTickerProviderS
                         height: 50.0,
                         child: Text('r/' + object.displayName),
                       );
+                    } else {
+                      return Container(width: MediaQuery.of(context).size.width, height: 50.0, color: Colors.red,);
                     }
                   },
                   childCount: state.users.length

@@ -387,22 +387,30 @@ class PostsProvider {
     }
   }
 
-  Future<List<dynamic>> searchUsers(String query) async {
-    final Map<String, String> headers = <String, String>{
+  ///Function which will return a list of Draw objects, either Subreddits or Redditors
+  Future<List<dynamic>> searchCommunities(String query, {bool loadMore, String lastId}) async {
+    final Map<String, String> params = <String, String>{
       'raw_json' : '1',
       'q' : query,
       'sort' : 'relevance',
       'syntax' : 'lucene',
-      'type' : 'user,sr'
+      'type' : 'user,sr',
     };
-    headers["User-Agent"] = "$appName $appVersion";
-    dynamic x = await reddit.get('r/all/search/', params: headers, objectify: true);
+    params["User-Agent"] = "$appName $appVersion";
+    if (loadMore) params['after'] = lastId;
+    dynamic x2 = await reddit.get('r/all/search/', params: params, objectify: false);
+    //debugPrint(x2.toString());
     List<dynamic> values = [];
-    x.values.first.forEach((o) {
+    x2['data']['children'].forEach((o) {
       if(o is Subreddit || o is Redditor) {
+        //print(o.toString());
+        print('o: ' + o.runtimeType.toString());
         values.add(o);
       } else {
-        values.add(reddit.objector.objectify(o));
+        // Turns the hashMap into a reddit object. For some reason objector doesn't objectify the user maps. For this we'll use the parse function 
+        var object = reddit.objector.objectify(o);
+        if (!(object is Subreddit)) object = Redditor.parse(reddit, object);
+        values.add(object);
       }
     });
     return values;

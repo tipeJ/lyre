@@ -3,11 +3,11 @@ import 'package:meta/meta.dart';
 import 'bloc.dart';
 
 @immutable
-class SearchUsersState extends Equatable {
+class SearchCommunitiesState extends Equatable {
   final bool loading;
   final List<dynamic> users;
 
-  SearchUsersState({
+  SearchCommunitiesState({
     @required this.loading,
     @required this.users,
   });

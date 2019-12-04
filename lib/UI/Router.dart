@@ -14,6 +14,7 @@ import 'package:lyre/UI/filters.dart';
 import 'package:lyre/UI/posts_list.dart';
 import 'package:lyre/UI/reply.dart';
 import 'package:lyre/UI/search/bloc/bloc.dart';
+import 'package:lyre/UI/search/bloc/search_communities_bloc.dart';
 import 'package:lyre/UI/search/search.dart';
 import 'package:lyre/UI/submit.dart';
 
@@ -60,8 +61,8 @@ class Router {
       case 'search':
         return CupertinoPageRoute(builder: (_) => MultiBlocProvider(
           providers: [
-            BlocProvider<SearchUsersBloc>(
-              builder: (BuildContext context) => SearchUsersBloc()
+            BlocProvider<SearchCommunitiesBloc>(
+              builder: (BuildContext context) => SearchCommunitiesBloc()
             ),
             BlocProvider<SearchSubmissionsBloc>(
               builder: (BuildContext context) => SearchSubmissionsBloc()

@@ -6,7 +6,6 @@ import 'package:lyre/Blocs/bloc/posts_bloc.dart';
 import 'package:lyre/Blocs/bloc/posts_state.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/UI/Animations/transitions.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/comment_list.dart';
 import 'package:lyre/UI/Preferences.dart';
@@ -58,17 +57,23 @@ class Router {
         return MaterialPageRoute(builder: (_) => PreferencesView());
       case 'filters':
         return MaterialPageRoute(builder: (_) => FiltersView());
-      case 'search':
+      case 'search_communities':
         return CupertinoPageRoute(builder: (_) => MultiBlocProvider(
           providers: [
             BlocProvider<SearchCommunitiesBloc>(
-              builder: (BuildContext context) => SearchCommunitiesBloc()
-            ),
-            BlocProvider<SearchSubmissionsBloc>(
-              builder: (BuildContext context) => SearchSubmissionsBloc()
+              create: (BuildContext context) => SearchCommunitiesBloc()
             ),
           ],
-          child: SearchView(initialSearchType: SearchType.User,),
+          child: SearchCommunitiesView(),
+        ));
+       case 'search_usercontent':
+        return CupertinoPageRoute(builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider<SearchUsercontentBloc>(
+              create: (BuildContext context) => SearchUsercontentBloc()
+            ),
+          ],
+          child: SearchUserContentView(),
         ));
       case 'submit':
         return MaterialPageRoute(builder: (_) => SubmitWindow());

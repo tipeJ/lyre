@@ -75,7 +75,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
           ),
         ),
         body: PersistentBottomAppbarWrapper(
-          fullSizeHeight: null,
           body: StatefulBuilder(
               builder: (BuildContext context, setState) {
                 return BlocBuilder<CommentsBloc, CommentsState>(

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/search/bloc/search_communities_state.dart';
 import 'package:lyre/UI/search/bloc/search_communities_event.dart';

@@ -19,7 +19,7 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
 
   final ValueNotifier<bool> listener;
 
-  const PersistentBottomAppbarWrapper({Key key, @required this.body, this.appBarContent, this.expandingSheetContent, @required this.fullSizeHeight, this.listener}) : super(key: key);
+  const PersistentBottomAppbarWrapper({Key key, @required this.body, this.appBarContent, this.expandingSheetContent, this.fullSizeHeight, this.listener}) : super(key: key);
 
   @override
   State<PersistentBottomAppbarWrapper> createState() => notNull(expandingSheetContent) ? _PersistentBottomAppbarWrapperState() : _PersistentBottomAppBarWrapperStateWithoutExpansion();
@@ -55,35 +55,14 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
                 // ? Could possibly be more elegant. Currently switches between fullsizeHeight and 0, instead of default appbar height and 0
                 height: _visible ? widget.fullSizeHeight : 0.0,
                 curve: Curves.ease,
-                child: widget.expandingSheetContent != null 
-                  ? prefix0.DraggableScrollableSheet(
+                child: prefix0.DraggableScrollableSheet(
                     expand: true,
                     maxChildSize: min(widget.fullSizeHeight / MediaQuery.of(context).size.height, 1.0),
-                    minChildSize: 56 / MediaQuery.of(context).size.height,
-                    initialChildSize: 56 / MediaQuery.of(context).size.height,
+                    minChildSize: kBottomNavigationBarHeight / MediaQuery.of(context).size.height,
+                    initialChildSize: kBottomNavigationBarHeight / MediaQuery.of(context).size.height,
                     builder: (context, scontrol) {
                       return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
                     },
-                  )
-                  //Static appbar
-                  : Container(
-                    child: widget.appBarContent,
-                    constraints: BoxConstraints(maxHeight: 56.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).canvasColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(15.0),
-                        topRight: Radius.circular(15.0),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.38),
-                          blurRadius: 12.0,
-                          spreadRadius: 5.0,
-                          offset: Offset(0.0, -2.5)
-                        )
-                      ]
-                    ),
                   )
                 )
               )
@@ -121,7 +100,7 @@ class _PersistentBottomAppBarWrapperStateWithoutExpansion extends State<Persiste
             child: Container(
               width: MediaQuery.of(context).size.width,
               color: Theme.of(context).canvasColor,
-              height: widget.height,
+              height: kBottomNavigationBarHeight,
               child: widget.appBarContent,
             ),
           ),

@@ -1413,7 +1413,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
     BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
   }
 
-  // List of options for subRedditView
+  /// List of options for subRedditView
   List<String> _subListOptions = [
     "Remove",
     "Subscribe"

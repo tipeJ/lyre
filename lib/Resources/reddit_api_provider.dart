@@ -424,7 +424,8 @@ class PostsProvider {
       'size' : parameters.size?.toString(),
       'sort' : _parsePushShiftSort(parameters.sort),
       'sort_type' : _parsePushShiftSortType(parameters.sortType),
-      'author' : parameters.author
+      'author' : parameters.author,
+      'subreddit' : parameters.subreddit
     };
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"

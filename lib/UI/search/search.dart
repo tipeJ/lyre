@@ -201,6 +201,8 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     _authorController.dispose();
     _animationController.dispose();
     _authorExpansionController.dispose();
+    _subredditExpansionController.dispose();
+    _subredditController.dispose();
     super.dispose();
   }
   @override
@@ -208,7 +210,10 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     super.initState();
     _userContentController = TextEditingController();
     _authorController = TextEditingController();
+    _subredditController = TextEditingController();
+
     _authorExpansionController = AnimationController(vsync: this);
+    _subredditExpansionController = AnimationController(vsync: this);
 
     _animationController = AnimationController(vsync: this);
     _animationController.addListener(() {
@@ -265,13 +270,18 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   AnimationController _authorExpansionController;
   TextEditingController _authorController;
 
+  bool _subredditEnabled = false;
+  AnimationController _subredditExpansionController;
+  TextEditingController _subredditController;
+
   void _dispatchNewParameters(BuildContext context) {
     BlocProvider.of<SearchUsercontentBloc>(context).add(UserContentQueryChanged(parameters: CommentSearchParameters(
       query: _userContentController.text,
       size: _sizeOptions[_size],
       sort: _sort,
       sortType: _sortType,
-      author: _authorEnabled ? _authorController.text : null
+      author: _authorEnabled ? _authorController.text : null,
+      subreddit: _subredditEnabled ? _subredditController.text : null
     )));
   }
 
@@ -285,6 +295,7 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
 
   @override
   Widget build(BuildContext context) {
+    //TODO: Fix landscape not enough space
     return WillPopScope(
       onWillPop: _willPop,
       child: ClipRRect(
@@ -500,6 +511,32 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
                             controller: _authorController,
                             decoration: InputDecoration(
                               labelText: 'Author Username'
+                            ),
+                          )
+                        ),
+                      ),
+                       _parametersWidget(
+                         'Limit to Subreddit', 
+                         Checkbox(
+                           value: _subredditEnabled,
+                           onChanged: (enabled) {
+                             setState(() {
+                               _subredditEnabled = enabled;
+                               _subredditExpansionController.animateTo(_subredditEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                             });
+                           },
+                         )
+                      ),
+                      SizeTransition(
+                        sizeFactor: _subredditExpansionController,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12.0),
+                          child: TextField(
+                            enabled: _subredditEnabled,
+                            autofocus: false,
+                            controller: _subredditController,
+                            decoration: InputDecoration(
+                              labelText: 'Subreddit'
                             ),
                           )
                         ),

@@ -38,7 +38,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
         },
       );
     } 
-    return const Center(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,));
+    return const Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,),));
   }
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {

@@ -615,9 +615,9 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   Future<bool> _willPop() {
     if (_extent.currentExtent != _extent.minExtent) {
       _scrollController.jumpTo(0.0);
-      //_extent.currentExtent = _extent.minExtent;
-      _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
-      _extentAnimation.animateTo(0.0, curve: Curves.ease);
+      _extent.currentExtent = _extent.minExtent;
+      // _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
+      // _extentAnimation.animateTo(0.0, curve: Curves.ease);
       return Future.value(false);
     }
     return Future.value(true);

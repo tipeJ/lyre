@@ -402,8 +402,6 @@ class PostsProvider {
     List<dynamic> values = [];
     x2['data']['children'].forEach((o) {
       if(o is Subreddit || o is Redditor) {
-        //print(o.toString());
-        print('o: ' + o.runtimeType.toString());
         values.add(o);
       } else {
         // Turns the hashMap into a reddit object. For some reason objector doesn't objectify the user maps. For this we'll use the parse function 
@@ -428,7 +426,6 @@ class PostsProvider {
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"
     };
-    print(_parsePushShiftSortType(PushShiftSortType.Num_Comments));
     // ! Can't Process num_comments with a comment search. Will Throw Exception.
     dynamic results = await HttpUtils.getForJson('https://api.pushshift.io/reddit/search/comment/', queryParameters: params, headers: headers);
     List<dynamic> values = [];

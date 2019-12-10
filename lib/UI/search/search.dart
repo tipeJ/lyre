@@ -187,7 +187,7 @@ class _expandingSearchParams extends StatefulWidget {
   _expandingSearchParamsState createState() => _expandingSearchParamsState();
 }
 
-class _expandingSearchParamsState extends State<_expandingSearchParams> with SingleTickerProviderStateMixin {
+class _expandingSearchParamsState extends State<_expandingSearchParams> with TickerProviderStateMixin {
 
   AnimationController  _animationController;
   double _lerp(double min, double max) => lerpDouble(min, max, _animationController.value);
@@ -198,13 +198,17 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Sin
   @override
   void dispose() {
     _userContentController.dispose();
+    _authorController.dispose();
     _animationController.dispose();
+    _authorExpansionController.dispose();
     super.dispose();
   }
   @override
   void initState() { 
     super.initState();
     _userContentController = TextEditingController();
+    _authorController = TextEditingController();
+    _authorExpansionController = AnimationController(vsync: this);
 
     _animationController = AnimationController(vsync: this);
     _animationController.addListener(() {
@@ -257,216 +261,258 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Sin
   PushShiftSort _sort = PushShiftSort.Descending;
   PushShiftSortType _sortType = PushShiftSortType.Created_UTC;
 
+  bool _authorEnabled = false;
+  AnimationController _authorExpansionController;
+  TextEditingController _authorController;
+
   void _dispatchNewParameters(BuildContext context) {
     BlocProvider.of<SearchUsercontentBloc>(context).add(UserContentQueryChanged(parameters: CommentSearchParameters(
       query: _userContentController.text,
       size: _sizeOptions[_size],
       sort: _sort,
-      sortType: _sortType
+      sortType: _sortType,
+      author: _authorEnabled ? _authorController.text : null
     )));
+  }
+
+  Future<bool> _willPop() {
+    if (_animationController.value > 0.5) {
+      _animationController.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+      return Future.value(false);
+    }
+    return Future.value(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      clipBehavior: Clip.antiAlias,
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(15.0),
-        topRight: Radius.circular(15.0),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        color: Theme.of(context).canvasColor,
+    return WillPopScope(
+      onWillPop: _willPop,
+      child: ClipRRect(
+        clipBehavior: Clip.antiAlias,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(15.0),
+          topRight: Radius.circular(15.0),
+        ),
         child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            GestureDetector(
-              onVerticalDragUpdate: _handleNavDragUpdate,
-              onVerticalDragEnd: _handleNavDragEnd,
-              child: Material(
-                child: Container(
-                  height: kBottomNavigationBarHeight,
-                  padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration.collapsed(
-                            hintText: 'Search Reddit',
+          width: MediaQuery.of(context).size.width,
+          color: Theme.of(context).canvasColor,
+          child: Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              GestureDetector(
+                onVerticalDragUpdate: _handleNavDragUpdate,
+                onVerticalDragEnd: _handleNavDragEnd,
+                child: Material(
+                  child: Container(
+                    height: kBottomNavigationBarHeight,
+                    padding: EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration.collapsed(
+                              hintText: 'Search Reddit',
+                            ),
+                            controller: _userContentController,
+                            onSubmitted: (s) {
+                              _dispatchNewParameters(context);
+                            },
                           ),
-                          controller: _userContentController,
-                          onSubmitted: (s) {
-                            _dispatchNewParameters(context);
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.search), 
+                            onPressed: () {
+                              if (_userContentController.text.isNotEmpty) {
+                                _dispatchNewParameters(context);
+                              } else {
+                                final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
+                                Scaffold.of(context).showSnackBar(warningSnackBar);
+                              }
+                            }
+                        ),
+                        IconButton(
+                          icon: AnimatedIcon(
+                            icon: AnimatedIcons.menu_close, progress: _animationController,), 
+                            onPressed: () {
+                              _animationController.value >= 0.9
+                                ? _animationController.animateTo(0.0, duration: Duration(milliseconds: 250))
+                                : _animationController.animateTo(1.0, curve: Curves.ease, duration: Duration(milliseconds: (_animationController.value > 0.3 ? 250 / _animationController.value : 250).round()));
+                            }
+                        )
+                      ],
+                    ),
+                  )
+                )
+              ),
+              SizeTransition(
+                axis: Axis.vertical,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 7.5),
+                        child: ToggleButtons(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 3.5),
+                              child: Text('Submissions')
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 3.5),
+                              child: Text('Comments')
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 3.5),
+                              child: Text('Statistics'),
+                            ),
+                          ],
+                          isSelected: [
+                            _submissions,
+                            _comments,
+                            _statistics
+                          ],
+                          onPressed: (i) {
+                            switch (i) {
+                              case 0:
+                                setState(() {
+                                  _submissions = !_submissions;
+                                });
+                                break;
+                              case 1:
+                                setState(() {
+                                  _comments = !_comments;
+                                });
+                                break;
+                              
+                              default:
+                                setState(() {
+                                  _statistics = !_statistics;
+                                });
+                                break;
+                            }
                           },
+                        )
+                      ),
+                      Divider(),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          children: <Widget>[
+                            Text('Size'),
+                            Expanded(
+                              child: Slider(
+                                value: _size.toDouble(),
+                                min: 0.0,
+                                max: (_sizeOptions.length - 1).toDouble(),
+                                divisions: _sizeOptions.length - 1,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _size = value.round();
+                                  });
+                                },
+                              )
+                            ),
+                            Text(_sizeOptions[_size].toString())
+                          ],
+                        )
+                      ),
+                      _parametersWidget(
+                        'Sort', 
+                        DropdownButton<PushShiftSort>(
+                          value: _sort,
+                          underline: null,
+                          onChanged: (newSort) {
+                            setState(() {
+                              _sort = newSort;
+                            });
+                          },
+                          items: PushShiftSort.values.map((i) => DropdownMenuItem(
+                              value: i,
+                              child: Row(children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.only(right: 3.5),
+                                  child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
+                                ),
+                                Text(i.toString().split('.').last)
+                              ],)
+                            ),
+                          ).toList())
+                      ),
+                      _parametersWidget(
+                        'Sort Type',
+                        DropdownButton<PushShiftSortType>(
+                          value: _sortType,
+                          underline: null,
+                          onChanged: (newSort) {
+                            setState(() {
+                              _sortType = newSort;
+                            });
+                          },
+                          items: PushShiftSortType.values.map((i) {
+                            String _typeString;
+                            IconData _headingIconData;
+                            if (i == PushShiftSortType.Created_UTC) {
+                              _typeString = "Date";
+                              _headingIconData = MdiIcons.clock;
+                            } else if (i == PushShiftSortType.Num_Comments) {
+                              _typeString = "Number of Comments";
+                              _headingIconData = MdiIcons.commentMultiple;
+                            } else {
+                              _typeString = "Karma";
+                              _headingIconData = MdiIcons.yinYang;
+                            }
+                            return DropdownMenuItem(
+                              value: i,
+                              child: Row(children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.only(right: 3.5),
+                                  child: Icon(_headingIconData)
+                                ),
+                                Text(_typeString)
+                              ],)
+                            );
+                          },
+                          ).toList())
+                       ),
+                       _parametersWidget(
+                         'Limit to Author', 
+                         Checkbox(
+                           value: _authorEnabled,
+                           onChanged: (enabled) {
+                             setState(() {
+                               _authorEnabled = enabled;
+                               _authorExpansionController.animateTo(_authorEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                             });
+                           },
+                         )
+                      ),
+                      SizeTransition(
+                        sizeFactor: _authorExpansionController,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12.0),
+                          child: TextField(
+                            enabled: _authorEnabled,
+                            autofocus: false,
+                            controller: _authorController,
+                            decoration: InputDecoration(
+                              labelText: 'Author Username'
+                            ),
+                          )
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.search), 
-                          onPressed: () {
-                            if (_userContentController.text.isNotEmpty) {
-                              _dispatchNewParameters(context);
-                            } else {
-                              final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
-                              Scaffold.of(context).showSnackBar(warningSnackBar);
-                            }
-                          }
-                      ),
-                      IconButton(
-                        icon: AnimatedIcon(
-                          icon: AnimatedIcons.menu_close, progress: _animationController,), 
-                          onPressed: () {
-                            _animationController.value >= 0.9
-                              ? _animationController.animateTo(0.0, duration: Duration(milliseconds: 250))
-                              : _animationController.animateTo(1.0, curve: Curves.ease, duration: Duration(milliseconds: (_animationController.value > 0.3 ? 250 / _animationController.value : 250).round()));
-                          }
-                      )
                     ],
                   ),
-                )
+                  sizeFactor: _animationController,
               )
-            ),
-            SizeTransition(
-              axis: Axis.vertical,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 7.5),
-                      child: ToggleButtons(
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 3.5),
-                            child: Text('Submissions')
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 3.5),
-                            child: Text('Comments')
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 3.5),
-                            child: Text('Statistics'),
-                          ),
-                        ],
-                        isSelected: [
-                          _submissions,
-                          _comments,
-                          _statistics
-                        ],
-                        onPressed: (i) {
-                          switch (i) {
-                            case 0:
-                              setState(() {
-                                _submissions = !_submissions;
-                              });
-                              break;
-                            case 1:
-                              setState(() {
-                                _comments = !_comments;
-                              });
-                              break;
-                            
-                            default:
-                              setState(() {
-                                _statistics = !_statistics;
-                              });
-                              break;
-                          }
-                        },
-                      )
-                    ),
-                    Divider(),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Row(
-                        children: <Widget>[
-                          Text('Size'),
-                          Expanded(
-                            child: Slider(
-                              value: _size.toDouble(),
-                              min: 0.0,
-                              max: (_sizeOptions.length - 1).toDouble(),
-                              divisions: _sizeOptions.length - 1,
-                              onChanged: (value) {
-                                setState(() {
-                                  _size = value.round();
-                                });
-                              },
-                            )
-                          ),
-                          Text(_sizeOptions[_size].toString())
-                        ],
-                      )
-                    ),
-                    _parametersWidget(
-                      'Sort', 
-                      DropdownButton<PushShiftSort>(
-                        value: _sort,
-                        underline: null,
-                        onChanged: (newSort) {
-                          setState(() {
-                            _sort = newSort;
-                          });
-                        },
-                        items: PushShiftSort.values.map((i) => DropdownMenuItem(
-                            value: i,
-                            child: Row(children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.only(right: 3.5),
-                                child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
-                              ),
-                              Text(i.toString().split('.').last)
-                            ],)
-                          ),
-                        ).toList())
-                    ),
-                    _parametersWidget(
-                      'Sort Type',
-                      DropdownButton<PushShiftSortType>(
-                        value: _sortType,
-                        underline: null,
-                        onChanged: (newSort) {
-                          setState(() {
-                            _sortType = newSort;
-                          });
-                        },
-                        items: PushShiftSortType.values.map((i) {
-                          String _typeString;
-                          IconData _headingIconData;
-                          if (i == PushShiftSortType.Created_UTC) {
-                            _typeString = "Date";
-                            _headingIconData = MdiIcons.clock;
-                          } else if (i == PushShiftSortType.Num_Comments) {
-                            _typeString = "Number of Comments";
-                            _headingIconData = MdiIcons.commentMultiple;
-                          } else {
-                            _typeString = "Karma";
-                            _headingIconData = MdiIcons.yinYang;
-                          }
-                          return DropdownMenuItem(
-                            value: i,
-                            child: Row(children: <Widget>[
-                              Padding(
-                                padding: EdgeInsets.only(right: 3.5),
-                                child: Icon(_headingIconData)
-                              ),
-                              Text(_typeString)
-                            ],)
-                          );
-                        },
-                        ).toList())
-                     )
-                  ],
-                ),
-                sizeFactor: _animationController,
-            )
-          ],
+            ],
+          ),
         ),
-      ),
-      ),
+        ),
+      )
     );
   }
   ///Helper Widget Wrapper for reducing repeating code. Title Text Widget will be displayed first, and the child last, with a SpaceBetween row alignment.

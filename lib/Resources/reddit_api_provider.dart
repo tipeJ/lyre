@@ -423,7 +423,8 @@ class PostsProvider {
       'q' : parameters.query,
       'size' : parameters.size?.toString(),
       'sort' : _parsePushShiftSort(parameters.sort),
-      'sort_type' : _parsePushShiftSortType(parameters.sortType)
+      'sort_type' : _parsePushShiftSortType(parameters.sortType),
+      'author' : parameters.author
     };
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"

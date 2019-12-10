@@ -1,7 +1,4 @@
-import 'dart:math';
-import 'dart:math' as prefix0;
 import 'dart:ui';
-
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,7 +36,7 @@ class _SearchCommunitiesViewState extends State<SearchCommunitiesView> {
         body: _usersSearchCommunitiesView(context),
         appBarContent: Material(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Row(
               children: <Widget>[
               Expanded(
@@ -72,13 +69,13 @@ class _SearchCommunitiesViewState extends State<SearchCommunitiesView> {
           return Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height / 2,
-            child: Center(child: Icon(Icons.search, size: 55.0,),),
+            child: const Center(child: Icon(Icons.search, size: 55.0,),),
           );
         } else if (state.loading && state.communities.isEmpty) {
           return Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height / 2,
-            child: Center(child: CircularProgressIndicator(),),
+            child: const Center(child: CircularProgressIndicator(),),
           );
         } else {
           return ListView.builder(
@@ -146,13 +143,13 @@ class _SearchUserContentViewState extends State<SearchUserContentView> with Sing
           return Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height / 2,
-            child: Center(child: Icon(Icons.search, size: 55.0,),),
+            child: const Center(child: const Icon(Icons.search, size: 55.0,),),
           );
         } else if (state.loading && state.results.isEmpty) {
           return Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height / 2,
-            child: Center(child: CircularProgressIndicator(),),
+            child: const Center(child: const CircularProgressIndicator(),),
           );
         } else {
           return ListView.builder(
@@ -190,6 +187,7 @@ class _expandingSearchParams extends StatefulWidget {
 class _expandingSearchParamsState extends State<_expandingSearchParams> with TickerProviderStateMixin {
 
   AnimationController  _animationController;
+  static const _animationControllerDuration = Duration(milliseconds: 400);
   double _lerp(double min, double max) => lerpDouble(min, max, _animationController.value);
 
   TextEditingController _userContentController;
@@ -219,32 +217,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     _animationController.addListener(() {
       setState(() {});
     });
-  }
-  void _handleNavDragUpdate(DragUpdateDetails details) {
-    _animationController.value -= details.primaryDelta / _approximatedBottomBarHeight;
-  }
-
-  void _reverseNav() {
-    _animationController.fling(velocity: -2.0);
-  }
-  double _approximatedBottomBarHeight = kBottomNavigationBarHeight * 3;
-
-  void _handleNavDragEnd(DragEndDetails details) {
-    if (_animationController.isAnimating ||
-        _animationController.status == AnimationStatus.completed) return;
-    final double flingVelocity = details.velocity.pixelsPerSecond.dy /
-        _approximatedBottomBarHeight; //<-- calculate the velocity of the gesture
-    if (flingVelocity < 0.0) {
-      _animationController.fling(
-        velocity: max(2.0, -flingVelocity)); //<-- either continue it upwards
-    } else if (flingVelocity > 0.0) {
-      _animationController.fling(
-        velocity: min(-2.0, -flingVelocity)); //<-- or continue it downwards
-    } else
-      _animationController.fling(
-        velocity: _animationController.value < 0.5
-          ? -2.0
-          : 2.0); //<-- or just continue to whichever edge is closer
   }
 
   bool _submissions = false;
@@ -300,9 +272,9 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
       onWillPop: _willPop,
       child: ClipRRect(
         clipBehavior: Clip.antiAlias,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(15.0),
-          topRight: Radius.circular(15.0),
+        borderRadius: const BorderRadius.only(
+          topLeft: const Radius.circular(15.0),
+          topRight: const Radius.circular(15.0),
         ),
         child: Container(
           width: MediaQuery.of(context).size.width,
@@ -313,236 +285,236 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              GestureDetector(
-                onVerticalDragUpdate: _handleNavDragUpdate,
-                onVerticalDragEnd: _handleNavDragEnd,
-                child: Material(
-                  child: Container(
-                    height: kBottomNavigationBarHeight,
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration.collapsed(
-                              hintText: 'Search Reddit',
-                            ),
-                            controller: _userContentController,
-                            onSubmitted: (s) {
-                              _dispatchNewParameters(context);
-                            },
+              Material(
+                child: Container(
+                  height: kBottomNavigationBarHeight,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration.collapsed(
+                            hintText: 'Search Reddit',
                           ),
+                          controller: _userContentController,
+                          onSubmitted: (s) {
+                            _dispatchNewParameters(context);
+                          },
                         ),
-                        IconButton(
-                          icon: Icon(Icons.search), 
-                            onPressed: () {
-                              if (_userContentController.text.isNotEmpty) {
-                                _dispatchNewParameters(context);
-                              } else {
-                                final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
-                                Scaffold.of(context).showSnackBar(warningSnackBar);
-                              }
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search), 
+                          onPressed: () {
+                            if (_userContentController.text.isNotEmpty) {
+                              _dispatchNewParameters(context);
+                            } else {
+                              final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
+                              Scaffold.of(context).showSnackBar(warningSnackBar);
                             }
-                        ),
-                        IconButton(
-                          icon: AnimatedIcon(
-                            icon: AnimatedIcons.menu_close, progress: _animationController,), 
-                            onPressed: () {
-                              _animationController.value >= 0.9
-                                ? _animationController.animateTo(0.0, duration: Duration(milliseconds: 250))
-                                : _animationController.animateTo(1.0, curve: Curves.ease, duration: Duration(milliseconds: (_animationController.value > 0.3 ? 250 / _animationController.value : 250).round()));
-                            }
-                        )
-                      ],
-                    ),
-                  )
+                          }
+                      ),
+                      IconButton(
+                        icon: AnimatedIcon(
+                          icon: AnimatedIcons.menu_close, progress: _animationController,), 
+                          onPressed: () {
+                            _animationController.value >= 0.9
+                              ? _animationController.animateTo(0.0, curve: Curves.easeOutSine, duration: _animationControllerDuration)
+                              : _animationController.animateTo(1.0, curve: Curves.easeOutSine, duration: Duration(milliseconds: (_animationController.value > 0.3 ? _animationControllerDuration.inMilliseconds / _animationController.value : _animationControllerDuration.inMilliseconds).round()));
+                          }
+                      )
+                    ],
+                  ),
                 )
               ),
               SizeTransition(
                 axis: Axis.vertical,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 7.5),
-                        child: ToggleButtons(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 3.5),
-                              child: Text('Submissions')
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 3.5),
-                              child: Text('Comments')
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 3.5),
-                              child: Text('Statistics'),
-                            ),
-                          ],
-                          isSelected: [
-                            _submissions,
-                            _comments,
-                            _statistics
-                          ],
-                          onPressed: (i) {
-                            switch (i) {
-                              case 0:
-                                setState(() {
-                                  _submissions = !_submissions;
-                                });
-                                break;
-                              case 1:
-                                setState(() {
-                                  _comments = !_comments;
-                                });
-                                break;
-                              
-                              default:
-                                setState(() {
-                                  _statistics = !_statistics;
-                                });
-                                break;
-                            }
-                          },
-                        )
-                      ),
-                      Divider(),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Row(
-                          children: <Widget>[
-                            Text('Size'),
-                            Expanded(
-                              child: Slider(
-                                value: _size.toDouble(),
-                                min: 0.0,
-                                max: (_sizeOptions.length - 1).toDouble(),
-                                divisions: _sizeOptions.length - 1,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _size = value.round();
-                                  });
-                                },
-                              )
-                            ),
-                            Text(_sizeOptions[_size].toString())
-                          ],
-                        )
-                      ),
-                      _parametersWidget(
-                        'Sort', 
-                        DropdownButton<PushShiftSort>(
-                          value: _sort,
-                          underline: null,
-                          onChanged: (newSort) {
-                            setState(() {
-                              _sort = newSort;
-                            });
-                          },
-                          items: PushShiftSort.values.map((i) => DropdownMenuItem(
-                              value: i,
-                              child: Row(children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.only(right: 3.5),
-                                  child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
-                                ),
-                                Text(i.toString().split('.').last)
-                              ],)
-                            ),
-                          ).toList())
-                      ),
-                      _parametersWidget(
-                        'Sort Type',
-                        DropdownButton<PushShiftSortType>(
-                          value: _sortType,
-                          underline: null,
-                          onChanged: (newSort) {
-                            setState(() {
-                              _sortType = newSort;
-                            });
-                          },
-                          items: PushShiftSortType.values.map((i) {
-                            String _typeString;
-                            IconData _headingIconData;
-                            if (i == PushShiftSortType.Created_UTC) {
-                              _typeString = "Date";
-                              _headingIconData = MdiIcons.clock;
-                            } else if (i == PushShiftSortType.Num_Comments) {
-                              _typeString = "Number of Comments";
-                              _headingIconData = MdiIcons.commentMultiple;
-                            } else {
-                              _typeString = "Karma";
-                              _headingIconData = MdiIcons.yinYang;
-                            }
-                            return DropdownMenuItem(
-                              value: i,
-                              child: Row(children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.only(right: 3.5),
-                                  child: Icon(_headingIconData)
-                                ),
-                                Text(_typeString)
-                              ],)
-                            );
-                          },
-                          ).toList())
-                       ),
-                       _parametersWidget(
-                         'Limit to Author', 
-                         Checkbox(
-                           value: _authorEnabled,
-                           onChanged: (enabled) {
-                             setState(() {
-                               _authorEnabled = enabled;
-                               _authorExpansionController.animateTo(_authorEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
-                             });
-                           },
-                         )
-                      ),
-                      SizeTransition(
-                        sizeFactor: _authorExpansionController,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.0),
-                          child: TextField(
-                            enabled: _authorEnabled,
-                            autofocus: false,
-                            controller: _authorController,
-                            decoration: InputDecoration(
-                              labelText: 'Author Username'
-                            ),
-                          )
-                        ),
-                      ),
-                       _parametersWidget(
-                         'Limit to Subreddit', 
-                         Checkbox(
-                           value: _subredditEnabled,
-                           onChanged: (enabled) {
-                             setState(() {
-                               _subredditEnabled = enabled;
-                               _subredditExpansionController.animateTo(_subredditEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
-                             });
-                           },
-                         )
-                      ),
-                      SizeTransition(
-                        sizeFactor: _subredditExpansionController,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12.0),
-                          child: TextField(
-                            enabled: _subredditEnabled,
-                            autofocus: false,
-                            controller: _subredditController,
-                            decoration: InputDecoration(
-                              labelText: 'Subreddit'
-                            ),
-                          )
-                        ),
-                      ),
-                    ],
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).orientation == Orientation.portrait ? MediaQuery.of(context).size.height / 2.5 : MediaQuery.of(context).size.height / 1.25
                   ),
+                  child: ListView(
+                      // crossAxisAlignment: CrossAxisAlignment.center,
+                      // mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.symmetric(vertical: 7.5),
+                          child: ToggleButtons(
+                            children: <Widget>[
+                              const Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                                child: const Text('Submissions')
+                              ),
+                              const Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                                child: const Text('Comments')
+                              ),
+                              const Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                                child: const Text('Statistics'),
+                              ),
+                            ],
+                            isSelected: [
+                              _submissions,
+                              _comments,
+                              _statistics
+                            ],
+                            onPressed: (i) {
+                              switch (i) {
+                                case 0:
+                                  setState(() {
+                                    _submissions = !_submissions;
+                                  });
+                                  break;
+                                case 1:
+                                  setState(() {
+                                    _comments = !_comments;
+                                  });
+                                  break;
+                                
+                                default:
+                                  setState(() {
+                                    _statistics = !_statistics;
+                                  });
+                                  break;
+                              }
+                            },
+                          )
+                        ),
+                        const Divider(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Row(
+                            children: <Widget>[
+                              const Text('Size'),
+                              Expanded(
+                                child: Slider(
+                                  value: _size.toDouble(),
+                                  min: 0.0,
+                                  max: (_sizeOptions.length - 1).toDouble(),
+                                  divisions: _sizeOptions.length - 1,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _size = value.round();
+                                    });
+                                  },
+                                )
+                              ),
+                              Text(_sizeOptions[_size].toString())
+                            ],
+                          )
+                        ),
+                        _parametersWidget(
+                          'Sort', 
+                          DropdownButton<PushShiftSort>(
+                            value: _sort,
+                            onChanged: (newSort) {
+                              setState(() {
+                                _sort = newSort;
+                              });
+                            },
+                            items: PushShiftSort.values.map((i) => DropdownMenuItem(
+                                value: i,
+                                child: Row(children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 3.5),
+                                    child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
+                                  ),
+                                  Text(i.toString().split('.').last)
+                                ],)
+                              ),
+                            ).toList())
+                        ),
+                        _parametersWidget(
+                          'Sort Type',
+                          DropdownButton<PushShiftSortType>(
+                            value: _sortType,
+                            onChanged: (newSort) {
+                              setState(() {
+                                _sortType = newSort;
+                              });
+                            },
+                            items: PushShiftSortType.values.map((i) {
+                              String _typeString;
+                              IconData _headingIconData;
+                              if (i == PushShiftSortType.Created_UTC) {
+                                _typeString = "Date";
+                                _headingIconData = MdiIcons.clock;
+                              } else if (i == PushShiftSortType.Num_Comments) {
+                                _typeString = "Number of Comments";
+                                _headingIconData = MdiIcons.commentMultiple;
+                              } else {
+                                _typeString = "Karma";
+                                _headingIconData = MdiIcons.yinYang;
+                              }
+                              return DropdownMenuItem(
+                                value: i,
+                                child: Row(children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 3.5),
+                                    child: Icon(_headingIconData)
+                                  ),
+                                  Text(_typeString)
+                                ],)
+                              );
+                            },
+                            ).toList())
+                         ),
+                         _parametersWidget(
+                           'Limit to Author', 
+                           Checkbox(
+                             value: _authorEnabled,
+                             onChanged: (enabled) {
+                               setState(() {
+                                 _authorEnabled = enabled;
+                                 _authorExpansionController.animateTo(_authorEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                               });
+                             },
+                           )
+                        ),
+                        SizeTransition(
+                          sizeFactor: _authorExpansionController,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: TextField(
+                              enabled: _authorEnabled,
+                              autofocus: false,
+                              controller: _authorController,
+                              decoration: InputDecoration(
+                                labelText: 'Author Username'
+                              ),
+                            )
+                          ),
+                        ),
+                         _parametersWidget(
+                           'Limit to Subreddit', 
+                           Checkbox(
+                             value: _subredditEnabled,
+                             onChanged: (enabled) {
+                               setState(() {
+                                 _subredditEnabled = enabled;
+                                 _subredditExpansionController.animateTo(_subredditEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                               });
+                             },
+                           )
+                        ),
+                        SizeTransition(
+                          sizeFactor: _subredditExpansionController,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: TextField(
+                              enabled: _subredditEnabled,
+                              autofocus: false,
+                              controller: _subredditController,
+                              decoration: InputDecoration(
+                                labelText: 'Subreddit'
+                              ),
+                            )
+                          ),
+                        ),
+                      ],
+                    ),
+                ),
                   sizeFactor: _animationController,
               )
             ],
@@ -555,7 +527,7 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   ///Helper Widget Wrapper for reducing repeating code. Title Text Widget will be displayed first, and the child last, with a SpaceBetween row alignment.
   Widget _parametersWidget(String title, Widget child) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[

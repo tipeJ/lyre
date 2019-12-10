@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -191,6 +192,8 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   double _lerp(double min, double max) => lerpDouble(min, max, _animationController.value);
 
   TextEditingController _userContentController;
+  FocusNode _node;
+  FocusNode _removeFocus;
 
 
   @override
@@ -207,6 +210,11 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   void initState() { 
     super.initState();
     _userContentController = TextEditingController();
+    _node = FocusNode();
+    _node.addListener(() {
+      setState((){});
+    });
+    _removeFocus = FocusNode();
     _authorController = TextEditingController();
     _subredditController = TextEditingController();
 
@@ -263,6 +271,12 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     if (_animationController.value > 0.5) {
       _animationController.animateTo(0.0, duration: _animationControllerDuration, curve: Curves.ease);
       return Future.value(false);
+    } else if (_node.hasFocus) {
+      // Dismiss Focus so that the back button shows
+      FocusScope.of(context).requestFocus(_removeFocus);
+      // Clear the Search Field
+       _userContentController.clear();
+      return Future.value(false);
     }
     return Future.value(true);
   }
@@ -293,8 +307,21 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: Row(
                     children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(right: _node.hasFocus ? 0.0 : 5.0),
+                        child: prefix0.Visibility(
+                          visible: !_node.hasFocus,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () {
+                              Navigator.of(context).maybePop();
+                            },
+                          )
+                        ),
+                      ),
                       Expanded(
                         child: TextField(
+                          focusNode: _node,
                           decoration: InputDecoration.collapsed(
                             hintText: 'Search Reddit',
                           ),

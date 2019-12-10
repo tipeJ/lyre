@@ -261,7 +261,8 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Sin
     BlocProvider.of<SearchUsercontentBloc>(context).add(UserContentQueryChanged(parameters: CommentSearchParameters(
       query: _userContentController.text,
       size: _sizeOptions[_size],
-      sort: _sort
+      sort: _sort,
+      sortType: _sortType
     )));
   }
 
@@ -400,35 +401,64 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Sin
                         ],
                       )
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('Sort'),
-                          DropdownButton<PushShiftSort>(
-                            value: _sort,
-                            underline: null,
-                            onChanged: (newSort) {
-                              setState(() {
-                                _sort = newSort;
-                              });
-                            },
-                            items: PushShiftSort.values.map((i) => DropdownMenuItem(
-                                value: i,
-                                child: Row(children: <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 3.5),
-                                    child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
-                                  ),
-                                  Text(i.toString().split('.').last)
-                                ],)
+                    _parametersWidget(
+                      'Sort', 
+                      DropdownButton<PushShiftSort>(
+                        value: _sort,
+                        underline: null,
+                        onChanged: (newSort) {
+                          setState(() {
+                            _sort = newSort;
+                          });
+                        },
+                        items: PushShiftSort.values.map((i) => DropdownMenuItem(
+                            value: i,
+                            child: Row(children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(right: 3.5),
+                                child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
                               ),
-                            ).toList()
-                          )
-                        ],
-                      )
-                    )
+                              Text(i.toString().split('.').last)
+                            ],)
+                          ),
+                        ).toList())
+                    ),
+                    _parametersWidget(
+                      'Sort Type',
+                      DropdownButton<PushShiftSortType>(
+                        value: _sortType,
+                        underline: null,
+                        onChanged: (newSort) {
+                          setState(() {
+                            _sortType = newSort;
+                          });
+                        },
+                        items: PushShiftSortType.values.map((i) {
+                          String _typeString;
+                          IconData _headingIconData;
+                          if (i == PushShiftSortType.Created_UTC) {
+                            _typeString = "Date";
+                            _headingIconData = MdiIcons.clock;
+                          } else if (i == PushShiftSortType.Num_Comments) {
+                            _typeString = "Number of Comments";
+                            _headingIconData = MdiIcons.commentMultiple;
+                          } else {
+                            _typeString = "Karma";
+                            _headingIconData = MdiIcons.yinYang;
+                          }
+                          return DropdownMenuItem(
+                            value: i,
+                            child: Row(children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(right: 3.5),
+                                child: Icon(_headingIconData)
+                              ),
+                              Text(_typeString)
+                            ],)
+                          );
+                        },
+                        ).toList())
+                     )
                   ],
                 ),
                 sizeFactor: _animationController,
@@ -437,6 +467,19 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Sin
         ),
       ),
       ),
+    );
+  }
+  ///Helper Widget Wrapper for reducing repeating code. Title Text Widget will be displayed first, and the child last, with a SpaceBetween row alignment.
+  Widget _parametersWidget(String title, Widget child) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(title),
+          child
+        ],
+      )
     );
   }
 }

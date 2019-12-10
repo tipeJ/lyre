@@ -421,12 +421,15 @@ class PostsProvider {
     final Map<String, dynamic> params = <String, dynamic>{
       'raw_json' : '1',
       'q' : parameters.query,
-      'size' : parameters.size.toString(),
-      'sort' : _parsePushShiftSort(parameters.sort)
+      'size' : parameters.size?.toString(),
+      'sort' : _parsePushShiftSort(parameters.sort),
+      'sort_type' : _parsePushShiftSortType(parameters.sortType)
     };
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"
     };
+    print(_parsePushShiftSortType(PushShiftSortType.Num_Comments));
+    // ! Can't Process num_comments with a comment search. Will Throw Exception.
     dynamic results = await HttpUtils.getForJson('https://api.pushshift.io/reddit/search/comment/', queryParameters: params, headers: headers);
     List<dynamic> values = [];
     results['data'].forEach((o) {
@@ -517,7 +520,7 @@ enum PushShiftSort {
   Descending
 }
 /// Parse the sort type for [PushShiftSort] object. Used for HTTP requests from API, which required a String object.
-String _parsePushShiftSort(PushShiftSort sort) => sort == PushShiftSort.Asending ? "asc" : "desc";
+String _parsePushShiftSort(PushShiftSort sort) => sort != null ? sort == PushShiftSort.Asending ? "asc" : "desc" : null;
 
 /// Type to be used in [PushShiftSort] for Specific sort types
 enum PushShiftSortType {
@@ -525,6 +528,9 @@ enum PushShiftSortType {
   Num_Comments,
   Created_UTC
 }
+/// Parse the sort type for [PushShiftSortType] object. Used for HTTP requests from API, which required a String object.
+String _parsePushShiftSortType(PushShiftSortType sort) => sort != null ? sort.toString().toLowerCase().split('.').last : null;
+
 /// Class for sorting [Comment] and [Submission] objects searched via PushShift Search
 enum PushShiftFrequency {
   Second,

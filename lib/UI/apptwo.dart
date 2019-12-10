@@ -146,7 +146,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
             
             Navigator(
               key: PreviewCall().navigatorKey,
-              initialRoute: 'posts',
+              initialRoute: 'search_communities',
               onGenerateRoute: Router.generateRoute,
             ),
             //RedditView(query: "https://old.reddit.com/r/wallpaperdump/comments/dshmke/assorted_backgrounds/f6rmvk8/",) 

@@ -29,7 +29,7 @@ dependencies:
   http: '>=0.11.3+14'
   url_launcher: ^5.0.1
   rxdart: ^0.22.0
-  draw: ^0.5.0
+  draw: ^0.9.0
   swipedetector: ^1.2.0
   transparent_image: ^0.1.0
   flutter_cache_manager: ^0.3.0

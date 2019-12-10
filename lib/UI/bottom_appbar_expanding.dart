@@ -256,6 +256,17 @@ class DraggableSheetExtent {
   double get additionalMinExtent => isAtMin ? 0.0 : 1.0;
   double get additionalMaxExtent => isAtMax ? 0.0 : 1.0;
 
+  void setCurrentExtent(double value, BuildContext context) {
+    currentExtent = value;
+    DraggableScrollableNotification(
+      minExtent: minExtent,
+      maxExtent: maxExtent,
+      extent: currentExtent,
+      initialExtent: initialExtent,
+      context: context,
+    ).dispatch(context);
+  }
+
   /// The scroll position gets inputs in terms of pixels, but the extent is
   /// expected to be expressed as a number between 0..1.
   void addPixelDelta(double delta, BuildContext context) {
@@ -263,6 +274,16 @@ class DraggableSheetExtent {
       return;
     }
     currentExtent += delta / availablePixels * maxExtent;
+    DraggableScrollableNotification(
+      minExtent: minExtent,
+      maxExtent: maxExtent,
+      extent: currentExtent,
+      initialExtent: initialExtent,
+      context: context,
+    ).dispatch(context);
+  }
+  void reset(BuildContext context) {
+    currentExtent = minExtent;
     DraggableScrollableNotification(
       minExtent: minExtent,
       maxExtent: maxExtent,
@@ -318,7 +339,6 @@ class DraggableScrollableSheetScrollController extends ScrollController {
   ///Scroll to zero and dismiss sheet
   reset() {
     this.jumpTo(0.0);
-    extent.currentExtent = extent.minExtent;
   }
 
   @override
@@ -547,6 +567,8 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   DraggableScrollableSheetScrollController _scrollController;
   DraggableSheetExtent _extent;
 
+  AnimationController _extentAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -556,6 +578,12 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
       initialExtent: widget.initialChildSize,
       listener: _setExtent,
     );
+    _extentAnimation = AnimationController(vsync: this, duration: Duration(milliseconds: 350));
+    _extentAnimation.addListener(() {
+      setState(() {
+        _extent.setCurrentExtent(max(_extent.minExtent, _extentAnimation.value * _extent.maxExtent), _scrollController.position.context.notificationContext);
+      });
+    });
     _scrollController = DraggableScrollableSheetScrollController(extent: _extent);
   }
 
@@ -570,7 +598,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
         _scrollController.animateTo(
           0.0,
           duration: const Duration(milliseconds: 1),
-          curve: Curves.linear,
+          curve: Curves.ease,
         );
       }
       _extent._currentExtent.value = _extent.initialExtent;
@@ -587,7 +615,9 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   Future<bool> _willPop() {
     if (_extent.currentExtent != _extent.minExtent) {
       _scrollController.jumpTo(0.0);
-      _extent.currentExtent = _extent.minExtent;
+      //_extent.currentExtent = _extent.minExtent;
+      _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
+      _extentAnimation.animateTo(0.0, curve: Curves.ease);
       return Future.value(false);
     }
     return Future.value(true);
@@ -602,8 +632,8 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
           alignment: Alignment.bottomCenter,
           child: ClipRRect(
             borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(_lerp(15.0, 0.0)),
-                  topRight: Radius.circular(_lerp(15.0, 0.0)),
+              topLeft: Radius.circular(_lerp(15.0, 0.0)),
+              topRight: Radius.circular(_lerp(15.0, 0.0)),
             ),
             child: Container(
               height: screenHeight * _extent.currentExtent,
@@ -634,6 +664,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   @override
   void dispose() {
     _scrollController.dispose();
+    _extentAnimation.dispose();
     super.dispose();
   }
 }

@@ -219,7 +219,7 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     });
   }
 
-  bool _submissions = false;
+  bool _submissions = true;
   bool _comments = false;
   bool _statistics = false;
 
@@ -246,7 +246,9 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   AnimationController _subredditExpansionController;
   TextEditingController _subredditController;
 
+  ///Send a new Query Changed event to the [SearchUsercontentBloc] of the given context
   void _dispatchNewParameters(BuildContext context) {
+    // TODO: Implement Submissions (and statistics?) search.
     BlocProvider.of<SearchUsercontentBloc>(context).add(UserContentQueryChanged(parameters: CommentSearchParameters(
       query: _userContentController.text,
       size: _sizeOptions[_size],
@@ -267,7 +269,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
 
   @override
   Widget build(BuildContext context) {
-    //TODO: Fix landscape not enough space
     return WillPopScope(
       onWillPop: _willPop,
       child: ClipRRect(
@@ -362,20 +363,32 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
                             onPressed: (i) {
                               switch (i) {
                                 case 0:
-                                  setState(() {
-                                    _submissions = !_submissions;
-                                  });
+                                  if (!_submissions) {
+                                    setState(() {
+                                      _comments = false;
+                                      _statistics = false;
+                                      _submissions = true;
+                                    });
+                                  }
                                   break;
                                 case 1:
-                                  setState(() {
-                                    _comments = !_comments;
-                                  });
+                                  if (!_comments) {
+                                    setState(() {
+                                      _comments = true;
+                                      _statistics = false;
+                                      _submissions = false;
+                                    });
+                                  }
                                   break;
                                 
                                 default:
-                                  setState(() {
-                                    _statistics = !_statistics;
-                                  });
+                                  if (!_statistics) {
+                                    setState(() {
+                                      _comments = false;
+                                      _statistics = true;
+                                      _submissions = false;
+                                    });
+                                  }
                                   break;
                               }
                             },

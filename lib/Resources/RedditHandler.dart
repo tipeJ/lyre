@@ -4,15 +4,21 @@ import 'package:draw/draw.dart';
 import 'reddit_api_provider.dart';
 import '../UploadUtils/ImgurAPI.dart';
 
-//---CHANGING SAVES, VOTING, ETC----
-Future<void> changeSubmissionSave(Submission s) async {
-  if(s.saved){
-    return s.unsave();
-  }else{
-    return s.save();
+// * CHANGING SAVES, VOTING, ETC
+///Save or Unsave a [Submission]
+Future<dynamic> changeSubmissionSave(Submission s) async {
+  try {
+    if(s.saved){
+      return s.unsave();
+    }else{
+      return s.save();
+    }
+  } catch (e) {
+    return e.toString();
   }
 }
 
+///Save or Unsave a [Comment]
 Future<void> changeCommentSave(Comment c) async {
   if(c.saved){
     return c.unsave();
@@ -21,16 +27,23 @@ Future<void> changeCommentSave(Comment c) async {
   }
 }
 
-Future<void> changeSubmissionVoteState(VoteState state, Submission s) async {
+///Up- or Downvote a [Submission]
+Future<dynamic> changeSubmissionVoteState(VoteState state, Submission s) async {
   if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API
-  if(state == s.vote){
-    return s.clearVote();
-  }else if(state == VoteState.downvoted){
-    return s.downvote();
-  }else{
-    return s.upvote();
+  //return 'sdsdsd';
+  try {
+    if (state == s.vote) {
+      return s.clearVote();
+    } else if (state == VoteState.downvoted) {
+      return s.downvote();
+    } else {
+      return s.upvote();
+    }
+  } catch (e) {
+    return e.toString();
   }
 }
+///Up- or Downvote a [Comment]
 Future<void> changeCommentVoteState(VoteState state, Comment c) async {
   if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API (shouldn't even happen, ever)
   if(state == c.vote){
@@ -41,7 +54,8 @@ Future<void> changeCommentVoteState(VoteState state, Comment c) async {
     return c.upvote();
   }
 }
-//---SUBMISSIONS---
+// * Submitting
+///Submit a String Selftext [Submission] to a given [Subreddit]
 Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
@@ -57,8 +71,8 @@ Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, b
     return e.toString();
   }
 }
-Future
-<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
+///Submit a String Link [Submission] to a given [Subreddit]
+Future<dynamic> submitLink(String sub, String title, String url, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
   var subRef = SubredditRef.name(r, sub);
   try {
@@ -74,6 +88,7 @@ Future
   }  
 }
 
+///Submit an Image Link (via Imgur) [Submission] to a given [Subreddit]
 Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendReplies, File imageFile) async {
   try {
     var url = await ImgurAPI().uploadImage(imageFile, title);
@@ -83,6 +98,7 @@ Future<dynamic> submitImage(String sub, String title, bool isNsfw, bool sendRepl
   }  
 }
 
+///Submit a String reply to a [Comment]
 Future<dynamic> reply(UserContent content, String body) async {
   try {
     if (content is Comment) {
@@ -95,6 +111,7 @@ Future<dynamic> reply(UserContent content, String body) async {
   }
 }
 
+///Report a given [UserContent] ([Comment] or a [Submission]) to the Moderators of the Subreddit
 Future<dynamic> report(UserContent content, String reason) async {
   try {
     if (content is Comment) {

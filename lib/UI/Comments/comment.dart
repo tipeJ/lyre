@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
@@ -326,8 +327,7 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment) {
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0)),
     new Padding(
-      child: Text(comment.body),
-          //new Html(data: prefix0.markdownToHtml(comment.body),)
+      child: MarkdownBody(data: comment.body,),
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0))];
 }

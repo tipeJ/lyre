@@ -243,11 +243,12 @@ class PostsProvider {
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
     reddit = await getRed();
 
-    Map<String, String> headers = new Map<String, String>();
+    Map<String, String> params = new Map<String, String>();
 
-    if(loadMore)headers["after"]="t3_$lastPost";
+    if(loadMore)params["after"]="t3_$lastPost";
 
-    headers["limit"] = perPage.toString();
+    params["limit"] = perPage.toString();
+    params["raw_json"] = '1';
 
     if([
       TypeFilter.Hot,
@@ -264,14 +265,14 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.New:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).newest(params: headers).toList();
+            v = await reddit.subreddit(currentSubreddit).newest(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).newest(params: headers).toList();
+            v = await reddit.redditor(redditor).newest(params: params).toList();
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).rising(params: headers).toList();
+            v = await reddit.subreddit(currentSubreddit).rising(params: params).toList();
           }
           break;
         case TypeFilter.Gilded:
@@ -284,9 +285,9 @@ class PostsProvider {
           break;
         default: //Default to hot.
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).hot(params: headers).toList();
+            v = await reddit.subreddit(currentSubreddit).hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).hot(params: headers).toList();
+            v = await reddit.redditor(redditor).hot(params: params).toList();
           }
           break;
       }
@@ -295,16 +296,16 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: headers).toList();
+              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: headers).toList();
+            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: params).toList();
           }
           break;
         default: //Default to top
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: headers).toList();
+              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).top(timeFilter: filter, params: headers).toList();
+            v = await reddit.redditor(redditor).top(timeFilter: filter, params: params).toList();
           }
           break;
       }
@@ -319,9 +320,6 @@ class PostsProvider {
   }
 
   Future<CommentM> fetchCommentsList() async {
-    Map<String, String> headers = new Map<String, String>();
-    headers["before"] = "0";
-
     var r = await getRed();
     var s = await r.submission(id: currentPostId).populate();
     return CommentM.fromJson(s.comments.comments);

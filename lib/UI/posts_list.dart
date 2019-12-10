@@ -251,23 +251,23 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   left: 10.0,
                   bottom: 5.0
                   ),
-                title: Text(
+                title: AutoSizeText(
                   state.getSourceString(),
-                  overflow: TextOverflow.fade,
-                  maxLines: 1,
-                  style: LyreTextStyles.title,
+                  maxFontSize: 26.0,
                 ),
                 collapseMode: CollapseMode.parallax,
                 background: state.subreddit != null && state.subreddit.mobileHeaderImage != null
-                  ? FadeInImage(
-                    placeholder: MemoryImage(kTransparentImage),
-                    image: AdvancedNetworkImage(
-                      state.subreddit.mobileHeaderImage.toString(),
-                      useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: const Duration(days: 3)),
-                    ),
-                    fit: BoxFit.cover
-                  )
+                  ? 
+                  // FadeInImage(
+                  //   placeholder: MemoryImage(kTransparentImage),
+                  //   image: AdvancedNetworkImage(
+                  //     state.subreddit.mobileHeaderImage.toString(),
+                  //     useDiskCache: true,
+                  //     cacheRule: CacheRule(maxAge: const Duration(days: 3)),
+                  //   ),
+                  //   fit: BoxFit.cover
+                  // )
+                  Container()
                   : Container() // TODO: Placeholder image
               ),
             ),

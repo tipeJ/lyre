@@ -165,7 +165,7 @@ class _SearchUserContentViewState extends State<SearchUserContentView> with Sing
                 }
                 final object = state.results[i];
                 if (object is Comment) {
-                  return CommentContent(object);
+                  return CommentContent(object, PreviewSource.PostsList);
                 } else if (object is Submission) {
                   return postInnerWidget(object, PreviewSource.Comments);
                 }

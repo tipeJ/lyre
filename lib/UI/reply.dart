@@ -93,7 +93,7 @@ class _replyWindowState extends State<replyWindow> {
                  child: Column(
                   children: <Widget>[
                     widget.content is Comment
-                      ? CommentContent(widget.content)
+                      ? CommentContent(widget.content, PreviewSource.PostsList)
                       : postInnerWidget(widget.content, PreviewSource.Comments, PostView.ImagePreview),
                     TextField(
                       enabled: _replySendingState == ReplySendingState.Inactive,
@@ -158,12 +158,5 @@ class _replyWindowState extends State<replyWindow> {
         Navigator.of(context).pop(value);
       }
     });
-  }
-  Future<void> _addParentComment(Comment c) async {
-    //Break the loop if comment is a root comment (parent is a submission, not a comment).
-    if(c.isRoot)return;
-    var parent = await c.parent() as Comment;
-    parentWidgets.add(CommentContent(parent));
-    _addParentComment(parent);
   }
 }

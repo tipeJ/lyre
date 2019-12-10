@@ -150,7 +150,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         final authUrl = await pp.redditAuthUrl();
         PostsProvider().auth(authUrl.values.first).then((loggedInUserName) async {
           BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: loggedInUserName));
-          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit));
+          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit, target: currentSubreddit));
         });
         showDialog(
           context: context,
@@ -289,7 +289,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 } else {
                   return posts[i] is prefix0.Submission
                     ? postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
-                    : new CommentContent(posts[i] as prefix0.Comment);
+                    : new CommentContent(posts[i] as prefix0.Comment, PreviewSource.PostsList);
                 }
               },
               childCount: posts.length+1,
@@ -637,7 +637,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                 },
                                 onDoubleTap: () {
                                   currentSubreddit = homeSubreddit;
-                                  BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit)));
+                                  BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
                                 },
                                 onTap: () {
                                   setState(() {
@@ -1382,7 +1382,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
                 onEditingComplete: () {
                   currentSubreddit = searchQuery;
                   widget.innerController.reset();
-                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
+                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
                 },
               ),
             ),
@@ -1410,7 +1410,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
   _openSub(String s) {
     currentSubreddit = s;
     widget.innerController.reset();
-    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit));
+    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
   }
 
   /// List of options for subRedditView

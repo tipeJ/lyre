@@ -10,6 +10,7 @@ import 'package:lyre/UI/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/UI/interfaces/previewCallback.dart';
 import '../../utils/redditUtils.dart';
 
 OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment comment) {
@@ -98,7 +99,8 @@ List<Color> colorList = [
 class CommentWidget extends StatefulWidget {
   final Comment comment;
   final int location;
-  CommentWidget(this.comment, this.location);
+  final PreviewSource previewSource;
+  CommentWidget(this.comment, this.location, this.previewSource);
 
   @override
   _CommentWidgetState createState() => _CommentWidgetState();
@@ -185,9 +187,8 @@ class _CommentWidgetState extends State<CommentWidget> {
           ],
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: _commentContentChildren(context, widget.comment)),
+            children: _commentContentChildren(context, widget.comment, widget.previewSource)),
             ),
-              
               StatefulBuilder(
                 builder: (BuildContext context, setState) {
                   return prefix1.Visibility(
@@ -299,30 +300,42 @@ class _CommentWidgetState extends State<CommentWidget> {
     });
   }
 }
-List<Widget> _commentContentChildren(BuildContext context, Comment comment) {
+List<Widget> _commentContentChildren(BuildContext context, Comment comment, PreviewSource previewSource) {
   return [ new Padding(
-      child: Row(
-        children: <Widget>[
-          Material(
-            child: Text("${comment.score} ",
+      child: Material(
+        child: Row(
+          children: <Widget>[
+            Text("${comment.score} ",
               textAlign: TextAlign.left,
               textScaleFactor: 0.65,
               style: new TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: getScoreColor(comment, context))),
-          ),
-          Material(
-            child: Text(
-            "● u/${comment.author}",
-            textScaleFactor: 0.7,
+                fontWeight: FontWeight.bold,
+                color: getScoreColor(comment, context))),
+            Text(
+              "● u/${comment.author}",
+              textScaleFactor: 0.7,
             ),
-          ),
-          Spacer(),
-          Text(
-            getSubmissionAge(comment.createdUtc),
-            textScaleFactor: 0.7,
+            previewSource != PreviewSource.Comments
+              ? Padding(
+                  padding: EdgeInsets.only(left: 3.5),
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: "in "),
+                        TextSpan(text: "${comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).accentColor))
+                      ]
+                    ),
+                    textScaleFactor: 0.7,
+                  )
+              )
+              : null,
+            Spacer(),
+            Text(
+              getSubmissionAge(comment.createdUtc),
+              textScaleFactor: 0.7,
             ),
-        ],
+          ].where((w) => notNull(w)).toList(),
+        )
       ),
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0)),
@@ -333,14 +346,15 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment) {
 }
 class CommentContent extends StatelessWidget {
   final Comment comment;
-  const CommentContent(this.comment, {Key key}) : super(key: key);
+  final PreviewSource previewSource;
+  const CommentContent(this.comment, this.previewSource, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: _commentContentChildren(context, comment),
+      children: _commentContentChildren(context, comment, previewSource),
     );
   }
 }

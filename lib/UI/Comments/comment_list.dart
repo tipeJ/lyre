@@ -171,7 +171,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
       return GestureDetector(
-        child: CommentWidget(comment, i),
+        child: CommentWidget(comment, i, PreviewSource.Comments),
         onTap: (){
           setState(() {
            BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 

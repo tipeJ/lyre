@@ -314,7 +314,7 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      v.removeWhere((u) => FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
+      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
     }
     return v;
   }

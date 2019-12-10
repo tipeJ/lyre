@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
@@ -443,23 +444,58 @@ class defaultColumn extends StatelessWidget {
                         color: getScoreColor(submission, context))),
                     padding:
                         const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                  new Padding(
-                    child: new Text(
-                        "u/${submission.author}",
-                        style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                    padding:
-                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                  new Padding(
-                    child: new Text(
-                        "r/${submission.subreddit.displayName}",
-                        style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                    padding:
+                  previewSource == PreviewSource.PostsList
+                  ? BlocBuilder<PostsBloc, PostsState>(
+                      builder: (context, state) {
+                        return prefix1.Visibility(
+                          visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
+                          child: Padding(
+                            child: new Text(
+                              "u/${submission.author}",
+                              style: TextStyle(
+                                fontSize: _defaultColumnTextSize,
+                              ),
+                              textAlign: TextAlign.left,),
+                            padding:
+                              const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                        );
+                      },
+                    )
+                    : Padding(
+                        child: new Text(
+                          "u/${submission.author}",
+                          style: TextStyle(
+                            fontSize: _defaultColumnTextSize,
+                          ),
+                          textAlign: TextAlign.left,),
+                        padding:
+                          const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                  previewSource == PreviewSource.PostsList
+                    ? BlocBuilder<PostsBloc, PostsState>(
+                      builder: (context, state) {
+                        return prefix1.Visibility(
+                          visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
+                          child: Padding(
+                            child: new Text(
+                              "r/${submission.subreddit.displayName}",
+                              style: TextStyle(
+                                fontSize: _defaultColumnTextSize,
+                                color: Theme.of(context).accentColor
+                              ),
+                              textAlign: TextAlign.left,),
+                            padding:
+                              const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
+                        );
+                      },
+                    )
+                    : Padding(
+                        child: new Text(
+                          "r/${submission.subreddit.displayName}",
+                          style: TextStyle(
+                            fontSize: _defaultColumnTextSize,
+                          ),
+                          textAlign: TextAlign.left,),
+                        padding:
                           const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                   new Text(
                     "${submission.numComments} comments",

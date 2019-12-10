@@ -194,7 +194,8 @@ class _postInnerWidgetState extends State<postInnerWidget> {
         _handlePress(context);
       },
       onLongPressUp: (){
-          PreviewCall().callback.previewEnd();
+        print('FIRTCALL');
+        PreviewCall().callback.previewEnd();
       },
     );
   }
@@ -222,12 +223,22 @@ class _postInnerWidgetState extends State<postInnerWidget> {
   }
 
   void _handlePress(BuildContext context){
+    ///Do not QuickPreview the Album Url, show only the first image
+    if (albumLinkTypes.contains(widget.linkType)) {
+      PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+    }
     switch (widget.linkType) {
       case LinkType.YouTube:
         PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(widget.submission.url.toString())));
         break;
-      default :
+      case LinkType.RedditVideo:
+        PreviewCall().callback.preview(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+        break;
+      case LinkType.Default:
         PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+        break;
+      default:
+        PreviewCall().callback.preview(widget.submission.url.toString());
         break;
     }
   }

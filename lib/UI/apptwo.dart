@@ -5,6 +5,7 @@ import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
+import 'package:lyre/utils/urlUtils.dart';
 
 class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){
@@ -82,20 +83,24 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   void preview(String url) {
     if (!isPreviewing) {
       previewUrl = url;
+      print(getLinkType(url).toString());
       showOverlay();
     }
   }
 
   @override
   void previewEnd() {
-    if (isPreviewing) {
+    
+    if (isPreviewing && PreviewCall().canPop()) {
       previewUrl = "";
       hideOverlay();
     }
   }
 
   @override
-  void view(String url) {}
+  void view(String url) {
+
+  }
 
   showOverlay() {
     if (!isPreviewing) {
@@ -125,11 +130,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
       return false;
     }
     return !await PreviewCall().navigatorKey.currentState.maybePop();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
   
   @override

@@ -873,7 +873,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 child: Text('Submissions'),
               ),
               onTap: () {
-                // TODO: Implement search
+                Navigator.of(context).popAndPushNamed("search_usercontent");
               },
             ),
             InkWell(
@@ -881,10 +881,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
                 alignment: Alignment.centerLeft,
                 height: 50.0,
-                child: Text('Users'),
+                child: Text('Communities'),
               ),
               onTap: () {
-                // TODO: Implement Search
+                Navigator.of(context).popAndPushNamed('search_communities');
               },
             ),
             _optionsBackButton

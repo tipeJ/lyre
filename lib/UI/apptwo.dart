@@ -51,7 +51,6 @@ class LyreSplashScreen extends StatelessWidget {
       ),),
       color: Colors.grey[900],
     );
-    return Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.red,);
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Container(
@@ -146,7 +145,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
             
             Navigator(
               key: PreviewCall().navigatorKey,
-              initialRoute: 'search_communities',
+              initialRoute: 'search_usercontent',
               onGenerateRoute: Router.generateRoute,
             ),
             //RedditView(query: "https://old.reddit.com/r/wallpaperdump/comments/dshmke/assorted_backgrounds/f6rmvk8/",) 

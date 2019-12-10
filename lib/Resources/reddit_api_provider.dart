@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:basic_utils/basic_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' show Client;
 import 'package:lyre/Resources/filter_manager.dart';
@@ -399,7 +401,6 @@ class PostsProvider {
     params["User-Agent"] = "$appName $appVersion";
     if (loadMore) params['after'] = lastId;
     dynamic x2 = await reddit.get('r/all/search/', params: params, objectify: false);
-    //debugPrint(x2.toString());
     List<dynamic> values = [];
     x2['data']['children'].forEach((o) {
       if(o is Subreddit || o is Redditor) {
@@ -412,6 +413,28 @@ class PostsProvider {
         if (!(object is Subreddit)) object = Redditor.parse(reddit, object);
         values.add(object);
       }
+    });
+    return values;
+  }
+  ///Function which will return a list of UserContent from PushShift search
+  Future<List<dynamic>> searchPushShiftComments(CommentSearchParameters parameters, {bool loadMore = false}) async {
+    final Map<String, dynamic> params = <String, dynamic>{
+      'raw_json' : '1',
+      'q' : parameters.query,
+      'size' : parameters.size.toString(),
+      'sort' : _parsePushShiftSort(parameters.sort)
+    };
+    final Map<String, String> headers = <String, String>{
+      'User-Agent' : "$appName $appVersion"
+    };
+    dynamic results = await HttpUtils.getForJson('https://api.pushshift.io/reddit/search/comment/', queryParameters: params, headers: headers);
+    List<dynamic> values = [];
+    results['data'].forEach((o) {
+      var object;
+      //Draw refuses to parse a created_utc in int format (Which pushShift returns), so we'll convert it do double.
+      o['created_utc'] = o['created_utc'].toDouble();
+      object = Comment.parse(reddit, o);
+      values.add(object);
     });
     return values;
   }
@@ -486,4 +509,90 @@ class PostsProvider {
         return TimeFilter.day;
     }
   }
+}
+
+/// Class for sorting [Comment] and [Submission] objects searched via PushShift Search
+enum PushShiftSort {
+  Asending,
+  Descending
+}
+/// Parse the sort type for [PushShiftSort] object. Used for HTTP requests from API, which required a String object.
+String _parsePushShiftSort(PushShiftSort sort) => sort == PushShiftSort.Asending ? "asc" : "desc";
+
+/// Type to be used in [PushShiftSort] for Specific sort types
+enum PushShiftSortType {
+  Score,
+  Num_Comments,
+  Created_UTC
+}
+/// Class for sorting [Comment] and [Submission] objects searched via PushShift Search
+enum PushShiftFrequency {
+  Second,
+  Minute,
+  Hour,
+  Day
+}
+
+abstract class PushShiftSearchParameters {
+  String query;
+}
+
+class CommentSearchParameters extends PushShiftSearchParameters{
+
+  @override
+  ///Search term.
+  final String query;
+
+  ///Get specific comments via their ids
+  String ids;
+
+  ///Number of results to return	
+  int size;
+
+  ///One return specific fields (comma delimited)	
+  String fields;
+
+  ///Sort results in a specific order	
+  PushShiftSort sort;
+
+  ///Sort by a specific attribute	
+  PushShiftSortType sortType;
+
+  ///Return aggregation summary	
+  List<String> aggs;
+
+  ///Restrict to a specific author	
+  String author;
+
+  ///Restrict to a specific subreddit
+  String subreddit;
+
+  ///Return results after this date	
+  String after;
+
+  ///Return results before this date	
+  String before;
+
+  ///Used with the aggs parameter when set to created_utc	
+  PushShiftFrequency frequency;
+
+  ///display metadata about the query
+  bool includeMetadata;
+
+  /// Class for retrieving [Comment] objects via PushShift Search API
+  CommentSearchParameters({
+    @required this.query,
+    this.ids,
+    this.size,
+    this.fields,
+    this.sort,
+    this.sortType,
+    this.aggs,
+    this.author,
+    this.subreddit,
+    this.after,
+    this.before,
+    this.frequency,
+    this.includeMetadata
+  }) : assert(query != null);
 }

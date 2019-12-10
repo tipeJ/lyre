@@ -287,6 +287,7 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               Material(
+                color: Theme.of(context).primaryColor,
                 child: Container(
                   height: kBottomNavigationBarHeight,
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -413,7 +414,10 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
                                   },
                                 )
                               ),
-                              Text(_sizeOptions[_size].toString())
+                              SizedBox(
+                                width: 25.0,
+                                child: Text(_sizeOptions[_size].toString())
+                              )
                             ],
                           )
                         ),

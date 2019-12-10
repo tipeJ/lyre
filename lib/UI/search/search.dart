@@ -261,7 +261,7 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
 
   Future<bool> _willPop() {
     if (_animationController.value > 0.5) {
-      _animationController.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+      _animationController.animateTo(0.0, duration: _animationControllerDuration, curve: Curves.ease);
       return Future.value(false);
     }
     return Future.value(true);

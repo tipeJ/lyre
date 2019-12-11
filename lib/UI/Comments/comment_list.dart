@@ -21,7 +21,7 @@ class CommentsList extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return BlocProvider(
-      builder: (context) => CommentsBloc(this.submission),
+      create: (context) => CommentsBloc(this.submission),
       child: CommentList(),
     );
   }

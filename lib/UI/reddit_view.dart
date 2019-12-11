@@ -23,7 +23,7 @@ class RedditView extends StatelessWidget {
         if (snapshot.hasData) {
           final CommentsBloc _commentsBloc = CommentsBloc(snapshot.data);
           return BlocProvider(
-            builder: (context) => _commentsBloc,
+            create: (context) => _commentsBloc,
             child: CommentList(),
           );
           /*

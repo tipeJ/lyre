@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
@@ -374,7 +376,7 @@ class defaultColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Material(
-      color: Theme.of(context).primaryColor,
+      color: Theme.of(context).cardColor,
       child: InkWell(
         child: new Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -382,6 +384,7 @@ class defaultColumn extends StatelessWidget {
           children: <Widget>[
             new Padding(
                 child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
                   child: Text(
                     submission.title,
                     style: LyreTextStyles.submissionTitle.apply(
@@ -412,7 +415,7 @@ class defaultColumn extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0)
                 ),
                 child: MarkdownBody(
-                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.split('\n').first,
+                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
                   fitContent: true,
                 ),
                 padding: const EdgeInsets.only(
@@ -429,149 +432,148 @@ class defaultColumn extends StatelessWidget {
                 ),
               )
             : Container(height: 3.5),
-            new ButtonTheme.bar(
-              child: Wrap(
-                children: <Widget>[
-                  submission.over18
-                    ? Padding(
-                      padding: const EdgeInsets.only(left: 6.0, right: 4.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(2.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3.5),
-                          color: Colors.red
+            Wrap(
+              children: <Widget>[
+                submission.over18
+                  ? Padding(
+                    padding: const EdgeInsets.only(left: 6.0, right: 4.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3.5),
+                        color: Colors.red
+                      ),
+                      child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
+                    )
+                  )
+                  : null,
+                
+                new Padding(
+                  child: new Text(
+                    "${submission.score}",
+                    textAlign: TextAlign.left,
+                    style: new TextStyle(
+                      fontSize: _defaultColumnTextSize,
+                      color: getScoreColor(submission, context))),
+                  padding:
+                      const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
+                previewSource == PreviewSource.PostsList
+                ? BlocBuilder<PostsBloc, PostsState>(
+                    builder: (context, state) {
+                      return prefix1.Visibility(
+                        visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
+                        child: Padding(
+                          child: new Text(
+                            "u/${submission.author}",
+                            style: TextStyle(
+                              fontSize: _defaultColumnTextSize,
+                            ),
+                            textAlign: TextAlign.left,),
+                          padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                      );
+                    },
+                  )
+                  : Padding(
+                      child: new Text(
+                        "u/${submission.author}",
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
                         ),
-                        child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
-                      )
-                    )
-                    : null,
-                  
-                  new Padding(
-                    child: new Text(
-                      "${submission.score}",
-                      textAlign: TextAlign.left,
-                      style: new TextStyle(
-                        fontSize: _defaultColumnTextSize,
-                        color: getScoreColor(submission, context))),
-                    padding:
-                        const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                  previewSource == PreviewSource.PostsList
+                        textAlign: TextAlign.left,),
+                      padding:
+                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                previewSource == PreviewSource.PostsList
                   ? BlocBuilder<PostsBloc, PostsState>(
-                      builder: (context, state) {
-                        return prefix1.Visibility(
-                          visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
-                          child: Padding(
-                            child: new Text(
-                              "u/${submission.author}",
-                              style: TextStyle(
-                                fontSize: _defaultColumnTextSize,
-                              ),
-                              textAlign: TextAlign.left,),
-                            padding:
-                              const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                        );
-                      },
-                    )
-                    : Padding(
-                        child: new Text(
-                          "u/${submission.author}",
-                          style: TextStyle(
-                            fontSize: _defaultColumnTextSize,
-                          ),
-                          textAlign: TextAlign.left,),
-                        padding:
-                          const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                  previewSource == PreviewSource.PostsList
-                    ? BlocBuilder<PostsBloc, PostsState>(
-                      builder: (context, state) {
-                        return prefix1.Visibility(
-                          visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
-                          child: Padding(
-                            child: new Text(
-                              "r/${submission.subreddit.displayName}",
-                              style: TextStyle(
-                                fontSize: _defaultColumnTextSize,
-                                color: Theme.of(context).accentColor
-                              ),
-                              textAlign: TextAlign.left,),
-                            padding:
-                              const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
-                        );
-                      },
-                    )
-                    : Padding(
-                        child: new Text(
-                          "r/${submission.subreddit.displayName}",
-                          style: TextStyle(
-                            fontSize: _defaultColumnTextSize,
-                          ),
-                          textAlign: TextAlign.left,),
-                        padding:
-                          const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                  new Text(
-                    "${submission.numComments} comments",
+                    builder: (context, state) {
+                      return prefix1.Visibility(
+                        visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
+                        child: Padding(
+                          child: new Text(
+                            "r/${submission.subreddit.displayName}",
+                            style: TextStyle(
+                              fontSize: _defaultColumnTextSize,
+                              color: Theme.of(context).accentColor
+                            ),
+                            textAlign: TextAlign.left,),
+                          padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
+                      );
+                    },
+                  )
+                  : Padding(
+                      child: new Text(
+                        "r/${submission.subreddit.displayName}",
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
+                        ),
+                        textAlign: TextAlign.left,),
+                      padding:
+                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                new Text(
+                  "${submission.numComments} comments",
+                  style: TextStyle(
+                    fontSize: _defaultColumnTextSize,
+                  )
+                  ),
+                new Padding(
+                  child: new Text(
+                    getSubmissionAge(submission.createdUtc),
                     style: TextStyle(
                       fontSize: _defaultColumnTextSize,
                     )
-                    ),
-                  new Padding(
-                    child: new Text(
-                      getSubmissionAge(submission.createdUtc),
-                      style: TextStyle(
-                        fontSize: _defaultColumnTextSize,
-                      )
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   ),
-                  submission.isSelf ? null :
-                  new Padding(
-                      child: new Text(
-                          submission.domain,
-                          style: TextStyle(
-                            fontSize: _defaultColumnTextSize,
-                          ),
-                          textAlign: TextAlign.left,),
-                      padding:
-                          const EdgeInsets.only(left: 4.0)),
-                    submission.gold != null && submission.gold >= 1 ?
-                  new Padding(
-                    child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 255, 223, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                ),
+                submission.isSelf ? null :
+                new Padding(
+                    child: new Text(
+                        submission.domain,
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
                         ),
-                        width: 8.0,
-                        height: 8.0
+                        textAlign: TextAlign.left,),
+                    padding:
+                        const EdgeInsets.only(left: 4.0)),
+                  submission.gold != null && submission.gold >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 255, 223, 0),
                       ),
-                    padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                  ) : null,
-                    submission.silver != null && submission.silver >= 1 ?
-                  new Padding(
-                    child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 192, 192, 192),
-                        ),
-                        width: 8.0,
-                        height: 8.0
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
+                  submission.silver != null && submission.silver >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 192, 192, 192),
                       ),
-                    padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                  ) : null,
-                  submission.platinum != null && submission.platinum >= 1 ?
-                  new Padding(
-                    child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 229, 228, 226),
-                        ),
-                        width: 8.0,
-                        height: 8.0
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
+                submission.platinum != null && submission.platinum >= 1 ?
+                new Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 229, 228, 226),
                       ),
-                    padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                  ) : null,
-                    
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                ) : null,
+                  
             ].where(notNull).toList()
-            )),
+            ),
             const SizedBox(
               height: 3.5,
             )

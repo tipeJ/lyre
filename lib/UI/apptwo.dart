@@ -23,7 +23,7 @@ class App extends StatelessWidget{
       builder: (context, AsyncSnapshot<LyreState> snapshot){
         if(snapshot.hasData){
           return BlocProvider(
-            builder: (context) => LyreBloc(snapshot.data),
+            create: (context) => LyreBloc(snapshot.data),
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: _buildWithTheme,
             ),
@@ -90,7 +90,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
 
   @override
   void previewEnd() {
-    
     if (isPreviewing && PreviewCall().canPop()) {
       previewUrl = "";
       hideOverlay();
@@ -145,7 +144,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
             
             Navigator(
               key: PreviewCall().navigatorKey,
-              initialRoute: 'posts',
+              initialRoute: 'submit',
               onGenerateRoute: Router.generateRoute,
             ),
             //RedditView(query: "https://old.reddit.com/r/wallpaperdump/comments/dshmke/assorted_backgrounds/f6rmvk8/",) 

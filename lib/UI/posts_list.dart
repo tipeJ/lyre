@@ -263,7 +263,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     image: AdvancedNetworkImage(
                       state.subreddit.mobileHeaderImage.toString(),
                       useDiskCache: true,
-                      cacheRule: CacheRule(maxAge: const Duration(days: 3)),
+                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
                     ),
                     fit: BoxFit.cover
                   )
@@ -303,7 +303,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   void _quickReply(BuildContext context) {
     // If the reply message is empty, show a short warning snackbar
     if (_quickTextController?.text.isEmpty) {
-      final emptyTextSnackBar = SnackBar(
+      final emptyTextSnackBar = const SnackBar(
         content: Text("Cannot Send an Empty Reply"),
         duration: Duration(seconds: 1),
       );
@@ -368,7 +368,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         const Divider(),
         Text(
           'u/${redditor.fullname}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 25.0,
           ),
           ),

@@ -110,7 +110,7 @@ class _CommentWidgetState extends State<CommentWidget> {
 
   TextEditingController _replyController;
   bool _replyVisible = false;
-  ReplySendingState _replySendingState;
+  SendingState _replySendingState;
 
   @override void dispose(){
     _replyController?.dispose();
@@ -239,7 +239,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                 }
               }); 
             },),
-            _replySendingState == ReplySendingState.Inactive
+            _replySendingState == SendingState.Inactive
               ? IconButton(icon: Icon(Icons.send), onPressed: _send,)
               : Padding(
                 padding: EdgeInsets.only(right: 10),
@@ -262,7 +262,7 @@ class _CommentWidgetState extends State<CommentWidget> {
         } else {
           _replyController = TextEditingController();
           setState(() {
-            _replySendingState = ReplySendingState.Inactive;
+            _replySendingState = SendingState.Inactive;
             _replyVisible = !_replyVisible;
           });
           
@@ -281,7 +281,7 @@ class _CommentWidgetState extends State<CommentWidget> {
       return;
     }
     setState(() {
-      _replySendingState = ReplySendingState.Sending;
+      _replySendingState = SendingState.Sending;
     });
     reply(widget.comment, _replyController.text).then((value) {
       //Show Error
@@ -289,7 +289,7 @@ class _CommentWidgetState extends State<CommentWidget> {
         final textSnackBar = SnackBar(content: Text("Error sending comment: $value"),);
         Scaffold.of(context).showSnackBar(textSnackBar);
         setState(() {
-         _replySendingState = ReplySendingState.Inactive; 
+         _replySendingState = SendingState.Inactive; 
         });
       } else {
         setState(() {

@@ -1,5 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:draw/draw.dart' as prefix0;
+import 'package:draw/draw.dart' as draw;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,8 +58,6 @@ enum _QuickText {
 }
 
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
-
-  static const _titletext = "Lyre for Reddit";
   //Needed for weird bug when switching between usercontentoptionspages. (Shows inkwell animation in next page if instantly switched)
   static const _userContentOptionsTransitionDelay = Duration(milliseconds: 200);
 
@@ -69,7 +67,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   PostsBloc bloc;
 
   ScrollController scontrol = new ScrollController();
-  ValueNotifier<bool> appBarVisibleNotifier;
+  ValueNotifier<bool> _appBarVisibleNotifier;
 
   _OptionsVisibility _optionsVisibility;
   PersistentBottomSheetController _optionsController;
@@ -79,17 +77,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   TextEditingController _quickTextController;
   _QuickText _quickTextSelection;
-  ReplySendingState _replySendingState = ReplySendingState.Inactive;
+  SendingState _replySendingState = SendingState.Inactive;
   String _replyErrorMessage;
 
-  prefix0.UserContent _selectedUserContent;
-  prefix0.Submission get _selectedSubmission => _selectedUserContent as prefix0.Submission;
-  prefix0.Comment get _selectedComment => _selectedUserContent as prefix0.Comment;
+  draw.UserContent _selectedUserContent;
+  draw.Submission get _selectedSubmission => _selectedUserContent as draw.Submission;
+  draw.Comment get _selectedComment => _selectedUserContent as draw.Comment;
 
   Widget _replyTrailingAction() {
-    if (_replySendingState == ReplySendingState.Inactive) { //Submit icon
+    if (_replySendingState == SendingState.Inactive) { //Submit icon
       return Icon(Icons.send);
-    } else if (_replySendingState == ReplySendingState.Sending) { // Loading indicator
+    } else if (_replySendingState == SendingState.Sending) { // Loading indicator
       return CircularProgressIndicator();
     }
     //Error widget:
@@ -101,7 +99,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   void dispose() {
     scontrol.dispose();
     bloc.drain();
-    appBarVisibleNotifier.dispose();
+    _appBarVisibleNotifier.dispose();
     _quickTextController?.dispose();
     super.dispose();
   }
@@ -109,7 +107,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
-     appBarVisibleNotifier = ValueNotifier(true);
+     _appBarVisibleNotifier = ValueNotifier(true);
   }
 
 
@@ -216,9 +214,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           }
           if (notification.depth == 0 && notification is ScrollUpdateNotification) {
             if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
-              appBarVisibleNotifier.value = false;
+              _appBarVisibleNotifier.value = false;
             } else if (notification.scrollDelta <= -10.0){
-              appBarVisibleNotifier.value = true;
+              _appBarVisibleNotifier.value = true;
               //navBarController.setVisibility(true);
             }
           }
@@ -252,7 +250,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   bottom: 5.0
                   ),
                 title: AutoSizeText(
-                  state.getSourceString(),
+                  state.getSourceString(prefix: true),
                   maxFontSize: 26.0,
                 ),
                 collapseMode: CollapseMode.parallax,
@@ -287,9 +285,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       child: bloc.loading.value == LoadingState.loadingMore ? const CircularProgressIndicator() : const Text("Load More")),
                   );
                 } else {
-                  return posts[i] is prefix0.Submission
-                    ? postInnerWidget(posts[i] as prefix0.Submission, PreviewSource.PostsList)
-                    : new CommentContent(posts[i] as prefix0.Comment, PreviewSource.PostsList);
+                  return posts[i] is draw.Submission
+                    ? postInnerWidget(posts[i] as draw.Submission, PreviewSource.PostsList)
+                    : new CommentContent(posts[i] as draw.Comment, PreviewSource.PostsList);
                 }
               },
               childCount: posts.length+1,
@@ -312,7 +310,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
 
     setState(() {
-      _replySendingState = ReplySendingState.Sending;
+      _replySendingState = SendingState.Sending;
     });
 
     reply(_selectedUserContent, _quickTextController.text).then((returnValue) {
@@ -320,7 +318,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       if (returnValue is String) {
         // Error
         setState(() {
-          _replySendingState = ReplySendingState.Error;
+          _replySendingState = SendingState.Error;
           _replyErrorMessage = returnValue;
         });
       } else {
@@ -329,7 +327,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       }
     });
   }
-  _handleSuccessfulReply(BuildContext context, prefix0.Comment comment) {
+  _handleSuccessfulReply(BuildContext context, draw.Comment comment) {
     final successSnackBar = SnackBar(
       content: Text('Reply Sent'),
       action: SnackBarAction(
@@ -341,12 +339,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
     setState(() {
       _paramsVisibility = _ParamsVisibility.None;
-      _replySendingState = ReplySendingState.Inactive;
+      _replySendingState = SendingState.Inactive;
     });
     Scaffold.of(context).showSnackBar(successSnackBar);
   }
 
-  Widget _getSpaciousUserColumn(prefix0.Redditor redditor){
+  Widget _getSpaciousUserColumn(draw.Redditor redditor){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
@@ -386,7 +384,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     );
   }
 
-  void _showComments(BuildContext context, prefix0.Submission inside) {
+  void _showComments(BuildContext context, draw.Submission inside) {
     Navigator.of(context).pushNamed('comments', arguments: inside);
   }
 
@@ -572,7 +570,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         ),
         body: PersistentBottomAppbarWrapper(
           fullSizeHeight: MediaQuery.of(context).size.height,
-          listener: appBarVisibleNotifier,
+          listener: _appBarVisibleNotifier,
           body: StreamBuilder(
             stream: bloc,
             builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
@@ -648,7 +646,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   direction: Axis.vertical,
                                   children: <Widget>[
                                     Text(
-                                      state.getSourceString(),
+                                      state.getSourceString(prefix: false),
                                       style: LyreTextStyles.typeParams
                                     ),
                                     Text(
@@ -1196,12 +1194,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             Expanded(
               child: Visibility(
                 visible: _paramsVisibility == _ParamsVisibility.QuickText,
-                child: _replySendingState == ReplySendingState.Error
+                child: _replySendingState == SendingState.Error
                   ? Text(_replyErrorMessage ?? "Error Sending Reply")
                   : Visibility(
-                    visible: _replySendingState != ReplySendingState.Error,
+                    visible: _replySendingState != SendingState.Error,
                       child: TextField(
-                        enabled: _paramsVisibility == _ParamsVisibility.QuickText && _replySendingState == ReplySendingState.Inactive,
+                        enabled: _paramsVisibility == _ParamsVisibility.QuickText && _replySendingState == SendingState.Inactive,
                         autofocus: true,
                         controller: _quickTextController,
                         decoration: InputDecoration.collapsed(hintText: 'Reply'),
@@ -1210,28 +1208,28 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               ),
             ),
             IconButton(
-              icon: _replySendingState == ReplySendingState.Error
+              icon: _replySendingState == SendingState.Error
                 ? Icon(Icons.refresh)
                 : Icon(Icons.fullscreen),
               onPressed: () {
-                if (_replySendingState == ReplySendingState.Error) {
+                if (_replySendingState == SendingState.Error) {
                   setState(() {
-                    _replySendingState = ReplySendingState.Inactive;
+                    _replySendingState = SendingState.Inactive;
                   });
-                } else if (_replySendingState == ReplySendingState.Inactive) {
+                } else if (_replySendingState == SendingState.Inactive) {
                   // Expand quickreply to a full Reply window
                   Navigator.pushNamed(context, 'reply', arguments: {
                     'content'        : _selectedUserContent,
                     'reply_text'  : _quickTextController?.text
                   }).then((returnValue) {
-                    if (returnValue is prefix0.Comment) {
+                    if (returnValue is draw.Comment) {
                       setState(() {
                         //Successful return
                         _handleSuccessfulReply(context, returnValue);
                       });
                     } else {
                       setState(() {
-                        _replySendingState = ReplySendingState.Inactive;
+                        _replySendingState = SendingState.Inactive;
                         _paramsVisibility = _ParamsVisibility.None;
                       });
                     }
@@ -1242,12 +1240,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             IconButton(
               icon: _replyTrailingAction(),
               onPressed: () {
-                if (_replySendingState == ReplySendingState.Inactive) {
+                if (_replySendingState == SendingState.Inactive) {
                   _quickReply(context);
-                } else if (_replySendingState == ReplySendingState.Error) {
+                } else if (_replySendingState == SendingState.Error) {
                   setState(() {
                     _paramsVisibility = _ParamsVisibility.None;
-                    _replySendingState = ReplySendingState.Inactive;
+                    _replySendingState = SendingState.Inactive;
                   });
                 }
               },
@@ -1340,7 +1338,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   _prepareQuickTextInput(_QuickText selection) {
     setState(() {
-      appBarVisibleNotifier.value = true;
+      _appBarVisibleNotifier.value = true;
       _quickTextController = TextEditingController();
       _quickTextSelection = selection;
       _paramsVisibility = _ParamsVisibility.QuickText;

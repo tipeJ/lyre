@@ -23,17 +23,17 @@ class _replyWindowState extends State<replyWindow> {
 
   _replyWindowState();
 
-  ReplySendingState _replySendingState = ReplySendingState.Inactive;
+  SendingState _replySendingState = SendingState.Inactive;
   String error = "";
 
   bool popReady = true;
   Future<bool> _willPop(){
-    if (_replySendingState == ReplySendingState.Error) {
+    if (_replySendingState == SendingState.Error) {
       setState(() {
-       _replySendingState = ReplySendingState.Inactive; 
+       _replySendingState = SendingState.Inactive; 
       });
       return Future.value(false);
-    } else if (_replySendingState == ReplySendingState.Sending){
+    } else if (_replySendingState == SendingState.Sending){
       return Future.value(false);
     }
     return popReady ? Future.value(true) : Future.value(false);
@@ -89,14 +89,14 @@ class _replyWindowState extends State<replyWindow> {
            body: Stack(
              children: <Widget>[
                IgnorePointer(
-                 ignoring: _replySendingState != ReplySendingState.Inactive,
+                 ignoring: _replySendingState != SendingState.Inactive,
                  child: Column(
                   children: <Widget>[
                     widget.content is Comment
                       ? CommentContent(widget.content, PreviewSource.PostsList)
                       : postInnerWidget(widget.content, PreviewSource.Comments, PostView.ImagePreview),
                     TextField(
-                      enabled: _replySendingState == ReplySendingState.Inactive,
+                      enabled: _replySendingState == SendingState.Inactive,
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
                       controller: _replyController,
@@ -105,12 +105,12 @@ class _replyWindowState extends State<replyWindow> {
                 ),
                ),
               prefix0.Visibility (
-                visible: _replySendingState != ReplySendingState.Inactive,
+                visible: _replySendingState != SendingState.Inactive,
                 child: Container (
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   color: Colors.black.withOpacity(0.6),
-                  child: _replySendingState == ReplySendingState.Sending
+                  child: _replySendingState == SendingState.Sending
                       ? Center(
                         child: CircularProgressIndicator()
                       )
@@ -145,13 +145,13 @@ class _replyWindowState extends State<replyWindow> {
   }
   _reply() {
     setState(() {
-      _replySendingState = ReplySendingState.Sending;
+      _replySendingState = SendingState.Sending;
     });
     reply(widget.content, _replyController.text).then((value) {
       if (value is String) {
         setState(() {
           error = value;
-          _replySendingState = ReplySendingState.Error;
+          _replySendingState = SendingState.Error;
         });
       } else if (value is Comment) {
         print('poping');

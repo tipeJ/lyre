@@ -30,7 +30,6 @@ Future<void> changeCommentSave(Comment c) async {
 ///Up- or Downvote a [Submission]
 Future<dynamic> changeSubmissionVoteState(VoteState state, Submission s) async {
   if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API
-  //return 'sdsdsd';
   try {
     if (state == s.vote) {
       return s.clearVote();
@@ -45,7 +44,7 @@ Future<dynamic> changeSubmissionVoteState(VoteState state, Submission s) async {
 }
 ///Up- or Downvote a [Comment]
 Future<void> changeCommentVoteState(VoteState state, Comment c) async {
-  if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API (shouldn't even happen, ever)
+  if(state == VoteState.none) return null; //Prevent unnecessary calls to the API (shouldn't even happen, ever)
   if(state == c.vote){
     return c.clearVote();
   }else if(state == VoteState.downvoted){
@@ -58,6 +57,7 @@ Future<void> changeCommentVoteState(VoteState state, Comment c) async {
 ///Submit a String Selftext [Submission] to a given [Subreddit]
 Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
+  
   var subRef = SubredditRef.name(r, sub);
   try {
     var x = await subRef.submit(

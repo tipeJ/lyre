@@ -4,7 +4,7 @@ import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
-import 'package:lyre/UI/media/media_viewer.dart';
+import 'package:lyre/widgets/media/media_viewer.dart';
 import 'package:lyre/utils/urlUtils.dart';
 
 class App extends StatelessWidget{

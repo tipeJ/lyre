@@ -6,7 +6,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/UI/ActionItems.dart';
+import 'package:lyre/widgets/ActionItems.dart';
 import 'package:lyre/UI/Animations/OnSlide.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';

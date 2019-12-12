@@ -7,8 +7,8 @@ import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
-import './bloc.dart';
-import '../../Resources/globals.dart';
+import 'bloc.dart';
+import 'package:lyre/Resources/globals.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   final PostsState firstState;

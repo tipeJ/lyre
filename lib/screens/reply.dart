@@ -3,9 +3,9 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_html/flutter_html.dart';
 import 'package:lyre/Themes/textstyles.dart';
-import 'package:lyre/UI/Comments/comment.dart';
+import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
-import 'package:lyre/UI/postInnerWidget.dart';
+import 'package:lyre/widgets/postInnerWidget.dart';
 import '../Resources/RedditHandler.dart';
 import '../Resources/globals.dart';
 

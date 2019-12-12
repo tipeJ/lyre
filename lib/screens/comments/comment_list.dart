@@ -2,12 +2,12 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/UI/Comments/bloc/bloc.dart';
-import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
-import 'package:lyre/UI/Comments/comment.dart';
-import 'package:lyre/UI/bottom_appbar.dart';
+import 'package:lyre/UI/comments/bloc/bloc.dart';
+import 'package:lyre/UI/comments/bloc/comments_bloc.dart';
+import 'package:lyre/widgets/comment.dart';
+import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
-import 'package:lyre/UI/postInnerWidget.dart';
+import 'package:lyre/widgets/postInnerWidget.dart';
 import '../../Resources/globals.dart';
 
 const selection_image = "Image";

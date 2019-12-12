@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
-import '../../Resources/globals.dart';
+import 'package:lyre/Resources/globals.dart';
 
 @immutable
 class PostsState extends Equatable {

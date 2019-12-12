@@ -60,7 +60,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         userContent: _userContent, 
         contentSource : source,
         currentUser: currentUser, 
-        target: event.target, 
+        target: event.target is String ? event.target.toLowerCase() : event.target, 
         sideBar: sideBar,
         styleSheetImages: styleSheetImages,
         preferences: preferences,

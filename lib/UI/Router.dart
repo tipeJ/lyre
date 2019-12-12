@@ -22,7 +22,9 @@ class Router {
     switch (settings.name) {
       case 'posts':
         String redditor = "";
+        dynamic target;
         ContentSource source = ContentSource.Subreddit; //Default ContentSource
+        
         if(settings.arguments != null){
           final args = settings.arguments as Map<String, Object>;
           redditor = args['redditor'] as String;
@@ -31,11 +33,20 @@ class Router {
         if (redditor.isNotEmpty) {
           source = ContentSource.Redditor;
         }
+
+        if (source == ContentSource.Redditor) {
+          target = redditor;
+        } else if (source == ContentSource.Subreddit) {
+          target = currentSubreddit;
+        } else {
+          target = SelfContentType.Comments;
+        }
+
         return MaterialPageRoute(builder: (_) => BlocProvider(
-          builder: (context) => PostsBloc(firstState: PostsState(
+          create: (context) => PostsBloc(firstState: PostsState(
             userContent: [],
             contentSource: source,
-            target: source == ContentSource.Redditor ? redditor : SelfContentType.Comments
+            target: target
           )),
           child: PostsList(),
         ));
@@ -50,7 +61,7 @@ class Router {
         //   child: CommentList(),
         // ));
         return CupertinoPageRoute(builder: (_) => BlocProvider(
-          builder: (context) => CommentsBloc(content),
+          create: (context) => CommentsBloc(content),
           child: CommentList(),
         ));
       case 'settings':

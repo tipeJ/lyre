@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'reddit_api_provider.dart';
 import 'package:draw/draw.dart';
-import 'package:lyre/Models/item_model.dart';
 import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
 import 'globals.dart';

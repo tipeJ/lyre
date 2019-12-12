@@ -1,13 +1,18 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
-import 'package:lyre/UI/Animations/transitions.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'dart:ui';
 import 'Animations/OnSlide.dart';
 import 'ActionItems.dart';
@@ -20,42 +25,52 @@ import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 import '../utils/redditUtils.dart';
+
+///Notification class for sending submission selection data to the parent widgets, Posts-List, for example.
 class SubmissionOptionsNotification extends Notification {
   final Submission submission;
 
   const SubmissionOptionsNotification({@required this.submission});
 }
+const _defaultColumnTextSize = 11.0;
 
-class postInnerWidget extends StatelessWidget {
+class postInnerWidget extends StatefulWidget {
   postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded])
-    : linkType = getLinkType(submission.url.toString())
-  ;
+    : linkType = getLinkType(submission.url.toString());
 
   bool expanded = false;
-  bool fullSizePreviews;
   LinkType linkType;
+  final PreviewSource previewSource;
+  final Submission submission;
+  final PostView viewSetting;
+
+  @override
+  _postInnerWidgetState createState() => _postInnerWidgetState();
+}
+
+class _postInnerWidgetState extends State<postInnerWidget> {
+  bool fullSizePreviews;
+
   PostView postView;
+
   bool showCircle;
 
   double blurLevel;
 
   bool showNsfw = false;
+
   bool showSpoiler = false;
 
-  final PreviewSource previewSource;
-  final Submission submission;
-  final PostView viewSetting;
-
   Widget getWidget(BuildContext context){
-    if (submission.isSelf) {
+    if (widget.submission.isSelf) {
       return getDefaultSlideColumn(context);
     }
-    if (submission.preview != null && submission.preview.isNotEmpty) {
+    if (widget.submission.preview != null && widget.submission.preview.isNotEmpty) {
       return BlocBuilder<LyreBloc, LyreState>(
         builder: (context, state){
           showCircle = state.settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
           fullSizePreviews = state.settings.get(IMAGE_SHOW_FULLSIZE) ?? false;
-          postView = viewSetting ?? state.settings.get(SUBMISSION_VIEWMODE);
+          postView = widget.viewSetting ?? state.settings.get(SUBMISSION_VIEWMODE);
           showNsfw = state.settings.get(SHOW_NSFW_PREVIEWS) ?? false;
           showSpoiler = state.settings.get(SHOW_SPOILER_PREVIEWS) ?? false;
           blurLevel = (state.settings.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
@@ -75,7 +90,7 @@ class postInnerWidget extends StatelessWidget {
       case PostView.Compact:
         return compactWidget(context);
       default:
-        return new defaultColumn(submission, previewSource, linkType);
+        return new defaultColumn(widget.submission, widget.previewSource, widget.linkType);
     }
   }
 
@@ -87,7 +102,7 @@ class postInnerWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            child: defaultColumn(submission, previewSource, linkType),
+            child: defaultColumn(widget.submission, widget.previewSource, widget.linkType),
             width: MediaQuery.of(context).size.width * 0.9,
           ),
           getSquaredImage(context)
@@ -113,8 +128,8 @@ class postInnerWidget extends StatelessWidget {
         new Positioned(
           bottom: 0.0,
           child: 
-            (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
-            (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
+            (((!(showNsfw ?? false) && widget.submission.over18) ||    //Blur NSFW
+            (!(showSpoiler ?? false) && widget.submission.spoiler)) && widget.previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: blurLevel,
@@ -132,8 +147,8 @@ class postInnerWidget extends StatelessWidget {
                   child: getDefaultSlideColumn(context),
                 ),
         ),
-        ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
-          ? getCenteredIndicator(linkType, showCircle)
+        ((widget.submission.over18 && !showNsfw || (widget.submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(widget.linkType))
+          ? getCenteredIndicator(widget.linkType, showCircle)
           : null
     ].where((w) => notNull(w)).toList());
   }
@@ -141,7 +156,7 @@ class postInnerWidget extends StatelessWidget {
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
     var y = 250.0; //Default preview height
-    final preview = submission.preview.first;
+    final preview = widget.submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
@@ -167,7 +182,7 @@ class postInnerWidget extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         image: AdvancedNetworkImage(
-          submission.preview.last.source.url.toString(),
+          widget.submission.preview.last.source.url.toString(),
           useDiskCache: true,
           cacheRule: const CacheRule(maxAge: const Duration(days: 7))
         ),
@@ -181,7 +196,8 @@ class postInnerWidget extends StatelessWidget {
         _handlePress(context);
       },
       onLongPressUp: (){
-          PreviewCall().callback.previewEnd();
+        print('FIRTCALL');
+        PreviewCall().callback.previewEnd();
       },
     );
   }
@@ -195,26 +211,36 @@ class postInnerWidget extends StatelessWidget {
   }
 
   void handleClick(BuildContext context){
-    if(linkType == LinkType.YouTube){
+    if(widget.linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
-      launchURL(context, submission);
-    } else if(linkType == LinkType.Default){
-      launchURL(context, submission);
-    } else if (linkType == LinkType.RedditVideo){
-      PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+      launchURL(context, widget.submission);
+    } else if(widget.linkType == LinkType.Default){
+      launchURL(context, widget.submission);
+    } else if (widget.linkType == LinkType.RedditVideo){
+      PreviewCall().callback.preview(widget.submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      print("URL:" + submission.url.toString());
-      PreviewCall().callback.preview(submission.url.toString());
+      print("URL:" + widget.submission.url.toString());
+      PreviewCall().callback.preview(widget.submission.url.toString());
     }
   }
 
   void _handlePress(BuildContext context){
-    switch (linkType) {
+    ///Do not QuickPreview the Album Url, show only the first image
+    if (albumLinkTypes.contains(widget.linkType)) {
+      PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+    }
+    switch (widget.linkType) {
       case LinkType.YouTube:
-        PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(submission.url.toString())));
+        PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(widget.submission.url.toString())));
         break;
-      default :
-        PreviewCall().callback.preview(submission.preview.first.source.url.toString());
+      case LinkType.RedditVideo:
+        PreviewCall().callback.preview(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+        break;
+      case LinkType.Default:
+        PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+        break;
+      default:
+        PreviewCall().callback.preview(widget.submission.url.toString());
         break;
     }
   }
@@ -242,10 +268,10 @@ class postInnerWidget extends StatelessWidget {
 
   Widget getIndicator(LinkType type){
     Widget content;
-    if((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler)){
+    if((widget.submission.over18 && !showNsfw) || (widget.submission.spoiler && !showSpoiler)){
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
-        Text(submission.over18 ? "NSFW" : "SPOILER"),
+        Text(widget.submission.over18 ? "NSFW" : "SPOILER"),
         const Divider(indent: 250,endIndent: 250,)
       ],);
     } else if (videoLinkTypes.contains(type)){
@@ -254,44 +280,58 @@ class postInnerWidget extends StatelessWidget {
     return Center(child: content);
   }
 
-  // Returns the slide column with the defaultcolumn as child
   Widget getDefaultSlideColumn(BuildContext context){
-    return _getSlideColumn(context, child: defaultColumn(submission, previewSource, linkType));
+    return _getSlideColumn(context, child: defaultColumn(widget.submission, widget.previewSource, widget.linkType));
   }
 
+  ///Sliding style column for [Submission] Widgets
   Widget _getSlideColumn(BuildContext context, {Widget child}){
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
           icon: Icon(
-            Icons.keyboard_arrow_up,
-            color: submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
-          onPress: (){
-            changeSubmissionVoteState(VoteState.upvoted, submission);
+            MdiIcons.arrowUpBold,
+            color: widget.submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
+          onPress: () async {
+            final response = await changeSubmissionVoteState(VoteState.upvoted, widget.submission);
+            setState(() {
+              if (response is String) {
+                Scaffold.of(context).showSnackBar(SnackBar(content: Text(response),));
+              }
+            });
           }
         ),
         ActionItems(
           icon: Icon(
-            Icons.keyboard_arrow_down,
-            color: submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
-          onPress: (){
-            changeSubmissionVoteState(VoteState.downvoted, submission);
+            MdiIcons.arrowDownBold,
+            color: widget.submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
+          onPress: () async {
+            final response = await changeSubmissionVoteState(VoteState.downvoted, widget.submission);
+            setState(() {
+              if (response is String) {
+                Scaffold.of(context).showSnackBar(SnackBar(content: Text(response),));
+              }
+            });
           }
         ),
         ActionItems(
           icon: Icon(
             Icons.bookmark,
-            color: submission.saved ? Colors.yellow : Colors.grey,),
-          onPress: (){
-            changeSubmissionSave(submission);
-            submission.refresh();
+            color: widget.submission.saved ? Colors.yellow : Colors.grey,),
+          onPress: () async {
+            final response = await changeSubmissionSave(widget.submission);
+            setState(() {
+              if (response is String) {
+                Scaffold.of(context).showSnackBar(SnackBar(content: Text(response),));
+              }
+            });
           }
         ),
         ActionItems(
           icon: Icon(Icons.person,color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
-              'redditor'        : submission.author,
+              'redditor'        : widget.submission.author,
               'content_source'  : ContentSource.Redditor
             });
           }
@@ -299,7 +339,7 @@ class postInnerWidget extends StatelessWidget {
         ActionItems(
           icon: Icon(Icons.menu,color: Colors.grey,),
           onPress: (){
-            SubmissionOptionsNotification(submission: this.submission)..dispatch(context);
+            SubmissionOptionsNotification(submission: this.widget.submission)..dispatch(context);
           }
         ),
       ],
@@ -320,7 +360,6 @@ class postInnerWidget extends StatelessWidget {
       ),
     );
   }
-  
 }
 
 class defaultColumn extends StatelessWidget {
@@ -336,65 +375,64 @@ class defaultColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new InkWell(
-      child: new Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          new Padding(
-              child: GestureDetector(
-                child: Text(
-                  submission.title,
-                  style: LyreTextStyles.submissionTitle.apply(
-                    color: (submission.stickied)
-                      ? Color.fromARGB(255, 0, 200, 53)
-                      : Colors.white),
+    return new Material(
+      color: Theme.of(context).cardColor,
+      child: InkWell(
+        child: new Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            new Padding(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  child: Text(
+                    submission.title,
+                    style: LyreTextStyles.submissionTitle.apply(
+                      color: (submission.stickied)
+                        ? Color.fromARGB(255, 0, 200, 53)
+                        : Colors.white),
+                  ),
+                  onTap: (){
+                    switch (linkType) {
+                      case LinkType.YouTube:
+                        playYouTube(submission.url.toString());
+                        break;
+                      case LinkType.Default:
+                        launchURL(context, submission);
+                        break;
+                      default:
+                        PreviewCall().callback.preview(submission.url.toString());
+                        break;
+                    }
+                  },
                 ),
-                onTap: (){
-                  switch (linkType) {
-                    case LinkType.YouTube:
-                      playYouTube(submission.url.toString());
-                      break;
-                    case LinkType.Default:
-                      launchURL(context, submission);
-                      break;
-                    default:
-                      PreviewCall().callback.preview(submission.url.toString());
-                      break;
-                  }
-                },
-              ),
-              padding:
-                  const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
-          (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
-            ? Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(10.0)
-              ),
-              child: Text(
-                submission.selftext,
-                overflow: TextOverflow.ellipsis,
-                // ! Temporary workaround, wait for official ellipsis fix. Otherwise use fade as overflow, although it doesn't look consistent with the rest of the UI
-                maxLines: previewSource == PreviewSource.Comments ? 10000 : 5,
-                style: LyreTextStyles.submissionPreviewSelftext.apply(color: Theme.of(context).textTheme.body1.color.withOpacity(0.8)),
-              ),
-              padding: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 8.0,
-                bottom: 8.0
-              ),
-              margin: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 8.0,
-                bottom: 8.0
-              ),
-            )
-          : Container(height: 3.5),
-          new ButtonTheme.bar(
-            child: Row(
+                padding:
+                    const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
+            (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
+              ? Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(10.0)
+                ),
+                child: MarkdownBody(
+                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
+                  fitContent: true,
+                ),
+                padding: const EdgeInsets.only(
+                  left: 8.0,
+                  right: 8.0,
+                  top: 8.0,
+                  bottom: 8.0
+                ),
+                margin: const EdgeInsets.only(
+                  left: 8.0,
+                  right: 8.0,
+                  top: 8.0,
+                  bottom: 8.0
+                ),
+              )
+            : Container(height: 3.5),
+            Wrap(
               children: <Widget>[
                 submission.over18
                   ? Padding(
@@ -411,45 +449,79 @@ class defaultColumn extends StatelessWidget {
                   : null,
                 
                 new Padding(
-                    child: new Text(
-                        "${submission.score}",
-                        textAlign: TextAlign.left,
-                        textScaleFactor: 1.0,
-                        style: new TextStyle(
-                          color: getScoreColor(submission, context),
-                          fontSize: 9.0)),
-                    padding:
-                        const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                new Padding(
-                    child: new Text(
+                  child: new Text(
+                    "${submission.score}",
+                    textAlign: TextAlign.left,
+                    style: new TextStyle(
+                      fontSize: _defaultColumnTextSize,
+                      color: getScoreColor(submission, context))),
+                  padding:
+                      const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
+                previewSource == PreviewSource.PostsList
+                ? BlocBuilder<PostsBloc, PostsState>(
+                    builder: (context, state) {
+                      return prefix1.Visibility(
+                        visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
+                        child: Padding(
+                          child: new Text(
+                            "u/${submission.author}",
+                            style: TextStyle(
+                              fontSize: _defaultColumnTextSize,
+                            ),
+                            textAlign: TextAlign.left,),
+                          padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
+                      );
+                    },
+                  )
+                  : Padding(
+                      child: new Text(
                         "u/${submission.author}",
-                        textAlign: TextAlign.left,
-                        textScaleFactor: 1.0,
-                        style: TextStyle(color: Colors.white, fontSize: 9.0)),
-                    padding:
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
+                        ),
+                        textAlign: TextAlign.left,),
+                      padding:
                         const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                new Padding(
-                    child: new Text(
+                previewSource == PreviewSource.PostsList
+                  ? BlocBuilder<PostsBloc, PostsState>(
+                    builder: (context, state) {
+                      return prefix1.Visibility(
+                        visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
+                        child: Padding(
+                          child: new Text(
+                            "r/${submission.subreddit.displayName}",
+                            style: TextStyle(
+                              fontSize: _defaultColumnTextSize,
+                              color: Theme.of(context).accentColor
+                            ),
+                            textAlign: TextAlign.left,),
+                          padding:
+                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
+                      );
+                    },
+                  )
+                  : Padding(
+                      child: new Text(
                         "r/${submission.subreddit.displayName}",
-                        textAlign: TextAlign.left,
-                        textScaleFactor: 1.0,
-                        style: const TextStyle(color: Color.fromARGB(255, 109, 250, 255), fontSize: 9.0)),
-                    padding:
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
+                        ),
+                        textAlign: TextAlign.left,),
+                      padding:
                         const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
                 new Text(
-                      "${submission.numComments} comments",
-                      style: TextStyle(
-                        fontSize: 10.0,
-                        color: Colors.white
-                      ),
+                  "${submission.numComments} comments",
+                  style: TextStyle(
+                    fontSize: _defaultColumnTextSize,
+                  )
                   ),
                 new Padding(
                   child: new Text(
                     getSubmissionAge(submission.createdUtc),
                     style: TextStyle(
-                          fontSize: 10.0,
-                          color: Colors.white
-                    ),
+                      fontSize: _defaultColumnTextSize,
+                    )
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 ),
@@ -457,13 +529,13 @@ class defaultColumn extends StatelessWidget {
                 new Padding(
                     child: new Text(
                         submission.domain,
-                        textAlign: TextAlign.left,
-                        textScaleFactor: 1.0,
-                        style: new TextStyle(color: Colors.white, fontSize: 9.0)),
+                        style: TextStyle(
+                          fontSize: _defaultColumnTextSize,
+                        ),
+                        textAlign: TextAlign.left,),
                     padding:
                         const EdgeInsets.only(left: 4.0)),
-
-                submission.gold != null && submission.gold >= 1 ?
+                  submission.gold != null && submission.gold >= 1 ?
                 new Padding(
                   child: Container(
                       decoration: BoxDecoration(
@@ -475,8 +547,7 @@ class defaultColumn extends StatelessWidget {
                     ),
                   padding: const EdgeInsets.symmetric(horizontal: 3.5),
                 ) : null,
-
-                submission.silver != null && submission.silver >= 1 ?
+                  submission.silver != null && submission.silver >= 1 ?
                 new Padding(
                   child: Container(
                       decoration: BoxDecoration(
@@ -501,18 +572,19 @@ class defaultColumn extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 3.5),
                 ) : null,
                   
-          ].where(notNull).toList()
-          )),
-          const SizedBox(
-            height: 3.5,
-          )
-        ]),
+            ].where(notNull).toList()
+            ),
+            const SizedBox(
+              height: 3.5,
+            )
+          ]),
         onTap: (){
           if (previewSource != PreviewSource.Comments) {
             currentPostId = submission.id;
             showComments(context);
           }
         },
+      )
     );
   }
 }

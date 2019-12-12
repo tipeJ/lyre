@@ -50,6 +50,8 @@ String getYoutubeIdFromUrl(String url){
 
 LinkType getLinkType(String url){
 
+  if (url.contains("preview.redd.it")) return LinkType.DirectImage;
+
   var divided = url.split(".");
 
   var last = divided.last;

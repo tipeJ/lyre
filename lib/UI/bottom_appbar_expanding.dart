@@ -96,8 +96,6 @@ class DraggableScrollableSheet extends StatefulWidget {
   })  : assert(initialChildSize != null),
         assert(minChildSize != null),
         assert(maxChildSize != null),
-        assert(minChildSize >= 0.0),
-        assert(maxChildSize <= 1.0),
         assert(minChildSize <= initialChildSize),
         assert(initialChildSize <= maxChildSize),
         assert(expand != null),
@@ -178,7 +176,6 @@ class DraggableScrollableNotification extends Notification with ViewportNotifica
        assert(minExtent != null),
        assert(maxExtent != null),
        assert(0.0 <= minExtent),
-       assert(maxExtent <= 1.0),
        assert(minExtent <= extent),
        assert(minExtent <= initialExtent),
        assert(extent <= maxExtent),
@@ -232,7 +229,6 @@ class DraggableSheetExtent {
        assert(maxExtent != null),
        assert(initialExtent != null),
        assert(minExtent >= 0),
-       assert(maxExtent <= 1),
        assert(minExtent <= initialExtent),
        assert(initialExtent <= maxExtent),
        _currentExtent = ValueNotifier<double>(initialExtent)..addListener(listener),
@@ -273,7 +269,7 @@ class DraggableSheetExtent {
     if (availablePixels == 0) {
       return;
     }
-    currentExtent += delta / availablePixels * maxExtent;
+    currentExtent += delta;
     DraggableScrollableNotification(
       minExtent: minExtent,
       maxExtent: maxExtent,
@@ -336,8 +332,10 @@ class DraggableScrollableSheetScrollController extends ScrollController {
       extent: extent,
     );
   }
+  
   ///Scroll to zero and dismiss sheet
   reset() {
+    extent.currentExtent = extent.minExtent;
     this.jumpTo(0.0);
   }
 
@@ -422,7 +420,7 @@ class _DraggableScrollableSheetScrollPosition
     // The iOS bouncing simulation just isn't right here - once we delegate
     // the ballistic back to the ScrollView, it will use the right simulation.
     final Simulation simulation = ClampingScrollSimulation(
-      position: extent.currentExtent,
+      position: extent.currentExtent / extent.maxExtent,
       velocity: velocity,
       tolerance: physics.tolerance,
     );
@@ -438,7 +436,7 @@ class _DraggableScrollableSheetScrollPosition
 
       if (extent.currentExtent < extent.maxExtent) {
         // * My addition; slightly faster scrolling when not fully expanded
-        extent.addPixelDelta(delta * 2.0, context.notificationContext);
+        extent.addPixelDelta(delta * 1.4, context.notificationContext);
       } else {
         extent.addPixelDelta(delta, context.notificationContext);
       }
@@ -615,16 +613,15 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   Future<bool> _willPop() {
     if (_extent.currentExtent != _extent.minExtent) {
       _scrollController.jumpTo(0.0);
-      //_extent.currentExtent = _extent.minExtent;
-      _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
-      _extentAnimation.animateTo(0.0, curve: Curves.ease);
+      _extent.currentExtent = _extent.minExtent;
+      // _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
+      // _extentAnimation.animateTo(0.0, curve: Curves.ease);
       return Future.value(false);
     }
     return Future.value(true);
   }
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _extent.availablePixels = widget.maxChildSize * constraints.biggest.height;
@@ -636,7 +633,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
               topRight: Radius.circular(_lerp(15.0, 0.0)),
             ),
             child: Container(
-              height: screenHeight * _extent.currentExtent,
+              height: _extent.currentExtent,
               child: widget.builder(context, _scrollController),
               decoration: BoxDecoration(
                 color: Theme.of(context).canvasColor,
@@ -654,7 +651,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
         );
         return WillPopScope(
           onWillPop: _willPop,
-          child: widget.expand ? SizedBox.expand(child: sheet) : sheet
+          child: sheet
         );
       },
     );

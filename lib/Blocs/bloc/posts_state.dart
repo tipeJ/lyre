@@ -46,12 +46,12 @@ class PostsState extends Equatable {
 
   List<dynamic> get props => [userContent, target];
 
-  String getSourceString(){
+  String getSourceString({@required bool prefix}){
     switch (contentSource) {
       case ContentSource.Subreddit:
-        return 'r/$currentSubreddit';
+        return '${prefix ? "r/" : ""}$currentSubreddit';
       case ContentSource.Redditor:
-        return 'u/$target';
+        return '${prefix ? "u/" : ""}$target';
       case ContentSource.Self:
         return currentUser.username;
       default:

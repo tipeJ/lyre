@@ -2,7 +2,6 @@ class SubredditM {
   List<_Result> _results = [];
 
   SubredditM.fromJson(List<dynamic> parsedJson) {
-    print(parsedJson.length);
     List<_Result> temp = [];
     for (int i = 0; i < parsedJson.length; i++) {
       _Result result = _Result(parsedJson[i]);

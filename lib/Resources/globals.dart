@@ -97,7 +97,7 @@ List<String> commentSortTypes = [
   "Blank"
 ];
 
-enum ReplySendingState {
+enum SendingState {
   Sending,
   Inactive,
   Error

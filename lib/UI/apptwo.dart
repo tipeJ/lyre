@@ -5,6 +5,7 @@ import 'package:lyre/UI/Router.dart';
 import 'package:lyre/UI/interfaces/previewCallback.dart';
 import 'package:lyre/UI/interfaces/previewc.dart';
 import 'package:lyre/UI/media/media_viewer.dart';
+import 'package:lyre/utils/urlUtils.dart';
 
 class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){
@@ -22,7 +23,7 @@ class App extends StatelessWidget{
       builder: (context, AsyncSnapshot<LyreState> snapshot){
         if(snapshot.hasData){
           return BlocProvider(
-            builder: (context) => LyreBloc(snapshot.data),
+            create: (context) => LyreBloc(snapshot.data),
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: _buildWithTheme,
             ),
@@ -51,7 +52,6 @@ class LyreSplashScreen extends StatelessWidget {
       ),),
       color: Colors.grey[900],
     );
-    return Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.red,);
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Container(
@@ -83,20 +83,23 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   void preview(String url) {
     if (!isPreviewing) {
       previewUrl = url;
+      print(getLinkType(url).toString());
       showOverlay();
     }
   }
 
   @override
   void previewEnd() {
-    if (isPreviewing) {
+    if (isPreviewing && PreviewCall().canPop()) {
       previewUrl = "";
       hideOverlay();
     }
   }
 
   @override
-  void view(String url) {}
+  void view(String url) {
+
+  }
 
   showOverlay() {
     if (!isPreviewing) {
@@ -127,11 +130,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
     }
     return !await PreviewCall().navigatorKey.currentState.maybePop();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
   
   @override
   Widget build(BuildContext context) {
@@ -146,7 +144,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
             
             Navigator(
               key: PreviewCall().navigatorKey,
-              initialRoute: 'search_communities',
+              initialRoute: 'posts',
               onGenerateRoute: Router.generateRoute,
             ),
             //RedditView(query: "https://old.reddit.com/r/wallpaperdump/comments/dshmke/assorted_backgrounds/f6rmvk8/",) 

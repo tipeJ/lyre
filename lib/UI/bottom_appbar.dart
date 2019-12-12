@@ -25,7 +25,7 @@ class PersistentBottomAppbarWrapper extends StatefulWidget {
   State<PersistentBottomAppbarWrapper> createState() => notNull(expandingSheetContent) ? _PersistentBottomAppbarWrapperState() : _PersistentBottomAppBarWrapperStateWithoutExpansion();
 }
 
-class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWrapper> with SingleTickerProviderStateMixin {
+class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWrapper> {
 
   @override
   void initState() { 
@@ -57,9 +57,9 @@ class _PersistentBottomAppbarWrapperState extends State<PersistentBottomAppbarWr
                 curve: Curves.ease,
                 child: prefix0.DraggableScrollableSheet(
                     expand: true,
-                    maxChildSize: min(widget.fullSizeHeight / MediaQuery.of(context).size.height, 1.0),
-                    minChildSize: kBottomNavigationBarHeight / MediaQuery.of(context).size.height,
-                    initialChildSize: kBottomNavigationBarHeight / MediaQuery.of(context).size.height,
+                    maxChildSize: MediaQuery.of(context).size.height,
+                    minChildSize: kBottomNavigationBarHeight,
+                    initialChildSize: kBottomNavigationBarHeight,
                     builder: (context, scontrol) {
                       return ExpandingSheetContent(state: widget.expandingSheetContent, innerController: scontrol, appBarContent: widget.appBarContent,);
                     },

@@ -161,7 +161,7 @@ class commentC extends commentResult{
     } 
     
   }
-  void set depth(int i){
+  set depth(int i){
     _depth = i;
   }
   String get id => _id;

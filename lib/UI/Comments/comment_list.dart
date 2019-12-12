@@ -2,7 +2,6 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/UI/Comments/bloc/bloc.dart';
 import 'package:lyre/UI/Comments/bloc/comments_bloc.dart';
 import 'package:lyre/UI/Comments/comment.dart';
@@ -22,7 +21,7 @@ class CommentsList extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return BlocProvider(
-      builder: (context) => CommentsBloc(this.submission),
+      create: (context) => CommentsBloc(this.submission),
       child: CommentList(),
     );
   }
@@ -105,46 +104,48 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               padding: EdgeInsets.symmetric(horizontal: 12.0),
               child: BlocBuilder<CommentsBloc, CommentsState> (
                 builder: (context, state) {
-                  return notNull(state) && state.parentComment == null
-                    ? Row(
-                      children: <Widget>[
-                        IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
-                        Text("Comments"),
-                        Spacer(),
-                        DropdownButton<CommentSortType>(
-                          value: state.sortType,
-                          items: CommentSortType.values.map((CommentSortType value) {
-                            return new DropdownMenuItem<CommentSortType>(
-                              value: value,
-                              child: new Text(value.toString().split(".")[1]),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
-                            setState(() {
-                            });
-                          },
-                        )
-                      ],
-                    )
-                    : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Flexible(
-                          child: Text(
-                            "You are viewing a single comment",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  return Material(
+                    child: notNull(state) && state.parentComment == null
+                      ? Row(
+                        children: <Widget>[
+                          IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
+                          Text("Comments"),
+                          Spacer(),
+                          DropdownButton<CommentSortType>(
+                            value: state.sortType,
+                            items: CommentSortType.values.map((CommentSortType value) {
+                              return new DropdownMenuItem<CommentSortType>(
+                                value: value,
+                                child: new Text(value.toString().split(".")[1]),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
+                              setState(() {
+                              });
+                            },
                           )
-                        ),
-                        OutlineButton(
-                          child: Text("View All Comments"),
-                          onPressed: (){
-                            BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
-                          },
-                        )
-                      ],
-                    );
+                        ],
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text(
+                              "You are viewing a single comment",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          ),
+                          OutlineButton(
+                            child: Text("View All Comments"),
+                            onPressed: (){
+                              BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
+                            },
+                          )
+                        ],
+                      )
+                  );
                 }
               )
             ),
@@ -170,7 +171,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
       return GestureDetector(
-        child: CommentWidget(comment, i),
+        child: CommentWidget(comment, i, PreviewSource.Comments),
         onTap: (){
           setState(() {
            BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 

@@ -15,7 +15,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
   VideoPlayerController _videoController;
   LyreVideoController _vController;
   
-  MediaViewer({@required this.url}) {
+  MediaViewer({@required this.url, }) {
     PreviewCall().mediaViewerCallback = this; 
   }
 
@@ -38,7 +38,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
         },
       );
     } 
-    return const Center(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,));
+    return const Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,),));
   }
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
@@ -83,7 +83,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       return false;
     } else if (_vController != null) {
       _vController?.pause();
-      _videoController?.dispose();
+      //_videoController?.dispose();
       _vController?.dispose();
       _vController = null;
       _videoController = null;

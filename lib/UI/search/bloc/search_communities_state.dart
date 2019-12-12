@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'bloc.dart';
 
 @immutable
 class SearchCommunitiesState extends Equatable {

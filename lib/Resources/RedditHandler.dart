@@ -57,7 +57,6 @@ Future<void> changeCommentVoteState(VoteState state, Comment c) async {
 ///Submit a String Selftext [Submission] to a given [Subreddit]
 Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {
   var r = await PostsProvider().getRed();
-  
   var subRef = SubredditRef.name(r, sub);
   try {
     var x = await subRef.submit(

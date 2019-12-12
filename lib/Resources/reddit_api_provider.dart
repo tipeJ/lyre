@@ -341,7 +341,7 @@ class PostsProvider {
 
   Future<WikiPage> getWikiPage(String args, String displayName) async {
     if (displayName == 'all') return null;
-    return null;
+    //return null;
     try {    
       final r = await getRed();
       final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit

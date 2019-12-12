@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Blocs/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
@@ -203,6 +204,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
     return new Future.value(true);
   }
+  bool _subscribed = false;
 
   Widget _buildList(PostsState state, BuildContext context) {
     var posts = state.userContent;
@@ -241,7 +243,33 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               floating: false,
               pinned: false,
               backgroundColor: Theme.of(context).canvasColor,
-              actions: <Widget>[Container()],
+              actions: <Widget>[
+                StatefulBuilder(
+                  builder: (BuildContext context, setState) {
+                    return Container(
+                      color: Colors.black54,
+                      margin: EdgeInsets.all(10.0),
+                      child: ToggleButtons(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child: Text(
+                              _subscribed ? "Unsubscribe" : "Subscribe",
+                            )
+                          )
+                        ],
+                        disabledColor: Colors.white70,
+                        isSelected: [_subscribed],
+                        onPressed: (i){
+                          setState(() {
+                            _subscribed = !_subscribed;
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
               automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: false,
@@ -249,9 +277,15 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   left: 10.0,
                   bottom: 5.0
                   ),
-                title: AutoSizeText(
-                  state.getSourceString(prefix: true),
-                  maxFontSize: 26.0,
+                title: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
+                  child: Text(
+                    // TODO: Fix this shit (can't add / without causing a new line automatically)
+                    state.getSourceString(prefix: false),
+                    softWrap: true,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
                 ),
                 collapseMode: CollapseMode.parallax,
                 background: state.subreddit != null && state.subreddit.mobileHeaderImage != null
@@ -509,64 +543,62 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           )
         ),
         endDrawer: new Drawer(
-          child: CustomScrollView(
-            slivers: <Widget>[
-              SliverAppBar(
-                expandedHeight: 125.0,
-                floating: false,
-                pinned: true,
-                backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
-                automaticallyImplyLeading: false,
-                actions: <Widget>[Container()],
-                leading: Container(),
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: false,
-                  titlePadding: EdgeInsets.only(left: 10.0),
-                  title: Text(
-                    'Sidebar',
-                    style: LyreTextStyles.title,
-                    ),
-                  background: BlocBuilder<PostsBloc, PostsState>(
-                    builder: (context, state){
-                      return state.subreddit != null && state.subreddit.mobileHeaderImage != null
-                        ? FadeInImage(
-                          placeholder: MemoryImage(kTransparentImage),
-                          image: AdvancedNetworkImage(
-                            state.subreddit.mobileHeaderImage.toString(),
-                            useDiskCache: true,
-                            cacheRule: CacheRule(maxAge: const Duration(days: 3)),
-                          ),
-                          fit: BoxFit.cover
-                        )
-                        : Container(); // TODO: Placeholder image
-                    }
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: TextField(
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.all(5.0),
-                    helperText: "Search r/$currentSubreddit",
-                    helperStyle: TextStyle(fontStyle: FontStyle.italic)
-                  ),
-                ),
-              ),
-              BlocBuilder<PostsBloc, PostsState>(
+          child: BlocBuilder<PostsBloc, PostsState>(
                 builder: (context, state){
-                  return notNull(state.sideBar)
-                    ? SliverToBoxAdapter(
-                      child: Html(
-                        data: parseShittyFlutterHtml(state.sideBar.contentHtml),
-                        padding: EdgeInsets.symmetric(horizontal: 5.0),
-                      )
-                    )
-                    : null;
+                  return CustomScrollView(
+                    slivers: <Widget>[
+                      SliverAppBar(
+                        expandedHeight: 125.0,
+                        floating: false,
+                        pinned: true,
+                        backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                        automaticallyImplyLeading: false,
+                        actions: <Widget>[Container()],
+                        leading: Container(),
+                        flexibleSpace: FlexibleSpaceBar(
+                          centerTitle: false,
+                          titlePadding: EdgeInsets.only(left: 10.0),
+                          title: Text(
+                            'Sidebar',
+                            style: LyreTextStyles.title,
+                            ),
+                          background: BlocBuilder<PostsBloc, PostsState>(
+                            builder: (context, state){
+                              return state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                                ? FadeInImage(
+                                  placeholder: MemoryImage(kTransparentImage),
+                                  image: AdvancedNetworkImage(
+                                    state.subreddit.mobileHeaderImage.toString(),
+                                    useDiskCache: true,
+                                    cacheRule: CacheRule(maxAge: const Duration(days: 3)),
+                                  ),
+                                  fit: BoxFit.cover
+                                )
+                                : Container(); // TODO: Placeholder image
+                            }
+                          ),
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.all(5.0),
+                            helperText: "Search r/$currentSubreddit",
+                            helperStyle: TextStyle(fontStyle: FontStyle.italic)
+                          ),
+                        ),
+                      ),
+                      notNull(state.sideBar)
+                        ? SliverToBoxAdapter(
+                          child: Text("Sidebar Coming Soon")//MarkdownBody(data: state.sideBar.contentMarkdown,)
+                        )
+                        : null
+                    ].where((w) => notNull(w)).toList(),
+                  );
                 },
               )
-            ].where((w) => notNull(w)).toList(),
-          )
+          
         ),
         body: PersistentBottomAppbarWrapper(
           fullSizeHeight: MediaQuery.of(context).size.height,

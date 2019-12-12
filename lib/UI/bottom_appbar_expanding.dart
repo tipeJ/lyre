@@ -622,7 +622,6 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   }
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _extent.availablePixels = widget.maxChildSize * constraints.biggest.height;

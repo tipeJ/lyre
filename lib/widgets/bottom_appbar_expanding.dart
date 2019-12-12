@@ -607,19 +607,19 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
     setState(() {
       // _extent has been updated when this is called.
     });
-
   }
+
   double _lerp(double min, double max) => lerpDouble(min, max, (_extent.currentExtent / _extent.maxExtent));
+
   Future<bool> _willPop() {
     if (_extent.currentExtent != _extent.minExtent) {
       _scrollController.jumpTo(0.0);
       _extent.currentExtent = _extent.minExtent;
-      // _extentAnimation.value = _extent.currentExtent / _extent.maxExtent;
-      // _extentAnimation.animateTo(0.0, curve: Curves.ease);
       return Future.value(false);
     }
     return Future.value(true);
   }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -627,16 +627,19 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
         _extent.availablePixels = widget.maxChildSize * constraints.biggest.height;
         final Widget sheet = Align(
           alignment: Alignment.bottomCenter,
-          child: ClipRRect(
+          child: Container(
+            height: _extent.currentExtent,
+            child: ClipRRect(
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(_lerp(15.0, 0.0)),
               topRight: Radius.circular(_lerp(15.0, 0.0)),
             ),
             child: Container(
-              height: _extent.currentExtent,
-              child: widget.builder(context, _scrollController),
-              decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor,
+              color: Theme.of(context).canvasColor,
+              child: widget.builder(context, _scrollController)
+            )
+          ),
+          decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(_lerp(0.38, 0.85)),
@@ -645,8 +648,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
                     offset: Offset(0.0, -2.5)
                   )
                 ]
-              )
-            )
+              ),
           )
         );
         return WillPopScope(

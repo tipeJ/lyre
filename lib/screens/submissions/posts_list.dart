@@ -1391,27 +1391,24 @@ class _subredditsList extends State<ExpandingSheetContent> {
           SliverToBoxAdapter(
             child: widget.appBarContent,
           ),
-          SliverSafeArea(
-            top: true,
-            sliver: SliverAppBar(
-              backgroundColor: Theme.of(context).canvasColor,
-              automaticallyImplyLeading: false,
-              floating: true,
-              pinned: true,
-              actions: <Widget>[Container()],
-              title: new TextField(
-                enabled: widget.innerController.extent.isAtMax,
-                onChanged: (String s) {
-                  searchQuery = s;
-                  sub_bloc.fetchSubs(s);
-                },
-                decoration: InputDecoration(hintText: 'Search'),
-                onEditingComplete: () {
-                  currentSubreddit = searchQuery;
-                  widget.innerController.reset();
-                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
-                },
-              ),
+          SliverAppBar(
+            backgroundColor: Theme.of(context).canvasColor,
+            automaticallyImplyLeading: false,
+            floating: true,
+            pinned: true,
+            actions: <Widget>[Container()],
+            title: new TextField(
+              enabled: widget.innerController.extent.isAtMax,
+              onChanged: (String s) {
+                searchQuery = s;
+                sub_bloc.fetchSubs(s);
+              },
+              decoration: InputDecoration(hintText: 'Search'),
+              onEditingComplete: () {
+                currentSubreddit = searchQuery;
+                widget.innerController.reset();
+                BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
+              },
             ),
           ),
           StreamBuilder(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Resources/globals.dart';
-import 'package:lyre/UI/apptwo.dart';
+import 'package:lyre/screens/apptwo.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 void main() async {

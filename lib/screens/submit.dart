@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
@@ -377,10 +380,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                   child: Container(
                     width: MediaQuery.of(context).size.width,
                     color: Theme.of(context).primaryColor,
-                    child: SingleChildScrollView(
-                      child: Row(children: _getInputOptions,),
-                      scrollDirection: Axis.horizontal,
-                    )
+                    child: InputOptions(controller: _selfTextController,)
                   )
                 ),
               )
@@ -487,19 +487,33 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
       ],
     );
   }
+}
 
-  List<Widget> get _getInputOptions => [
+class InputOptions extends StatelessWidget {
+  final TextEditingController controller;
+
+  String get _text => controller.text;
+  set _text(s) => controller.text = s;
+
+
+  const InputOptions({@required this.controller, key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Row(children: _buttons,),
+      scrollDirection: Axis.horizontal,
+    );
+  }
+
+  List<Widget> get _buttons => [
     IconButton(
       icon: Icon(Icons.format_bold),
-      onPressed: (){
-
-      },
+      onPressed: _handleBoldClick,
     ),
     IconButton(
       icon: Icon(Icons.format_clear),
-      onPressed: (){
-
-      },
+      onPressed: (){},
     ),
     IconButton(
       icon: Icon(Icons.format_italic),
@@ -509,4 +523,40 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     ),
     
   ];
+
+  void _handleBoldClick() {
+    var text = controller.text;
+    final initialLength = text.length;
+    final initialOffset = controller.selection.base.offset-1;
+    print(initialLength.toString() + ':' + controller.selection.base.offset.toString());
+    if (controller.selection.isCollapsed) {
+      if (text.isNotEmpty && (text[min(initialOffset, initialLength-1)] == '*' || text[max(initialOffset+1, 0)] == '*')) {
+        print('asdasdasd');
+        int start = _firstOccurrence(char: '*', startIndex: max(initialOffset, 0), direction: -1);
+        int end = _firstOccurrence(char: '*', startIndex: min(initialOffset, initialLength), direction: 1);
+        print('first: ' + start.toString() + '\n last: ' + end.toString());
+        _text = text.replaceRange(
+          start-1, 
+          end+1, 
+          text.substring(start+1, end));
+      } else {
+        text += ' ** ';
+        controller.text = text;
+        controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+      }
+    }
+  }
+
+  int _firstOccurrence({String char, int startIndex, int direction}) {
+    for (var i = startIndex; (direction < 0) ? i > 0 : i < _text.length; direction < 0 ? i-- : i++) {
+      if (_text[i] == char) {
+        return i;
+      }
+    }
+    return direction < 0 ? 0 : _text.length-1;
+  }
+  String _replaceCharAt(String oldString, int index, String newChar) {
+    return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
+  }
+
 }

@@ -21,25 +21,19 @@ class Router {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case 'posts':
-        String redditor = "";
         dynamic target;
         ContentSource source = ContentSource.Subreddit; //Default ContentSource
         
         if(settings.arguments != null){
           final args = settings.arguments as Map<String, Object>;
-          redditor = args['redditor'] as String;
           source = args['content_source'] as ContentSource;
-        }
-        if (redditor.isNotEmpty) {
-          source = ContentSource.Redditor;
-        }
-
-        if (source == ContentSource.Redditor) {
-          target = redditor;
-        } else if (source == ContentSource.Subreddit) {
-          target = currentSubreddit;
+          if (source == ContentSource.Redditor || source == ContentSource.Subreddit) {
+            
+          } else {
+            target = SelfContentType.Comments;
+          }
         } else {
-          target = SelfContentType.Comments;
+          target = homeSubreddit;
         }
 
         return MaterialPageRoute(builder: (_) => BlocProvider(
@@ -87,7 +81,8 @@ class Router {
           child: SearchUserContentView(),
         ));
       case 'submit':
-        return MaterialPageRoute(builder: (_) => SubmitWindow());
+        final args = settings.arguments as Map<String, Object>;
+        return MaterialPageRoute(builder: (_) => SubmitWindow(initialTargetSubreddit: args['initialTargetSubreddit'],));
       case 'reply':
         final args = settings.arguments as Map<String, Object>;
         final comment = args['content'] as UserContent;

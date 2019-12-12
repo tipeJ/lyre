@@ -1,4 +1,6 @@
 const BOX_SETTINGS = "settings";
+const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
+const DEFAULT_SUBSCRIPTIONS_FILEPATH = "assets/defaultSubscriptions.txt";
 
 // * Themes
 const CURRENT_THEME = "currentTheme";
@@ -20,9 +22,9 @@ const COMMENTS_PRECOLLAPSE = "preCollapse";
 
 // * Images & Videos
 const IMAGE_ENABLE_ROTATION = "enableImageRotation";
+const VIDEO_ENABLE_ROTATION = "enableVideoRotation";
 const IMAGE_BLUR_LEVEL = "imageBlurLever";
 const IMAGE_SHOW_FULLSIZE = "imageShowFullPreviews";
-const VIDEO_ENABLE_ROTATION = "enableVideoRotation";
 const VIDEO_LOOP = "videoLoop";
 const VIDEO_AUTO_MUTE = "videoAutoMute";
 const IMGUR_THUMBNAIL_QUALITY = "imgurAlbumQuality";

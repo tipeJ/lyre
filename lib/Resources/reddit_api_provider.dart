@@ -237,7 +237,7 @@ class PostsProvider {
   }
 
   ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
-  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String target, {String timeFilter, ContentSource source}) async {
     reddit = await getRed();
 
     Map<String, String> params = new Map<String, String>();
@@ -262,14 +262,14 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.New:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).newest(params: params).toList();
+            v = await reddit.subreddit(target).newest(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).newest(params: params).toList();
+            v = await reddit.redditor(target).newest(params: params).toList();
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).rising(params: params).toList();
+            v = await reddit.subreddit(target).rising(params: params).toList();
           }
           break;
         case TypeFilter.Gilded:
@@ -282,27 +282,27 @@ class PostsProvider {
           break;
         default: //Default to hot.
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).hot(params: params).toList();
+            v = await reddit.subreddit('livestreamfail').hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).hot(params: params).toList();
+            v = await reddit.redditor(target).hot(params: params).toList();
           }
           break;
       }
-    }else{
+    } else {
       var filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: params).toList();
+              v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: params).toList();
+            v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
           }
           break;
         default: //Default to top
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: params).toList();
+              v = await reddit.subreddit(target).top(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).top(timeFilter: filter, params: params).toList();
+            v = await reddit.redditor(target).top(timeFilter: filter, params: params).toList();
           }
           break;
       }
@@ -311,7 +311,7 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
+      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target));
     }
     return v;
   }
@@ -335,7 +335,7 @@ class PostsProvider {
     //return null;
     try {    
       final r = await getRed();
-      final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
+      final subreddit = await r.subreddit(displayName).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();
       return page;
     } catch (e) {

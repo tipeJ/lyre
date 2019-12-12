@@ -49,7 +49,7 @@ class PostsState extends Equatable {
   String getSourceString({@required bool prefix}){
     switch (contentSource) {
       case ContentSource.Subreddit:
-        return '${prefix ? "r/" : ""}$currentSubreddit';
+        return '${prefix ? "r/" : ""}$target';
       case ContentSource.Redditor:
         return '${prefix ? "u/" : ""}$target';
       case ContentSource.Self:

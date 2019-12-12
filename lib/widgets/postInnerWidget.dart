@@ -68,12 +68,12 @@ class _postInnerWidgetState extends State<postInnerWidget> {
     if (widget.submission.preview != null && widget.submission.preview.isNotEmpty) {
       return BlocBuilder<LyreBloc, LyreState>(
         builder: (context, state){
-          showCircle = state.settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-          fullSizePreviews = state.settings.get(IMAGE_SHOW_FULLSIZE) ?? false;
-          postView = widget.viewSetting ?? state.settings.get(SUBMISSION_VIEWMODE);
-          showNsfw = state.settings.get(SHOW_NSFW_PREVIEWS) ?? false;
-          showSpoiler = state.settings.get(SHOW_SPOILER_PREVIEWS) ?? false;
-          blurLevel = (state.settings.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
+          showCircle = state.showPreviewCircle;
+          fullSizePreviews = state.fullSizePreviews;
+          postView = widget.viewSetting ?? state.viewMode;
+          showNsfw = state.showNSFWPreviews;
+          showSpoiler = state.showSpoilerPreviews;
+          blurLevel = (state.blurLevel ?? 20).toDouble();
           return getMediaWidget(context);
         }
       );

@@ -16,7 +16,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsBloc({this.firstState});
 
   @override //Default: Empty list of UserContent
-  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, target: currentSubreddit);
+  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, target: homeSubreddit);
 
   final _repository = Repository();
 
@@ -40,18 +40,20 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0]);
         currentSortTime = preferences.get(SUBMISSION_DEFAULT_SORT_TIME ?? defaultSortTime);
       }
+      final target = event.target ?? state.target;
+
       switch (source) {
         case ContentSource.Subreddit:
-          _userContent = await _repository.fetchPostsFromSubreddit(false);
-          sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, currentSubreddit);
-          subreddit = await _repository.fetchSubreddit(currentSubreddit);
+          _userContent = await _repository.fetchPostsFromSubreddit(false, target);
+          sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, target);
+          subreddit = await _repository.fetchSubreddit(target);
           styleSheetImages = subreddit != null ? await _repository.fetchStyleSheetImages(subreddit) : null;
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, event.target);
+          _userContent = await _repository.fetchPostsFromRedditor(false, target);
           break;
         case ContentSource.Self:
-          _userContent = await _repository.fetchPostsFromSelf(false, event.target);
+          _userContent = await _repository.fetchPostsFromSelf(false, target);
           break;
       }
 
@@ -60,7 +62,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         userContent: _userContent, 
         contentSource : source,
         currentUser: currentUser, 
-        target: event.target is String ? event.target.toLowerCase() : event.target, 
+        target: target is String ? target.toLowerCase() : target, 
         sideBar: sideBar,
         styleSheetImages: styleSheetImages,
         preferences: preferences,
@@ -71,7 +73,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       List<UserContent> _userContent;
       switch (state.contentSource) {
         case ContentSource.Subreddit:
-          _userContent = await _repository.fetchPostsFromSubreddit(false);
+          _userContent = await _repository.fetchPostsFromSubreddit(false, state.target);
           break;
         case ContentSource.Redditor:
           _userContent = await _repository.fetchPostsFromRedditor(false, state.target);
@@ -95,7 +97,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       
       switch (state.contentSource) {
         case ContentSource.Subreddit:
-          fetchedContent = await _repository.fetchPostsFromSubreddit(true);
+          fetchedContent = await _repository.fetchPostsFromSubreddit(true, state.target);
           break;
         case ContentSource.Redditor:
           fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.target);

@@ -21,6 +21,9 @@ enum SubmitType{
 }
 
 class SubmitWindow extends StatefulWidget{
+  String initialTargetSubreddit;
+
+  SubmitWindow({@required this.initialTargetSubreddit}) : assert(initialTargetSubreddit != null);
 
   State<SubmitWindow> createState() => new SubmitWidgetState();
 }
@@ -67,7 +70,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     _subredditController.addListener(() {
       setState((){});
     });
-    _subredditController.text = currentSubreddit;
+    _subredditController.text = widget.initialTargetSubreddit;
 
     _titleController = TextEditingController();
 
@@ -81,7 +84,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
 
     _selfTextFocusNode = FocusNode();
     _selfTextFocusNode.addListener(() {
-      print('animated' + (_selfTextFocusNode.hasFocus).toString());
       _inputOptionsExpansionController.animateTo(_selfTextFocusNode.hasFocus ? 1.0 : 0.0, curve: Curves.ease);
     });
 
@@ -372,19 +374,20 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
               },
               body: _getInputWidget()
             ),
-            Positioned(
-              bottom: 0.0,
-              child: SizeTransition(
-                sizeFactor: _inputOptionsExpansionController,
-                child: Material(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    color: Theme.of(context).primaryColor,
-                    child: InputOptions(controller: _selfTextController,)
-                  )
-                ),
-              )
-            )
+           //TODO: Finish InputOptions
+            // Positioned(
+            //   bottom: 0.0,
+            //   child: SizeTransition(
+            //     sizeFactor: _inputOptionsExpansionController,
+            //     child: Material(
+            //       child: Container(
+            //         width: MediaQuery.of(context).size.width,
+            //         color: Theme.of(context).primaryColor,
+            //         child: InputOptions(controller: _selfTextController,)
+            //       )
+            //     ),
+            //   )
+            // )
           ]
         ),
       ),
@@ -528,13 +531,10 @@ class InputOptions extends StatelessWidget {
     var text = controller.text;
     final initialLength = text.length;
     final initialOffset = controller.selection.base.offset-1;
-    print(initialLength.toString() + ':' + controller.selection.base.offset.toString());
     if (controller.selection.isCollapsed) {
       if (text.isNotEmpty && (text[min(initialOffset, initialLength-1)] == '*' || text[max(initialOffset+1, 0)] == '*')) {
-        print('asdasdasd');
         int start = _firstOccurrence(char: '*', startIndex: max(initialOffset, 0), direction: -1);
         int end = _firstOccurrence(char: '*', startIndex: min(initialOffset, initialLength), direction: 1);
-        print('first: ' + start.toString() + '\n last: ' + end.toString());
         _text = text.replaceRange(
           start-1, 
           end+1, 

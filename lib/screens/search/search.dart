@@ -6,12 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
-import 'package:lyre/UI/interfaces/previewCallback.dart';
+import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
-import 'package:lyre/UI/search/bloc/bloc.dart';
-import 'package:lyre/UI/search/bloc/search_communities_bloc.dart';
-import 'package:lyre/UI/search/bloc/search_communities_event.dart';
-import 'package:lyre/UI/search/bloc/search_communities_state.dart';
+import 'package:lyre/screens/search/bloc/bloc.dart';
+import 'package:lyre/screens/search/bloc/search_communities_bloc.dart';
+import 'package:lyre/screens/search/bloc/search_communities_event.dart';
+import 'package:lyre/screens/search/bloc/search_communities_state.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SearchCommunitiesView extends StatefulWidget {

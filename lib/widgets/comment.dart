@@ -7,11 +7,11 @@ import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/widgets/ActionItems.dart';
-import 'package:lyre/UI/Animations/OnSlide.dart';
-import 'package:lyre/UI/Comments/bloc/bloc.dart';
+import 'package:lyre/screens/Animations/OnSlide.dart';
+import 'package:lyre/screens/comments/bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
-import 'package:lyre/UI/interfaces/previewCallback.dart';
-import '../../utils/redditUtils.dart';
+import 'package:lyre/screens/interfaces/previewCallback.dart';
+import '../utils/redditUtils.dart';
 
 OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment comment) {
   return OnSlide(

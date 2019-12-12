@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lyre/UI/interfaces/previewCallback.dart';
+import 'package:lyre/screens/interfaces/previewCallback.dart';
 
 class PreviewCall {
   static final PreviewCall _PreviewCall = PreviewCall._internal();

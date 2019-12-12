@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lyre/Themes/textstyles.dart';
-import 'package:lyre/UI/interfaces/previewCallback.dart';
-import 'package:lyre/UI/interfaces/previewc.dart';
-import 'package:lyre/UI/media/image_viewer/image_viewer.dart';
-import 'package:lyre/UI/media/video_player/lyre_video_player.dart';
+import 'package:lyre/screens/interfaces/previewCallback.dart';
+import 'package:lyre/screens/interfaces/previewc.dart';
+import 'package:lyre/widgets/media/image_viewer/image_viewer.dart';
+import 'package:lyre/widgets//media/video_player/lyre_video_player.dart';
 import 'package:lyre/utils/media_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:video_player/video_player.dart';

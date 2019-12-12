@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lyre/Resources/globals.dart';
-import 'package:lyre/UI/bottom_appbar_expanding.dart' as prefix0;
+import 'package:lyre/widgets/bottom_appbar_expanding.dart' as prefix0;
 
 ///Class for wrapping a scaffold body for a custom bottom expanding appBar
 class PersistentBottomAppbarWrapper extends StatefulWidget {

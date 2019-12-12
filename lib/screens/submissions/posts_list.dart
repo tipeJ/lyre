@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
-import 'package:lyre/UI/submissions/bloc/bloc.dart';
+import 'package:lyre/screens/submissions/bloc/bloc.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/filter_manager.dart';

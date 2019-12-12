@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
-import 'package:lyre/UI/Router.dart';
-import 'package:lyre/UI/interfaces/previewCallback.dart';
-import 'package:lyre/UI/interfaces/previewc.dart';
+import 'package:lyre/screens/Router.dart';
+import 'package:lyre/screens/interfaces/previewCallback.dart';
+import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:lyre/widgets/media/media_viewer.dart';
 import 'package:lyre/utils/urlUtils.dart';
 

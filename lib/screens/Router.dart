@@ -2,20 +2,20 @@ import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/UI/submissions/bloc/posts_bloc.dart';
-import 'package:lyre/UI/submissions/bloc/posts_state.dart';
+import 'package:lyre/screens/submissions/bloc/posts_bloc.dart';
+import 'package:lyre/screens/submissions/bloc/posts_state.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/UI/comments/bloc/bloc.dart';
-import 'package:lyre/UI/comments/comment_list.dart';
-import 'package:lyre/UI/Preferences.dart';
-import 'package:lyre/UI/filters.dart';
-import 'package:lyre/UI/submissions/posts_list.dart';
-import 'package:lyre/UI/reply.dart';
-import 'package:lyre/UI/search/bloc/bloc.dart';
-import 'package:lyre/UI/search/bloc/search_communities_bloc.dart';
-import 'package:lyre/UI/search/search.dart';
-import 'package:lyre/UI/submit.dart';
+import 'package:lyre/screens/comments/bloc/bloc.dart';
+import 'package:lyre/screens/comments/comment_list.dart';
+import 'package:lyre/screens/Preferences.dart';
+import 'package:lyre/screens/filters.dart';
+import 'package:lyre/screens/submissions/posts_list.dart';
+import 'package:lyre/screens/reply.dart';
+import 'package:lyre/screens/search/bloc/bloc.dart';
+import 'package:lyre/screens/search/bloc/search_communities_bloc.dart';
+import 'package:lyre/screens/search/search.dart';
+import 'package:lyre/screens/submit.dart';
 
 class Router {
   static Route<dynamic> generateRoute(RouteSettings settings) {

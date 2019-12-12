@@ -2,16 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' show Client;
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
-import '../Models/Comment.dart';
 import '../Models/Subreddit.dart';
 import '../Models/User.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'credential_loader.dart';
 
 enum ContentSource{
@@ -317,12 +314,6 @@ class PostsProvider {
       v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
     }
     return v;
-  }
-
-  Future<CommentM> fetchCommentsList() async {
-    var r = await getRed();
-    var s = await r.submission(id: currentPostId).populate();
-    return CommentM.fromJson(s.comments.comments);
   }
 
   Future<Subreddit> getSubreddit(String displayName) async {

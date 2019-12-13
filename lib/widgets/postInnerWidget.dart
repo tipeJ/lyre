@@ -144,7 +144,7 @@ class _postInnerWidgetState extends State<postInnerWidget> {
               : new Container(
                   width: MediaQuery.of(context).size.width,
                   color: Colors.black,
-                  child: getDefaultSlideColumn(context),
+                  child: defaultColumn(widget.submission, widget.previewSource, widget.linkType),
                 ),
         ),
         ((widget.submission.over18 && !showNsfw || (widget.submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(widget.linkType))

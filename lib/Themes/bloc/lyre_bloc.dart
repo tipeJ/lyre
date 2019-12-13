@@ -154,7 +154,7 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
 Future<LyreState> getFirstLyreState() async { 
     final settings = await Hive.openBox('settings');
     final initialTheme = settings.get(CURRENT_THEME) ?? "";
-    globals.homeSubreddit = settings.get(SUBREDDIT_HOME) ?? "music";
+    globals.homeSubreddit = settings.get(SUBREDDIT_HOME) ?? "askreddit";
 
     var _cTheme = LyreTheme.DarkTeal;
     LyreTheme.values.forEach((theme){
@@ -169,7 +169,6 @@ Future<LyreState> getFirstLyreState() async {
     //Empty username for guest
     final subscriptions = await _getUserSubscriptions(currentUser != null ? currentUser.displayName : '');
 
-    //print('open:' + settings.isOpen.toString());
 
     final state = LyreState(
       themeData: lyreThemeData[_cTheme],
@@ -206,7 +205,6 @@ Future<LyreState> getFirstLyreState() async {
       showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS),
     );
 
-    //print('closing box...');
 
     //Close the Settings box
     //settings.close();

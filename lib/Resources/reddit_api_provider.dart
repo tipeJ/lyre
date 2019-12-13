@@ -237,7 +237,7 @@ class PostsProvider {
   }
 
   ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
-  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String target, {String timeFilter, ContentSource source}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String content, {String timeFilter, ContentSource source}) async {
     reddit = await getRed();
 
     Map<String, String> params = new Map<String, String>();
@@ -256,6 +256,8 @@ class PostsProvider {
       timeFilter = "";
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
+    // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
+    final target = content.trim();
 
     List<UserContent> v = [];
     if(timeFilter == ""){
@@ -282,7 +284,7 @@ class PostsProvider {
           break;
         default: //Default to hot.
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit('livestreamfail').hot(params: params).toList();
+            v = await reddit.subreddit(target).hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).hot(params: params).toList();
           }
@@ -330,12 +332,8 @@ class PostsProvider {
     return styleSheet.images;
   }
 
-  Future<WikiPage> getWikiPage(String args, String displayName) async {
-    if (displayName == 'all') return null;
-    //return null;
+  Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
     try {    
-      final r = await getRed();
-      final subreddit = await r.subreddit(displayName).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();
       return page;
     } catch (e) {

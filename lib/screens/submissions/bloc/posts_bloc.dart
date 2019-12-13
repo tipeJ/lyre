@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
@@ -16,27 +15,30 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsBloc({this.firstState});
 
   @override //Default: Empty list of UserContent
-  PostsState get initialState => firstState ?? PostsState(userContent: [], contentSource : ContentSource.Subreddit, target: homeSubreddit);
+  PostsState get initialState => firstState ?? PostsState(state: LoadingState.Inactive, userContent: const [], contentSource : ContentSource.Subreddit, target: homeSubreddit);
 
   final _repository = Repository();
-
-  final loading = ValueNotifier(LoadingState.notLoading);
 
   @override
   Stream<PostsState> mapEventToState(
     PostsEvent event,
   ) async* {
     if(event is PostsSourceChanged){
-      loading.value = LoadingState.refreshing;
+      yield PostsState(
+        state: LoadingState.Refreshing,
+        contentSource: event.source,
+        target: event.target,
+        userContent: const []
+      );
       WikiPage sideBar;
       Subreddit subreddit;
       RedditUser currentUser = await PostsProvider().getLatestUser();
-      List<UserContent> _userContent;
-      List<StyleSheetImage> styleSheetImages;
+      List<UserContent> userContent;
 
       final source = event.source ?? state.contentSource;
       final preferences = await Hive.openBox(BOX_SETTINGS);
-      if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ //Reset Current Sort Configuration if user has set it to reset
+      if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ 
+        //Reset Current Sort Configuration if user has set it to reset
         parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0]);
         currentSortTime = preferences.get(SUBMISSION_DEFAULT_SORT_TIME ?? defaultSortTime);
       }
@@ -44,51 +46,56 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
       switch (source) {
         case ContentSource.Subreddit:
-          _userContent = await _repository.fetchPostsFromSubreddit(false, target);
-          sideBar = await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, target);
+          userContent = await _repository.fetchPostsFromSubreddit(false, target);
           subreddit = await _repository.fetchSubreddit(target);
-          styleSheetImages = subreddit != null ? await _repository.fetchStyleSheetImages(subreddit) : null;
+          sideBar = subreddit != null ? await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit) : null;
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, target);
+          userContent = await _repository.fetchPostsFromRedditor(false, target);
           break;
         case ContentSource.Self:
-          _userContent = await _repository.fetchPostsFromSelf(false, target);
+          userContent = await _repository.fetchPostsFromSelf(false, target);
           break;
       }
 
-      loading.value = LoadingState.notLoading;
       yield PostsState(
-        userContent: _userContent, 
+        state: LoadingState.Inactive,
+        userContent: userContent, 
         contentSource : source,
         currentUser: currentUser, 
         target: target is String ? target.toLowerCase() : target, 
         sideBar: sideBar,
-        styleSheetImages: styleSheetImages,
-        preferences: preferences,
         subreddit: subreddit
-        );
+      );
+      preferences.close();
     } else if (event is ParamsChanged){
-      loading.value = LoadingState.refreshing;
-      List<UserContent> _userContent;
+      yield PostsState(
+        state: LoadingState.Refreshing,
+        contentSource: state.contentSource,
+        target: state.target,
+        userContent: const []
+      );
+      List<UserContent> userContent;
       switch (state.contentSource) {
         case ContentSource.Subreddit:
-          _userContent = await _repository.fetchPostsFromSubreddit(false, state.target);
+          userContent = await _repository.fetchPostsFromSubreddit(false, state.target);
           break;
         case ContentSource.Redditor:
-          _userContent = await _repository.fetchPostsFromRedditor(false, state.target);
+          userContent = await _repository.fetchPostsFromRedditor(false, state.target);
           break;
         case ContentSource.Self:
-          _userContent = await _repository.fetchPostsFromSelf(false, state.selfContentType);
+          userContent = await _repository.fetchPostsFromSelf(false, state.target);
           break;
       }
 
-      loading.value = LoadingState.notLoading;
-      yield getUpdatedstate(_userContent, false);
+      yield getUpdatedstate(userContent, false);
     } else if (event is FetchMore){
-      if (loading.value != LoadingState.notLoading) return; //Prevents repeated concussive FetchMore events (mainly caused by autoload)
-      
-      loading.value = LoadingState.loadingMore;
+      yield PostsState(
+        state: LoadingState.LoadingMore,
+        contentSource: state.contentSource,
+        target: state.target,
+        userContent: state.userContent
+      );
       lastPost = state.userContent.last is Comment
         ? (state.userContent.last as Comment).id
         : (state.userContent.last as Submission).id;
@@ -103,29 +110,26 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.target);
           break;
         case ContentSource.Self:
-          fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.selfContentType);
+          fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.target);
           break;
       }
-
-      loading.value = LoadingState.notLoading;
       yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);
     }
   }
 
   PostsState getUpdatedstate([List<UserContent> userContent, bool updated]){
     return PostsState(
+      state: LoadingState.Inactive,
       userContent: notNull(userContent) ? userContent : state.userContent,
       contentSource: state.contentSource,
       currentUser: state.currentUser,
       target: state.target,
       sideBar: state.sideBar,
-      styleSheetImages: state.styleSheetImages,
-      preferences: state.preferences
     );
   }
 }
 enum LoadingState {
-  notLoading,
-  loadingMore,
-  refreshing,
+  Inactive,
+  LoadingMore,
+  Refreshing,
 }

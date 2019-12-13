@@ -1,13 +1,14 @@
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/screens/submissions/bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:lyre/Resources/globals.dart';
 
 @immutable
 class PostsState extends Equatable {
+  LoadingState state;
 
   //CONTENT
   final List<UserContent> userContent;
@@ -21,30 +22,22 @@ class PostsState extends Equatable {
   //LOGGED IN USER INFORMATION
   RedditUser currentUser;
 
-  //WHEN TARGETING SELF
-  SelfContentType selfContentType;
-
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   WikiPage sideBar;
   Subreddit subreddit;
-  List<StyleSheetImage> styleSheetImages;
-  String headerImage;
 
-  Box preferences;
 
   PostsState({
+    @required this.state,
     @required this.contentSource,
     @required this.target,
     @required this.userContent,
     this.currentUser,
     this.sideBar,
-    this.styleSheetImages,
-    this.preferences,
     this.subreddit,
-    this.headerImage
   });
 
-  List<dynamic> get props => [userContent, target];
+  List<dynamic> get props => [state, userContent, target];
 
   String getSourceString({@required bool prefix}){
     switch (contentSource) {
@@ -62,7 +55,7 @@ class PostsState extends Equatable {
     String filterString = "";
 
     if(contentSource == ContentSource.Self){
-      switch (selfContentType) {
+      switch (target) {
         case SelfContentType.Comments:
           filterString = "Comments";
           break;

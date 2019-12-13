@@ -1,6 +1,4 @@
-Popular
-all
-announcements
+﻿announcements
 funny
 AskReddit
 gaming

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/screens/submissions/bloc/bloc.dart';
-import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
@@ -19,7 +18,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../../Models/Subreddit.dart';
-import '../../Blocs/subreddits_bloc.dart';
 import '../../Resources/globals.dart';
 import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';
@@ -62,7 +60,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   PostsListState();
 
-  bool autoLoad;
+  bool _autoLoad;
   PostsBloc bloc;
 
   ScrollController scontrol = new ScrollController();
@@ -209,7 +207,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     return new NotificationListener(
       onNotification: (Notification notification) {
         if (notification is ScrollNotification) {
-          if ((autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
+          if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
           bloc.add(FetchMore());
           }
           if (notification.depth == 0 && notification is ScrollUpdateNotification) {
@@ -323,7 +321,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           bloc.add(FetchMore());
                         });
                       },
-                      child: bloc.loading.value == LoadingState.loadingMore ? const CircularProgressIndicator() : const Text("Load More")),
+                      child: BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore ? const CircularProgressIndicator() : const Text("Load More")),
                   );
                 } else {
                   return posts[i] is draw.Submission
@@ -399,12 +397,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
-    bloc.loading.addListener((){
-      if (bloc.loading.value == LoadingState.refreshing) scontrol.animateTo(0.0, duration: Duration(milliseconds: 800), curve: Curves.easeInOut);
-      setState(() {
-        
-      });
-    });
     return new WillPopScope(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -575,8 +567,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
               if (snapshot.hasData) {
                 final state = snapshot.data;
-                if(state.userContent != null && state.userContent.isNotEmpty && bloc.loading.value != LoadingState.refreshing){
-                  autoLoad = state.preferences?.get(SUBMISSION_AUTO_LOAD);
+                if(state.userContent != null && state.userContent.isNotEmpty && state.state != LoadingState.Refreshing){
+                  _autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
                   if(state.contentSource == ContentSource.Redditor){
                     return state.target.isNotEmpty
                       ? _buildList(state, context)
@@ -1416,6 +1408,7 @@ class _subredditsList extends State<ExpandingSheetContent> {
     );
   }
 
+  ///Open a subreddit from the list
   _openSub(String s) {
     widget.innerController.reset();
     BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
@@ -1424,7 +1417,6 @@ class _subredditsList extends State<ExpandingSheetContent> {
   /// List of options for subRedditView
   List<String> _subListOptions = [
     "Unsubscribe",
-    "Open"
   ];
 
   Widget _defaultSubredditList(List<String> subreddits) {

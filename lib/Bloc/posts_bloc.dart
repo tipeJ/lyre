@@ -63,15 +63,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
         switch (source) {
           case ContentSource.Subreddit:
-            userContent = await _repository.fetchPostsFromSubreddit(false, target);
+            userContent = await _repository.fetchPostsFromSubreddit(target);
             subreddit = await _repository.fetchSubreddit(target);
             sideBar = subreddit != null ? await _repository.fetchWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit) : null;
             break;
           case ContentSource.Redditor:
-            userContent = await _repository.fetchPostsFromRedditor(false, target);
+            userContent = await _repository.fetchPostsFromRedditor(target);
             break;
           case ContentSource.Self:
-          userContent = await _repository.fetchPostsFromSelf(false, target);
+          userContent = await _repository.fetchPostsFromSelf(target);
             break;
         }
 
@@ -95,13 +95,13 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         List<UserContent> userContent;
         switch (state.contentSource) {
           case ContentSource.Subreddit:
-            userContent = await _repository.fetchPostsFromSubreddit(false, state.target);
+            userContent = await _repository.fetchPostsFromSubreddit(state.target);
             break;
           case ContentSource.Redditor:
-            userContent = await _repository.fetchPostsFromRedditor(false, state.target);
+            userContent = await _repository.fetchPostsFromRedditor(state.target);
             break;
           case ContentSource.Self:
-            userContent = await _repository.fetchPostsFromSelf(false, state.target);
+            userContent = await _repository.fetchPostsFromSelf(state.target);
             break;
         }
 
@@ -113,20 +113,21 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           userContent: state.userContent
         );
+
         final last = state.userContent.last;
         final after = last is Submission ? last.fullname : (last as Comment).fullname;
         
-        var fetchedContent = List<UserContent>();
+        List<UserContent> fetchedContent;
         
         switch (state.contentSource) {
           case ContentSource.Subreddit:
-            fetchedContent = await _repository.fetchPostsFromSubreddit(true, state.target, after);
+            fetchedContent = await _repository.fetchPostsFromSubreddit(state.target, after: after);
             break;
           case ContentSource.Redditor:
-            fetchedContent = await _repository.fetchPostsFromRedditor(true, this.state.target, after);
+            fetchedContent = await _repository.fetchPostsFromRedditor(state.target, after: after);
             break;
           case ContentSource.Self:
-            fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.target);
+            fetchedContent = await _repository.fetchPostsFromSelf(state.target, after: after);
             break;
         }
         yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);

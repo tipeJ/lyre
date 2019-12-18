@@ -238,17 +238,20 @@ class PostsProvider {
   }
 
   ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
-  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String content, {String timeFilter, ContentSource source, String after}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, String contentTarget, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
     Map<String, String> params = new Map<String, String>();
 
-    if(loadMore)params["after"]= after;
+    if(after != null)params["after"]= after;
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
 
-    if([
+    if(after != null) print(after + ' : ' + params.values.toString());
+    if (after == null) print('NULL');
+
+    if ([
       TypeFilter.Hot,
       TypeFilter.New,
       TypeFilter.Rising,
@@ -258,7 +261,7 @@ class PostsProvider {
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
     // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
-    final target = content.trim();
+    final target = contentTarget.trim();
 
     List<UserContent> v = [];
     if(timeFilter == ""){
@@ -292,7 +295,7 @@ class PostsProvider {
           break;
       }
     } else {
-      var filter = parseTimeFilter(timeFilter);
+      final filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
@@ -318,7 +321,65 @@ class PostsProvider {
     }
     return v;
   }
-  
+
+  // * Profile data fetching:
+
+  Future<List<UserContent>> fetchSelfUserContent(SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = "", String after}) async {
+    Map<String, String> params = new Map<String, String>();
+
+    if(after != null)params["after"]= after;
+
+    params["limit"] = perPage.toString();
+    params["raw_json"] = '1';
+    var r = await getRed();
+
+    var self = await r.user.me();
+    var filter = parseTimeFilter(timeFilter);
+    switch (contentType) {
+      case SelfContentType.Comments:
+        var comments = self.comments;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return comments.top(timeFilter: filter).toList();
+          case TypeFilter.Controversial:
+            return comments.controversial(timeFilter: filter).toList();
+          case TypeFilter.New:
+            return comments.newest().toList();
+          default:
+            //Default: Return hot
+            return comments.hot().toList();
+        }
+        break;
+      case SelfContentType.Hidden:
+        var hidden = self.hidden();
+        return hidden.toList();
+      case SelfContentType.Submitted:
+        var submitted = self.submissions;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return submitted.top(timeFilter: filter).toList();
+          case TypeFilter.Controversial:
+            return submitted.controversial(timeFilter: filter).toList();
+          case TypeFilter.New:
+            return submitted.newest().toList();
+          default:
+            //Default: Return hot
+            return submitted.hot().toList();
+        }
+        break;
+      case SelfContentType.Upvoted:
+        var upvoted = self.upvoted();
+        return upvoted.toList();
+      case SelfContentType.Saved:
+        return self.saved().toList();
+      case SelfContentType.Watching:
+        // ! API Doesn't support
+      default:
+        return null; // Shouldn't happen
+    }
+  }
+
+  // * Subreddit infornation 
 
   Future<Subreddit> getSubreddit(String displayName) async {
     if (displayName == 'all') return null;
@@ -428,56 +489,6 @@ class PostsProvider {
       values.add(object);
     });
     return values;
-  }
-
-  // * Profile data fetching:
-
-  Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
-    var r = await getRed();
-    var self = await r.user.me();
-    var filter = parseTimeFilter(timeFilter);
-    switch (contentType) {
-      case SelfContentType.Comments:
-        var comments = self.comments;
-        switch (typeFilter) {
-          case TypeFilter.Top:
-            return comments.top(timeFilter: filter).toList();
-          case TypeFilter.Controversial:
-            return comments.controversial(timeFilter: filter).toList();
-          case TypeFilter.New:
-            return comments.newest().toList();
-          default:
-            //Default: Return hot
-            return comments.hot().toList();
-        }
-        break;
-      case SelfContentType.Hidden:
-        var hidden = self.hidden();
-        return hidden.toList();
-      case SelfContentType.Submitted:
-        var submitted = self.submissions;
-        switch (typeFilter) {
-          case TypeFilter.Top:
-            return submitted.top(timeFilter: filter).toList();
-          case TypeFilter.Controversial:
-            return submitted.controversial(timeFilter: filter).toList();
-          case TypeFilter.New:
-            return submitted.newest().toList();
-          default:
-            //Default: Return hot
-            return submitted.hot().toList();
-        }
-        break;
-      case SelfContentType.Upvoted:
-        var upvoted = self.upvoted();
-        return upvoted.toList();
-      case SelfContentType.Saved:
-        return self.saved().toList();
-      case SelfContentType.Watching:
-        // ! API Doesn't support
-      default:
-        return null; // Shouldn't happen
-    }
   }
 
   //* Utilities: 

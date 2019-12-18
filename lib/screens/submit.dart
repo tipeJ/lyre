@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -521,12 +523,21 @@ class InputOptions extends StatelessWidget {
       icon: Icon(Icons.format_quote),
       onPressed: _handleQuoteClick,
     ),
+    IconButton(
+      icon: Icon(Icons.format_list_bulleted),
+      onPressed: _handleBulletListclick,
+    ),
+    IconButton(
+      icon: Icon(Icons.format_list_numbered),
+      onPressed: _handleNumberedListclick,
+    ),
   ];
 
   void _handleBoldClick() {
-    var text = controller.text;
-    final initialOffset = controller.selection.base.offset-1;
-    if (controller.selection.isCollapsed) {
+    if (controller.selection.isCollapsed) {  
+      var text = controller.text;
+      final initialOffset = controller.selection.base.offset-1;
+
       text += '****';
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
@@ -534,9 +545,10 @@ class InputOptions extends StatelessWidget {
   }
 
   void _handleItalicsClick() {
-    var text = controller.text;
-    final initialOffset = controller.selection.base.offset-1;
     if (controller.selection.isCollapsed) {
+      var text = controller.text;
+      final initialOffset = controller.selection.base.offset-1;
+
       text += '**';
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
@@ -544,22 +556,58 @@ class InputOptions extends StatelessWidget {
   }
 
   void _handleQuoteClick() {
-    var text = _text;
-    final initialOffset = controller.selection.base.offset-1;
-    final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
     if (controller.selection.isCollapsed) {
+      var text = _text;
+      final initialOffset = controller.selection.base.offset-1;
+      final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
+
       text = StringUtils.addCharAtPosition(text, '>', lineBreak == 0 ? lineBreak : lineBreak + 1);
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
     }
   }
 
+  void _handleBulletListclick() {
+    if (controller.selection.isCollapsed) {
+      var text = _text;
+      final initialOffset = max(0, controller.selection.base.offset-1);
+
+      text += initialOffset == 0 ? '* ' : '\n* ';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset == 0 ? initialOffset + 1 : initialOffset+4));
+    }
+  }
+
+  void _handleNumberedListclick() {
+    if (controller.selection.isCollapsed) {
+      var text = _text;
+      final initialOffset = controller.selection.base.offset;
+      var secondToLastLineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset - 1, direction: -1);
+      if (secondToLastLineBreak > 0) secondToLastLineBreak++;
+
+      int lastNumber;
+      bool increment = text.isEmpty ? false : text.substring(secondToLastLineBreak+1, secondToLastLineBreak+2) == ".";
+      if (increment) {
+        lastNumber = int.parse(text.substring(secondToLastLineBreak, secondToLastLineBreak+1));
+      }
+      // This is the number that will be added to the text before the point character (.)
+      int nextNumber = lastNumber != null ? lastNumber + 1 : 1;
+
+      text += initialOffset == 0 ? '$nextNumber. ' : '\n$nextNumber. ';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset == 0 ? initialOffset + 3 : initialOffset+4));
+    }
+  }
+
   /// Find the first occurrence of given [String] char. Starts from the startIndex parameters and moves in direction determined by the direction paramter
-  /// (negative for towards the start, positive for towards the end)
-  int _firstOccurrence({String char, int startIndex, int direction}) {
+  /// (negative for towards the start, positive for towards the end) SkipAmount must be positive or zero.
+  int _firstOccurrence({String char, int startIndex, int direction, int skipAmount = 0}) {
     for (var i = startIndex; (direction < 0) ? i > 0 : i < _text.length; direction < 0 ? i-- : i++) {
       if (_text[i] == char) {
-        return i;
+        if (skipAmount == 0) {
+          return i;
+        }
+        skipAmount--;
       }
     }
     return direction < 0 ? 0 : _text.length-1;

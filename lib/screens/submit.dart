@@ -2,9 +2,13 @@ import 'dart:math';
 
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/utils/share_utils.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -503,14 +507,14 @@ class InputOptions extends StatelessWidget {
     return SingleChildScrollView(
       child: Material(
         color: Theme.of(context).primaryColor,
-        child: Row(children: _buttons,)
+        child: Row(children: _buttons(context),)
       ),
       scrollDirection: Axis.horizontal,
     );
   }
 
   /// InputOptions buttons
-  List<Widget> get _buttons => [
+  List<Widget> _buttons (BuildContext context) => [
     IconButton(
       icon: Icon(Icons.format_bold),
       onPressed: _handleBoldClick,
@@ -526,6 +530,15 @@ class InputOptions extends StatelessWidget {
     IconButton(
       icon: Icon(Icons.format_quote),
       onPressed: _handleQuoteClick,
+    ),
+    // ! Not yet supported by flutter_markdown
+    // IconButton(
+    //   icon: Icon(MdiIcons.exponent),
+    //   onPressed: _handleExponentClick,
+    // ),
+    IconButton(
+      icon: Icon(Icons.link),
+      onPressed: () => _handleLinkClick(context),
     ),
     IconButton(
       icon: Icon(Icons.format_list_bulleted),
@@ -570,6 +583,18 @@ class InputOptions extends StatelessWidget {
     }
   }
 
+  // ! Not yet supported by flutter_markdown
+  // void _handleExponentClick() {
+  //   if (controller.selection.isCollapsed) {
+  //     var text = controller.text;
+  //     final initialOffset = controller.selection.base.offset;
+
+  //     text += '^';
+  //     controller.text = text;
+  //     controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+1));
+  //   }
+  // }
+
   void _handleQuoteClick() {
     if (controller.selection.isCollapsed) {
       var text = _text;
@@ -579,6 +604,30 @@ class InputOptions extends StatelessWidget {
       text = StringUtils.addCharAtPosition(text, '>', lineBreak == 0 ? lineBreak : lineBreak + 1);
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+    }
+  }
+
+  void _handleLinkClick(BuildContext context) {
+    if (controller.selection.isCollapsed) {
+      final Widget linkSheet = Container(
+        padding: EdgeInsets.all(10.0),
+        child: _LinkInputSheet(
+          onSubmitted: ({String text, String link}) {
+            var controllertext = _text;
+            final initialOffset = controller.selection.base.offset;
+            
+            controllertext += " [$text]($link)";
+            controller.text = controllertext;
+            controller.selection = TextSelection.fromPosition(TextPosition(offset: (initialOffset + text.length + link.length + 6)));
+          },
+        )
+      );
+      // showDialog(context: context, child: dialog);
+      showBottomSheet( 
+        context: context,
+        builder: (context) => linkSheet,
+        backgroundColor: Theme.of(context).primaryColor
+       );
     }
   }
 
@@ -629,5 +678,99 @@ class InputOptions extends StatelessWidget {
   }
   String _replaceCharAt(String oldString, int index, String newChar) {
     return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
+  }
+}
+class _LinkInputSheet extends StatefulWidget {
+  const _LinkInputSheet({@required this.onSubmitted, Key key}) : super(key: key);
+
+  final Function({String text, String link}) onSubmitted;
+
+  @override
+  __LinkInputSheetState createState() => __LinkInputSheetState();
+}
+
+class __LinkInputSheetState extends State<_LinkInputSheet> {
+  TextEditingController _textInputController;
+  TextEditingController _linkInputController;
+  
+  @override
+  void initState() {
+    _textInputController = TextEditingController();
+    _textInputController.addListener((){
+      setState((){});
+    });
+    _linkInputController = TextEditingController();
+    _linkInputController.addListener((){
+      setState((){});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() { 
+    _textInputController.dispose();
+    _linkInputController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column (
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            const Text('Insert a link'),
+            const Spacer(),
+            OutlineButton(
+              child: const Text("Cancel"), 
+              onPressed: () {
+                Navigator.of(context).pop();
+              }
+            ),
+            OutlineButton(
+              child: const Text("OK"), 
+              onPressed: _textInputController.text.isNotEmpty && _linkInputController.text.isNotEmpty ? _submit : null,
+            )
+          ],
+        ),
+        Row(children: <Widget>[
+          Expanded(
+            child: TextField(
+              decoration: const InputDecoration(labelText: "Text"),
+              controller: _textInputController,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.content_paste, size: LyreContentSizes.editingIconSize,),
+            onPressed: () async {
+              final clipBoardText = await getClipBoard();
+              _textInputController.text += clipBoardText;
+            },
+          )
+        ],),
+        Row(children: <Widget>[
+          Expanded(
+            child: TextField(
+              decoration: const InputDecoration(labelText: "Link Url"),
+              controller: _linkInputController,
+              onEditingComplete: _submit,
+            )
+          ),
+          IconButton(
+            icon: const Icon(Icons.content_paste, size: LyreContentSizes.editingIconSize,),
+            onPressed: () async {
+              final clipBoardText = await getClipBoard();
+              _linkInputController.text += clipBoardText;
+            },
+          )
+        ],),
+      ],
+    );
+  }
+  _submit() {
+    widget.onSubmitted(text: _textInputController.text, link: _linkInputController.text);
+    Navigator.of(context).pop();
   }
 }

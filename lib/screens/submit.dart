@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
@@ -18,6 +21,9 @@ enum SubmitType{
 }
 
 class SubmitWindow extends StatefulWidget{
+  String initialTargetSubreddit;
+
+  SubmitWindow({@required this.initialTargetSubreddit}) : assert(initialTargetSubreddit != null);
 
   State<SubmitWindow> createState() => new SubmitWidgetState();
 }
@@ -64,7 +70,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     _subredditController.addListener(() {
       setState((){});
     });
-    _subredditController.text = currentSubreddit;
+    _subredditController.text = widget.initialTargetSubreddit;
 
     _titleController = TextEditingController();
 
@@ -78,7 +84,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
 
     _selfTextFocusNode = FocusNode();
     _selfTextFocusNode.addListener(() {
-      print('animated' + (_selfTextFocusNode.hasFocus).toString());
       _inputOptionsExpansionController.animateTo(_selfTextFocusNode.hasFocus ? 1.0 : 0.0, curve: Curves.ease);
     });
 
@@ -112,7 +117,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     if(_sendingState == SendingState.Sending){
       return Future.value(false);
     }
-    return Future.value(false);
+    return Future.value(true);
   }
 
   bool send_replies = true;
@@ -137,98 +142,102 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
               controller: _scrollController,
               headerSliverBuilder: (context, b) {
                 return [
-                  SliverSafeArea(
-                    sliver: SliverAppBar(
-                      primary: true,
-                      floating: true,
-                      titleSpacing: 0.0,
-                      automaticallyImplyLeading: false,
-                      title: Row(children: <Widget>[
-                        Expanded(
-                          child: TextField(
-                            textInputAction: TextInputAction.send,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
-                              labelText: _subredditController.text.isNotEmpty ? "Title For Your Submission in r/${_subredditController.text}" : "Title",
-                            ),
-                            controller: _titleController,
+                  SliverAppBar(
+                    primary: true,
+                    floating: true,
+                    titleSpacing: 0.0,
+                    automaticallyImplyLeading: false,
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.of(context).maybePop();
+                      },
+                    ),
+                    title: Row(children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          textInputAction: TextInputAction.send,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
+                            labelText: _subredditController.text.isNotEmpty ? "Title For Your Submission in r/${_subredditController.text}" : "Title",
                           ),
+                          controller: _titleController,
                         ),
-                        _sendingState == SendingState.Inactive
-                          ? IconButton(
-                            icon: const Icon(Icons.send),
-                            onPressed: (){
-                              if(PostsProvider().isLoggedIn() && _sendingState != SendingState.Sending){
-                                setState(() {
-                                  _sendingState = SendingState.Sending;
-                                });
-                                switch (_submitType) {
-                                  case SubmitType.Selftext:
-                                    submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((submission){
-                                      setState(() {
-                                        _sendingState = SendingState.Inactive;
-                                      });
-                                      if (submission is String){
-                                        Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                      } else {
-                                        showComments(context, submission);
-                                      }
+                      ),
+                      _sendingState == SendingState.Inactive
+                        ? IconButton(
+                          icon: const Icon(Icons.send),
+                          onPressed: (){
+                            if(PostsProvider().isLoggedIn() && _sendingState != SendingState.Sending){
+                              setState(() {
+                                _sendingState = SendingState.Sending;
+                              });
+                              switch (_submitType) {
+                                case SubmitType.Selftext:
+                                  submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((submission){
+                                    setState(() {
+                                      _sendingState = SendingState.Inactive;
                                     });
-                                    break;
-                                  case SubmitType.Link:
-                                    submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
-                                      setState(() {
-                                        _sendingState = SendingState.Inactive;
-                                      });
-                                      if (submission is String){
-                                        Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                      } else {
-                                        showComments(context, submission);
-                                      }
+                                    if (submission is String){
+                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                                    } else {
+                                      showComments(context, submission);
+                                    }
+                                  });
+                                  break;
+                                case SubmitType.Link:
+                                  submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
+                                    setState(() {
+                                      _sendingState = SendingState.Inactive;
                                     });
-                                    break;
-                                  case SubmitType.Image:
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context){
-                                        return AlertDialog(
-                                            title: Text('Uploading image'),
-                                            content: Container(
-                                                width: 25.0,
-                                                height: 25.0,
-                                                child: Center(
-                                                  child: CircularProgressIndicator()
-                                                )
+                                    if (submission is String){
+                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                                    } else {
+                                      showComments(context, submission);
+                                    }
+                                  });
+                                  break;
+                                case SubmitType.Image:
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context){
+                                      return AlertDialog(
+                                          title: Text('Uploading image'),
+                                          content: Container(
+                                              width: 25.0,
+                                              height: 25.0,
+                                              child: Center(
+                                                child: CircularProgressIndicator()
                                               )
-                                          );
-                                      }
-                                    );
-                                    submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
-                                      setState(() {
-                                        _sendingState = SendingState.Inactive;
-                                      });
-                                      if (submission is String){
-                                        Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                      } else {
-                                        showComments(context, submission);
-                                      }
+                                            )
+                                        );
+                                    }
+                                  );
+                                  submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
+                                    setState(() {
+                                      _sendingState = SendingState.Inactive;
                                     });
-                                    break;
-                                  default:
-                                  //Video
-                                    break;
-                                }
-                            } else {
-                              final snackBar = const SnackBar(
-                                content: Text('Log in to create submissions'),
-                              );
-                              Scaffold.of(context).showSnackBar(snackBar);
-                            }
-                          },
-                        )
-                      : CircularProgressIndicator()
-                      ],)
-                    )
+                                    if (submission is String){
+                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                                    } else {
+                                      showComments(context, submission);
+                                    }
+                                  });
+                                  break;
+                                default:
+                                //Video
+                                  break;
+                              }
+                          } else {
+                            final snackBar = const SnackBar(
+                              content: Text('Log in to create submissions'),
+                            );
+                            Scaffold.of(context).showSnackBar(snackBar);
+                          }
+                        },
+                      )
+                    : CircularProgressIndicator()
+                    ],)
                   ),
                   SliverList(
                   delegate: SliverChildListDelegate([
@@ -365,22 +374,20 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
               },
               body: _getInputWidget()
             ),
-            Positioned(
-              bottom: 0.0,
-              child: SizeTransition(
-                sizeFactor: _inputOptionsExpansionController,
-                child: Material(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    color: Theme.of(context).primaryColor,
-                    child: SingleChildScrollView(
-                      child: Row(children: _getInputOptions,),
-                      scrollDirection: Axis.horizontal,
-                    )
-                  )
-                ),
-              )
-            )
+           //TODO: Finish InputOptions
+            // Positioned(
+            //   bottom: 0.0,
+            //   child: SizeTransition(
+            //     sizeFactor: _inputOptionsExpansionController,
+            //     child: Material(
+            //       child: Container(
+            //         width: MediaQuery.of(context).size.width,
+            //         color: Theme.of(context).primaryColor,
+            //         child: InputOptions(controller: _selfTextController,)
+            //       )
+            //     ),
+            //   )
+            // )
           ]
         ),
       ),
@@ -483,19 +490,33 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
       ],
     );
   }
+}
 
-  List<Widget> get _getInputOptions => [
+class InputOptions extends StatelessWidget {
+  final TextEditingController controller;
+
+  String get _text => controller.text;
+  set _text(s) => controller.text = s;
+
+
+  const InputOptions({@required this.controller, key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Row(children: _buttons,),
+      scrollDirection: Axis.horizontal,
+    );
+  }
+
+  List<Widget> get _buttons => [
     IconButton(
       icon: Icon(Icons.format_bold),
-      onPressed: (){
-
-      },
+      onPressed: _handleBoldClick,
     ),
     IconButton(
       icon: Icon(Icons.format_clear),
-      onPressed: (){
-
-      },
+      onPressed: (){},
     ),
     IconButton(
       icon: Icon(Icons.format_italic),
@@ -505,4 +526,37 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     ),
     
   ];
+
+  void _handleBoldClick() {
+    var text = controller.text;
+    final initialLength = text.length;
+    final initialOffset = controller.selection.base.offset-1;
+    if (controller.selection.isCollapsed) {
+      if (text.isNotEmpty && (text[min(initialOffset, initialLength-1)] == '*' || text[max(initialOffset+1, 0)] == '*')) {
+        int start = _firstOccurrence(char: '*', startIndex: max(initialOffset, 0), direction: -1);
+        int end = _firstOccurrence(char: '*', startIndex: min(initialOffset, initialLength), direction: 1);
+        _text = text.replaceRange(
+          start-1, 
+          end+1, 
+          text.substring(start+1, end));
+      } else {
+        text += ' ** ';
+        controller.text = text;
+        controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+      }
+    }
+  }
+
+  int _firstOccurrence({String char, int startIndex, int direction}) {
+    for (var i = startIndex; (direction < 0) ? i > 0 : i < _text.length; direction < 0 ? i-- : i++) {
+      if (_text[i] == char) {
+        return i;
+      }
+    }
+    return direction < 0 ? 0 : _text.length-1;
+  }
+  String _replaceCharAt(String oldString, int index, String newChar) {
+    return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
+  }
+
 }

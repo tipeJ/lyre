@@ -1,13 +1,15 @@
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'bloc.dart';
 
 @immutable
 class PostsState extends Equatable {
+  final LoadingState state;
+  final errorMessage;
 
   //CONTENT
   final List<UserContent> userContent;
@@ -15,41 +17,34 @@ class PostsState extends Equatable {
   final dynamic target;
 
   //SORTING
-  TypeFilter temporaryType = currentSortType;
-  String temporaryTime = currentSortTime;
+  final TypeFilter temporaryType = currentSortType;
+  final String temporaryTime = currentSortTime;
 
   //LOGGED IN USER INFORMATION
-  RedditUser currentUser;
-
-  //WHEN TARGETING SELF
-  SelfContentType selfContentType;
+  final RedditUser currentUser;
 
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
-  WikiPage sideBar;
-  Subreddit subreddit;
-  List<StyleSheetImage> styleSheetImages;
-  String headerImage;
+  final WikiPage sideBar;
+  final Subreddit subreddit;
 
-  Box preferences;
 
   PostsState({
+    @required this.state,
     @required this.contentSource,
     @required this.target,
     @required this.userContent,
+    this.errorMessage,
     this.currentUser,
     this.sideBar,
-    this.styleSheetImages,
-    this.preferences,
     this.subreddit,
-    this.headerImage
   });
 
-  List<dynamic> get props => [userContent, target];
+  List<dynamic> get props => [state, userContent, target, errorMessage];
 
   String getSourceString({@required bool prefix}){
     switch (contentSource) {
       case ContentSource.Subreddit:
-        return '${prefix ? "r/" : ""}$currentSubreddit';
+        return '${prefix ? "r/" : ""}$target';
       case ContentSource.Redditor:
         return '${prefix ? "u/" : ""}$target';
       case ContentSource.Self:
@@ -62,7 +57,7 @@ class PostsState extends Equatable {
     String filterString = "";
 
     if(contentSource == ContentSource.Self){
-      switch (selfContentType) {
+      switch (target) {
         case SelfContentType.Comments:
           filterString = "Comments";
           break;

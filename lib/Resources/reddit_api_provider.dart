@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' show Client;
+import 'package:lyre/Models/models.dart' as rModel;
+import 'package:lyre/Models/reddit_content.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
-import '../Models/Subreddit.dart';
-import '../Models/User.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
 import 'credential_loader.dart';
@@ -193,7 +194,7 @@ class PostsProvider {
     return onCode.stream;
   }
 
-  Future<RedditUser> getLatestUser() async {
+  Future<rModel.RedditUser> getLatestUser() async {
     var list = await getAllUsers();
     if(list == null || list.isEmpty) return null;
     list.sort((user1, user2) => user1.date.compareTo(user2.date));
@@ -237,17 +238,20 @@ class PostsProvider {
   }
 
   ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
-  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, {String timeFilter, String redditor, ContentSource source}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, String contentTarget, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
     Map<String, String> params = new Map<String, String>();
 
-    if(loadMore)params["after"]="t3_$lastPost";
+    if(after != null)params["after"]= after;
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
 
-    if([
+    if(after != null) print(after + ' : ' + params.values.toString());
+    if (after == null) print('NULL');
+
+    if ([
       TypeFilter.Hot,
       TypeFilter.New,
       TypeFilter.Rising,
@@ -256,20 +260,22 @@ class PostsProvider {
       timeFilter = "";
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
+    // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
+    final target = contentTarget.trim();
 
     List<UserContent> v = [];
     if(timeFilter == ""){
       switch (typeFilter){
         case TypeFilter.New:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).newest(params: params).toList();
+            v = await reddit.subreddit(target).newest(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).newest(params: params).toList();
+            v = await reddit.redditor(target).newest(params: params).toList();
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).rising(params: params).toList();
+            v = await reddit.subreddit(target).rising(params: params).toList();
           }
           break;
         case TypeFilter.Gilded:
@@ -282,27 +288,27 @@ class PostsProvider {
           break;
         default: //Default to hot.
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(currentSubreddit).hot(params: params).toList();
+            v = await reddit.subreddit(target).hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).hot(params: params).toList();
+            v = await reddit.redditor(target).hot(params: params).toList();
           }
           break;
       }
-    }else{
-      var filter = parseTimeFilter(timeFilter);
+    } else {
+      final filter = parseTimeFilter(timeFilter);
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).controversial(timeFilter: filter, params: params).toList();
+              v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).controversial(timeFilter: filter, params: params).toList();
+            v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
           }
           break;
         default: //Default to top
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(currentSubreddit).top(timeFilter: filter, params: params).toList();
+              v = await reddit.subreddit(target).top(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(redditor).top(timeFilter: filter, params: params).toList();
+            v = await reddit.redditor(target).top(timeFilter: filter, params: params).toList();
           }
           break;
       }
@@ -311,10 +317,69 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: (source == ContentSource.Redditor ? redditor.toLowerCase() : currentSubreddit.toLowerCase())));
+      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target));
     }
     return v;
   }
+
+  // * Profile data fetching:
+
+  Future<List<UserContent>> fetchSelfUserContent(SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = "", String after}) async {
+    Map<String, String> params = new Map<String, String>();
+
+    if(after != null)params["after"]= after;
+
+    params["limit"] = perPage.toString();
+    params["raw_json"] = '1';
+    var r = await getRed();
+
+    var self = await r.user.me();
+    var filter = parseTimeFilter(timeFilter);
+    switch (contentType) {
+      case SelfContentType.Comments:
+        var comments = self.comments;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return comments.top(timeFilter: filter).toList();
+          case TypeFilter.Controversial:
+            return comments.controversial(timeFilter: filter).toList();
+          case TypeFilter.New:
+            return comments.newest().toList();
+          default:
+            //Default: Return hot
+            return comments.hot().toList();
+        }
+        break;
+      case SelfContentType.Hidden:
+        var hidden = self.hidden();
+        return hidden.toList();
+      case SelfContentType.Submitted:
+        var submitted = self.submissions;
+        switch (typeFilter) {
+          case TypeFilter.Top:
+            return submitted.top(timeFilter: filter).toList();
+          case TypeFilter.Controversial:
+            return submitted.controversial(timeFilter: filter).toList();
+          case TypeFilter.New:
+            return submitted.newest().toList();
+          default:
+            //Default: Return hot
+            return submitted.hot().toList();
+        }
+        break;
+      case SelfContentType.Upvoted:
+        var upvoted = self.upvoted();
+        return upvoted.toList();
+      case SelfContentType.Saved:
+        return self.saved().toList();
+      case SelfContentType.Watching:
+        // ! API Doesn't support
+      default:
+        return null; // Shouldn't happen
+    }
+  }
+
+  // * Subreddit infornation 
 
   Future<Subreddit> getSubreddit(String displayName) async {
     if (displayName == 'all') return null;
@@ -330,12 +395,8 @@ class PostsProvider {
     return styleSheet.images;
   }
 
-  Future<WikiPage> getWikiPage(String args, String displayName) async {
-    if (displayName == 'all') return null;
-    //return null;
+  Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
     try {    
-      final r = await getRed();
-      final subreddit = await r.subreddit(currentSubreddit).populate(); //Populate the subreddit
       final page = await subreddit.wiki[args].populate();
       return page;
     } catch (e) {
@@ -355,14 +416,14 @@ class PostsProvider {
     return result;
   }
 
-  Future<SubredditM> fetchSubReddits(String query) async{
+  Future<rModel.SubredditM> fetchSubReddits(String query) async{
     query.replaceAll(" ", "+");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
     var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
-      return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
+      return rModel.SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');
     }
@@ -428,56 +489,6 @@ class PostsProvider {
       values.add(object);
     });
     return values;
-  }
-
-  // * Profile data fetching:
-
-  Future<List<UserContent>> fetchSelfUserContent(bool loadMore, SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = ""}) async {
-    var r = await getRed();
-    var self = await r.user.me();
-    var filter = parseTimeFilter(timeFilter);
-    switch (contentType) {
-      case SelfContentType.Comments:
-        var comments = self.comments;
-        switch (typeFilter) {
-          case TypeFilter.Top:
-            return comments.top(timeFilter: filter).toList();
-          case TypeFilter.Controversial:
-            return comments.controversial(timeFilter: filter).toList();
-          case TypeFilter.New:
-            return comments.newest().toList();
-          default:
-            //Default: Return hot
-            return comments.hot().toList();
-        }
-        break;
-      case SelfContentType.Hidden:
-        var hidden = self.hidden();
-        return hidden.toList();
-      case SelfContentType.Submitted:
-        var submitted = self.submissions;
-        switch (typeFilter) {
-          case TypeFilter.Top:
-            return submitted.top(timeFilter: filter).toList();
-          case TypeFilter.Controversial:
-            return submitted.controversial(timeFilter: filter).toList();
-          case TypeFilter.New:
-            return submitted.newest().toList();
-          default:
-            //Default: Return hot
-            return submitted.hot().toList();
-        }
-        break;
-      case SelfContentType.Upvoted:
-        var upvoted = self.upvoted();
-        return upvoted.toList();
-      case SelfContentType.Saved:
-        return self.saved().toList();
-      case SelfContentType.Watching:
-        // ! API Doesn't support
-      default:
-        return null; // Shouldn't happen
-    }
   }
 
   //* Utilities: 

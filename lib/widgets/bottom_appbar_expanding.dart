@@ -92,6 +92,7 @@ class DraggableScrollableSheet extends StatefulWidget {
     this.minChildSize = 0.25,
     this.maxChildSize = 1.0,
     this.expand = true,
+    this.visible,
     @required this.builder,
   })  : assert(initialChildSize != null),
         assert(minChildSize != null),
@@ -134,6 +135,8 @@ class DraggableScrollableSheet extends StatefulWidget {
   /// use the provided [ScrollController] to enable dragging and scrolling
   /// of the contents.
   final ScrollableWidgetBuilder builder;
+
+  final ValueNotifier<bool> visible;
 
   @override
   _DraggableScrollableSheetState createState() => _DraggableScrollableSheetState();
@@ -549,7 +552,7 @@ class _InheritedResetNotifier extends InheritedNotifier<_ResetNotifier> {
   ///
   /// Returns true if the notifier requested a reset, false otherwise.
   static bool shouldReset(BuildContext context) {
-    final InheritedWidget widget = context.inheritFromWidgetOfExactType(_InheritedResetNotifier);
+    final InheritedWidget widget = context.dependOnInheritedWidgetOfExactType(aspect: _InheritedResetNotifier);
     if (widget == null) {
       return false;
     }
@@ -561,11 +564,12 @@ class _InheritedResetNotifier extends InheritedNotifier<_ResetNotifier> {
   }
 }
 
-class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> with SingleTickerProviderStateMixin {
+class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> with TickerProviderStateMixin {
   DraggableScrollableSheetScrollController _scrollController;
   DraggableSheetExtent _extent;
 
   AnimationController _extentAnimation;
+  AnimationController _visibilityAnimation;
 
   @override
   void initState() {
@@ -581,6 +585,17 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
       setState(() {
         _extent.setCurrentExtent(max(_extent.minExtent, _extentAnimation.value * _extent.maxExtent), _scrollController.position.context.notificationContext);
       });
+    });
+    _visibilityAnimation = AnimationController(vsync: this, duration: Duration(milliseconds: 750), value: 1.0);
+    _visibilityAnimation.addListener(() {
+      setState((){});
+    });
+    widget.visible.addListener(() {
+      if (_visible) {
+        _visibilityAnimation.animateTo(1.0, curve: Curves.ease);
+      } else {
+        _visibilityAnimation.animateTo(0.0, curve: Curves.ease);
+      }
     });
     _scrollController = DraggableScrollableSheetScrollController(extent: _extent);
   }
@@ -620,6 +635,8 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
     return Future.value(true);
   }
 
+  bool get _visible => widget.visible != null ? widget.visible.value : true;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -628,7 +645,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
         final Widget sheet = Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            height: _extent.currentExtent,
+            height: _extent.currentExtent - ((1 - _visibilityAnimation.value) * _extent.minExtent),
             child: ClipRRect(
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(_lerp(15.0, 0.0)),
@@ -664,6 +681,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
   void dispose() {
     _scrollController.dispose();
     _extentAnimation.dispose();
+    _visibilityAnimation.dispose();
     super.dispose();
   }
 }

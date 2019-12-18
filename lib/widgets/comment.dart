@@ -8,7 +8,7 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/widgets/ActionItems.dart';
 import 'package:lyre/screens/Animations/OnSlide.dart';
-import 'package:lyre/screens/comments/bloc/bloc.dart';
+import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import '../utils/redditUtils.dart';
@@ -406,7 +406,7 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
               if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
                 setState(() {
                   BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
-                  BlocProvider.of<CommentsBloc>(context).add(FetchMore(moreComments: widget.moreComments, location: widget.index));
+                  BlocProvider.of<CommentsBloc>(context).add(FetchMoreComments(moreComments: widget.moreComments, location: widget.index));
                 });
               }
             },

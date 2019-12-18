@@ -64,7 +64,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         _addCommentsFromForest(forest.comments);
       }
       yield CommentsState(submission: submission, comments: _comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
-    } else if(event is FetchMore){
+    } else if(event is FetchMoreComments){
       var more = event.moreComments;
       if(more.children != null && more.children.isNotEmpty){
         var results = await more.comments(update: true);

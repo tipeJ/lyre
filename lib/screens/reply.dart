@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix0;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
+import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
@@ -90,19 +93,33 @@ class _replyWindowState extends State<replyWindow> {
              children: <Widget>[
                IgnorePointer(
                  ignoring: _replySendingState != SendingState.Inactive,
-                 child: Column(
-                  children: <Widget>[
-                    widget.content is Comment
-                      ? CommentContent(widget.content, PreviewSource.PostsList)
-                      : postInnerWidget(widget.content, PreviewSource.Comments, PostView.ImagePreview),
-                    TextField(
-                      enabled: _replySendingState == SendingState.Inactive,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      controller: _replyController,
-                    ),
-                  ]
-                ),
+                 child: BlocBuilder<LyreBloc, LyreState>(
+                   builder: (context, state) {
+                     return Column(
+                      children: <Widget>[
+                        widget.content is Comment
+                          ? CommentContent(widget.content, PreviewSource.PostsList)
+                          : postInnerWidget(
+                              submission: widget.content as Submission,
+                              previewSource: PreviewSource.PostsList,
+                              linkType: getLinkType((widget.content as Submission).url.toString()),
+                              fullSizePreviews: state.fullSizePreviews,
+                              showCircle: state.showPreviewCircle,
+                              blurLevel: state.blurLevel.toDouble(),
+                              showNsfw: state.showNSFWPreviews,
+                              showSpoiler: state.showSpoilerPreviews,
+                              onOptionsClick: () {},
+                            ),
+                        TextField(
+                          enabled: _replySendingState == SendingState.Inactive,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          controller: _replyController,
+                        ),
+                      ]
+                    );
+                   },
+                 ),
                ),
               prefix0.Visibility (
                 visible: _replySendingState != SendingState.Inactive,

@@ -14,7 +14,6 @@ const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 const GFYCAT_CLIENT_ID = "2__lD9Ci";
 const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
-String currentSubreddit = "nocontextpics";
 String homeSubreddit;
 
 @HiveType(adapterName: "PostViewAdapter")
@@ -28,41 +27,6 @@ enum PostView{
   @HiveField(3)
   NoPreview
 }
-
-List<String> subreddits = [
-  "Popular",
-  "all",
-  "announcements",
-  "funny",
-  "AskReddit",
-  "gaming",
-  "pics",
-  "science",
-  "worldnews",
-  "aww",
-  "movies",
-  "todayilearned",
-  "videos",
-  "Music",
-  "IAmA",
-  "news",
-  "gifs",
-  "EarthPorn",
-  "Showerthoughts",
-  "askscience",
-  "blog",
-  "Jokes",
-  "explainlikeimfive",
-  "books",
-  "food",
-  "LifeProTips",
-  "DIY",
-  "mildlyinteresting",
-  "Art",
-  "sports",
-  "space",
-  "gadgets",
-];
 
 List<String> sortTypes = [
   "hot",
@@ -143,7 +107,6 @@ String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
 
 int perPage = 25;
 int currentCount = 0;
-String lastPost = "";
 
 bool preCollapsed = false;
 
@@ -151,3 +114,4 @@ List<Submission> recentlyViewed = [];
 
 // * String constants
 const clipBoardErrorMessage = "Clipboard is not Available";
+const noConnectionErrorMessage = "No Internet Connection.";

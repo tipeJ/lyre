@@ -2,18 +2,14 @@ import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/screens/submissions/bloc/posts_bloc.dart';
-import 'package:lyre/screens/submissions/bloc/posts_state.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/screens/comments/bloc/bloc.dart';
 import 'package:lyre/screens/comments/comment_list.dart';
 import 'package:lyre/screens/Preferences.dart';
 import 'package:lyre/screens/filters.dart';
 import 'package:lyre/screens/submissions/posts_list.dart';
+import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/screens/reply.dart';
-import 'package:lyre/screens/search/bloc/bloc.dart';
-import 'package:lyre/screens/search/bloc/search_communities_bloc.dart';
 import 'package:lyre/screens/search/search.dart';
 import 'package:lyre/screens/submit.dart';
 
@@ -21,29 +17,27 @@ class Router {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case 'posts':
-        String redditor = "";
         dynamic target;
         ContentSource source = ContentSource.Subreddit; //Default ContentSource
         
         if(settings.arguments != null){
+          print('notnull');
           final args = settings.arguments as Map<String, Object>;
-          redditor = args['redditor'] as String;
           source = args['content_source'] as ContentSource;
-        }
-        if (redditor.isNotEmpty) {
-          source = ContentSource.Redditor;
-        }
-
-        if (source == ContentSource.Redditor) {
-          target = redditor;
-        } else if (source == ContentSource.Subreddit) {
-          target = currentSubreddit;
+          if (source == ContentSource.Redditor || source == ContentSource.Subreddit) {
+            target = args['target'];
+            print('target: ' + target.toString());
+          } else {
+            target = SelfContentType.Comments;
+          }
         } else {
-          target = SelfContentType.Comments;
+          print('null');
+          target = homeSubreddit;
         }
 
         return MaterialPageRoute(builder: (_) => BlocProvider(
           create: (context) => PostsBloc(firstState: PostsState(
+            state: LoadingState.Inactive,
             userContent: [],
             contentSource: source,
             target: target
@@ -87,7 +81,8 @@ class Router {
           child: SearchUserContentView(),
         ));
       case 'submit':
-        return MaterialPageRoute(builder: (_) => SubmitWindow());
+        final args = settings.arguments as Map<String, Object>;
+        return MaterialPageRoute(builder: (_) => SubmitWindow(initialTargetSubreddit: args['initialTargetSubreddit'],));
       case 'reply':
         final args = settings.arguments as Map<String, Object>;
         final comment = args['content'] as UserContent;

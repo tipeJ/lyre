@@ -141,7 +141,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           IgnorePointer(
             ignoring: isPreviewing,
             child: 
-            
             Navigator(
               key: PreviewCall().navigatorKey,
               initialRoute: 'posts',

@@ -5,8 +5,7 @@ import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/screens/submissions/bloc/bloc.dart';
-import 'package:lyre/Resources/PreferenceValues.dart';
+import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
@@ -34,49 +33,40 @@ class SubmissionOptionsNotification extends Notification {
 }
 const _defaultColumnTextSize = 11.0;
 
-class postInnerWidget extends StatefulWidget {
-  postInnerWidget(this.submission, this.previewSource, [this.viewSetting, this.expanded])
-    : linkType = getLinkType(submission.url.toString());
+class postInnerWidget extends StatelessWidget{
+  const postInnerWidget({
+    this.submission, 
+    this.previewSource, 
+    this.linkType,
+    this.fullSizePreviews,
+    this.postView,
+    this.showCircle,
+    this.blurLevel,
+    this.showNsfw,
+    this.showSpoiler,
 
-  bool expanded = false;
-  LinkType linkType;
+    this.onOptionsClick
+  });
+
   final PreviewSource previewSource;
   final Submission submission;
-  final PostView viewSetting;
+  final LinkType linkType;
 
-  @override
-  _postInnerWidgetState createState() => _postInnerWidgetState();
-}
+  final bool fullSizePreviews;
+  final PostView postView;
+  final bool showCircle;
+  final double blurLevel;
+  final bool showNsfw;
+  final bool showSpoiler;
 
-class _postInnerWidgetState extends State<postInnerWidget> {
-  bool fullSizePreviews;
-
-  PostView postView;
-
-  bool showCircle;
-
-  double blurLevel;
-
-  bool showNsfw = false;
-
-  bool showSpoiler = false;
+  final VoidCallback onOptionsClick;
 
   Widget getWidget(BuildContext context){
-    if (widget.submission.isSelf) {
+    if (submission.isSelf) {
       return getDefaultSlideColumn(context);
     }
-    if (widget.submission.preview != null && widget.submission.preview.isNotEmpty) {
-      return BlocBuilder<LyreBloc, LyreState>(
-        builder: (context, state){
-          showCircle = state.settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? false;
-          fullSizePreviews = state.settings.get(IMAGE_SHOW_FULLSIZE) ?? false;
-          postView = widget.viewSetting ?? state.settings.get(SUBMISSION_VIEWMODE);
-          showNsfw = state.settings.get(SHOW_NSFW_PREVIEWS) ?? false;
-          showSpoiler = state.settings.get(SHOW_SPOILER_PREVIEWS) ?? false;
-          blurLevel = (state.settings.get(IMAGE_BLUR_LEVEL) ?? 20).toDouble();
-          return getMediaWidget(context);
-        }
-      );
+    if (submission.preview != null && submission.preview.isNotEmpty) {
+      return getMediaWidget(context);
     }
     return getDefaultSlideColumn(context);
   }
@@ -90,24 +80,24 @@ class _postInnerWidgetState extends State<postInnerWidget> {
       case PostView.Compact:
         return compactWidget(context);
       default:
-        return new defaultColumn(widget.submission, widget.previewSource, widget.linkType);
+        return new defaultColumn(submission, previewSource, linkType);
     }
   }
 
   Widget compactWidget(BuildContext context) {
-    return _getSlideColumn(
-      context,
+    return _SlideColumn(
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            child: defaultColumn(widget.submission, widget.previewSource, widget.linkType),
+            child: defaultColumn(submission, previewSource, linkType),
             width: MediaQuery.of(context).size.width * 0.9,
           ),
           getSquaredImage(context)
         ],
-      )
+      ),
+      submission: submission,
     );
   }
 
@@ -128,8 +118,8 @@ class _postInnerWidgetState extends State<postInnerWidget> {
         new Positioned(
           bottom: 0.0,
           child: 
-            (((!(showNsfw ?? false) && widget.submission.over18) ||    //Blur NSFW
-            (!(showSpoiler ?? false) && widget.submission.spoiler)) && widget.previewSource == PreviewSource.PostsList)   //Blur Spoiler
+            (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
+            (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
               ? new BackdropFilter(
                 filter: ImageFilter.blur(
                   sigmaX: blurLevel,
@@ -144,11 +134,11 @@ class _postInnerWidgetState extends State<postInnerWidget> {
               : new Container(
                   width: MediaQuery.of(context).size.width,
                   color: Colors.black,
-                  child: getDefaultSlideColumn(context),
+                  child: defaultColumn(submission, previewSource, linkType),
                 ),
         ),
-        ((widget.submission.over18 && !showNsfw || (widget.submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(widget.linkType))
-          ? getCenteredIndicator(widget.linkType, showCircle)
+        ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
+          ? getCenteredIndicator(linkType, showCircle)
           : null
     ].where((w) => notNull(w)).toList());
   }
@@ -156,7 +146,7 @@ class _postInnerWidgetState extends State<postInnerWidget> {
   Widget getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
     var y = 250.0; //Default preview height
-    final preview = widget.submission.preview.first;
+    final preview = submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
     }
@@ -182,7 +172,7 @@ class _postInnerWidgetState extends State<postInnerWidget> {
         width: double.infinity,
         height: double.infinity,
         image: AdvancedNetworkImage(
-          widget.submission.preview.last.source.url.toString(),
+          submission.preview.last.source.url.toString(),
           useDiskCache: true,
           cacheRule: const CacheRule(maxAge: const Duration(days: 7))
         ),
@@ -196,7 +186,6 @@ class _postInnerWidgetState extends State<postInnerWidget> {
         _handlePress(context);
       },
       onLongPressUp: (){
-        print('FIRTCALL');
         PreviewCall().callback.previewEnd();
       },
     );
@@ -211,36 +200,36 @@ class _postInnerWidgetState extends State<postInnerWidget> {
   }
 
   void handleClick(BuildContext context){
-    if(widget.linkType == LinkType.YouTube){
+    if(linkType == LinkType.YouTube){
       //TODO: Implement YT plugin?
-      launchURL(context, widget.submission);
-    } else if(widget.linkType == LinkType.Default){
-      launchURL(context, widget.submission);
-    } else if (widget.linkType == LinkType.RedditVideo){
-      PreviewCall().callback.preview(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+      launchURL(context, submission);
+    } else if(linkType == LinkType.Default){
+      launchURL(context, submission);
+    } else if (linkType == LinkType.RedditVideo){
+      PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      print("URL:" + widget.submission.url.toString());
-      PreviewCall().callback.preview(widget.submission.url.toString());
+      print("URL:" + submission.url.toString());
+      PreviewCall().callback.preview(submission.url.toString());
     }
   }
 
   void _handlePress(BuildContext context){
     ///Do not QuickPreview the Album Url, show only the first image
-    if (albumLinkTypes.contains(widget.linkType)) {
-      PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+    if (albumLinkTypes.contains(linkType)) {
+      PreviewCall().callback.preview(submission.preview.first.source.url.toString());
     }
-    switch (widget.linkType) {
+    switch (linkType) {
       case LinkType.YouTube:
-        PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(widget.submission.url.toString())));
+        PreviewCall().callback.preview(getYoutubeThumbnailFromId(getYoutubeIdFromUrl(submission.url.toString())));
         break;
       case LinkType.RedditVideo:
-        PreviewCall().callback.preview(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+        PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
         break;
       case LinkType.Default:
-        PreviewCall().callback.preview(widget.submission.preview.first.source.url.toString());
+        PreviewCall().callback.preview(submission.preview.first.source.url.toString());
         break;
       default:
-        PreviewCall().callback.preview(widget.submission.url.toString());
+        PreviewCall().callback.preview(submission.url.toString());
         break;
     }
   }
@@ -268,10 +257,10 @@ class _postInnerWidgetState extends State<postInnerWidget> {
 
   Widget getIndicator(LinkType type){
     Widget content;
-    if((widget.submission.over18 && !showNsfw) || (widget.submission.spoiler && !showSpoiler)){
+    if((submission.over18 && !showNsfw) || (submission.spoiler && !showSpoiler)){
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
-        Text(widget.submission.over18 ? "NSFW" : "SPOILER"),
+        Text(submission.over18 ? "NSFW" : "SPOILER"),
         const Divider(indent: 250,endIndent: 250,)
       ],);
     } else if (videoLinkTypes.contains(type)){
@@ -281,11 +270,42 @@ class _postInnerWidgetState extends State<postInnerWidget> {
   }
 
   Widget getDefaultSlideColumn(BuildContext context){
-    return _getSlideColumn(context, child: defaultColumn(widget.submission, widget.previewSource, widget.linkType));
+    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType), submission: submission,);
   }
 
-  ///Sliding style column for [Submission] Widgets
-  Widget _getSlideColumn(BuildContext context, {Widget child}){
+
+  Widget build(BuildContext context) {
+    return Padding(
+      child: Container(
+        child: getWidget(context),
+        color: Theme.of(context).cardColor,
+      ),
+      padding: const EdgeInsets.only(
+        //The gap bewtween the widgets.
+        bottom: 5.0
+      ),
+    );
+  }
+}
+
+///Sliding style column for [Submission] Widgets
+class _SlideColumn extends StatefulWidget {
+  const _SlideColumn({
+    Key key,
+    @required this.submission,
+    @required this.child
+  }) : super(key: key);
+
+  final Submission submission;
+  final Widget child;
+
+  @override
+  __SlideColumnState createState() => __SlideColumnState();
+}
+
+class __SlideColumnState extends State<_SlideColumn> {
+  @override
+  Widget build(BuildContext context) {
     return new OnSlide(
       items: <ActionItems>[
         ActionItems(
@@ -343,21 +363,8 @@ class _postInnerWidgetState extends State<postInnerWidget> {
           }
         ),
       ],
-      child: child,
+      child: widget.child,
       backgroundColor: Colors.transparent,
-    );
-  }
-
-  Widget build(BuildContext context) {
-    return Padding(
-      child: Container(
-        child: getWidget(context),
-        color: Theme.of(context).cardColor,
-      ),
-      padding: const EdgeInsets.only(
-        //The gap bewtween the widgets.
-        bottom: 5.0
-      ),
     );
   }
 }

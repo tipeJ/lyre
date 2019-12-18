@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -21,9 +19,9 @@ enum SubmitType{
 }
 
 class SubmitWindow extends StatefulWidget{
-  String initialTargetSubreddit;
+  final String initialTargetSubreddit;
 
-  SubmitWindow({@required this.initialTargetSubreddit}) : assert(initialTargetSubreddit != null);
+  const SubmitWindow({this.initialTargetSubreddit = ""});
 
   State<SubmitWindow> createState() => new SubmitWidgetState();
 }
@@ -374,20 +372,19 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
               },
               body: _getInputWidget()
             ),
-           //TODO: Finish InputOptions
-            // Positioned(
-            //   bottom: 0.0,
-            //   child: SizeTransition(
-            //     sizeFactor: _inputOptionsExpansionController,
-            //     child: Material(
-            //       child: Container(
-            //         width: MediaQuery.of(context).size.width,
-            //         color: Theme.of(context).primaryColor,
-            //         child: InputOptions(controller: _selfTextController,)
-            //       )
-            //     ),
-            //   )
-            // )
+            Positioned(
+              bottom: 0.0,
+              child: SizeTransition(
+                sizeFactor: _inputOptionsExpansionController,
+                child: Material(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Theme.of(context).primaryColor,
+                    child: InputOptions(controller: _selfTextController,)
+                  )
+                ),
+              )
+            )
           ]
         ),
       ),
@@ -496,57 +493,69 @@ class InputOptions extends StatelessWidget {
   final TextEditingController controller;
 
   String get _text => controller.text;
-  set _text(s) => controller.text = s;
-
 
   const InputOptions({@required this.controller, key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Row(children: _buttons,),
+      child: Material(
+        color: Theme.of(context).primaryColor,
+        child: Row(children: _buttons,)
+      ),
       scrollDirection: Axis.horizontal,
     );
   }
 
+  /// InputOptions buttons
   List<Widget> get _buttons => [
     IconButton(
       icon: Icon(Icons.format_bold),
       onPressed: _handleBoldClick,
     ),
     IconButton(
-      icon: Icon(Icons.format_clear),
-      onPressed: (){},
+      icon: Icon(Icons.format_italic),
+      onPressed: _handleItalicsClick,
     ),
     IconButton(
-      icon: Icon(Icons.format_italic),
-      onPressed: (){
-
-      },
+      icon: Icon(Icons.format_quote),
+      onPressed: _handleQuoteClick,
     ),
-    
   ];
 
   void _handleBoldClick() {
     var text = controller.text;
-    final initialLength = text.length;
     final initialOffset = controller.selection.base.offset-1;
     if (controller.selection.isCollapsed) {
-      if (text.isNotEmpty && (text[min(initialOffset, initialLength-1)] == '*' || text[max(initialOffset+1, 0)] == '*')) {
-        int start = _firstOccurrence(char: '*', startIndex: max(initialOffset, 0), direction: -1);
-        int end = _firstOccurrence(char: '*', startIndex: min(initialOffset, initialLength), direction: 1);
-        _text = text.replaceRange(
-          start-1, 
-          end+1, 
-          text.substring(start+1, end));
-      } else {
-        text += ' ** ';
-        controller.text = text;
-        controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
-      }
+      text += '****';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
     }
   }
 
+  void _handleItalicsClick() {
+    var text = controller.text;
+    final initialOffset = controller.selection.base.offset-1;
+    if (controller.selection.isCollapsed) {
+      text += '**';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+    }
+  }
+
+  void _handleQuoteClick() {
+    var text = _text;
+    final initialOffset = controller.selection.base.offset-1;
+    final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
+    if (controller.selection.isCollapsed) {
+      text = StringUtils.addCharAtPosition(text, '>', lineBreak == 0 ? lineBreak : lineBreak + 1);
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+    }
+  }
+
+  /// Find the first occurrence of given [String] char. Starts from the startIndex parameters and moves in direction determined by the direction paramter
+  /// (negative for towards the start, positive for towards the end)
   int _firstOccurrence({String char, int startIndex, int direction}) {
     for (var i = startIndex; (direction < 0) ? i > 0 : i < _text.length; direction < 0 ? i-- : i++) {
       if (_text[i] == char) {
@@ -558,5 +567,4 @@ class InputOptions extends StatelessWidget {
   String _replaceCharAt(String oldString, int index, String newChar) {
     return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
   }
-
 }

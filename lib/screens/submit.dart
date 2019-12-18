@@ -528,6 +528,10 @@ class InputOptions extends StatelessWidget {
       onPressed: _handleStrikethroughClick,
     ),
     IconButton(
+      icon: Icon(MdiIcons.eyeOff),
+      onPressed: _handleSpoilerClick,
+    ),
+    IconButton(
       icon: Icon(Icons.format_quote),
       onPressed: _handleQuoteClick,
     ),
@@ -580,6 +584,17 @@ class InputOptions extends StatelessWidget {
       text += '~~~~';
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+    }
+  }
+
+  void _handleSpoilerClick() {
+    if (controller.selection.isCollapsed) {
+      var text = controller.text;
+      final initialOffset = controller.selection.base.offset;
+
+      text += '>!!<';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
     }
   }
 
@@ -680,6 +695,7 @@ class InputOptions extends StatelessWidget {
     return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
   }
 }
+
 class _LinkInputSheet extends StatefulWidget {
   const _LinkInputSheet({@required this.onSubmitted, Key key}) : super(key: key);
 

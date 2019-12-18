@@ -9,6 +9,7 @@ import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/widgets/CustomExpansionTile.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/utils/share_utils.dart';
@@ -436,7 +437,18 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     Scaffold.of(context).showBottomSheet(
                       (context) => _submissionOptionsSheet(context)
                     );
+                  } else if (notification is ScrollNotification) {
+                    if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
+                      BlocProvider.of<PostsBloc>(context).add(FetchMore());
                     }
+                    if (notification.depth == 0 && notification is ScrollUpdateNotification) {
+                      if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
+                        _appBarVisibleNotifier.value = false;
+                      } else if (notification.scrollDelta <= -10.0){
+                        _appBarVisibleNotifier.value = true;
+                      }
+                    }
+                  }
                   return false;
                 },
               ),
@@ -624,8 +636,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               if (q == "hot" || q == "new" || q == "rising") {
                 parseTypeFilter(q);
                 currentSortTime = "";
-                  BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
-                  _change_ParamsVisibility();
+                Scaffold.of(context).showBodyScrim(true, 0.6);
+                _change_ParamsVisibility();
               } else {
                 _tempType = q;
                 _changeTypeVisibility();
@@ -1227,11 +1239,15 @@ class _submissionList extends StatelessWidget {
               } else {
                 return _buildList(state, context);
               }
+            } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
+              // Return error message
+              return const Center(child: Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage,));
             } else {
-              return Center(child: CircularProgressIndicator());
+              // Return loading indicator
+              return const Center(child: CircularProgressIndicator());
             }
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       )
@@ -1239,145 +1255,139 @@ class _submissionList extends StatelessWidget {
   }
   Widget _buildList(PostsState postsState, BuildContext context) {
     var posts = postsState.userContent;
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
-          BlocProvider.of<PostsBloc>(context).add(FetchMore());
-        }
-        if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-          if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
-            //_appBarVisibleNotifier.value = false;
-          } else if (notification.scrollDelta <= -10.0){
-            //_appBarVisibleNotifier.value = true;
-            //navBarController.setVisibility(true);
-          }
-        }
-        return false;
-      },
-      child: CustomScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverPadding(
-            padding: EdgeInsets.only(bottom: 5.0),
-            sliver: SliverAppBar(
-              expandedHeight: 125.0,
-              floating: false,
-              pinned: false,
-              backgroundColor: Theme.of(context).canvasColor,
-              actions: <Widget>[
-                BlocBuilder<LyreBloc, LyreState>(
-                  builder: (BuildContext context, lyreState) {
-                    print('REBUILT');
-                    return Container(
-                      color: Colors.black54,
-                      margin: EdgeInsets.all(10.0),
-                      child: ToggleButtons(
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.all(10.0),
-                            child: postsState.contentSource == ContentSource.Subreddit
-                              ? Text(
-                                lyreState.isSubscribed(postsState.target) ? "Unsubscribe" : "Subscribe",
-                              )
-                              : Text(
-                                //TODO: Add friend button
-                                true ? "Friend" : "Unfriend",
-                              )
-                          )
-                        ],
-                        disabledColor: Colors.white70,
-                        isSelected: [
-                          postsState.contentSource == ContentSource.Subreddit ? lyreState.isSubscribed(postsState.target) : true
-                        ],
-                        onPressed: (i) {
-                          if (postsState.contentSource == ContentSource.Subreddit) {
-                            if (lyreState.isSubscribed(postsState.target)) {
-                              BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: postsState.target));
-                            } else {
-                              BlocProvider.of<LyreBloc>(context).add(Subscribe(subreddit: postsState.target));
-                            }
+    return CustomScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
+      slivers: <Widget>[
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: 5.0),
+          sliver: SliverAppBar(
+            expandedHeight: 125.0,
+            floating: false,
+            pinned: false,
+            backgroundColor: Theme.of(context).canvasColor,
+            actions: <Widget>[
+              BlocBuilder<LyreBloc, LyreState>(
+                builder: (BuildContext context, lyreState) {
+                  return Container(
+                    color: LyreColors.subscribeColor,
+                    margin: EdgeInsets.all(10.0),
+                    child: ToggleButtons(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: postsState.contentSource == ContentSource.Subreddit
+                            ? Text(
+                              lyreState.isSubscribed(postsState.target) ? "Unsubscribe" : "Subscribe",
+                            )
+                            : Text(
+                              //TODO: Add friend button
+                              true ? "Friend" : "Unfriend",
+                            )
+                        )
+                      ],
+                      fillColor: LyreColors.unsubscribeColor,
+                      selectedColor: Colors.white70,
+                      renderBorder: false,
+                      isSelected: [
+                        postsState.contentSource == ContentSource.Subreddit ? lyreState.isSubscribed(postsState.target) : true
+                      ],
+                      onPressed: (i) {
+                        if (postsState.contentSource == ContentSource.Subreddit) {
+                          if (lyreState.isSubscribed(postsState.target)) {
+                            BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: postsState.target));
                           } else {
-                            
+                            BlocProvider.of<LyreBloc>(context).add(Subscribe(subreddit: postsState.target));
                           }
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ],
-              automaticallyImplyLeading: false,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: false,
-                titlePadding: EdgeInsets.only(
-                  left: 10.0,
-                  bottom: 5.0
-                  ),
-                title: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
-                  child: Text(
-                    // TODO: Fix this shit (can't add / without causing a new line automatically)
-                    postsState.getSourceString(prefix: false),
-                    softWrap: true,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                ),
-                collapseMode: CollapseMode.parallax,
-                background: postsState.subreddit != null && postsState.subreddit.mobileHeaderImage != null
-                  ? 
-                  FadeInImage(
-                    placeholder: MemoryImage(kTransparentImage),
-                    image: AdvancedNetworkImage(
-                      postsState.subreddit.mobileHeaderImage.toString(),
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
+                        } else {
+                          
+                        }
+                      },
                     ),
-                    fit: BoxFit.cover
-                  )
-                  // Container()
-                  : Container() // TODO: Placeholder image
+                  );
+                },
               ),
+            ],
+            automaticallyImplyLeading: false,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: EdgeInsets.only(
+                left: 10.0,
+                bottom: 5.0
+                ),
+              title: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
+                child: Text(
+                  // TODO: Fix this shit (can't add / without causing a new line automatically)
+                  postsState.getSourceString(prefix: false),
+                  softWrap: true,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              ),
+              collapseMode: CollapseMode.parallax,
+              background: postsState.subreddit != null && postsState.subreddit.mobileHeaderImage != null
+                ? 
+                FadeInImage(
+                  placeholder: MemoryImage(kTransparentImage),
+                  image: AdvancedNetworkImage(
+                    postsState.subreddit.mobileHeaderImage.toString(),
+                    useDiskCache: true,
+                    cacheRule: const CacheRule(maxAge: Duration(days: 3)),
+                  ),
+                  fit: BoxFit.cover
+                )
+                // Container()
+                : Container() // TODO: Placeholder image
             ),
           ),
-          BlocBuilder<LyreBloc, LyreState>(
-            builder: (context, state) {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    if (i == posts.length) {
-                      return Container(
-                        color: Theme.of(context).primaryColor,
-                        child: FlatButton(
-                          onPressed: () {
-                            BlocProvider.of<PostsBloc>(context).add(FetchMore());
-                          },
-                          child: BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore ? const CircularProgressIndicator() : const Text("Load More")),
-                      );
-                    } else if (posts[i] is draw.Submission) {
-                      final submission = posts[i] as draw.Submission;
-                      final linkType = getLinkType(submission.url.toString());
-                      return postInnerWidget(
-                        submission: posts[i] as draw.Submission,
-                        previewSource: PreviewSource.PostsList,
-                        linkType: linkType,
-                        fullSizePreviews: state.fullSizePreviews,
-                        showCircle: state.showPreviewCircle,
-                        blurLevel: state.blurLevel.toDouble(),
-                        showNsfw: state.showNSFWPreviews,
-                        showSpoiler: state.showSpoilerPreviews,
-                        onOptionsClick: () {
-                          SubmissionOptionsNotification(submission: submission)..dispatch(context);
+        ),
+        BlocBuilder<LyreBloc, LyreState>(
+          builder: (context, state) {
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) {
+                  if (i == posts.length) {
+                    return Container(
+                      color: Theme.of(context).primaryColor,
+                      child: FlatButton(
+                        onPressed: () {
+                          BlocProvider.of<PostsBloc>(context).add(FetchMore());
                         },
-                      );
-                    }
-                  },
-                  childCount: posts.length+1,
-                )
-              );
-            },
-          )
-        ],
-      )
+                        child: Builder(
+                          builder: (context) {
+                            if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore) {
+                              return const CircularProgressIndicator();
+                            } else if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.Error) {
+                              return const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage);
+                            }
+                            return const Text("Load More");
+                          },
+                        )
+                    ));
+                  } else if (posts[i] is draw.Submission) {
+                    final submission = posts[i] as draw.Submission;
+                    final linkType = getLinkType(submission.url.toString());
+                    return postInnerWidget(
+                      submission: posts[i] as draw.Submission,
+                      previewSource: PreviewSource.PostsList,
+                      linkType: linkType,
+                      fullSizePreviews: state.fullSizePreviews,
+                      showCircle: state.showPreviewCircle,
+                      blurLevel: state.blurLevel.toDouble(),
+                      showNsfw: state.showNSFWPreviews,
+                      showSpoiler: state.showSpoilerPreviews,
+                      onOptionsClick: () {
+                        SubmissionOptionsNotification(submission: submission)..dispatch(context);
+                      },
+                    );
+                  }
+                },
+                childCount: posts.length+1,
+              )
+            );
+          },
+        )
+      ],
     );
   }
 }
@@ -1482,7 +1492,9 @@ class _subredditsList extends State<ExpandingSheetContent> {
                     PopupMenuButton<String>(
                       elevation: 3.2,
                       onSelected: (s) {
-                        },
+                        // Unsubscribe
+                        BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: subreddits[i]));
+                      },
                       itemBuilder: (context) {
                         return _subListOptions.map((s) {
                           return PopupMenuItem<String>(

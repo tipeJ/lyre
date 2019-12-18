@@ -115,3 +115,4 @@ List<Submission> recentlyViewed = [];
 
 // * String constants
 const clipBoardErrorMessage = "Clipboard is not Available";
+const noConnectionErrorMessage = "No Internet Connection. Try Again Later";

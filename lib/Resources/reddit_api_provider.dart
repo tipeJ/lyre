@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' show Client;
+import 'package:lyre/Models/models.dart' as rModel;
+import 'package:lyre/Models/reddit_content.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
-import '../Models/Subreddit.dart';
-import '../Models/User.dart';
 import 'globals.dart';
 import 'package:draw/draw.dart';
 import 'credential_loader.dart';
@@ -193,7 +194,7 @@ class PostsProvider {
     return onCode.stream;
   }
 
-  Future<RedditUser> getLatestUser() async {
+  Future<rModel.RedditUser> getLatestUser() async {
     var list = await getAllUsers();
     if(list == null || list.isEmpty) return null;
     list.sort((user1, user2) => user1.date.compareTo(user2.date));
@@ -237,12 +238,12 @@ class PostsProvider {
   }
 
   ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
-  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String content, {String timeFilter, ContentSource source}) async {
+  Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, bool loadMore, String content, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
     Map<String, String> params = new Map<String, String>();
 
-    if(loadMore)params["after"]="t3_$lastPost";
+    if(loadMore)params["after"]= after;
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
@@ -317,6 +318,7 @@ class PostsProvider {
     }
     return v;
   }
+  
 
   Future<Subreddit> getSubreddit(String displayName) async {
     if (displayName == 'all') return null;
@@ -353,14 +355,14 @@ class PostsProvider {
     return result;
   }
 
-  Future<SubredditM> fetchSubReddits(String query) async{
+  Future<rModel.SubredditM> fetchSubReddits(String query) async{
     query.replaceAll(" ", "+");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
     var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
-      return SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
+      return rModel.SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');
     }

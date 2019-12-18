@@ -15,11 +15,11 @@ class SortChanged extends CommentsEvent{
 
   List<dynamic> get props => [submission, commentSortType];
 }
-class FetchMore extends CommentsEvent{
+class FetchMoreComments extends CommentsEvent{
   final MoreComments moreComments;
   final int location;
   
-  FetchMore({
+  FetchMoreComments({
     @required this.moreComments,
     @required this.location,
   });

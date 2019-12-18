@@ -2,13 +2,13 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/screens/comments/bloc/bloc.dart';
-import 'package:lyre/screens/comments/bloc/comments_bloc.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
 import '../../Resources/globals.dart';
+import 'package:lyre/Bloc/bloc.dart';
 
 const selection_image = "Image";
 const selection_album = "Album";
@@ -58,17 +58,33 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
         endDrawer: Drawer(
           child: Container(
             padding: EdgeInsets.all(10.0),
-            child: ListView.builder(
-              itemCount: recentlyViewed.length+1,
-              itemBuilder: (context, i){
-                return i == 0
-                  ? Text(
-                    "Recently Viewed",
-                    style: TextStyle(
-                      fontSize: 26.0,
-                    ),
-                  )
-                  : postInnerWidget(recentlyViewed[i-1], PreviewSource.Comments, PostView.Compact,);
+            child: BlocBuilder<LyreBloc, LyreState>(
+              builder: (context, state) {
+                return ListView.builder(
+                  itemCount: recentlyViewed.length+1,
+                  itemBuilder: (context, i){
+                    return i == 0
+                      ? Text(
+                        "Recently Viewed",
+                        style: TextStyle(
+                          fontSize: 26.0,
+                        ),
+                      )
+                      : postInnerWidget(
+                          submission: recentlyViewed[i-1], 
+                          previewSource: PreviewSource.Comments,
+                          postView: PostView.Compact,
+                          fullSizePreviews: state.fullSizePreviews,
+                          showCircle: state.showPreviewCircle,
+                          blurLevel: state.blurLevel.toDouble(),
+                          showNsfw: state.showNSFWPreviews,
+                          showSpoiler: state.showSpoilerPreviews,
+                          onOptionsClick: () {
+                            
+                          },
+                        );
+                  },
+                );
               },
             ),
           ),
@@ -85,7 +101,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                             sliver: SliverToBoxAdapter(
                               child:  Hero(
                                 tag: 'post_hero ${(state.submission as Submission).id}',
-                                child:  postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
+                                child:  Container()//postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
                               ),
                             ),
                           ),

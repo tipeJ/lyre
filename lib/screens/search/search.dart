@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
-import 'package:lyre/screens/search/bloc/bloc.dart';
-import 'package:lyre/screens/search/bloc/search_communities_bloc.dart';
-import 'package:lyre/screens/search/bloc/search_communities_event.dart';
-import 'package:lyre/screens/search/bloc/search_communities_state.dart';
+import 'package:lyre/Bloc/bloc.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SearchCommunitiesView extends StatefulWidget {
@@ -153,24 +152,38 @@ class _SearchUserContentViewState extends State<SearchUserContentView> with Sing
             child: const Center(child: const CircularProgressIndicator(),),
           );
         } else {
-          return ListView.builder(
-            itemBuilder: (context, i) {
-                if (i == state.results.length) {
-                  return FlatButton(
-                    child: state.loading && state.results.isNotEmpty ? CircularProgressIndicator() : Text('Load More'),
-                    onPressed: () {
-                      //BlocProvider.of<SearchUsercontentBloc>(context).add(LoadMoreCommunities());
-                    },
-                  );
-                }
-                final object = state.results[i];
-                if (object is Comment) {
-                  return CommentContent(object, PreviewSource.PostsList);
-                } else if (object is Submission) {
-                  return postInnerWidget(object, PreviewSource.Comments);
-                }
-              },
-              itemCount: state.results.length + 1,
+          return BlocBuilder<LyreBloc, LyreState>(
+            builder: (context, lyreState) {
+              return ListView.builder(
+                itemBuilder: (context, i) {
+                    if (i == state.results.length) {
+                      return FlatButton(
+                        child: state.loading && state.results.isNotEmpty ? CircularProgressIndicator() : Text('Load More'),
+                        onPressed: () {
+                          //BlocProvider.of<SearchUsercontentBloc>(context).add(LoadMoreCommunities());
+                        },
+                      );
+                    }
+                    final object = state.results[i];
+                    if (object is Comment) {
+                      return CommentContent(object, PreviewSource.PostsList);
+                    } else if (object is Submission) {
+                      return postInnerWidget(
+                        submission: object,
+                        previewSource: PreviewSource.PostsList,
+                        linkType: getLinkType(object.url.toString()),
+                        fullSizePreviews: lyreState.fullSizePreviews,
+                        showCircle: lyreState.showPreviewCircle,
+                        blurLevel: lyreState.blurLevel.toDouble(),
+                        showNsfw: lyreState.showNSFWPreviews,
+                        showSpoiler: lyreState.showSpoilerPreviews,
+                        onOptionsClick: () {},
+                      );
+                    }
+                  },
+                  itemCount: state.results.length + 1,
+              );
+            },
           );
         }
       },

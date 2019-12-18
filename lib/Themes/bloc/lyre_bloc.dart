@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:basic_utils/basic_utils.dart';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
@@ -70,22 +71,37 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         subs: subscriptions
       ));
     } else if (event is UnSubscribe) {
-      final subList = state.subscriptions;
-      final index = subList.indexOf(event.subreddit);
+      final index = state.subscriptions.indexOf(StringUtils.capitalize(event.subreddit));
+      //IF element is found, delete the entry from the subscription lists
       if (index != -1) {
+        final subList = List<String>();
+        subList.addAll(state.subscriptions);
+
+        subList.removeAt(index);
+        yield _changeState(subs: subList);
+
         final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
         //Delete the subreddit from the subreddit box.
-        subList.removeAt(index);
-        subscriptionsBox.deleteAt(index);
-        yield _changeState(subs: subList);
+        final subreddit = subList[index];
+        final subscriptionsBoxValue = subscriptionsBox.values.toList();
+        for (var i = 0; i < subscriptionsBoxValue.length; i++) {
+          if (subscriptionsBoxValue[i] == subreddit) {
+            subscriptionsBox.deleteAt(i);
+            break;
+          }
+        }
       }
     } else if (event is Subscribe) {
-      if (!state.subscriptions.contains(event.subreddit)) {
+      final subreddit = StringUtils.capitalize(event.subreddit).trim();
+      final subList = List<String>();
+      subList.addAll(state.subscriptions);
+      if (!subList.contains(subreddit)) {
         final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
         //Delete the subreddit from the subreddit box.
-        state.subscriptions.add(event.subreddit);
-        subscriptionsBox.add(event.subreddit);
-        yield _changeState(subs: state.subscriptions);
+        subList.add(subreddit);
+        subscriptionsBox.add(subreddit);
+        yield _changeState(subs: subList);
+        await subscriptionsBox.close();
       }
     }
   }
@@ -134,13 +150,13 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
     //Load the asset file where the default subscriptions are stored.
     final defaultSubscriptionsFile = await rootBundle.loadString(DEFAULT_SUBSCRIPTIONS_FILEPATH);
     //Add default subscriptions from the asset file, splitting the string by line breaks.
-    final defaultSubscriptions = defaultSubscriptionsFile.split('\n');
+    final defaultSubscriptions = defaultSubscriptionsFile.split('\n').map((s) => StringUtils.capitalize(s).trim()).toList();
     subscriptions.addAll(defaultSubscriptions);
     subscriptionsBox.addAll(defaultSubscriptions);
   } else {
     //Add the default from the box to the state file.
     subscriptionsBox.values.forEach((value) {
-      subscriptions.add(value as String);
+      subscriptions.add((value as String).trim());
     });
   }
 
@@ -193,7 +209,7 @@ Future<LyreState> getFirstLyreState() async {
 
       enableImageRotation: settings.get(IMAGE_ENABLE_ROTATION),
       enableVideoRotation: settings.get(VIDEO_ENABLE_ROTATION),
-      blurLevel: settings.get(IMAGE_BLUR_LEVEL),
+      blurLevel: settings.get(IMAGE_BLUR_LEVEL, defaultValue: 20),
       fullSizePreviews: settings.get(IMAGE_SHOW_FULLSIZE),
       loopVideos: settings.get(VIDEO_LOOP),
       autoMuteVideos: settings.get(VIDEO_AUTO_MUTE),

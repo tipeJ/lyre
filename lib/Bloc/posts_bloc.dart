@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Models/User.dart';
+import 'package:lyre/Models/reddit_content.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Resources/repository.dart';
@@ -54,7 +55,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           userContent = await _repository.fetchPostsFromRedditor(false, target);
           break;
         case ContentSource.Self:
-          userContent = await _repository.fetchPostsFromSelf(false, target);
+         userContent = await _repository.fetchPostsFromSelf(false, target);
           break;
       }
 
@@ -96,18 +97,17 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         target: state.target,
         userContent: state.userContent
       );
-      lastPost = state.userContent.last is Comment
-        ? (state.userContent.last as Comment).id
-        : (state.userContent.last as Submission).id;
+      final last = state.userContent.last;
+      final after = last is Submission ? last.fullname : (last as Comment).fullname;
       
       var fetchedContent = List<UserContent>();
       
       switch (state.contentSource) {
         case ContentSource.Subreddit:
-          fetchedContent = await _repository.fetchPostsFromSubreddit(true, state.target);
+          fetchedContent = await _repository.fetchPostsFromSubreddit(true, state.target, after);
           break;
         case ContentSource.Redditor:
-          fetchedContent = await _repository.fetchPostsFromRedditor(false, this.state.target);
+          fetchedContent = await _repository.fetchPostsFromRedditor(true, this.state.target, after);
           break;
         case ContentSource.Self:
           fetchedContent = await _repository.fetchPostsFromSelf(false, this.state.target);
@@ -130,6 +130,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 }
 enum LoadingState {
   Inactive,
+  Error,
   LoadingMore,
   Refreshing,
 }

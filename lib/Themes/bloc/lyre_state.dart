@@ -1,7 +1,7 @@
+import 'package:basic_utils/basic_utils.dart';
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:meta/meta.dart';
@@ -17,7 +17,7 @@ class LyreState extends Equatable {
 
   final List<String> subscriptions;
 
-  bool isSubscribed (String sub) => subscriptions.contains(sub);
+  bool isSubscribed (String sub) => subscriptions.contains(StringUtils.capitalize(sub));
 
   // * Preferences
 
@@ -47,7 +47,7 @@ class LyreState extends Equatable {
   final bool showNSFWPreviews;
   final bool showSpoilerPreviews;
 
-  LyreState({
+  const LyreState({
       @required this.themeData,
       @required this.userNames,
       @required this.currentUser,
@@ -81,5 +81,7 @@ class LyreState extends Equatable {
       @required this.showNSFWPreviews,
       @required this.showSpoilerPreviews,
     });
-    List<dynamic> get props => [themeData, readOnly, userNames, currentUser];
+
+    @override
+    List<dynamic> get props => [themeData, readOnly, userNames, currentUser, subscriptions];
 }

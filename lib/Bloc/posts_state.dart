@@ -2,13 +2,14 @@ import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/screens/submissions/bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'bloc.dart';
 
 @immutable
 class PostsState extends Equatable {
-  LoadingState state;
+  final LoadingState state;
+  final errorMessage;
 
   //CONTENT
   final List<UserContent> userContent;
@@ -16,15 +17,15 @@ class PostsState extends Equatable {
   final dynamic target;
 
   //SORTING
-  TypeFilter temporaryType = currentSortType;
-  String temporaryTime = currentSortTime;
+  final TypeFilter temporaryType = currentSortType;
+  final String temporaryTime = currentSortTime;
 
   //LOGGED IN USER INFORMATION
-  RedditUser currentUser;
+  final RedditUser currentUser;
 
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
-  WikiPage sideBar;
-  Subreddit subreddit;
+  final WikiPage sideBar;
+  final Subreddit subreddit;
 
 
   PostsState({
@@ -32,12 +33,13 @@ class PostsState extends Equatable {
     @required this.contentSource,
     @required this.target,
     @required this.userContent,
+    this.errorMessage,
     this.currentUser,
     this.sideBar,
     this.subreddit,
   });
 
-  List<dynamic> get props => [state, userContent, target];
+  List<dynamic> get props => [state, userContent, target, errorMessage];
 
   String getSourceString({@required bool prefix}){
     switch (contentSource) {

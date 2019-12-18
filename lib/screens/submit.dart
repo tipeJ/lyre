@@ -527,10 +527,11 @@ class InputOptions extends StatelessWidget {
       icon: Icon(Icons.format_strikethrough),
       onPressed: _handleStrikethroughClick,
     ),
-    IconButton(
-      icon: Icon(MdiIcons.eyeOff),
-      onPressed: _handleSpoilerClick,
-    ),
+    // ! Not yet supported by flutter_markdown
+    // IconButton(
+    //   icon: Icon(MdiIcons.eyeOff),
+    //   onPressed: _handleSpoilerClick,
+    // ),
     IconButton(
       icon: Icon(Icons.format_quote),
       onPressed: _handleQuoteClick,
@@ -586,19 +587,18 @@ class InputOptions extends StatelessWidget {
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
     }
   }
-
-  void _handleSpoilerClick() {
-    if (controller.selection.isCollapsed) {
-      var text = controller.text;
-      final initialOffset = controller.selection.base.offset;
-
-      text += '>!!<';
-      controller.text = text;
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
-    }
-  }
-
   // ! Not yet supported by flutter_markdown
+  // void _handleSpoilerClick() {
+  //   if (controller.selection.isCollapsed) {
+  //     var text = controller.text;
+  //     final initialOffset = controller.selection.base.offset;
+
+  //     text += '>!!<';
+  //     controller.text = text;
+  //     controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+  //   }
+  // }
+
   // void _handleExponentClick() {
   //   if (controller.selection.isCollapsed) {
   //     var text = controller.text;

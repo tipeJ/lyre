@@ -520,6 +520,10 @@ class InputOptions extends StatelessWidget {
       onPressed: _handleItalicsClick,
     ),
     IconButton(
+      icon: Icon(Icons.format_strikethrough),
+      onPressed: _handleStrikethroughClick,
+    ),
+    IconButton(
       icon: Icon(Icons.format_quote),
       onPressed: _handleQuoteClick,
     ),
@@ -552,6 +556,17 @@ class InputOptions extends StatelessWidget {
       text += '**';
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+    }
+  }
+
+  void _handleStrikethroughClick() {
+    if (controller.selection.isCollapsed) {
+      var text = controller.text;
+      final initialOffset = controller.selection.base.offset-1;
+
+      text += '~~~~';
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
     }
   }
 

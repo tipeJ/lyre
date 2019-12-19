@@ -558,33 +558,33 @@ class InputOptions extends StatelessWidget {
   void _handleBoldClick() {
     if (controller.selection.isCollapsed) {  
       var text = controller.text;
-      final initialOffset = controller.selection.base.offset-1;
+      final initialOffset = controller.selection.base.offset;
 
       text += '****';
       controller.text = text;
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
     }
   }
 
   void _handleItalicsClick() {
     if (controller.selection.isCollapsed) {
       var text = controller.text;
-      final initialOffset = controller.selection.base.offset-1;
+      final initialOffset = controller.selection.base.offset;
 
       text += '**';
       controller.text = text;
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+1));
     }
   }
 
   void _handleStrikethroughClick() {
     if (controller.selection.isCollapsed) {
       var text = controller.text;
-      final initialOffset = controller.selection.base.offset-1;
+      final initialOffset = controller.selection.base.offset;
 
       text += '~~~~';
       controller.text = text;
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
     }
   }
   // ! Not yet supported by flutter_markdown

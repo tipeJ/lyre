@@ -235,27 +235,26 @@ class InputOptions extends StatelessWidget {
         color: Theme.of(context).primaryColor,
         child: Container(
           padding: EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Container(
-                constraints: BoxConstraints.tightFor(height: 30.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text('Markdown Preview')
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: (){
-                        Navigator.of(context).pop();
-                      },
-                    )
-                  ],
-                )
-              ),
-              Divider(),
+            child: ListView(
+              controller: controller,
+              children: <Widget>[
+                Container(
+                  constraints: BoxConstraints.tightFor(height: 30.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text('Markdown Preview')
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: (){
+                          Navigator.of(context).pop();
+                        },
+                      )
+                    ],
+                  )
+                ),
+                Divider(),
               MarkdownBody(data: _text,)
             ],
           )

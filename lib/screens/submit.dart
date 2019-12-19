@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lyre/Themes/themes.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -139,7 +140,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                 return [
                   SliverAppBar(
                     primary: true,
-                    floating: false,
                     titleSpacing: 0.0,
                     automaticallyImplyLeading: false,
                     leading: IconButton(
@@ -176,7 +176,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -188,7 +188,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -215,7 +215,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -403,20 +403,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
         return const Center(child: Text('TO BE IMPLEMENTED'),);
     }
   }
-  Widget _getPreviewWidget(){
-    switch (_submitType) {
-      case SubmitType.Selftext:
-        return MarkdownBody(data: _selfTextController.text,);
-      case SubmitType.Link:
-        return InAppWebView(
-            initialUrl: _urlController.text
-          );
-      case SubmitType.Image:
-        return _image != null ? Image.file(_image) : Container();
-      default:
-        return Container();
-    }
-  }
 
   void _showComments(BuildContext context, Submission submission) {
     Navigator.of(context).pushReplacementNamed('comments', arguments: submission);
@@ -430,6 +416,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
           keyboardType: TextInputType.multiline,
           focusNode: _selfTextFocusNode,
           maxLines: null,
+          scrollController: _scrollController,
           decoration: const InputDecoration(
             hintText: "Your Text Here",
             contentPadding: EdgeInsets.symmetric(horizontal: 5.0)
@@ -439,7 +426,10 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
         _selfTextController.text.isNotEmpty 
           ? Padding(
             padding: EdgeInsets.all(10.0),
-            child: MarkdownBody(data: _selfTextController.text,) 
+            child: MarkdownBody(
+              data: _selfTextController.text,
+              styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+            ) 
           )
           : const Center(child: Text("Markdown is Cool!"),)
       ],

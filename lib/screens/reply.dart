@@ -67,6 +67,7 @@ class _replyWindowState extends State<replyWindow> with SingleTickerProviderStat
     return WillPopScope(
          onWillPop: _willPop,
          child: Scaffold(
+           resizeToAvoidBottomInset: true,
            body: Stack(
              children: <Widget>[
               IgnorePointer(
@@ -133,7 +134,10 @@ class _replyWindowState extends State<replyWindow> with SingleTickerProviderStat
                           _replyController.text.isNotEmpty 
                             ? Padding(
                               padding: EdgeInsets.all(10.0),
-                              child: MarkdownBody(data: _replyController.text,) 
+                              child: MarkdownBody(
+                                data: _replyController.text,
+                                styleSheet: LyreTextStyles.getMarkdownStyleSheet(context)
+                              ) 
                             )
                             : const Center(child: Text("Markdown is Cool!"),)
                         ],

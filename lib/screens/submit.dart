@@ -91,7 +91,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
 
     _selfTextController.addListener((){
       setState(() {
-        markdownData = _selfTextController.text;
       });
     });
     _scrollController = ScrollController();
@@ -121,8 +120,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
   bool send_replies = true;
   bool is_nsfw = false;
   bool is_spoiler = true;
-
-  String markdownData = "";
 
   TabController _selfTextTabController;
 
@@ -172,7 +169,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               });
                               switch (_submitType) {
                                 case SubmitType.Selftext:
-                                  submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((submission){
+                                  submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, is_nsfw, send_replies).then((submission){
                                     setState(() {
                                       _sendingState = SendingState.Inactive;
                                     });
@@ -433,7 +430,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
           keyboardType: TextInputType.multiline,
           focusNode: _selfTextFocusNode,
           maxLines: null,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: "Your Text Here",
             contentPadding: EdgeInsets.symmetric(horizontal: 5.0)
           ),

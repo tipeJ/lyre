@@ -11,7 +11,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       _addCommentsFromForest(testList);
     }
     _firstState = CommentsState(submission: initialContent, comments: _comments, sortType: CommentSortType.blank);
-    print(initialState.submission.runtimeType.toString() + "type");
   }
 
   @override

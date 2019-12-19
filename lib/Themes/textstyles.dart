@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class LyreTextStyles {
   static const errorMessage = TextStyle(
@@ -17,4 +18,7 @@ class LyreTextStyles {
   static const submissionTitle = TextStyle(fontSize: 18.0, fontWeight: FontWeight.w400);
   static const submissionPreviewSelftext = TextStyle(fontSize: 13.0, fontWeight: FontWeight.normal);
 
+  static MarkdownStyleSheet getMarkdownStyleSheet(BuildContext context) => MarkdownStyleSheet(
+    blockquoteDecoration: BoxDecoration(color: Theme.of(context).cardColor),
+  );
 }

@@ -1,13 +1,13 @@
-import 'dart:math';
-
-import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lyre/Themes/themes.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:lyre/widgets/widgets.dart';
 import '../Resources/globals.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import '../Resources/reddit_api_provider.dart';
@@ -17,13 +17,13 @@ enum SubmitType{
   Selftext,
   Link,
   Image,
-  Video
+  //Video
 }
 
 class SubmitWindow extends StatefulWidget{
-  String initialTargetSubreddit;
+  final String initialTargetSubreddit;
 
-  SubmitWindow({@required this.initialTargetSubreddit}) : assert(initialTargetSubreddit != null);
+  const SubmitWindow({this.initialTargetSubreddit = ""});
 
   State<SubmitWindow> createState() => new SubmitWidgetState();
 }
@@ -38,8 +38,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     var image = await ImagePicker.pickImage(
       source: source,
       imageQuality: 75
-      );
-
+    );
     setState(() {
      _image = image; 
     });
@@ -93,7 +92,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
 
     _selfTextController.addListener((){
       setState(() {
-        markdownData = _selfTextController.text;
       });
     });
     _scrollController = ScrollController();
@@ -124,8 +122,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
   bool is_nsfw = false;
   bool is_spoiler = true;
 
-  String markdownData = "";
-
   TabController _selfTextTabController;
 
   ScrollController _scrollController;
@@ -144,7 +140,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                 return [
                   SliverAppBar(
                     primary: true,
-                    floating: true,
                     titleSpacing: 0.0,
                     automaticallyImplyLeading: false,
                     leading: IconButton(
@@ -174,14 +169,14 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               });
                               switch (_submitType) {
                                 case SubmitType.Selftext:
-                                  submitSelf(_subredditController.text, _titleController.text, markdownData, is_nsfw, send_replies).then((submission){
+                                  submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, is_nsfw, send_replies).then((submission){
                                     setState(() {
                                       _sendingState = SendingState.Inactive;
                                     });
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -193,7 +188,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -220,7 +215,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     if (submission is String){
                                       Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
                                     } else {
-                                      showComments(context, submission);
+                                      _showComments(context, submission);
                                     }
                                   });
                                   break;
@@ -249,55 +244,56 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         ),
                         controller: _subredditController,
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 10.0),
-                        child: IntrinsicWidth( 
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: ToggleButtons(
-                              renderBorder: false,
-                              constraints: BoxConstraints.expand(
-                                width: (MediaQuery.of(context).size.width - 36) / 3,
-                                height: 38.0
+                      Divider(),
+                      IntrinsicWidth( 
+                        child: Container(
+                          padding: EdgeInsets.all(5.0),
+                          alignment: Alignment.centerLeft,
+                          child: ToggleButtons(
+                            renderBorder: true,
+                            constraints: BoxConstraints.tightFor(height: 30),
+                            borderRadius: BorderRadius.circular(10.0),
+                            isSelected: [
+                              is_nsfw,
+                              send_replies,
+                              is_spoiler
+                            ],
+                            disabledColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
+                            selectedColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            fillColor: Theme.of(context).primaryColor,
+                            children: <Widget>[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('NSFW')
                               ),
-                              isSelected: [
-                                is_nsfw,
-                                send_replies,
-                                is_spoiler
-                              ],
-                              children: <Widget>[
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('NSFW')
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('Send Replies')
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('Spoiler')
-                                ),
-                              ],
-                              onPressed: (i) {
-                                setState(() {
-                                  switch (i) {
-                                    case 0:
-                                      is_nsfw = !is_nsfw;
-                                      break;
-                                    case 1:
-                                      send_replies = !send_replies;
-                                      break;
-                                    default:
-                                      is_spoiler = !is_spoiler;
-                                      break;
-                                  }
-                                });
-                              },
-                            )
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('Send Replies')
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('Spoiler')
+                              ),
+                            ],
+                            onPressed: (i) {
+                              setState(() {
+                                switch (i) {
+                                  case 0:
+                                    is_nsfw = !is_nsfw;
+                                    break;
+                                  case 1:
+                                    send_replies = !send_replies;
+                                    break;
+                                  default:
+                                    is_spoiler = !is_spoiler;
+                                    break;
+                                }
+                              });
+                            },
                           )
                         )
                       ),
+                      Divider(),
                       Padding(
                         padding: EdgeInsets.only(top: 10.0),
                         child: Align(
@@ -305,21 +301,23 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           child: ToggleButtons(
                             renderBorder: false,
                             constraints: BoxConstraints.expand(
-                              width: (MediaQuery.of(context).size.width - 36) / 4,
+                              width: (MediaQuery.of(context).size.width - 36) / 3,
                               height: 38.0
                             ),
                             isSelected: [
                               _submitType == SubmitType.Selftext,
                               _submitType == SubmitType.Link,
                               _submitType == SubmitType.Image,
-                              _submitType == SubmitType.Video,
+                              //_submitType == SubmitType.Video,
                             ],
                             children: <Widget>[
                               const Text('Text'),
                               const Text('Link'),
                               const Text('Image'),
-                              const Text('Video'),
+                              //const Text('Video'),
                             ],
+                            selectedColor: Theme.of(context).accentColor,
+                            fillColor: Theme.of(context).primaryColor.withOpacity(0.4),
                             onPressed: (i) {
                               if (_submitType != SubmitType.values[i]) setState(() {
                                 switch (i) {
@@ -336,7 +334,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     _handleSubmitTypeChange(selfText: false);
                                     break;
                                   default:
-                                    _submitType = SubmitType.Video;
+                                    //_submitType = SubmitType.Video;
                                     _handleSubmitTypeChange(selfText: false);
                                     break;
                                 }
@@ -374,20 +372,19 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
               },
               body: _getInputWidget()
             ),
-           //TODO: Finish InputOptions
-            // Positioned(
-            //   bottom: 0.0,
-            //   child: SizeTransition(
-            //     sizeFactor: _inputOptionsExpansionController,
-            //     child: Material(
-            //       child: Container(
-            //         width: MediaQuery.of(context).size.width,
-            //         color: Theme.of(context).primaryColor,
-            //         child: InputOptions(controller: _selfTextController,)
-            //       )
-            //     ),
-            //   )
-            // )
+            Positioned(
+              bottom: 0.0,
+              child: SizeTransition(
+                sizeFactor: _inputOptionsExpansionController,
+                child: Material(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Theme.of(context).primaryColor,
+                    child: InputOptions(controller: _selfTextController,)
+                  )
+                ),
+              )
+            )
           ]
         ),
       ),
@@ -406,22 +403,8 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
         return const Center(child: Text('TO BE IMPLEMENTED'),);
     }
   }
-  Widget _getPreviewWidget(){
-    switch (_submitType) {
-      case SubmitType.Selftext:
-        return MarkdownBody(data: _selfTextController.text,);
-      case SubmitType.Link:
-        return InAppWebView(
-            initialUrl: _urlController.text
-          );
-      case SubmitType.Image:
-        return _image != null ? Image.file(_image) : Container();
-      default:
-        return Container();
-    }
-  }
 
-  void showComments(BuildContext context, Submission submission) {
+  void _showComments(BuildContext context, Submission submission) {
     Navigator.of(context).pushReplacementNamed('comments', arguments: submission);
   }
 
@@ -433,7 +416,8 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
           keyboardType: TextInputType.multiline,
           focusNode: _selfTextFocusNode,
           maxLines: null,
-          decoration: InputDecoration(
+          scrollController: _scrollController,
+          decoration: const InputDecoration(
             hintText: "Your Text Here",
             contentPadding: EdgeInsets.symmetric(horizontal: 5.0)
           ),
@@ -442,7 +426,10 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
         _selfTextController.text.isNotEmpty 
           ? Padding(
             padding: EdgeInsets.all(10.0),
-            child: MarkdownBody(data: _selfTextController.text,) 
+            child: MarkdownBody(
+              data: _selfTextController.text,
+              styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+            ) 
           )
           : const Center(child: Text("Markdown is Cool!"),)
       ],
@@ -453,6 +440,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     return TextField(
       controller: _urlController,
       decoration: const InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
         helperText: 'Source URL of link'
       ),
     );
@@ -490,73 +478,4 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
       ],
     );
   }
-}
-
-class InputOptions extends StatelessWidget {
-  final TextEditingController controller;
-
-  String get _text => controller.text;
-  set _text(s) => controller.text = s;
-
-
-  const InputOptions({@required this.controller, key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Row(children: _buttons,),
-      scrollDirection: Axis.horizontal,
-    );
-  }
-
-  List<Widget> get _buttons => [
-    IconButton(
-      icon: Icon(Icons.format_bold),
-      onPressed: _handleBoldClick,
-    ),
-    IconButton(
-      icon: Icon(Icons.format_clear),
-      onPressed: (){},
-    ),
-    IconButton(
-      icon: Icon(Icons.format_italic),
-      onPressed: (){
-
-      },
-    ),
-    
-  ];
-
-  void _handleBoldClick() {
-    var text = controller.text;
-    final initialLength = text.length;
-    final initialOffset = controller.selection.base.offset-1;
-    if (controller.selection.isCollapsed) {
-      if (text.isNotEmpty && (text[min(initialOffset, initialLength-1)] == '*' || text[max(initialOffset+1, 0)] == '*')) {
-        int start = _firstOccurrence(char: '*', startIndex: max(initialOffset, 0), direction: -1);
-        int end = _firstOccurrence(char: '*', startIndex: min(initialOffset, initialLength), direction: 1);
-        _text = text.replaceRange(
-          start-1, 
-          end+1, 
-          text.substring(start+1, end));
-      } else {
-        text += ' ** ';
-        controller.text = text;
-        controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
-      }
-    }
-  }
-
-  int _firstOccurrence({String char, int startIndex, int direction}) {
-    for (var i = startIndex; (direction < 0) ? i > 0 : i < _text.length; direction < 0 ? i-- : i++) {
-      if (_text[i] == char) {
-        return i;
-      }
-    }
-    return direction < 0 ? 0 : _text.length-1;
-  }
-  String _replaceCharAt(String oldString, int index, String newChar) {
-    return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
-  }
-
 }

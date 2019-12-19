@@ -43,7 +43,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
   final State<ExpandingSheetContent> expandingSheetContent;
   final ValueNotifier<bool> visibilityListener;
 
-  _ExpandingBottomAppWrapper({
+  const _ExpandingBottomAppWrapper({
     @required this.body,
     @required this.expandingSheetContent,
     @required this.appBarContent,
@@ -93,7 +93,7 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
   final Widget body;
   final Widget appBarContent;
 
-  _PersistentBottomAppWrapperWithoutExpansion({
+  const _PersistentBottomAppWrapperWithoutExpansion({
     @required this.body,
     @required this.appBarContent,
   }) : 

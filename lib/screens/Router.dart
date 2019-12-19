@@ -82,7 +82,7 @@ class Router {
         ));
       case 'submit':
         final args = settings.arguments as Map<String, Object>;
-        return MaterialPageRoute(builder: (_) => SubmitWindow(initialTargetSubreddit: args['initialTargetSubreddit'],));
+        return MaterialPageRoute(builder: (_) => SubmitWindow(initialTargetSubreddit: args == null ? '' : args['initialTargetSubreddit'],));
       case 'reply':
         final args = settings.arguments as Map<String, Object>;
         final comment = args['content'] as UserContent;

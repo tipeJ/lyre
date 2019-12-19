@@ -21,7 +21,7 @@ enum SubmitType{
   Selftext,
   Link,
   Image,
-  Video
+  //Video
 }
 
 class SubmitWindow extends StatefulWidget{
@@ -310,20 +310,20 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           child: ToggleButtons(
                             renderBorder: false,
                             constraints: BoxConstraints.expand(
-                              width: (MediaQuery.of(context).size.width - 36) / 4,
+                              width: (MediaQuery.of(context).size.width - 36) / 3,
                               height: 38.0
                             ),
                             isSelected: [
                               _submitType == SubmitType.Selftext,
                               _submitType == SubmitType.Link,
                               _submitType == SubmitType.Image,
-                              _submitType == SubmitType.Video,
+                              //_submitType == SubmitType.Video,
                             ],
                             children: <Widget>[
                               const Text('Text'),
                               const Text('Link'),
                               const Text('Image'),
-                              const Text('Video'),
+                              //const Text('Video'),
                             ],
                             selectedColor: Theme.of(context).accentColor,
                             fillColor: Theme.of(context).primaryColor.withOpacity(0.4),
@@ -343,7 +343,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                                     _handleSubmitTypeChange(selfText: false);
                                     break;
                                   default:
-                                    _submitType = SubmitType.Video;
+                                    //_submitType = SubmitType.Video;
                                     _handleSubmitTypeChange(selfText: false);
                                     break;
                                 }
@@ -459,6 +459,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     return TextField(
       controller: _urlController,
       decoration: const InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
         helperText: 'Source URL of link'
       ),
     );
@@ -555,6 +556,10 @@ class InputOptions extends StatelessWidget {
     IconButton(
       icon: Icon(Icons.format_list_numbered),
       onPressed: _handleNumberedListclick,
+    ),
+    IconButton(
+      icon: Icon(MdiIcons.eyeOutline),
+      onPressed: () => _handlePreviewClick(context),
     ),
   ];
 
@@ -681,6 +686,43 @@ class InputOptions extends StatelessWidget {
       text += initialOffset == 0 ? '$nextNumber. ' : '\n$nextNumber. ';
       controller.text = text;
       controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset == 0 ? initialOffset + 3 : initialOffset+4));
+    }
+  }
+
+  void _handlePreviewClick(BuildContext context) {
+    if (_text.isNotEmpty) {
+      final sheet = Material(
+        color: Theme.of(context).primaryColor,
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Container(
+                constraints: BoxConstraints.tightFor(height: 30.0),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text('Markdown Preview')
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: (){},
+                    )
+                  ],
+                )
+              ),
+              Divider(),
+              MarkdownBody(data: _text,)
+            ],
+          )
+        )
+      );
+      showBottomSheet(
+        context: context,
+        builder: (context) => sheet
+      );
     }
   }
 

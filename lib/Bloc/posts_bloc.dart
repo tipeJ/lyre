@@ -25,7 +25,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     PostsEvent event,
   ) async* {
     final connectivityResult = await Connectivity().checkConnectivity();
-    print(connectivityResult.toString());
     if (connectivityResult == ConnectivityResult.none) {
       // Return state userContent if only fetchMore request has internet error (As we don't want to hide already downloaded submissions)
       List<UserContent> userContent = event is FetchMore ? state.userContent : const [];

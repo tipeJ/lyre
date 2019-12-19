@@ -340,7 +340,7 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0)),
     new Padding(
-      child: MarkdownBody(data: comment.body,),
+      child: Text(comment.body),
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0))];
 }

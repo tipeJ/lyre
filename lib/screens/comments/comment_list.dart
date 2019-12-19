@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
@@ -52,7 +53,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
     if(bloc.state == null || bloc.state.comments.isEmpty){
-      bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: CommentSortType.best));
+      bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
     return  Scaffold(
         endDrawer: Drawer(

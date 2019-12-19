@@ -19,84 +19,92 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
   Box box;
   bool advanced = false;
 
+  Future<bool> _willPop() {
+    BlocProvider.of<LyreBloc>(context).add(SettingsChanged(settings: box));
+    return Future.value(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: Hive.openBox('settings'),
-        builder: (context, snapshot){
-          if (snapshot.hasData) {
-            this.box = snapshot.data;
-            blurLevel = (box.get(IMAGE_BLUR_LEVEL) ?? 20.0).toDouble();
-            return Container(
-              padding: EdgeInsets.all(10.0),
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  SliverAppBar(
-                    expandedHeight: 125.0,
-                    floating: false,
-                    pinned: true,
-                    backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
-                    actions: <Widget>[
-                      Material(child: Center(child: Text('Advanced',),),),
-                      Switch(
-                        value: advanced,
-                        onChanged: (value){
-                          setState(() {
-                            advanced = value;
-                          });
-                        },
-                      )
-                    ],
-                    title: Text('Settings', style: TextStyle(fontSize: 32.0)),
-                  ),
-                  SliverList(
-                    delegate: SliverChildListDelegate([
-                      CustomExpansionTile(
-                        initiallyExpanded: true,
-                        title: 'General',
-                        showDivider: true,
-                        children: getGeneralSettings(context),
+    return WillPopScope(
+      onWillPop: _willPop,
+      child: Scaffold(
+        body: FutureBuilder(
+          future: Hive.openBox('settings'),
+          builder: (context, snapshot){
+            if (snapshot.hasData) {
+              this.box = snapshot.data;
+              blurLevel = (box.get(IMAGE_BLUR_LEVEL) ?? 20.0).toDouble();
+              return Container(
+                padding: EdgeInsets.all(10.0),
+                child: CustomScrollView(
+                  slivers: <Widget>[
+                    SliverAppBar(
+                      expandedHeight: 125.0,
+                      floating: false,
+                      pinned: true,
+                      backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                      actions: <Widget>[
+                        Material(child: Center(child: Text('Advanced',),),),
+                        Switch(
+                          value: advanced,
+                          onChanged: (value){
+                            setState(() {
+                              advanced = value;
+                            });
+                          },
+                        )
+                      ],
+                      title: Text('Settings', style: TextStyle(fontSize: 32.0)),
+                    ),
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        CustomExpansionTile(
+                          initiallyExpanded: true,
+                          title: 'General',
+                          showDivider: true,
+                          children: getGeneralSettings(context),
+                          ),
+                        CustomExpansionTile(
+                          initiallyExpanded: true,
+                          title: 'Submissions',
+                          showDivider: true,
+                          children: getSubmissionSettings(context),
+                          ),
+                        CustomExpansionTile(
+                          initiallyExpanded: true,
+                          title: 'Comments',
+                          showDivider: true,
+                          children: getCommentsSettings(context),
                         ),
-                      CustomExpansionTile(
-                        initiallyExpanded: true,
-                        title: 'Submissions',
-                        showDivider: true,
-                        children: getSubmissionSettings(context),
+                        CustomExpansionTile(
+                          initiallyExpanded: true,
+                          title: 'Filters',
+                          showDivider: true,
+                          children: getFiltersSettings(context),
                         ),
-                      CustomExpansionTile(
-                        initiallyExpanded: true,
-                        title: 'Comments',
-                        showDivider: true,
-                        children: getCommentsSettings(context),
-                      ),
-                      CustomExpansionTile(
-                        initiallyExpanded: true,
-                        title: 'Filters',
-                        showDivider: true,
-                        children: getFiltersSettings(context),
-                      ),
-                      CustomExpansionTile(
-                        initiallyExpanded: true,
-                        title: 'Media',
-                        showDivider: true,
-                        children: getMediaSettings(context),
-                      ),
-                      CustomExpansionTile(
-                        initiallyExpanded: false,
-                        title: 'Themes',
-                        showDivider: true,
-                        children: getThemeSettings(context),
-                      ),
-                    ]),
-                  )
-                ],
-              )
-            );
-          } else {
-            return Container();
-          }
-        },
+                        CustomExpansionTile(
+                          initiallyExpanded: true,
+                          title: 'Media',
+                          showDivider: true,
+                          children: getMediaSettings(context),
+                        ),
+                        CustomExpansionTile(
+                          initiallyExpanded: false,
+                          title: 'Themes',
+                          showDivider: true,
+                          children: getThemeSettings(context),
+                        ),
+                      ]),
+                    )
+                  ],
+                )
+              );
+            } else {
+              return Container();
+            }
+          },
+        )
       )
     );
   }
@@ -107,22 +115,18 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           WatchBoxBuilder(
             box: Hive.box('settings'),
             builder: (context, box){
-              return Row(
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(right: 10.0),
-                    child: Text("Home Subreddit")
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: box.get(SUBREDDIT_HOME) ?? "",
-                      decoration: InputDecoration(prefixText: "r/"),   
-                      onChanged: (value) {
-                        box.put(SUBREDDIT_HOME, value);
-                      },               
-                    )
-                  )
-                ],
+              return Padding(
+                padding: EdgeInsets.all(5.0),
+                child: TextFormField(
+                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
+                  decoration: InputDecoration(
+                    prefixText: "r/",
+                    labelText: 'Home Subreddit'
+                  ),   
+                  onChanged: (value) {
+                    box.put(SUBREDDIT_HOME, value);
+                  },               
+                )
               );
             },
           ),
@@ -499,18 +503,18 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         return StatefulBuilder(
           builder: (BuildContext context, setState) {
              return AlertDialog(
-              title: Text('Amount of Columns'),
+              title: const Text('Amount of Columns'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   TabBar(
                     controller: _tabController,
                     tabs: <Widget>[
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.only(bottom: 3.5),
                         child: Text('Portrait'),
                       ),
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.only(bottom: 3.5),
                         child: Text('Landscape'),
                       ),
@@ -523,7 +527,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           Row(children: <Widget>[
-                            Text('Select Automatically'),
+                            const Text('Select Automatically'),
                             Checkbox(
                               value: _columnAmountPortrait == null,
                               onChanged: (bool newValue) {
@@ -555,7 +559,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           Row(children: <Widget>[
-                            Text('Select Automatically'),
+                            const Text('Select Automatically'),
                             Checkbox(
                               value: _columnAmountLandscape == null,
                               onChanged: (bool newValue) {
@@ -589,13 +593,13 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               ),
               actions: <Widget>[
                 OutlineButton(
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                   onPressed: () {
                     Navigator.pop(context);
                   },
                 ),
                 OutlineButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     box.put(ALBUM_COLUMN_AMOUNT_PORTRAIT, _columnAmountPortrait);
                     box.put(ALBUM_COLUMN_AMOUNT_LANDSCAPE, _columnAmountLandscape);

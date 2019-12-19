@@ -6,6 +6,7 @@ import 'reddit_api_provider.dart';
 part 'globals.g.dart';
 
 const WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
+const FRONTPAGE_TARGET = "_";
 
 const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 const SEARCH_BASE_URL = "https://www.reddit.com/search.json";

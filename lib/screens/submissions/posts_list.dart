@@ -10,6 +10,7 @@ import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/screens/subreddits_list.dart';
 import 'package:lyre/widgets/CustomExpansionTile.dart';
 import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/utils/share_utils.dart';
@@ -453,7 +454,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 },
               ),
               appBarContent: _postsAppBar,
-              expandingSheetContent: _subredditsList(),
+              expandingSheetContent: SubredditsList(),
             );
           },
         )
@@ -530,6 +531,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   Material(
                     child: IconButton(
                       icon: const Icon(Icons.create),
+                      tooltip: "Create a Submission",
                       onPressed: () {
                         setState(() {
                           if (PostsProvider().isLoggedIn()) {
@@ -636,7 +638,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               if (q == "hot" || q == "new" || q == "rising") {
                 parseTypeFilter(q);
                 currentSortTime = "";
-                Scaffold.of(context).showBodyScrim(true, 0.6);
                 _change_ParamsVisibility();
               } else {
                 _tempType = q;
@@ -1394,208 +1395,6 @@ class _submissionList extends StatelessWidget {
 
 String _tempType = "";
 _ParamsVisibility _paramsVisibility = _ParamsVisibility.None;
-
-class _subredditsList extends State<ExpandingSheetContent> {
-  String searchQuery = "";
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: CustomScrollView(
-        controller: widget.innerController,
-        physics: _paramsVisibility == _ParamsVisibility.None ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverToBoxAdapter(
-            child: widget.appBarContent,
-          ),
-          SliverAppBar(
-            backgroundColor: Theme.of(context).canvasColor,
-            automaticallyImplyLeading: false,
-            floating: true,
-            pinned: true,
-            actions: <Widget>[Container()],
-            title: new TextField(
-              enabled: widget.innerController.extent.isAtMax,
-              onChanged: (String s) {
-                searchQuery = s;
-                setState(() {
-                });
-                // sub_bloc.fetchSubs(s);
-              },
-              decoration: const InputDecoration(hintText: 'Search Subscriptions'),
-              onEditingComplete: () {
-                widget.innerController.reset();
-                BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
-              },
-            ),
-          ),
-          BlocBuilder<LyreBloc, LyreState>(
-            builder: (context, state) {
-              return _defaultSubredditList(state.subscriptions.where((name) {
-                  final sub = name.toLowerCase();
-                  return sub.contains(searchQuery.toLowerCase());
-                }).toList()..sort());
-            },
-          )
-          // StreamBuilder(
-          //   stream: sub_bloc.getSubs,
-          //   builder: (context,
-          //   AsyncSnapshot<SubredditM> snapshot) {
-          //     if (snapshot.hasData) {
-          //       return _searchedSubredditList(snapshot);
-          //     } else if (snapshot.hasError) {
-          //       return SliverToBoxAdapter(
-          //         child: Center(child: Text(snapshot.error.toString(), style: LyreTextStyles.errorMessage,),),
-          //       );
-          //     } else {
-          //       return _defaultSubredditList();
-          //     }
-          //   },
-          // ),
-        ],
-      )
-    );
-  }
-
-  ///Open a subreddit from the list
-  _openSub(String s) {
-    widget.innerController.reset();
-    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
-  }
-
-  /// List of options for subRedditView
-  List<String> _subListOptions = [
-    "Unsubscribe",
-  ];
-
-  Widget _defaultSubredditList(List<String> subreddits) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, i) {
-        return InkWell(
-          onTap: (){
-            _openSub(subreddits[i]);
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(
-                  bottom: 0.0,
-                  left: 5.0,
-                  top: 0.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(subreddits[i])
-                    ),
-                    PopupMenuButton<String>(
-                      elevation: 3.2,
-                      onSelected: (s) {
-                        // Unsubscribe
-                        BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: subreddits[i]));
-                      },
-                      itemBuilder: (context) {
-                        return _subListOptions.map((s) {
-                          return PopupMenuItem<String>(
-                            value: s,
-                            child: Column(
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: <Widget>[
-                                    s == _subListOptions[0]
-                                      ? Icon(Icons.remove_circle)
-                                      : Icon(Icons.add_circle),
-                                    VerticalDivider(),
-                                    Text(s),
-                                    
-                                  ]
-                                ,),
-                                s != _subListOptions[_subListOptions.length-1] ? Divider() : null
-                              ].where((w) => notNull(w)).toList(),
-                            ),
-                          );
-                        }).toList();
-                      },
-                    )
-                  ],
-                ),
-              ),
-              i != subreddits.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
-            ].where((w) => notNull(w)).toList(),
-          )
-        );
-      }, childCount: subreddits.length),
-    );
-  }
-  Widget _searchedSubredditList(AsyncSnapshot<SubredditM> snapshot) {
-    var subs = snapshot.data.results;
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, i) {
-        return InkWell( //Subreddit entry
-          onTap: (){
-            _openSub(subs[i].displayName);
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(
-                  bottom: 0.0,
-                  left: 5.0,
-                  top: 0.0),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(subs[i].displayName)
-                    ),
-                    PopupMenuButton<String>(
-                      elevation: 3.2,
-                      onSelected: (s) {
-                        },
-                      itemBuilder: (context) {
-                        return _subListOptions.map((s) {
-                          return PopupMenuItem<String>(
-                            value: s,
-                            child: Column(
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: <Widget>[
-                                    s == _subListOptions[0]
-                                      ? Icon(Icons.remove_circle)
-                                      : Icon(Icons.add_circle),
-                                    VerticalDivider(),
-                                    Text(s),
-                                    
-                                  ]
-                                ,),
-                                s != _subListOptions[_subListOptions.length-1] ? Divider() : null
-                              ].where((w) => notNull(w)).toList(),
-                            ),
-                          );
-                        }).toList();
-                      },
-                    )
-                  ],
-                ),
-              ),
-              i != subs.length-1 ? Divider(indent: 10.0, endIndent: 10.0, height: 0.0,) : null
-            ].where((w) => notNull(w)).toList(),
-          )
-        );
-      }, childCount: subs.length),
-    );
-    return ListView.builder(
-      itemCount: subs.length+1,
-      itemBuilder: (context, i) {
-        
-      },
-    );
-  }
-}
 
 class SelfContentTypeWidget extends StatelessWidget {
   const SelfContentTypeWidget(this.contentType);

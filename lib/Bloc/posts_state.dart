@@ -50,7 +50,7 @@ class PostsState extends Equatable {
       case ContentSource.Self:
         return currentUser.username;
       default:
-        return '';
+        return 'frontpage';
     }
   }
   String getFilterString(){

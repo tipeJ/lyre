@@ -70,7 +70,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             userContent = await _repository.fetchPostsFromRedditor(target);
             break;
           case ContentSource.Self:
-          userContent = await _repository.fetchPostsFromSelf(target);
+            userContent = await _repository.fetchPostsFromSelf(target);
+            break;
+          case ContentSource.Frontpage:
+            userContent = await _repository.fetchPostsFromFrontpage();
             break;
         }
 
@@ -102,6 +105,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           case ContentSource.Self:
             userContent = await _repository.fetchPostsFromSelf(state.target);
             break;
+          case ContentSource.Frontpage:
+            userContent = await _repository.fetchPostsFromFrontpage();
+            break;
         }
 
         yield getUpdatedstate(userContent, false);
@@ -127,6 +133,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             break;
           case ContentSource.Self:
             fetchedContent = await _repository.fetchPostsFromSelf(state.target, after: after);
+            break;
+          case ContentSource.Frontpage:
+            fetchedContent = await _repository.fetchPostsFromFrontpage(after: after);
             break;
         }
         yield getUpdatedstate(state.userContent..addAll(fetchedContent), true);

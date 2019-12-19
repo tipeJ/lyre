@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' show Client;
 import 'package:lyre/Models/models.dart' as rModel;
-import 'package:lyre/Models/reddit_content.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
 import 'globals.dart';
@@ -14,6 +13,7 @@ import 'credential_loader.dart';
 
 enum ContentSource{
   Subreddit,
+  Frontpage,
   Redditor,
   Self
 }
@@ -271,11 +271,15 @@ class PostsProvider {
             v = await reddit.subreddit(target).newest(params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).newest(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.newest(params: params).toList();
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
             v = await reddit.subreddit(target).rising(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.rising(params: params).toList();
           }
           break;
         case TypeFilter.Gilded:
@@ -291,6 +295,8 @@ class PostsProvider {
             v = await reddit.subreddit(target).hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).hot(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.hot(params: params).toList();
           }
           break;
       }
@@ -302,6 +308,8 @@ class PostsProvider {
               v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.controversial(timeFilter: filter, params: params).toList();
           }
           break;
         default: //Default to top
@@ -309,6 +317,8 @@ class PostsProvider {
               v = await reddit.subreddit(target).top(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).top(timeFilter: filter, params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.top(timeFilter: filter, params: params).toList();
           }
           break;
       }

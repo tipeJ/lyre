@@ -10,6 +10,7 @@ class Repository {
 
   Future<List<UserContent>> fetchPostsFromSubreddit(String subreddit, {String after}) => postsApiProvider.fetchUserContent(currentSortType, subreddit, source: ContentSource.Subreddit, timeFilter: currentSortTime, after: after);
   Future<List<UserContent>> fetchPostsFromRedditor(String redditor, {String after}) => postsApiProvider.fetchUserContent(currentSortType, redditor, source: ContentSource.Redditor, timeFilter: currentSortTime, after: after);
+  Future<List<UserContent>> fetchPostsFromFrontpage({String after}) => postsApiProvider.fetchUserContent(currentSortType, '', source: ContentSource.Frontpage, timeFilter: currentSortTime, after: after);
   Future<List<UserContent>> fetchPostsFromSelf(SelfContentType contentType, {String after}) => postsApiProvider.fetchSelfUserContent(contentType, typeFilter: currentSortType, timeFilter: currentSortTime, after: after);
   Future<SubredditM> fetchSubs(String q) => postsApiProvider.fetchSubReddits(q);
   Future<WikiPage> fetchWikiPage(String args, Subreddit subreddit) => postsApiProvider.getWikiPage(args, subreddit);

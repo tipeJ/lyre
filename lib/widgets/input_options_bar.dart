@@ -29,52 +29,64 @@ class InputOptions extends StatelessWidget {
   List<Widget> _buttons (BuildContext context) => [
     IconButton(
       icon: Icon(MdiIcons.formatHeader1),
+      tooltip: "Add Header 1",
       onPressed: _handleHeader1Click,
     ),
     IconButton(
       icon: Icon(MdiIcons.formatHeader2),
+      tooltip: "Add Header 2",
       onPressed: _handleHeader2Click,
     ),
     IconButton(
       icon: Icon(Icons.format_bold),
+      tooltip: "Bold",
       onPressed: _handleBoldClick,
     ),
     IconButton(
       icon: Icon(Icons.format_italic),
+      tooltip: "Italics",
       onPressed: _handleItalicsClick,
     ),
     IconButton(
       icon: Icon(Icons.format_strikethrough),
+      tooltip: "Strikethrough",
       onPressed: _handleStrikethroughClick,
     ),
     // ! Not yet supported by flutter_markdown
     // IconButton(
     //   icon: Icon(MdiIcons.eyeOff),
+    //   tooltip: "Spoiler",
     //   onPressed: _handleSpoilerClick,
     // ),
     IconButton(
       icon: Icon(Icons.format_quote),
+      tooltip: "Add Quote",
       onPressed: _handleQuoteClick,
     ),
     // ! Not yet supported by flutter_markdown
     // IconButton(
     //   icon: Icon(MdiIcons.exponent),
+    //   tooltip: "Exponent",
     //   onPressed: _handleExponentClick,
     // ),
     IconButton(
       icon: Icon(Icons.link),
+      tooltip: "Add Link",
       onPressed: () => _handleLinkClick(context),
     ),
     IconButton(
       icon: Icon(Icons.format_list_bulleted),
+      tooltip: "Add Bullet List",
       onPressed: _handleBulletListclick,
     ),
     IconButton(
       icon: Icon(Icons.format_list_numbered),
+      tooltip: "Add Numbered List",
       onPressed: _handleNumberedListclick,
     ),
     IconButton(
       icon: Icon(MdiIcons.eyeOutline),
+      tooltip: "Preview",
       onPressed: () => _handlePreviewClick(context),
     ),
   ];

@@ -520,6 +520,14 @@ class InputOptions extends StatelessWidget {
   /// InputOptions buttons
   List<Widget> _buttons (BuildContext context) => [
     IconButton(
+      icon: Icon(MdiIcons.formatHeader1),
+      onPressed: _handleHeader1Click,
+    ),
+    IconButton(
+      icon: Icon(MdiIcons.formatHeader2),
+      onPressed: _handleHeader2Click,
+    ),
+    IconButton(
       icon: Icon(Icons.format_bold),
       onPressed: _handleBoldClick,
     ),
@@ -562,6 +570,30 @@ class InputOptions extends StatelessWidget {
       onPressed: () => _handlePreviewClick(context),
     ),
   ];
+
+  void _handleHeader1Click() {
+    if (controller.selection.isCollapsed) {
+      var text = _text;
+      final initialOffset = controller.selection.base.offset-1;
+      final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
+
+      text = StringUtils.addCharAtPosition(text, '# ', lineBreak == 0 ? lineBreak : lineBreak + 1);
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
+    }
+  }
+
+  void _handleHeader2Click() {
+    if (controller.selection.isCollapsed) {
+      var text = _text;
+      final initialOffset = controller.selection.base.offset-1;
+      final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
+
+      text = StringUtils.addCharAtPosition(text, '## ', lineBreak == 0 ? lineBreak : lineBreak + 1);
+      controller.text = text;
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+4));
+    }
+  }
 
   void _handleBoldClick() {
     if (controller.selection.isCollapsed) {  
@@ -708,7 +740,9 @@ class InputOptions extends StatelessWidget {
                     ),
                     IconButton(
                       icon: Icon(Icons.close),
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.of(context).pop();
+                      },
                     )
                   ],
                 )

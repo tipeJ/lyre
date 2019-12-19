@@ -148,7 +148,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                 return [
                   SliverAppBar(
                     primary: true,
-                    floating: true,
+                    floating: false,
                     titleSpacing: 0.0,
                     automaticallyImplyLeading: false,
                     leading: IconButton(
@@ -253,55 +253,56 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         ),
                         controller: _subredditController,
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 10.0),
-                        child: IntrinsicWidth( 
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: ToggleButtons(
-                              renderBorder: false,
-                              constraints: BoxConstraints.expand(
-                                width: (MediaQuery.of(context).size.width - 36) / 3,
-                                height: 38.0
+                      Divider(),
+                      IntrinsicWidth( 
+                        child: Container(
+                          padding: EdgeInsets.all(5.0),
+                          alignment: Alignment.centerLeft,
+                          child: ToggleButtons(
+                            renderBorder: true,
+                            constraints: BoxConstraints.tightFor(height: 30),
+                            borderRadius: BorderRadius.circular(10.0),
+                            isSelected: [
+                              is_nsfw,
+                              send_replies,
+                              is_spoiler
+                            ],
+                            disabledColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
+                            selectedColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+                            fillColor: Theme.of(context).primaryColor,
+                            children: <Widget>[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('NSFW')
                               ),
-                              isSelected: [
-                                is_nsfw,
-                                send_replies,
-                                is_spoiler
-                              ],
-                              children: <Widget>[
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('NSFW')
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('Send Replies')
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 3.5),
-                                  child: Text('Spoiler')
-                                ),
-                              ],
-                              onPressed: (i) {
-                                setState(() {
-                                  switch (i) {
-                                    case 0:
-                                      is_nsfw = !is_nsfw;
-                                      break;
-                                    case 1:
-                                      send_replies = !send_replies;
-                                      break;
-                                    default:
-                                      is_spoiler = !is_spoiler;
-                                      break;
-                                  }
-                                });
-                              },
-                            )
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('Send Replies')
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                child: Text('Spoiler')
+                              ),
+                            ],
+                            onPressed: (i) {
+                              setState(() {
+                                switch (i) {
+                                  case 0:
+                                    is_nsfw = !is_nsfw;
+                                    break;
+                                  case 1:
+                                    send_replies = !send_replies;
+                                    break;
+                                  default:
+                                    is_spoiler = !is_spoiler;
+                                    break;
+                                }
+                              });
+                            },
                           )
                         )
                       ),
+                      Divider(),
                       Padding(
                         padding: EdgeInsets.only(top: 10.0),
                         child: Align(
@@ -324,6 +325,8 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               const Text('Image'),
                               const Text('Video'),
                             ],
+                            selectedColor: Theme.of(context).accentColor,
+                            fillColor: Theme.of(context).primaryColor.withOpacity(0.4),
                             onPressed: (i) {
                               if (_submitType != SubmitType.values[i]) setState(() {
                                 switch (i) {
@@ -664,13 +667,16 @@ class InputOptions extends StatelessWidget {
       var secondToLastLineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset - 1, direction: -1);
       if (secondToLastLineBreak > 0) secondToLastLineBreak++;
 
+      print(secondToLastLineBreak.toString() + ' : ' + text.length.toString());
+
       int lastNumber;
-      bool increment = text.isEmpty ? false : text.substring(secondToLastLineBreak+1, secondToLastLineBreak+2) == ".";
+      bool increment = text.isEmpty || secondToLastLineBreak == text.length ? false : text.substring(secondToLastLineBreak+1, secondToLastLineBreak+2) == ".";
       if (increment) {
         lastNumber = int.parse(text.substring(secondToLastLineBreak, secondToLastLineBreak+1));
       }
       // This is the number that will be added to the text before the point character (.)
       int nextNumber = lastNumber != null ? lastNumber + 1 : 1;
+      print(nextNumber);
 
       text += initialOffset == 0 ? '$nextNumber. ' : '\n$nextNumber. ';
       controller.text = text;

@@ -3,12 +3,14 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/widgets/comment.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
+import 'package:lyre/widgets/widgets.dart';
 import '../Resources/RedditHandler.dart';
 import '../Resources/globals.dart';
 
@@ -20,13 +22,16 @@ class replyWindow extends StatefulWidget {
   _replyWindowState createState() => _replyWindowState();
 }
 
-class _replyWindowState extends State<replyWindow> {
+class _replyWindowState extends State<replyWindow> with SingleTickerProviderStateMixin {
   
   TextEditingController _replyController;
+  TabController _replyTabController;
+  ScrollController _scrollController;
 
   _replyWindowState();
 
   SendingState _replySendingState = SendingState.Inactive;
+  String titleText = "Reply to u/";
   String error = "";
 
   bool popReady = true;
@@ -48,6 +53,12 @@ class _replyWindowState extends State<replyWindow> {
   @override
   void initState() {
     _replyController = TextEditingController(text: widget.initialText ?? "");
+    _replyController.addListener(() {
+      setState((){});
+    });
+    _replyTabController = TabController(length: 2, vsync: this);
+    _scrollController = ScrollController();
+    titleText += widget.content is Submission ? (widget.content as Submission).author : (widget.content as Comment).author;
     super.initState();
   }
   
@@ -56,71 +67,91 @@ class _replyWindowState extends State<replyWindow> {
     return WillPopScope(
          onWillPop: _willPop,
          child: Scaffold(
-           appBar: AppBar(
-             title: Text("Reply"),
-             actions: <Widget>[
-              InkWell(
-                  child: Icon(Icons.remove_red_eye),
-                  onTap: (){
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context){
-                        return AlertDialog(
-                          content: Html(data: '',),
-                          actions: <Widget>[
-                            FlatButton(
-                              child: Text('Close'),
-                              onPressed: (){
-                                Navigator.of(context).pop();
-                              },
-                            )
-                          ],
-                        );
-                      }
-                    );
-                  },
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 15.0),
-                child: InkWell(
-                  child: Icon(Icons.send),
-                  onTap: _reply,
-                ),
-              ),
-            ]
-           ),
            body: Stack(
              children: <Widget>[
-               IgnorePointer(
-                 ignoring: _replySendingState != SendingState.Inactive,
-                 child: BlocBuilder<LyreBloc, LyreState>(
-                   builder: (context, state) {
-                     return Column(
-                      children: <Widget>[
-                        widget.content is Comment
-                          ? CommentContent(widget.content, PreviewSource.PostsList)
-                          : postInnerWidget(
-                              submission: widget.content as Submission,
-                              previewSource: PreviewSource.PostsList,
-                              linkType: getLinkType((widget.content as Submission).url.toString()),
-                              fullSizePreviews: state.fullSizePreviews,
-                              showCircle: state.showPreviewCircle,
-                              blurLevel: state.blurLevel.toDouble(),
-                              showNsfw: state.showNSFWPreviews,
-                              showSpoiler: state.showSpoilerPreviews,
-                              onOptionsClick: () {},
+              IgnorePointer(
+                ignoring: _replySendingState != SendingState.Inactive,
+                child: BlocBuilder<LyreBloc, LyreState>(
+                  builder: (context, state) {
+                    return NestedScrollView(
+                      controller: _scrollController,
+                      headerSliverBuilder: (context, b) {
+                        return [
+                          SliverAppBar(
+                            title: Text(titleText),
+                            actions: <Widget>[
+                              IconButton(
+                                icon: Icon(Icons.send),
+                                onPressed: _reply,
+                              )
+                            ]
+                          ),
+                          SliverList(delegate: SliverChildListDelegate([
+                            widget.content is Comment
+                              ? CommentContent(widget.content, PreviewSource.PostsList)
+                              : postInnerWidget(
+                                  submission: widget.content as Submission,
+                                  previewSource: PreviewSource.Comments,
+                                  linkType: getLinkType((widget.content as Submission).url.toString()),
+                                  fullSizePreviews: state.fullSizePreviews,
+                                  showCircle: state.showPreviewCircle,
+                                  blurLevel: state.blurLevel.toDouble(),
+                                  showNsfw: state.showNSFWPreviews,
+                                  showSpoiler: state.showSpoilerPreviews,
+                                  onOptionsClick: () {},
+                                ),
+                            TabBar(
+                              indicatorColor: Colors.transparent,
+                              controller: _replyTabController,
+                              tabs: <Widget>[
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                                  child: Text('Edit')
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                                  child: Text('Preview')
+                                ),
+                              ],
                             ),
-                        TextField(
-                          enabled: _replySendingState == SendingState.Inactive,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          controller: _replyController,
-                        ),
-                      ]
+                          ]),)
+                        ];
+                      },
+                      body: TabBarView(
+                        controller: _replyTabController,
+                        children: <Widget>[
+                          TextField(
+                            enabled: _replySendingState == SendingState.Inactive,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            controller: _replyController,
+                            decoration: const InputDecoration(
+                              hintText: "Your Text Here",
+                              contentPadding: EdgeInsets.symmetric(horizontal: 5.0)
+                            ),
+                          ),
+                          _replyController.text.isNotEmpty 
+                            ? Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: MarkdownBody(data: _replyController.text,) 
+                            )
+                            : const Center(child: Text("Markdown is Cool!"),)
+                        ],
+                      ),
                     );
-                   },
-                 ),
-               ),
+                  },
+                ),
+              ),
+              Positioned(
+                bottom: 0.0,
+                child: Material(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Theme.of(context).primaryColor,
+                    child: InputOptions(controller: _replyController,)
+                  )
+                ),
+              ),
               prefix0.Visibility (
                 visible: _replySendingState != SendingState.Inactive,
                 child: Container (
@@ -160,6 +191,8 @@ class _replyWindowState extends State<replyWindow> {
          ),
        );
   }
+
+  ///Submit your [Comment] reply.
   _reply() {
     setState(() {
       _replySendingState = SendingState.Sending;

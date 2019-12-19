@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'package:lyre/Themes/themes.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -164,9 +164,9 @@ class InputOptions extends StatelessWidget {
       final initialOffset = controller.selection.base.offset-1;
       final lineBreak = _firstOccurrence(char: '\n', startIndex: initialOffset, direction: -1);
 
-      text = StringUtils.addCharAtPosition(text, '>', lineBreak == 0 ? lineBreak : lineBreak + 1);
+      text = StringUtils.addCharAtPosition(text, '> ', lineBreak == 0 ? lineBreak : lineBreak + 1);
       controller.text = text;
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+2));
+      controller.selection = TextSelection.fromPosition(TextPosition(offset: initialOffset+3));
     }
   }
 
@@ -231,10 +231,15 @@ class InputOptions extends StatelessWidget {
 
   void _handlePreviewClick(BuildContext context) {
     if (_text.isNotEmpty) {
-      final sheet = Material(
-        color: Theme.of(context).primaryColor,
-        child: Container(
-          padding: EdgeInsets.all(10.0),
+      final sheet = DraggableScrollableSheet(
+        initialChildSize: 0.2,
+        minChildSize: 0.2,
+        maxChildSize: 1.0,
+        expand: false,
+        builder: (context, controller) => Material(
+          color: Theme.of(context).primaryColor,
+          child: Container(
+            padding: EdgeInsets.all(10.0),
             child: ListView(
               controller: controller,
               children: <Widget>[
@@ -255,8 +260,16 @@ class InputOptions extends StatelessWidget {
                   )
                 ),
                 Divider(),
-              MarkdownBody(data: _text,)
-            ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  controller: controller,
+                  child: MarkdownBody(
+                    data: _text,
+                    styleSheet: LyreTextStyles.getMarkdownStyleSheet(context)
+                  ),
+                )
+              ],
+            )
           )
         )
       );

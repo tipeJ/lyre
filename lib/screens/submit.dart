@@ -418,7 +418,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     }
   }
 
-  void showComments(BuildContext context, Submission submission) {
+  void _showComments(BuildContext context, Submission submission) {
     Navigator.of(context).pushReplacementNamed('comments', arguments: submission);
   }
 

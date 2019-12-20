@@ -97,6 +97,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   void dispose() {
     scontrol.dispose();
     bloc.drain();
+    bloc.close();
     _appBarVisibleNotifier.dispose();
     _quickTextController?.dispose();
     super.dispose();
@@ -249,10 +250,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     Scaffold.of(context).showSnackBar(successSnackBar);
   }
 
-  void _showComments(BuildContext context, draw.Submission inside) {
-    Navigator.of(context).pushNamed('comments', arguments: inside);
-  }
-
   void _refreshList(){
     bloc.add(PostsSourceChanged());
   }
@@ -313,13 +310,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   style: TextStyle(fontSize: 18.0, color: Colors.grey),
                               ),
                               const Divider(),
-                              const SelfContentTypeWidget("Comments"),
-                              const SelfContentTypeWidget("Submitted"),
-                              const SelfContentTypeWidget("Upvoted"),
-                              const SelfContentTypeWidget("Saved"),
-                              const SelfContentTypeWidget("Hidden"),
-                              const SelfContentTypeWidget("Watching"),
-                              const SelfContentTypeWidget("Friends")
+                              const _SelfContentTypeWidget("Comments"),
+                              const _SelfContentTypeWidget("Submitted"),
+                              const _SelfContentTypeWidget("Upvoted"),
+                              const _SelfContentTypeWidget("Saved"),
+                              const _SelfContentTypeWidget("Hidden"),
+                              const _SelfContentTypeWidget("Watching"),
+                              const _SelfContentTypeWidget("Friends")
                             ],
                           )
                         ) : null,
@@ -1396,8 +1393,8 @@ class _submissionList extends StatelessWidget {
 String _tempType = "";
 _ParamsVisibility _paramsVisibility = _ParamsVisibility.None;
 
-class SelfContentTypeWidget extends StatelessWidget {
-  const SelfContentTypeWidget(this.contentType);
+class _SelfContentTypeWidget extends StatelessWidget {
+  const _SelfContentTypeWidget(this.contentType);
 
   final String contentType;
 

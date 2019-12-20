@@ -48,11 +48,13 @@ class _FiltersViewState extends State<FiltersView> with SingleTickerProviderStat
             context: context,
             builder: (context) {
               return AlertDialog(
-                title: Text(_getAddFilterDialogTitle()),
+                title: Container(width: 0.0, height: 0.0,),
+                titlePadding: EdgeInsets.all(0.0),
                 content: TextField(
                   controller: _addFilterController,
                   decoration: InputDecoration(
-                    helperText: _getAddFilterDialogTitle()
+                    labelText: _getAddFilterDialogTitle(),
+                    prefixText: _getAddFilterDialogPrefix()
                   ),
                 ),
                 actions: <Widget>[
@@ -139,6 +141,16 @@ class _FiltersViewState extends State<FiltersView> with SingleTickerProviderStat
         return 'Filter User';
       default:
         return 'Filter Domain';
+    }
+  }
+  String _getAddFilterDialogPrefix() {
+    switch (_tabController.index) {
+      case 0:
+        return 'r/';        
+      case 1:
+        return 'u/';
+      default:
+        return '';
     }
   }
 

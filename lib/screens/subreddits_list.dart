@@ -26,23 +26,17 @@ class SubredditsList extends State<ExpandingSheetContent> {
                   widget.innerController.reset();
                   BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Frontpage));
                 },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      constraints: const BoxConstraints(minHeight: 40.0),
-                      padding: const EdgeInsets.only(
-                        bottom: 0.0,
-                        left: 5.0,
-                        top: 0.0),
-                      child: const Text("Frontpage"),
-                    ),
-                    const Divider(indent: 10.0, endIndent: 10.0, height: 0.0,)
-                  ],
-                )
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  constraints: const BoxConstraints(minHeight: 40.0),
+                  padding: const EdgeInsets.only(
+                    bottom: 0.0,
+                    left: 5.0,
+                    top: 0.0),
+                  child: const Text("Frontpage"),
+                ),
               ),
+              const Divider(indent: 10.0, endIndent: 10.0, height: 0.0,),
               InkWell(
                 onTap: () {
                   _openSub('all');

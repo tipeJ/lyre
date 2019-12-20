@@ -169,8 +169,8 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
 /// aka the splash-screen FutureBuilder
 Future<LyreState> getFirstLyreState() async { 
     final settings = await Hive.openBox('settings');
-    final initialTheme = settings.get(CURRENT_THEME) ?? "";
-    globals.homeSubreddit = settings.get(SUBREDDIT_HOME) ?? "askreddit";
+    final initialTheme = settings.get(CURRENT_THEME, defaultValue: "");
+    globals.homeSubreddit = settings.get(SUBREDDIT_HOME, defaultValue: "askreddit");
 
     var _cTheme = LyreTheme.DarkTeal;
     LyreTheme.values.forEach((theme){

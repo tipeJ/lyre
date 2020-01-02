@@ -18,7 +18,6 @@ import 'package:lyre/utils/urlUtils.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
-import '../../Models/Subreddit.dart';
 import '../../Resources/globals.dart';
 import 'dart:async';
 import 'package:flutter_advanced_networkimage/provider.dart';

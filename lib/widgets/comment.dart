@@ -11,6 +11,7 @@ import 'package:lyre/screens/Animations/OnSlide.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../utils/redditUtils.dart';
 
 OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment comment) {
@@ -134,8 +135,8 @@ class _CommentWidgetState extends State<CommentWidget> {
           //key: PageStorageKey(comment.hashCode),
           items: <ActionItems>[
             ActionItems(
-              icon: IconButton(
-                icon: const Icon(Icons.keyboard_arrow_up),onPressed: (){},
+              icon: Icon(
+                MdiIcons.arrowUpBold,
                 color: widget.comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
               onPress: (){
                 changeCommentVoteState(VoteState.upvoted, widget.comment).then((_){
@@ -144,7 +145,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             ),
             ActionItems(
               icon: Icon(
-                Icons.keyboard_arrow_down,
+                MdiIcons.arrowDownBold,
                 color: widget.comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
               onPress: (){
                 changeCommentVoteState(VoteState.downvoted, widget.comment).then((_){

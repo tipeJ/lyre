@@ -7,7 +7,6 @@ import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';

@@ -52,7 +52,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.state == null || bloc.state.comments.isEmpty){
+    if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
       bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
     return  Scaffold(
@@ -95,7 +95,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               builder: (BuildContext context, setState) {
                 return BlocBuilder<CommentsBloc, CommentsState>(
                   builder: (context, state) {
-                    if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty) {
+                    if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
                       return CustomScrollView(
                         slivers: <Widget>[
                           SliverSafeArea(
@@ -125,7 +125,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                     }
                   },
                 );
-                
               },
             ),
             appBarContent: Container(

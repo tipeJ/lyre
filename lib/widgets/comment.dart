@@ -413,27 +413,26 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
           child: Container(
             padding: EdgeInsets.only(left: _contentEdgePadding),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
-                  ? new Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: SizedBox(
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                        height: 18.0,
-                        width: 18.0,
-                      ),
-                    )
-                  : Container(),
-                new Text(
-                  "Load more comments (${widget.moreComments.count})"
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
+                      ? Container(
+                          padding: const EdgeInsets.all(5.0),
+                          child: const CircularProgressIndicator(),
+                          constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
+                        )
+                      : Container(),
+                    Text(
+                      "Load more comments (${widget.moreComments.count})"
+                    ),
+                  ]
+                ,),
                 Container(height: _dividerWidth, color: _dividerColor,)
-              ]
-            ,)
+              ],
+            )
           )
         ),
       )

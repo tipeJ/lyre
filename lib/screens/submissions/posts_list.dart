@@ -1265,6 +1265,7 @@ class _submissionList extends StatelessWidget {
             actions: <Widget>[
               BlocBuilder<LyreBloc, LyreState>(
                 builder: (BuildContext context, lyreState) {
+                  if (postsState.contentSource == ContentSource.Frontpage) return Container();
                   return Container(
                     color: LyreColors.subscribeColor,
                     margin: EdgeInsets.all(10.0),

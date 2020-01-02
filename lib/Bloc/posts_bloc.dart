@@ -39,7 +39,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         timeFilter: state.timeFilter,
       );
     } else {
-      /// When [ContentSource] is Changed
+      /// When [ContentSource] has been Changed
       print(event.runtimeType.toString());
       if(event is PostsSourceChanged){
         yield PostsState(

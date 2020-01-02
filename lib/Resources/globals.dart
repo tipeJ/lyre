@@ -15,6 +15,8 @@ const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 const GFYCAT_CLIENT_ID = "2__lD9Ci";
 const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
 
+const FRONTPAGE_HOME_SUB = "_";
+
 String homeSubreddit;
 
 @HiveType(adapterName: "PostViewAdapter")

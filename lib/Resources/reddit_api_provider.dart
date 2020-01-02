@@ -391,6 +391,8 @@ class PostsProvider {
 
   // * Subreddit infornation 
 
+  /// Returns a [Subreddit] with a given displayName. Will return null if a subreddit 
+  /// is not found with the given displayName (r/all, r/popular, multireddits, etc.)
   Future<Subreddit> getSubreddit(String displayName) async {
     if (displayName == 'all' || displayName == "popular") return null;
     try {

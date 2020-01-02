@@ -30,6 +30,7 @@ class Router {
           }
         } else {
           target = homeSubreddit;
+          if (target == FRONTPAGE_HOME_SUB) source = ContentSource.Frontpage;
         }
 
         return MaterialPageRoute(builder: (_) => BlocProvider(

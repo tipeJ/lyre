@@ -8,6 +8,8 @@ const DEFAULT_SUBSCRIPTIONS_FILEPATH = "assets/defaultSubscriptions.txt";
 const CURRENT_THEME = "currentTheme";
 
 // * Subreddits
+const HOME = "preferencesHome";
+const HOME_DEFAULT = "Frontpage";
 const SUBREDDIT_HOME = "startUpSubreddit";
 const SUBREDDIT_HOME_DEFAULT = "_";
 

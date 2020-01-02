@@ -501,6 +501,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           );
                         },
                         onDoubleTap: () {
+                          if (homeSubreddit == FRONTPAGE_HOME_SUB) {
+                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
+                          }
                           BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
                         },
                         onTap: () {

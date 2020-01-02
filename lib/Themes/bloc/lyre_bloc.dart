@@ -170,7 +170,21 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
 Future<LyreState> getFirstLyreState() async { 
     final settings = await Hive.openBox('settings');
     final initialTheme = settings.get(CURRENT_THEME, defaultValue: "");
-    globals.homeSubreddit = settings.get(SUBREDDIT_HOME, defaultValue: "askreddit");
+
+    switch (settings.get(HOME, defaultValue: HOME_DEFAULT)) {
+      case "Frontpage":
+        globals.homeSubreddit = globals.FRONTPAGE_HOME_SUB;
+        break;
+      case "Popular":
+        globals.homeSubreddit = "popular";
+        break;
+      case "All":
+        globals.homeSubreddit = "all";
+        break;
+      default:
+        // If custom home subreddit is set as home, get the correct value.
+        globals.homeSubreddit = settings.get(SUBREDDIT_HOME, defaultValue: "all");
+    }
 
     var _cTheme = LyreTheme.DarkTeal;
     LyreTheme.values.forEach((theme){

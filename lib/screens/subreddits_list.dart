@@ -49,6 +49,7 @@ class SubredditsList extends State<ExpandingSheetContent> {
                   child: const Text("All"),
                 ),
               ),
+              const Divider(indent: 10.0, endIndent: 10.0, height: 0.0,),
               InkWell(
                 onTap: () {
                   _openSub('popular');
@@ -62,29 +63,25 @@ class SubredditsList extends State<ExpandingSheetContent> {
                     top: 0.0),
                   child: const Text("Popular"),
                 ),
-              )
+              ),
             ]),
           ),
-          SliverAppBar(
-            backgroundColor: Theme.of(context).canvasColor,
-            automaticallyImplyLeading: false,
-            primary: true,
-            pinned: true,
-            floating: true,
-            actions: <Widget>[Container()],
-            title: new TextField(
-              enabled: widget.innerController.extent.isAtMax,
-              onChanged: (String s) {
-                searchQuery = s;
-                setState(() {
-                });
-                // sub_bloc.fetchSubs(s);
-              },
-              decoration: const InputDecoration(hintText: 'Search Subscriptions'),
-              onEditingComplete: () {
-                widget.innerController.reset();
-                BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
-              },
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: TextField(
+                enabled: widget.innerController.extent.isAtMax,
+                onChanged: (String s) {
+                  searchQuery = s;
+                  setState(() {
+                  });
+                },
+                decoration: const InputDecoration(hintText: 'Search Subscriptions'),
+                onEditingComplete: () {
+                  widget.innerController.reset();
+                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
+                },
+              ),
             ),
           ),
           BlocBuilder<LyreBloc, LyreState>(

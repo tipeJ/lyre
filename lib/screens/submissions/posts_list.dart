@@ -257,7 +257,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
     if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
-      print('START');
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
     return new WillPopScope(
@@ -502,8 +501,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         onDoubleTap: () {
                           if (homeSubreddit == FRONTPAGE_HOME_SUB) {
                             BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
+                          } else {
+                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
                           }
-                          BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
                         },
                         onTap: () {
                           setState(() {

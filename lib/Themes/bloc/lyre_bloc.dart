@@ -36,30 +36,31 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         subscriptions: state.subscriptions,
 
         currentTheme: settings.get(CURRENT_THEME),
-        homeSubreddit: settings.get(SUBREDDIT_HOME),
+        homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
+        home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
-        viewMode: settings.get(SUBMISSION_VIEWMODE),
-        showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE),
-        defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE),
-        defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME),
-        resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING),
-        autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD),
+        viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
+        showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
+        defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
+        defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
+        resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
+        autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
 
-        defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT),
-        precollapseComments: settings.get(COMMENTS_PRECOLLAPSE),
+        defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),
+        precollapseComments: settings.get(COMMENTS_PRECOLLAPSE, defaultValue: COMMENTS_PRECOLLAPSE_DEFAULT),
 
-        enableImageRotation: settings.get(IMAGE_ENABLE_ROTATION),
-        enableVideoRotation: settings.get(VIDEO_ENABLE_ROTATION),
-        blurLevel: settings.get(IMAGE_BLUR_LEVEL),
-        fullSizePreviews: settings.get(IMAGE_SHOW_FULLSIZE),
-        loopVideos: settings.get(VIDEO_LOOP),
-        autoMuteVideos: settings.get(VIDEO_AUTO_MUTE),
-        imgurThumbnailQuality: settings.get(IMGUR_THUMBNAIL_QUALITY),
+        enableImageRotation: settings.get(IMAGE_ENABLE_ROTATION, defaultValue: IMAGE_ENABLE_ROTATION_DEFAULT),
+        enableVideoRotation: settings.get(VIDEO_ENABLE_ROTATION, defaultValue: VIDEO_ENABLE_ROTATION_DEFAULT),
+        blurLevel: settings.get(IMAGE_BLUR_LEVEL, defaultValue: IMAGE_BLUR_LEVEL_DEFAULT),
+        fullSizePreviews: settings.get(IMAGE_SHOW_FULLSIZE, defaultValue: IMAGE_SHOW_FULLSIZE_DEFAULT),
+        loopVideos: settings.get(VIDEO_LOOP, defaultValue: VIDEO_LOOP_DEFAULT),
+        autoMuteVideos: settings.get(VIDEO_AUTO_MUTE, defaultValue: VIDEO_AUTO_MUTE_DEFAULT),
+        imgurThumbnailQuality: settings.get(IMGUR_THUMBNAIL_QUALITY, defaultValue: IMGUR_THUMBNAIL_QUALITY_DEFAULT),
         albumColumnPortrait: settings.get(ALBUM_COLUMN_AMOUNT_PORTRAIT),
         albumColumnLandscape: settings.get(ALBUM_COLUMN_AMOUNT_LANDSCAPE),
 
-        showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS),
-        showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS),
+        showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
+        showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
       );
     } else if (event is UserChanged) {
       final currentUser = await PostsProvider().logIn(event.userName);
@@ -116,6 +117,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
       currentTheme: state.currentTheme,
       homeSubreddit: state.homeSubreddit,
+      home: state.home,
 
       viewMode: state.viewMode,
       showPreviewCircle: state.showPreviewCircle,
@@ -171,7 +173,8 @@ Future<LyreState> getFirstLyreState() async {
     final settings = await Hive.openBox('settings');
     final initialTheme = settings.get(CURRENT_THEME, defaultValue: "");
 
-    switch (settings.get(HOME, defaultValue: HOME_DEFAULT)) {
+    final home = settings.get(HOME, defaultValue: HOME_DEFAULT);
+    switch (home) {
       case "Frontpage":
         globals.homeSubreddit = globals.FRONTPAGE_HOME_SUB;
         break;
@@ -210,6 +213,7 @@ Future<LyreState> getFirstLyreState() async {
 
       currentTheme: _cTheme,
       homeSubreddit: globals.homeSubreddit,
+      home: home,
 
       viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
       showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),

@@ -485,6 +485,7 @@ class PostsProvider {
       'author' : parameters.author,
       'subreddit' : parameters.subreddit
     };
+    print(params.toString());
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"
     };

@@ -277,13 +277,12 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     return ClipRRect(
       clipBehavior: Clip.antiAlias,
       borderRadius: const BorderRadius.only(
-        topLeft: const Radius.circular(15.0),
-        topRight: const Radius.circular(15.0),
+        topLeft: Radius.circular(15.0),
+        topRight: Radius.circular(15.0),
       ),
       child: Container(
         width: MediaQuery.of(context).size.width,
         color: Theme.of(context).canvasColor,
-        child: Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -320,17 +319,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
                         },
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search), 
-                        onPressed: () {
-                          if (_userContentController.text.isNotEmpty) {
-                            _dispatchNewParameters(context);
-                          } else {
-                            final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
-                            Scaffold.of(context).showSnackBar(warningSnackBar);
-                          }
-                        }
-                    ),
                     OutlineButton(
                       child: Text("Filters"), 
                       onPressed: () {
@@ -343,7 +331,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
             ),
           ],
         ),
-      ),
       ),
     );
   }

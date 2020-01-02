@@ -392,7 +392,7 @@ class PostsProvider {
   // * Subreddit infornation 
 
   Future<Subreddit> getSubreddit(String displayName) async {
-    if (displayName == 'all') return null;
+    if (displayName == 'all' || displayName == "popular") return null;
     try {
       return await reddit.subreddit(displayName).populate();
     } catch (e) {

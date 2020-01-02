@@ -34,7 +34,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           builder: (context, snapshot){
             if (snapshot.hasData) {
               this.box = snapshot.data;
-              blurLevel = (box.get(IMAGE_BLUR_LEVEL) ?? 20.0).toDouble();
+              blurLevel = (box.get(IMAGE_BLUR_LEVEL, defaultValue: IMAGE_BLUR_LEVEL_DEFAULT)).toDouble();
               return Container(
                 padding: EdgeInsets.all(10.0),
                 child: CustomScrollView(
@@ -118,7 +118,8 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return Padding(
                 padding: EdgeInsets.all(5.0),
                 child: TextFormField(
-                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
+                  //TODO: Add option for frontpage, popular etc for home subreddit
+                  initialValue: box.get(SUBREDDIT_HOME),
                   decoration: InputDecoration(
                     prefixText: "r/",
                     labelText: 'Home Subreddit'
@@ -146,7 +147,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: "Default Sorting Type",
                 description: "Your Subreddit Submissions will by default take this value (Hot, Top, etc..)",
                 leading: new DropdownButton<String>(
-                  value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
                   items: sortTypes.map((String value) {
                     return new DropdownMenuItem<String>(
                       value: value,
@@ -169,7 +170,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: "Default Sorting Time",
                 description: "Your Subreddit Submissions will by default take this value when the sorting type is Time-Based (Top, Controversial)",
                 leading: new DropdownButton<String>(
-                  value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
                   items: sortTimes.map((String value) {
                     return new DropdownMenuItem<String>(
                       value: value,
@@ -187,7 +188,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: "Auto-Load Posts",
             description: "Enables Never-Ending scrolling",
             leading: Switch(
-              value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
+              value: box.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_AUTO_LOAD, value);
               },)
@@ -199,7 +200,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: "Post View Mode",
                 description: "What form will the submissions cards take",
                 leading: new DropdownButton<PostView>(
-                  value: box.get(SUBMISSION_VIEWMODE) ?? PostView.Compact,
+                  value: box.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
                   items: PostView.values.map((PostView value) {
                     return new DropdownMenuItem<PostView>(
                       value: value,
@@ -223,7 +224,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: "Reset Sorting When Refreshing Submission List",
             description: "Will refreshing Submission list or entering a new submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
             leading: Switch(
-              value: box.get(SUBMISSION_RESET_SORTING) ?? true,
+              value: box.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_RESET_SORTING, value);
               },)
@@ -232,7 +233,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: "Show Circle Around Preview Indicator",
             description: "When enabled, show a circle around the link indicator (video, image, etc..)",
             leading: Switch(
-              value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? true,
+              value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
               },)
@@ -256,7 +257,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: "Default Comments Sort",
                 description: "Default Sorting Params of Comments list",
                 leading: new DropdownButton<String>(
-                  value: box.get(COMMENTS_DEFAULT_SORT) ?? commentSortTypes[1],
+                  value: box.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),
                   items: commentSortTypes.map((String value) {
                     return new DropdownMenuItem<String>(
                       value: value,
@@ -277,7 +278,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: 'Precollapse Threads', 
                 description: "Collapse all Comment threads to the top level comments by default",
                 leading: Switch(
-                  value: box.get(COMMENTS_PRECOLLAPSE) ?? false,
+                  value: box.get(COMMENTS_PRECOLLAPSE, defaultValue: COMMENTS_PRECOLLAPSE_DEFAULT),
                   onChanged: (value){
                     box.put(COMMENTS_PRECOLLAPSE, value);
                   },)
@@ -298,7 +299,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: 'Show NSFW Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain NSFW content",
             leading: Switch(
-              value: box.get(SHOW_NSFW_PREVIEWS) ?? false,
+              value: box.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
               onChanged: (value){
                 box.put(SHOW_NSFW_PREVIEWS, value);
               },)
@@ -307,7 +308,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: 'Show Spoiler Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain spoilers",
             leading: Switch(
-              value: box.get(SHOW_SPOILER_PREVIEWS) ?? false,
+              value: box.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
               onChanged: (value){
                 box.put(SHOW_SPOILER_PREVIEWS, value);
               },)
@@ -423,7 +424,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: "Imgur Thumbnail Quality",
                 description: "Choose the quality in which imgur thumbnails are shown in album preview views",
                 leading: new DropdownButton<String>(
-                  value: box.get(IMGUR_THUMBNAIL_QUALITY) ?? imgurThumbnailsQuality.keys.first,
+                  value: box.get(IMGUR_THUMBNAIL_QUALITY, defaultValue: IMGUR_THUMBNAIL_QUALITY_DEFAULT),
                   items: imgurThumbnailsQuality.keys.map((String value) {
                     return new DropdownMenuItem<String>(
                       value: value,

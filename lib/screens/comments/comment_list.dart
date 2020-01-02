@@ -102,7 +102,18 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                             sliver: SliverToBoxAdapter(
                               child:  Hero(
                                 tag: 'post_hero ${(state.submission as Submission).id}',
-                                child:  Container()//postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
+                                child: postInnerWidget(
+                                  submission: state.submission,
+                                  previewSource: PreviewSource.Comments,
+                                  linkType: getLinkType((state.submission as Submission).url.toString()),
+                                  fullSizePreviews: false,
+                                  postView: PostView.IntendedPreview,
+                                  showCircle: false,
+                                  blurLevel: 0.0,
+                                  showNsfw: true,
+                                  showSpoiler: true,
+                                  onOptionsClick: () {},
+                                )
                               ),
                             ),
                           ),

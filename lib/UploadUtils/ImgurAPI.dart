@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:lyre/Resources/PreferenceValues.dart';
 
-Map<String, String> imgurThumbnailsQuality = {
+const Map<String, String> imgurThumbnailsQuality = {
   "Small Square (90x90)" : "s",
   "Big Square (160x160)" : "b",
   "Small Thumbnail (160x160)" : "t",

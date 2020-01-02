@@ -29,20 +29,20 @@ enum PostView{
   NoPreview
 }
 
-List<String> sortTypes = [
+const List<String> sortTypes = [
   "hot",
   "new",
   "rising",
   "top",
   "controversial",
 ];
-List<String> sortTypesuser = [
+const List<String> sortTypesuser = [
   "hot",
   "new",
   "top",
   "controversial",
 ];
-List<String> sortTimes = [
+const List<String> sortTimes = [
   "hour",
   "24h",
   "week",
@@ -50,7 +50,7 @@ List<String> sortTimes = [
   "year",
   "all time"
 ];
-List<String> commentSortTypes = [
+const List<String> commentSortTypes = [
   "Best",
   "Confidence",
   "Controversial",
@@ -70,7 +70,7 @@ enum SendingState {
 
 ContentSource currentContentSource = ContentSource.Subreddit;
 
-final TypeFilter defaultSortType = TypeFilter.Hot;
+const TypeFilter defaultSortType = TypeFilter.Hot;
 final String defaultSortTime = sortTimes[1];
 
 TypeFilter parseTypeFilter(String typeFilter){

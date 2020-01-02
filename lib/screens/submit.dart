@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:lyre/widgets/widgets.dart';
 import '../Resources/globals.dart';
-import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import '../Resources/reddit_api_provider.dart';
 
 
@@ -295,7 +294,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                       ),
                       Divider(),
                       Padding(
-                        padding: EdgeInsets.only(top: 10.0),
+                        padding: const EdgeInsets.only(top: 10.0),
                         child: Align(
                           alignment: Alignment.center,
                           child: ToggleButtons(
@@ -310,10 +309,10 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               _submitType == SubmitType.Image,
                               //_submitType == SubmitType.Video,
                             ],
-                            children: <Widget>[
-                              const Text('Text'),
-                              const Text('Link'),
-                              const Text('Image'),
+                            children: const <Widget>[
+                              Text('Text'),
+                              Text('Link'),
+                              Text('Image'),
                               //const Text('Video'),
                             ],
                             selectedColor: Theme.of(context).accentColor,

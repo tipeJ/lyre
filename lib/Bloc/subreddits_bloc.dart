@@ -1,15 +1,15 @@
-import '../Resources/repository.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import '../Models/Subreddit.dart';
 
 class SubsBloc {
-  final _repository = Repository();
+  final _repository = PostsProvider();
   final _subsFetcher = PublishSubject<SubredditM>();
 
   Observable<SubredditM> get getSubs => _subsFetcher.stream;
 
   fetchSubs(String query) async {
-    SubredditM subM = await _repository.fetchSubs(query);
+    SubredditM subM = await _repository.fetchSubReddits(query);
     _subsFetcher.sink.add(subM);
   }
 

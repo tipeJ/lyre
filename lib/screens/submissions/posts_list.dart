@@ -257,7 +257,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<PostsBloc>(context);
-    if (bloc.state.userContent == null || bloc.state.userContent.isEmpty) {
+    if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
+      print('START');
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
     return new WillPopScope(
@@ -306,8 +307,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                 style: const  TextStyle(fontSize: 28.0),
                               ),
                               const Text(
-                                  'Link karma',
-                                  style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                                'Link karma',
+                                style: TextStyle(fontSize: 18.0, color: Colors.grey),
                               ),
                               const Divider(),
                               const _SelfContentTypeWidget("Comments"),
@@ -595,9 +596,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           },
           onTap: () {
             if (_tempType != "") {
-              parseTypeFilter(_tempType);
-              currentSortTime = sortTimes[index];
-              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+              final sortType = parseTypeFilter(_tempType);
+              final sortTime = sortTimes[index];
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged(typeFilter: sortType, timeFilter: sortTime));
               _tempType = "";
             }
             _changeTypeVisibility();
@@ -634,7 +635,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               var q = sortTypes[index];
               if (q == "hot" || q == "new" || q == "rising") {
                 parseTypeFilter(q);
-                currentSortTime = "";
                 _change_ParamsVisibility();
               } else {
                 _tempType = q;
@@ -684,10 +684,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           setState(() {
             var q = sortTypesuser[index];
             if (q == "hot" || q == "new" || q == "rising") {
-              parseTypeFilter(q);
-              currentSortTime = "";
+              final sortType = parseTypeFilter(q);
 
-              BlocProvider.of<PostsBloc>(context).add(ParamsChanged());
+              BlocProvider.of<PostsBloc>(context).add(ParamsChanged(typeFilter: sortType, timeFilter: ""));
 
               _change_ParamsVisibility();
             } else {
@@ -1370,6 +1369,7 @@ class _submissionList extends StatelessWidget {
                       previewSource: PreviewSource.PostsList,
                       linkType: linkType,
                       fullSizePreviews: state.fullSizePreviews,
+                      postView: state.viewMode,
                       showCircle: state.showPreviewCircle,
                       blurLevel: state.blurLevel.toDouble(),
                       showNsfw: state.showNSFWPreviews,

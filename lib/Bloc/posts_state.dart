@@ -17,8 +17,8 @@ class PostsState extends Equatable {
   final dynamic target;
 
   //SORTING
-  final TypeFilter temporaryType = currentSortType;
-  final String temporaryTime = currentSortTime;
+  final TypeFilter typeFilter;
+  final String timeFilter;
 
   //LOGGED IN USER INFORMATION
   final RedditUser currentUser;
@@ -33,6 +33,8 @@ class PostsState extends Equatable {
     @required this.contentSource,
     @required this.target,
     @required this.userContent,
+    @required this.typeFilter,
+    @required this.timeFilter,
     this.errorMessage,
     this.currentUser,
     this.sideBar,
@@ -82,15 +84,15 @@ class PostsState extends Equatable {
       filterString += " ● ";
     }
 
-    if(temporaryType == TypeFilter.Top || temporaryType == TypeFilter.Controversial){
-      filterString += parseTypeFilter() + " | " + temporaryTime;
+    if(typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial){
+      filterString += parseTypeFilter() + " | " + timeFilter;
     }else{
       filterString += parseTypeFilter();
     }
     return filterString;
   }
   String parseTypeFilter(){
-    switch (temporaryType) {
+    switch (typeFilter) {
       case TypeFilter.Hot:
         return 'hot';
       case TypeFilter.New:

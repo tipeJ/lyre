@@ -210,7 +210,7 @@ Future<LyreState> getFirstLyreState() async {
       enableImageRotation: settings.get(IMAGE_ENABLE_ROTATION),
       enableVideoRotation: settings.get(VIDEO_ENABLE_ROTATION),
       blurLevel: settings.get(IMAGE_BLUR_LEVEL, defaultValue: 20),
-      fullSizePreviews: settings.get(IMAGE_SHOW_FULLSIZE),
+      fullSizePreviews: settings.get(IMAGE_SHOW_FULLSIZE, defaultValue: false),
       loopVideos: settings.get(VIDEO_LOOP),
       autoMuteVideos: settings.get(VIDEO_AUTO_MUTE),
       imgurThumbnailQuality: settings.get(IMGUR_THUMBNAIL_QUALITY),

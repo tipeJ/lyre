@@ -73,25 +73,22 @@ ContentSource currentContentSource = ContentSource.Subreddit;
 final TypeFilter defaultSortType = TypeFilter.Hot;
 final String defaultSortTime = sortTimes[1];
 
-TypeFilter currentSortType = defaultSortType;
-String currentSortTime = "";
-
-void parseTypeFilter(String typeFilter){
+TypeFilter parseTypeFilter(String typeFilter){
   switch (typeFilter) {
     case 'hot':
-      currentSortType = TypeFilter.Hot;
+      return TypeFilter.Hot;
       break;
     case 'new':
-      currentSortType = TypeFilter.New;
+      return TypeFilter.New;
       break;
     case 'rising':
-      currentSortType = TypeFilter.Rising;
+      return TypeFilter.Rising;
       break;
     case 'top':
-      currentSortType = TypeFilter.Top;
+      return TypeFilter.Top;
       break;
     case 'controversial':
-      currentSortType = TypeFilter.Controversial;
+      return TypeFilter.Controversial;
       break;
     
     default:

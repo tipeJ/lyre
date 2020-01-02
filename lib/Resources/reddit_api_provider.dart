@@ -261,7 +261,7 @@ class PostsProvider {
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
     // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
-    final target = contentTarget.trim();
+    final target = contentTarget != null ? contentTarget.trim() : '';
 
     List<UserContent> v = [];
     if(timeFilter == ""){

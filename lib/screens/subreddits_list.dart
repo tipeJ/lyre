@@ -16,11 +16,9 @@ class SubredditsList extends State<ExpandingSheetContent> {
       child: CustomScrollView(
         controller: widget.innerController,
         slivers: <Widget>[
-          SliverToBoxAdapter(
-            child: widget.appBarContent,
-          ),
           SliverList(
             delegate: SliverChildListDelegate([
+              widget.appBarContent,
               InkWell(
                 onTap: () {
                   widget.innerController.reset();
@@ -56,9 +54,9 @@ class SubredditsList extends State<ExpandingSheetContent> {
           SliverAppBar(
             backgroundColor: Theme.of(context).canvasColor,
             automaticallyImplyLeading: false,
-            floating: true,
-            snap: true,
+            primary: true,
             pinned: true,
+            floating: true,
             actions: <Widget>[Container()],
             title: new TextField(
               enabled: widget.innerController.extent.isAtMax,

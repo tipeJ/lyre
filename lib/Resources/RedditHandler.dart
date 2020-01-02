@@ -20,9 +20,9 @@ Future<dynamic> changeSubmissionSave(Submission s) async {
 
 ///Save or Unsave a [Comment]
 Future<void> changeCommentSave(Comment c) async {
-  if(c.saved){
+  if (c.saved) {
     return c.unsave();
-  }else{
+  } else {
     return c.save();
   }
 }
@@ -44,13 +44,17 @@ Future<dynamic> changeSubmissionVoteState(VoteState state, Submission s) async {
 }
 ///Up- or Downvote a [Comment]
 Future<void> changeCommentVoteState(VoteState state, Comment c) async {
-  if(state == VoteState.none) return null; //Prevent unnecessary calls to the API (shouldn't even happen, ever)
-  if(state == c.vote){
-    return c.clearVote();
-  }else if(state == VoteState.downvoted){
-    return c.downvote();
-  }else{
-    return c.upvote();
+  try {
+    if(state == VoteState.none) return null; //Prevent unnecessary calls to the API (shouldn't even happen, ever)
+    if(state == c.vote){
+      return c.clearVote();
+    }else if(state == VoteState.downvoted){
+      return c.downvote();
+    }else{
+      return c.upvote();
+    }
+  } catch (e) {
+    return null;
   }
 }
 // * Submitting

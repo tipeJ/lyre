@@ -200,7 +200,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
-      return GestureDetector(
+      return InkWell(
         child: CommentWidget(comment, i, PreviewSource.Comments),
         onTap: (){
           setState(() {

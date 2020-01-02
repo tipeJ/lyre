@@ -14,70 +14,6 @@ import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../utils/redditUtils.dart';
 
-OnSlide _commentsSliderWidget(BuildContext context, Widget child, Comment comment) {
-  return OnSlide(
-    backgroundColor: Colors.transparent,
-    //key: PageStorageKey(comment.hashCode),
-    items: <ActionItems>[
-      ActionItems(
-        icon: IconButton(
-          icon: Icon(Icons.keyboard_arrow_up),onPressed: (){},
-          color: comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
-        onPress: (){
-          changeCommentVoteState(VoteState.upvoted, comment).then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          Icons.keyboard_arrow_down,
-          color: comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
-        onPress: (){
-          changeCommentVoteState(VoteState.downvoted, comment).then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          Icons.bookmark,
-          color: comment.saved ? Colors.yellow : Colors.grey,),
-        onPress: (){
-          changeCommentSave(comment);
-          comment.refresh().then((_){
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(
-          Icons.reply,
-          color: Colors.grey,),
-        onPress: (){
-          Navigator.of(context).pushNamed('reply', arguments: {
-              'redditor'        : comment,
-              'content_source'  : ContentSource.Redditor
-            });
-        }
-      ),
-      ActionItems(
-        icon: Icon(Icons.person, color: Colors.grey),
-        onPress: (){
-          Navigator.pushNamed(context, 'reply', arguments: {
-            'comment'        : comment,
-            'reply_text'  : ""
-          });
-        }
-      ),
-      ActionItems(
-        icon: Icon(Icons.menu,color: Colors.grey,),
-        onPress: (){
-
-        }
-      ),
-    ],
-    
-    child: child
-  );
-}
 Color getColor(int depth) {
     if (depth >= 0 && depth <= colorList.length - 1) {
       return colorList[depth];
@@ -181,8 +117,8 @@ class _CommentWidgetState extends State<CommentWidget> {
             ActionItems(
               icon: Icon(Icons.person, color: Colors.grey),
               onPress: () {
-                Navigator.pushNamed(context, 'posts', arguments: {
-                  'redditor'        : widget.comment.author,
+                Navigator.of(context).pushNamed('posts', arguments: {
+                  'target'        : widget.comment.author,
                   'content_source'  : ContentSource.Redditor
                 });
               }

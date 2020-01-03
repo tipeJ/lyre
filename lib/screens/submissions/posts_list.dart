@@ -1467,6 +1467,8 @@ class _SelfContentTypeWidget extends StatelessWidget {
             break;
           default:
         }
+        // Close the drawer
+        Navigator.of(context).pop();
       },
     );
   }

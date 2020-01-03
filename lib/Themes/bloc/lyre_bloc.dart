@@ -150,7 +150,7 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
   List<String> subscriptions = [];
   if (subscriptionsBox.isEmpty) {
     //Load the asset file where the default subscriptions are stored.
-    final defaultSubscriptionsFile = await rootBundle.loadString(DEFAULT_SUBSCRIPTIONS_FILEPATH);
+    final defaultSubscriptionsFile = await rootBundle.loadString(ASSET_DEFAULT_SUBSCRIPTIONS);
     //Add default subscriptions from the asset file, splitting the string by line breaks.
     final defaultSubscriptions = defaultSubscriptionsFile.split('\n').map((s) => StringUtils.capitalize(s).trim()).toList();
     subscriptions.addAll(defaultSubscriptions);

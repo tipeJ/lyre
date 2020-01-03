@@ -1328,17 +1328,15 @@ class _submissionList extends StatelessWidget {
               ),
               collapseMode: CollapseMode.parallax,
               background: postsState.subreddit != null && postsState.subreddit.mobileHeaderImage != null
-                ? 
-                FadeInImage(
-                  placeholder: MemoryImage(kTransparentImage),
-                  image: AdvancedNetworkImage(
-                    postsState.subreddit.mobileHeaderImage.toString(),
-                    useDiskCache: true,
-                    cacheRule: const CacheRule(maxAge: Duration(days: 3)),
-                  ),
-                  fit: BoxFit.cover
-                )
-                // Container()
+                ? FadeInImage(
+                    placeholder: MemoryImage(kTransparentImage),
+                    image: AdvancedNetworkImage(
+                      postsState.subreddit.headerImage.toString(),
+                      useDiskCache: true,
+                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
+                    ),
+                    fit: BoxFit.cover
+                  )
                 : Container() // TODO: Placeholder image
             ),
           ),

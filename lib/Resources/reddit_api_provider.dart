@@ -237,7 +237,7 @@ class PostsProvider {
     return map;    
   }
 
-  ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
+  ///Fetches User Content from Reddit. Return values may contain either [Comment] or [Submissions]
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, String contentTarget, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
@@ -247,9 +247,6 @@ class PostsProvider {
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
-
-    if(after != null) print(after + ' : ' + params.values.toString());
-    if (after == null) print('NULL');
 
     if ([
       TypeFilter.Hot,
@@ -497,7 +494,6 @@ class PostsProvider {
       'author' : parameters.author,
       'subreddit' : parameters.subreddit
     };
-    print(params.toString());
     final Map<String, String> headers = <String, String>{
       'User-Agent' : "$appName $appVersion"
     };

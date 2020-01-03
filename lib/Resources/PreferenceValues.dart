@@ -1,8 +1,14 @@
 import 'package:lyre/Resources/globals.dart';
 
+// * Assets
+const ASSET_DEFAULT_SUBSCRIPTIONS = "assets/defaultSubscriptions.txt";
+// TODO: Add frontpage banner (Transparent with user-defined background color)
+const ASSET_FRONTPAGE_BANNER_DAY = "assets/banner_frontpage.png";
+const ASSET_FRONTPAGE_BANNER_NIGHT = "assets/banner_frontpage.png";
+
+// * Settings
 const BOX_SETTINGS = "settings";
 const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
-const DEFAULT_SUBSCRIPTIONS_FILEPATH = "assets/defaultSubscriptions.txt";
 
 // * Themes
 const CURRENT_THEME = "currentTheme";

@@ -1,6 +1,5 @@
 library lyre.globals;
 import 'package:draw/draw.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'reddit_api_provider.dart';
 part 'globals.g.dart';

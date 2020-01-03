@@ -40,7 +40,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       );
     } else {
       /// When [ContentSource] has been Changed
-      print(event.runtimeType.toString());
       if(event is PostsSourceChanged){
         yield PostsState(
           state: LoadingState.Refreshing,
@@ -53,8 +52,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
         WikiPage sideBar;
         Subreddit subreddit;
-        RedditUser currentUser = await PostsProvider().getLatestUser();
+        RedditUser currentUser = await _repository.getLatestUser();
         List<UserContent> userContent;
+
+        LoadingState loadingState = LoadingState.Inactive;
+        String errorMessage;
 
         final source = event.source ?? state.contentSource;
         final preferences = await Hive.openBox(BOX_SETTINGS);
@@ -67,30 +69,31 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         }
         final target = event.target ?? state.target;
 
-        
-
         switch (source) {
           case ContentSource.Subreddit:
-            userContent = await PostsProvider().fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
+            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             subreddit = await _repository.getSubreddit(target);
             sideBar = subreddit != null ? await _repository.getWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit) : null;
             break;
           case ContentSource.Redditor:
-            userContent = await PostsProvider().fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
+            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             break;
           case ContentSource.Self:
             userContent = await _repository.fetchSelfUserContent(target, typeFilter: sortType, timeFilter: sortTime);
             break;
           case ContentSource.Frontpage:
-            userContent = await PostsProvider().fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
+            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             break;
         }
-        if (source == ContentSource.Redditor) {
-          print(userContent.length.toString());
+
+        if (userContent.isEmpty) {
+          loadingState = LoadingState.Error;
+          errorMessage = "No Submissions Were Returned";
         }
 
         yield PostsState(
-          state: LoadingState.Inactive,
+          state: loadingState,
+          errorMessage: errorMessage,
           userContent: userContent, 
           contentSource : source,
           currentUser: currentUser, 
@@ -112,13 +115,20 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           timeFilter: state.timeFilter
         );
         List<UserContent> userContent;
+        LoadingState loadingState = LoadingState.Inactive;
+        String errorMessage;
         if (state.contentSource != ContentSource.Self) {
           userContent = await _repository.fetchUserContent(event.typeFilter, state.target, source: state.contentSource, timeFilter: event.timeFilter, );
         } else {
           userContent = await _repository.fetchSelfUserContent(state.target, typeFilter: event.typeFilter, timeFilter: event.timeFilter);
         }
+        if (userContent.isEmpty) {
+          loadingState = LoadingState.Error;
+          errorMessage = "No Submissions Were Returned";
+        }
         yield PostsState(
-          state: LoadingState.Inactive,
+          state: loadingState,
+          errorMessage: errorMessage,
           userContent: userContent,
           contentSource: state.contentSource,
           currentUser: state.currentUser,

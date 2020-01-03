@@ -337,7 +337,7 @@ class PostsProvider {
   Future<List<UserContent>> fetchSelfUserContent(SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = "", String after}) async {
     Map<String, String> params = new Map<String, String>();
 
-    if(after != null)params["after"]= after;
+    if (after != null) params["after"]= after;
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
@@ -345,48 +345,58 @@ class PostsProvider {
 
     var self = await r.user.me();
     var filter = parseTimeFilter(timeFilter);
+    Stream<UserContent> userContent;
     switch (contentType) {
       case SelfContentType.Comments:
-        var comments = self.comments;
+        final comments = self.comments;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return comments.top(timeFilter: filter).toList();
+            userContent = comments.top(timeFilter: filter, params: params);
+            break;
           case TypeFilter.Controversial:
-            return comments.controversial(timeFilter: filter).toList();
+            userContent = comments.controversial(timeFilter: filter, params: params);
+            break;
           case TypeFilter.New:
-            return comments.newest().toList();
+            userContent = comments.newest(params: params);
+            break;
           default:
-            //Default: Return hot
-            return comments.hot().toList();
+            // Return Hot by default
+            userContent = comments.hot(params: params);
         }
         break;
       case SelfContentType.Hidden:
-        var hidden = self.hidden();
-        return hidden.toList();
+        var hidden = self.hidden(params: params);
+        userContent = hidden;
+        break;
       case SelfContentType.Submitted:
-        var submitted = self.submissions;
+        final submitted = self.submissions;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return submitted.top(timeFilter: filter).toList();
+            userContent = submitted.top(timeFilter: filter, params: params);
+            break;
           case TypeFilter.Controversial:
-            return submitted.controversial(timeFilter: filter).toList();
+            userContent = submitted.controversial(timeFilter: filter, params: params);
+            break;
           case TypeFilter.New:
-            return submitted.newest().toList();
+            userContent = submitted.newest(params: params);
+            break;
           default:
             //Default: Return hot
-            return submitted.hot().toList();
+            userContent = submitted.hot(params: params);
         }
         break;
       case SelfContentType.Upvoted:
-        var upvoted = self.upvoted();
-        return upvoted.toList();
+        userContent = self.upvoted(params: params);
+        break;
       case SelfContentType.Saved:
-        return self.saved().toList();
+        userContent = self.saved(params: params);
+        break;
       case SelfContentType.Watching:
         // ! API Doesn't support
       default:
         return null; // Shouldn't happen
     }
+    return userContent.toList();
   }
 
   // * Subreddit infornation 

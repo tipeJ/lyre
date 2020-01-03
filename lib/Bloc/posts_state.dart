@@ -9,7 +9,7 @@ import 'bloc.dart';
 @immutable
 class PostsState extends Equatable {
   final LoadingState state;
-  final errorMessage;
+  final String errorMessage;
 
   //CONTENT
   final List<UserContent> userContent;
@@ -85,13 +85,14 @@ class PostsState extends Equatable {
     }
 
     if(typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial){
-      filterString += parseTypeFilter() + " | " + timeFilter;
+      filterString += _parseTypeFilter() + " | " + timeFilter;
     }else{
-      filterString += parseTypeFilter();
+      filterString += _parseTypeFilter();
     }
     return filterString;
   }
-  String parseTypeFilter(){
+
+  String _parseTypeFilter(){
     switch (typeFilter) {
       case TypeFilter.Hot:
         return 'hot';

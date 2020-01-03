@@ -466,7 +466,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           children: <Widget>[
             // * Reply container
             AnimatedContainer(
-              height: _paramsVisibility == _ParamsVisibility.QuickText ? 56.0 : 0.0,
+              height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
               duration: _appBarContentTransitionDuration,
               curve: Curves.ease,
               child: Material(
@@ -478,7 +478,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ),
             // * Default appBar contents
             AnimatedContainer(
-              height: _paramsVisibility == _ParamsVisibility.None ? 56.0 : 0.0,
+              height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
               duration: _appBarContentTransitionDuration,
               curve: Curves.ease,
               padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -551,17 +551,21 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               )
             ),
           // * Type Params
-          AnimatedContainer(
-            height: _paramsVisibility == _ParamsVisibility.Type ? 56.0 : 0.0,
-            duration: _appBarContentTransitionDuration,
-            curve: Curves.ease,
-            child: Material(
-              child: Row(children: _sortTypeParams(),),
-            ),
+          BlocBuilder<PostsBloc, PostsState>(
+            builder: (context, state) {
+              return AnimatedContainer(
+                height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
+                duration: _appBarContentTransitionDuration,
+                curve: Curves.ease,
+                child: Material(
+                  child: Row(children: state.contentSource == ContentSource.Self ? _sortTypeParams(sortTypesuser) : _sortTypeParams(sortTypes),),
+                ),
+              );
+            },
           ),
           // * Time Params
           AnimatedContainer(
-            height: _paramsVisibility == _ParamsVisibility.Time ? 56.0 : 0.0,
+            height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
             duration: _appBarContentTransitionDuration,
             curve: Curves.ease,
             child: Material(
@@ -609,16 +613,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     });
   }
   
-  List<Widget> _sortTypeParams() {
-    return new List<Widget>.generate(sortTypes.length, (int index) {
+  List<Widget> _sortTypeParams(List<String> types) {
+    return List<Widget>.generate(types.length, (int index) {
       return Expanded(
         child: InkWell(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              _getTypeIcon(sortTypes[index]),
+              _getTypeIcon(types[index]),
               AutoSizeText(
-                sortTypes[index],
+                types[index],
                 softWrap: false,
                 maxFontSize: 12.0,
                 minFontSize: 8.0,
@@ -632,7 +636,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           },
           onTap: () {
             setState(() {
-              var q = sortTypes[index];
+              var q = types[index];
               if (q == "hot" || q == "new" || q == "rising") {
                 parseTypeFilter(q);
                 _change_ParamsVisibility();
@@ -1238,7 +1242,7 @@ class _submissionList extends StatelessWidget {
               }
             } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
               // Return error message
-              return const Center(child: Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage,));
+              return Center(child: Text(state.errorMessage, style: LyreTextStyles.errorMessage,));
             } else {
               // Return loading indicator
               return const Center(child: CircularProgressIndicator());

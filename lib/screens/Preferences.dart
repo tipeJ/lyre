@@ -49,9 +49,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                       expandedHeight: 125.0,
                       floating: false,
                       pinned: true,
-                      backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                      backgroundColor: Theme.of(context).canvasColor,
                       actions: <Widget>[
-                        Material(child: Center(child: Text('Advanced',),),),
+                        const Material(child: Center(child: Text('Advanced',),),),
                         Switch(
                           value: advanced,
                           onChanged: (value){
@@ -605,6 +605,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
   }
 }
 
+/// Widget for displaying Preferences Options. Will show a dialog with
+/// [description] text when the title Text is long-pressed. Leading 
+/// Widget will be shown last, while the title is always expanded.
 class _SettingsTitleRow extends StatelessWidget {
   const _SettingsTitleRow({@required this.title, @required this.leading, @required this.description}
   ):  assert(title != null),
@@ -622,7 +625,7 @@ class _SettingsTitleRow extends StatelessWidget {
         Expanded(
           child: InkWell(
             child: Padding(
-              padding: EdgeInsets.all(5.0),
+              padding: const EdgeInsets.all(5.0),
               child: Text(title),
             ),
             onLongPress: () {
@@ -630,7 +633,8 @@ class _SettingsTitleRow extends StatelessWidget {
                 context: context,
                 builder: (context) => SimpleDialog(
                   title: Text(title),
-                  children: <Widget>[Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),child: Text(description)
+                  titlePadding: const EdgeInsets.all(12.0),
+                  children: <Widget>[Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0),child: Text(description)
                 )],)
               );
             },

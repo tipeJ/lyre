@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart' as prefix1;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
@@ -384,44 +383,42 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: dividersWrapper(
-        depth: widget.moreComments.data["depth"],
-        child: InkWell(
-          onTap: () {
-              if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
-                setState(() {
-                  BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
-                  BlocProvider.of<CommentsBloc>(context).add(FetchMoreComments(moreComments: widget.moreComments, location: widget.index));
-                });
-              }
-            },
-          child: Container(
-            padding: EdgeInsets.only(left: _contentEdgePadding),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
-                      ? Container(
-                          padding: const EdgeInsets.all(5.0),
-                          child: const CircularProgressIndicator(),
-                          constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
-                        )
-                      : Container(),
-                    Text(
-                      "Load more comments (${widget.moreComments.count})"
-                    ),
-                  ]
-                ,),
-                Container(height: _dividerWidth, color: _dividerColor,)
-              ],
-            )
+    return dividersWrapper(
+      depth: widget.moreComments.data["depth"],
+      child: InkWell(
+        onTap: () {
+            if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
+              setState(() {
+                BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
+                BlocProvider.of<CommentsBloc>(context).add(FetchMoreComments(moreComments: widget.moreComments, location: widget.index));
+              });
+            }
+          },
+        child: Container(
+          padding: EdgeInsets.only(left: _contentEdgePadding),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
+                    ? Container(
+                        padding: const EdgeInsets.all(5.0),
+                        child: const CircularProgressIndicator(),
+                        constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
+                      )
+                    : Container(),
+                  Text(
+                    "Load more comments (${widget.moreComments.count})"
+                  ),
+                ]
+              ,),
+              Container(height: _dividerWidth, color: _dividerColor,)
+            ],
           )
-        ),
-      )
+        )
+      ),
     );
   }
 }

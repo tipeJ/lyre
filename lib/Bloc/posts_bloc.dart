@@ -47,6 +47,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           contentSource: event.source,
           target: event.target,
           userContent: const [],
+          currentUser: state.currentUser,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter
         );
@@ -66,6 +67,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         }
         final target = event.target ?? state.target;
 
+        
+
         switch (source) {
           case ContentSource.Subreddit:
             userContent = await PostsProvider().fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
@@ -81,6 +84,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           case ContentSource.Frontpage:
             userContent = await PostsProvider().fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             break;
+        }
+        if (source == ContentSource.Redditor) {
+          print(userContent.length.toString());
         }
 
         yield PostsState(
@@ -100,6 +106,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.Refreshing,
           contentSource: state.contentSource,
           target: state.target,
+          currentUser: state.currentUser,
           userContent: const [],
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter
@@ -125,6 +132,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.LoadingMore,
           contentSource: state.contentSource,
           target: state.target,
+          currentUser: state.currentUser,
           userContent: state.userContent,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter

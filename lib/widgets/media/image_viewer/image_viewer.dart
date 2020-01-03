@@ -43,7 +43,7 @@ class _ImageViewerState extends State<ImageViewer> {
 
   @override 
   void dispose() {
-    _albumController.dispose();
+    _albumController?.dispose();
     super.dispose();
   }
 

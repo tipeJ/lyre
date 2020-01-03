@@ -43,8 +43,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       final userContent = event.submission;
       List<CommentM> comments;
       //Only should occur when the submission is fetched from a comment permalink for the first time.
-      if (userContent is CommentRef) {
-        parentComment = await userContent.populate();
+      if (userContent is CommentRef || userContent is Comment) {
+        final Comment comment = userContent is CommentRef ? await userContent.populate() : userContent;
+        parentComment = comment.isRoot ? comment : await comment.parent();
         final submissionRef = parentComment.submission;
         submission = await submissionRef.populate();
         comments = _retrieveCommentsFromForest([parentComment]);
@@ -68,10 +69,10 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         currentList.insertAll(event.location, _retrieveCommentsFromForest(results)); //Inserts the received objects into the comment list
       }
       yield CommentsState(state: LoadingState.Inactive, submission: state.submission, comments: currentList, sortType: state.sortType); //Return the updated list of dynamic comment objects.      
-    } else if(event is Collapse){
+    } else if (event is Collapse){
       _collapse(event.location);
       yield CommentsState(state: state.state, submission: state.submission, comments: _comments, sortType: state.sortType);
-    } else if(event is AddComment){
+    } else if (event is AddComment){
       final c = event.comment;
       c.data['depth'] = state.comments[event.location].c.data['depth'] + 1;
       state.comments.insert(event.location+1, CommentM.from(c));

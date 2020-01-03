@@ -8,13 +8,11 @@ import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
-import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/subreddits_list.dart';
-import 'package:lyre/widgets/CustomExpansionTile.dart';
-import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
@@ -1380,6 +1378,19 @@ class _submissionList extends StatelessWidget {
                       onOptionsClick: () {
                         SubmissionOptionsNotification(submission: submission)..dispatch(context);
                       },
+                    );
+                  } else {
+                    return Material(
+                      color: Theme.of(context).cardColor,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                          },
+                          child: CommentContent(posts[i], PreviewSource.PostsList),
+                        )
+                      )
                     );
                   }
                 },

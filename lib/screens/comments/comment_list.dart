@@ -121,7 +121,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         ],
                       );
                     } else {
-                      return Center(child: CircularProgressIndicator(),);
+                      return const Center(child: CircularProgressIndicator());
                     }
                   },
                 );
@@ -137,16 +137,16 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                           padding: const EdgeInsets.only(left: 12.0),
                           child: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
                         ),
-                        Text("Comments"),
-                        Spacer(),
+                        const Text("Comments"),
+                        const Spacer(),
                         Padding(
                           padding: const EdgeInsets.only(right: 12.0),
                           child: DropdownButton<CommentSortType>(
                             value: state.sortType,
                             items: CommentSortType.values.map((CommentSortType value) {
-                              return new DropdownMenuItem<CommentSortType>(
+                              return DropdownMenuItem<CommentSortType>(
                                 value: value,
-                                child: new Text(value.toString().split(".")[1]),
+                                child: Text(value.toString().split(".")[1]),
                               );
                             }).toList(),
                             onChanged: (value) {
@@ -158,23 +158,29 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         )
                       ],
                     )
-                    : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Flexible(
-                          child: Text(
-                            "You are viewing a single comment",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ),
-                        OutlineButton(
-                          child: Text("View All Comments"),
-                          onPressed: (){
-                            BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
-                          },
+                    : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                              child: const Text(
+                                "You are viewing a single comment",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 5.0),
+                              child: OutlineButton(
+                                child: const Text("View All Comments"),
+                                onPressed: (){
+                                  BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
+                                },
+                              )
+                            )
+                          ],
                         )
-                      ],
                     )
                 );
               }

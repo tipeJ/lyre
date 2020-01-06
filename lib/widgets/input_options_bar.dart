@@ -256,10 +256,10 @@ class InputOptions extends StatelessWidget {
               controller: controller,
               children: <Widget>[
                 Container(
-                  constraints: BoxConstraints.tightFor(height: 30.0),
+                  constraints: const BoxConstraints.tightFor(height: 30.0),
                   child: Row(
                     children: <Widget>[
-                      Expanded(
+                      const Expanded(
                         child: Text('Markdown Preview')
                       ),
                       IconButton(
@@ -271,7 +271,7 @@ class InputOptions extends StatelessWidget {
                     ],
                   )
                 ),
-                Divider(),
+                const Divider(),
                 SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   controller: controller,

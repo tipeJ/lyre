@@ -12,6 +12,8 @@ class LyreTextStyles {
 
   static const dialogTitle = TextStyle(fontSize: 24.0);
 
+  static const bottomSheetTitle = TextStyle(fontSize: 14.0, color: Colors.grey, fontWeight: FontWeight.bold);
+
   static const typeParams = TextStyle(fontSize: 26.0);
   static const timeParams = TextStyle(fontSize: 13.0);
   static const iconText = TextStyle(fontSize: 20.0, fontWeight: FontWeight.w500);

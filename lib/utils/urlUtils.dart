@@ -65,9 +65,10 @@ LinkType getLinkType(String url){
     return LinkType.Gfycat;
   } else if(url.contains("v.redd.it")){
     return LinkType.RedditVideo;
-  } else if(url.contains("clips.twitch.tv")){
-    return LinkType.TwitchClip;
-  }
+  } 
+  // else if(url.contains("clips.twitch.tv")){
+  //   return LinkType.TwitchClip;
+  // }
 
   return LinkType.Default;
 }

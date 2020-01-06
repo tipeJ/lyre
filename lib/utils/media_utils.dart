@@ -1,14 +1,29 @@
 import 'dart:convert';
-
-import 'package:http/http.dart';
+import 'package:flutter/foundation.dart';
+import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 
 Future<String> getTwitchClipVideoLink(String url) async {
-  final id = url.split('/').last;
-  final client = Client();
-  final response = await client.get("https://clips.twitch.tv/api/v2/clips/" + id + "/status");
-  return json.decode(response.body)['quality_options'][0]['source'];
+  final slug = url.split('/').last;
+  final response = await PostsProvider().httpget(
+    "https://api.twitch.tv/kraken/clips/" + slug,
+    {
+      "Client-ID" : TWITCH_CLIENT_ID,
+      "Accept" : 'application/vnd.twitchtv.v4+json'
+    }
+  );
+  debugPrint(response.body);
+  final videoUrl = _computeTwitchResponse(response.body);
+  return videoUrl;
+}
+
+String _computeTwitchResponse(String body) {
+  final parsedJson = json.decode(body);
+  debugPrint(parsedJson.toString());
+  final errorMessage = parsedJson['error'];
+  return errorMessage ?? parsedJson['videoQualities'][0]['sourceURL'];
 }
 
 Future<String> getGfyVideoUrl(String url) {

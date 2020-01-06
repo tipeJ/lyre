@@ -72,9 +72,9 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
           lyreVideoController.placeholder ?? Container(),
           PhotoView.customChild(
             controller: zoomController,
-            initialScale: MediaQuery.of(context).size.aspectRatio / lyreVideoController.videoPlayerController.value.aspectRatio,
-            maxScale: 5.0,
-            minScale: MediaQuery.of(context).size.aspectRatio / lyreVideoController.videoPlayerController.value.aspectRatio, //Calculates the corrent initial and minimum scale
+            initialScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered,
+            minScale: PhotoViewComputedScale.contained, //Calculates the corrent initial and minimum scale
             childSize: lyreVideoController.videoPlayerController.value.size,
             child: VideoPlayer(lyreVideoController.videoPlayerController),
           ),

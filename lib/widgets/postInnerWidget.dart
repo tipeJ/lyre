@@ -200,7 +200,7 @@ class postInnerWidget extends StatelessWidget{
     if (linkType == LinkType.RedditVideo) {
       handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      handleLinkClick(submission.url.toString());
+      handleLinkClick(submission.url.toString(), linkType, context);
     }
   }
 

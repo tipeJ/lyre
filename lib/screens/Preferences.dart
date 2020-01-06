@@ -720,7 +720,7 @@ class __homeOptionsColumnState extends State<_homeOptionsColumn> with SingleTick
                       prefixText: "r/",
                       labelText: 'Home Subreddit'
                     ),   
-                    onChanged: (value) {
+                    onFieldSubmitted: (value) {
                       box.put(SUBREDDIT_HOME, value);
                     },               
                   )

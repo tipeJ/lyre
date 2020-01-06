@@ -10,9 +10,13 @@ const FRONTPAGE_TARGET = "_";
 const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 const SEARCH_BASE_URL = "https://www.reddit.com/search.json";
 
+// * Client IDs
+
 const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 const GFYCAT_CLIENT_ID = "2__lD9Ci";
 const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
+
+const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
 const FRONTPAGE_HOME_SUB = "_";
 

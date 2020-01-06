@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' show Client;
+import 'package:http/http.dart';
 import 'package:lyre/Models/models.dart' as rModel;
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
@@ -535,6 +535,10 @@ class PostsProvider {
       //SHOULD NOT HAPPEN:
         return TimeFilter.day;
     }
+  }
+
+  Future<Response> httpget(String request, [Map<String, dynamic> headers]) async {
+    return client.get(request, headers: headers);
   }
 }
 

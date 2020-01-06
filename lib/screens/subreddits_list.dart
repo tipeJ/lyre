@@ -86,10 +86,12 @@ class SubredditsList extends State<ExpandingSheetContent> {
           ),
           BlocBuilder<LyreBloc, LyreState>(
             builder: (context, state) {
-              return _defaultSubredditList(state.subscriptions.where((name) {
+              List<String> subscriptionsList = state.subscriptions.where((name) {
                   final sub = name.toLowerCase();
                   return sub.contains(searchQuery.toLowerCase());
-                }).toList()..sort());
+                }).toList();
+              if (searchQuery.isNotEmpty) subscriptionsList..sort();
+              return _defaultSubredditList(subscriptionsList);
             },
           )
         ],

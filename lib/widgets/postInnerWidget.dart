@@ -15,14 +15,12 @@ import 'dart:ui';
 import '../screens/Animations/OnSlide.dart';
 import 'ActionItems.dart';
 import '../Resources/globals.dart';
-import '../utils/imageUtils.dart';
-import '../utils/urlUtils.dart';
+import '../utils/utils.dart';
 import 'package:draw/draw.dart';
 import '../screens/interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
-import '../utils/redditUtils.dart';
 
 ///Notification class for sending submission selection data to the parent widgets, Posts-List, for example.
 class SubmissionOptionsNotification extends Notification {
@@ -179,7 +177,7 @@ class postInnerWidget extends StatelessWidget{
       ),
       
       onTap: () {
-        handleClick(context);
+        _handleClick(context);
       },
       onLongPress: (){
         _handlePress(context);
@@ -198,17 +196,11 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 
-  void handleClick(BuildContext context){
-    if(linkType == LinkType.YouTube){
-      //TODO: Implement YT plugin?
-      launchURL(context, submission);
-    } else if(linkType == LinkType.Default){
-      launchURL(context, submission);
-    } else if (linkType == LinkType.RedditVideo){
-      PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+  void _handleClick(BuildContext context){
+    if (linkType == LinkType.RedditVideo) {
+      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      print("URL:" + submission.url.toString());
-      PreviewCall().callback.preview(submission.url.toString());
+      handleLinkClick(submission.url.toString());
     }
   }
 

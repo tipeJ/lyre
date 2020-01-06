@@ -66,6 +66,7 @@ LinkType getLinkType(String url){
   } else if(url.contains("v.redd.it")){
     return LinkType.RedditVideo;
   } 
+  // ! API BLOCKED, NO LONGER (YET) SUPPORTED
   // else if(url.contains("clips.twitch.tv")){
   //   return LinkType.TwitchClip;
   // }

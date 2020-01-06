@@ -49,7 +49,7 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
       }
     });
     animation.addListener((){
-      zoomController.scale = (animation.value * (fittedScale -1)) + 1.0;
+      zoomController.scale = (animation.value * (PhotoViewComputedScale.covered.multiplier)) + 1.0;
     });
     return Center(
       child: Container(

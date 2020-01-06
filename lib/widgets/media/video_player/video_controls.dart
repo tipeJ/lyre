@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:lyre/screens/interfaces/previewc.dart';
 import 'progress_bar.dart';
 import 'package:video_player/video_player.dart';
 import 'lyre_video_player.dart';
@@ -164,31 +163,33 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     super.didChangeDependencies();
   }
 
-  Container _buildBottomBar(
+  Material _buildBottomBar(
     BuildContext context,
   ) {
     final iconColor = Theme.of(context).textTheme.button.color;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: buttonPadding),
-      height: barHeight,
-      color: Colors.black.withOpacity(0.5),
-      child: Row(
-        children: <Widget>[
-          _buildPlayPause(controller),
-          lyreVideoController.isLive
-              ? Expanded(child: const Text('LIVE'))
-              : _buildPosition(iconColor),
-          lyreVideoController.isLive ? const SizedBox() : _buildProgressBar(),
-          lyreVideoController.allowMuting
-              ? _buildMuteButton(controller)
-              : Container(),
-          _buildZoomButton(),
-          lyreVideoController.allowFullScreen
-              ? _buildExpandButton()
-              : Container(),
-        ],
-      ),
+    return Material(
+      color: Colors.black54,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: buttonPadding),
+        height: barHeight,
+        child: Row(
+          children: <Widget>[
+            _buildPlayPause(controller),
+            lyreVideoController.isLive
+                ? Expanded(child: const Text('LIVE'))
+                : _buildPosition(iconColor),
+            lyreVideoController.isLive ? const SizedBox() : _buildProgressBar(),
+            lyreVideoController.allowMuting
+                ? _buildMuteButton(controller)
+                : Container(),
+            _buildZoomButton(),
+            lyreVideoController.allowFullScreen
+                ? _buildExpandButton()
+                : Container(),
+          ],
+        ),
+      )
     );
   }
   Container _buildBottomExpandingBar(
@@ -354,13 +355,13 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
         : Duration.zero;
 
     return Padding(
-      padding: EdgeInsets.only(right: 24.0),
-      child: Material(child: Text(
+      padding: const EdgeInsets.only(right: 24.0),
+      child: Text(
         '${formatDuration(position)} / ${formatDuration(duration)}',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14.0,
         ),
-      ),)
+      )
     );
   }
 

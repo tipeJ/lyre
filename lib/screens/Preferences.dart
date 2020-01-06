@@ -14,10 +14,16 @@ class PreferencesView extends StatefulWidget {
 
   _PreferencesViewState createState() => _PreferencesViewState();
 }
-class _PreferencesViewState extends State<PreferencesView> with SingleTickerProviderStateMixin{
+class _PreferencesViewState extends State<PreferencesView> with SingleTickerProviderStateMixin {
 
   Box box;
   bool advanced = false;
+
+  @override
+  void dispose() { 
+    box.close();
+    super.dispose();
+  }
 
   Future<bool> _willPop() {
     BlocProvider.of<LyreBloc>(context).add(SettingsChanged(settings: box));
@@ -34,7 +40,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           builder: (context, snapshot){
             if (snapshot.hasData) {
               this.box = snapshot.data;
-              blurLevel = (box.get(IMAGE_BLUR_LEVEL) ?? 20.0).toDouble();
+              blurLevel = (box.get(IMAGE_BLUR_LEVEL, defaultValue: IMAGE_BLUR_LEVEL_DEFAULT)).toDouble();
               return Container(
                 padding: EdgeInsets.all(10.0),
                 child: CustomScrollView(
@@ -43,9 +49,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                       expandedHeight: 125.0,
                       floating: false,
                       pinned: true,
-                      backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
+                      backgroundColor: Theme.of(context).canvasColor,
                       actions: <Widget>[
-                        Material(child: Center(child: Text('Advanced',),),),
+                        const Material(child: Center(child: Text('Advanced',),),),
                         Switch(
                           value: advanced,
                           onChanged: (value){
@@ -112,24 +118,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     return [
       _settingsWidget(
         children: [
-          WatchBoxBuilder(
-            box: Hive.box('settings'),
-            builder: (context, box){
-              return Padding(
-                padding: EdgeInsets.all(5.0),
-                child: TextFormField(
-                  initialValue: box.get(SUBREDDIT_HOME) ?? "",
-                  decoration: InputDecoration(
-                    prefixText: "r/",
-                    labelText: 'Home Subreddit'
-                  ),   
-                  onChanged: (value) {
-                    box.put(SUBREDDIT_HOME, value);
-                  },               
-                )
-              );
-            },
-          ),
+          _homeOptionsColumn(box: box,)
         ],
         isAdvanced: false
       )
@@ -145,12 +134,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: "Default Sorting Type",
                 description: "Your Subreddit Submissions will by default take this value (Hot, Top, etc..)",
-                leading: new DropdownButton<String>(
-                  value: box.get(SUBMISSION_DEFAULT_SORT_TYPE) ?? sortTypes[0],
+                leading: DropdownButton<String>(
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
                   items: sortTypes.map((String value) {
-                    return new DropdownMenuItem<String>(
+                    return DropdownMenuItem<String>(
                       value: value,
-                      child: new Text(value),
+                      child: Text(value),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -158,7 +147,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                     setState(() {
                     });
                   },
-                )
+                ),
               );
             },
           ),
@@ -168,12 +157,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: "Default Sorting Time",
                 description: "Your Subreddit Submissions will by default take this value when the sorting type is Time-Based (Top, Controversial)",
-                leading: new DropdownButton<String>(
-                  value: box.get(SUBMISSION_DEFAULT_SORT_TIME) ?? sortTimes[1],
+                leading: DropdownButton<String>(
+                  value: box.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
                   items: sortTimes.map((String value) {
-                    return new DropdownMenuItem<String>(
+                    return DropdownMenuItem<String>(
                       value: value,
-                      child: new Text(value),
+                      child: Text(value),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -187,7 +176,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: "Auto-Load Posts",
             description: "Enables Never-Ending scrolling",
             leading: Switch(
-              value: box.get(SUBMISSION_AUTO_LOAD) ?? false,
+              value: box.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_AUTO_LOAD, value);
               },)
@@ -198,12 +187,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: "Post View Mode",
                 description: "What form will the submissions cards take",
-                leading: new DropdownButton<PostView>(
-                  value: box.get(SUBMISSION_VIEWMODE) ?? PostView.Compact,
+                leading: DropdownButton<PostView>(
+                  value: box.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
                   items: PostView.values.map((PostView value) {
-                    return new DropdownMenuItem<PostView>(
+                    return DropdownMenuItem<PostView>(
                       value: value,
-                      child: new Text(value.toString().split('.')[1]),
+                      child: Text(value.toString().split('.')[1]),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -221,9 +210,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children:[
           _SettingsTitleRow(
             title: "Reset Sorting When Refreshing Submission List",
-            description: "Will refreshing Submission list or entering a new submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
+            description: "Will refreshing Submission list or entering a submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
             leading: Switch(
-              value: box.get(SUBMISSION_RESET_SORTING) ?? true,
+              value: box.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_RESET_SORTING, value);
               },)
@@ -232,7 +221,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: "Show Circle Around Preview Indicator",
             description: "When enabled, show a circle around the link indicator (video, image, etc..)",
             leading: Switch(
-              value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE) ?? true,
+              value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
               },)
@@ -255,12 +244,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: "Default Comments Sort",
                 description: "Default Sorting Params of Comments list",
-                leading: new DropdownButton<String>(
-                  value: box.get(COMMENTS_DEFAULT_SORT) ?? commentSortTypes[1],
+                leading: DropdownButton<String>(
+                  value: box.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),
                   items: commentSortTypes.map((String value) {
-                    return new DropdownMenuItem<String>(
+                    return DropdownMenuItem<String>(
                       value: value,
-                      child: new Text(value),
+                      child: Text(value),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -277,7 +266,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                 title: 'Precollapse Threads', 
                 description: "Collapse all Comment threads to the top level comments by default",
                 leading: Switch(
-                  value: box.get(COMMENTS_PRECOLLAPSE) ?? false,
+                  value: box.get(COMMENTS_PRECOLLAPSE, defaultValue: COMMENTS_PRECOLLAPSE_DEFAULT),
                   onChanged: (value){
                     box.put(COMMENTS_PRECOLLAPSE, value);
                   },)
@@ -298,7 +287,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: 'Show NSFW Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain NSFW content",
             leading: Switch(
-              value: box.get(SHOW_NSFW_PREVIEWS) ?? false,
+              value: box.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
               onChanged: (value){
                 box.put(SHOW_NSFW_PREVIEWS, value);
               },)
@@ -307,7 +296,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             title: 'Show Spoiler Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain spoilers",
             leading: Switch(
-              value: box.get(SHOW_SPOILER_PREVIEWS) ?? false,
+              value: box.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
               onChanged: (value){
                 box.put(SHOW_SPOILER_PREVIEWS, value);
               },)
@@ -422,12 +411,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: "Imgur Thumbnail Quality",
                 description: "Choose the quality in which imgur thumbnails are shown in album preview views",
-                leading: new DropdownButton<String>(
-                  value: box.get(IMGUR_THUMBNAIL_QUALITY) ?? imgurThumbnailsQuality.keys.first,
+                leading: DropdownButton<String>(
+                  value: box.get(IMGUR_THUMBNAIL_QUALITY, defaultValue: IMGUR_THUMBNAIL_QUALITY_DEFAULT),
                   items: imgurThumbnailsQuality.keys.map((String value) {
-                    return new DropdownMenuItem<String>(
+                    return DropdownMenuItem<String>(
                       value: value,
-                      child: new Text(value),
+                      child: Text(value),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -464,7 +453,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             style: lyreThemeData[lyreAppTheme].textTheme.body1
           ),
           onTap: (){
-            //Make the bloc output a new ThemeState
+            //Make the bloc output a ThemeState
             box.put(CURRENT_THEME, lyreAppTheme.toString());
             BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
           },
@@ -616,6 +605,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
   }
 }
 
+/// Widget for displaying Preferences Options. Will show a dialog with
+/// [description] text when the title Text is long-pressed. Leading 
+/// Widget will be shown last, while the title is always expanded.
 class _SettingsTitleRow extends StatelessWidget {
   const _SettingsTitleRow({@required this.title, @required this.leading, @required this.description}
   ):  assert(title != null),
@@ -633,7 +625,7 @@ class _SettingsTitleRow extends StatelessWidget {
         Expanded(
           child: InkWell(
             child: Padding(
-              padding: EdgeInsets.all(5.0),
+              padding: const EdgeInsets.all(5.0),
               child: Text(title),
             ),
             onLongPress: () {
@@ -641,7 +633,8 @@ class _SettingsTitleRow extends StatelessWidget {
                 context: context,
                 builder: (context) => SimpleDialog(
                   title: Text(title),
-                  children: <Widget>[Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),child: Text(description)
+                  titlePadding: const EdgeInsets.all(12.0),
+                  children: <Widget>[Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0),child: Text(description)
                 )],)
               );
             },
@@ -655,3 +648,94 @@ class _SettingsTitleRow extends StatelessWidget {
     );
   }
 }
+
+/// Widget for displaying options for Home Page Customization 
+/// (Includes expanding setting for configuring custom home subreddit)
+class _homeOptionsColumn extends StatefulWidget {
+  final Box box;
+  _homeOptionsColumn({this.box, Key key}) : super(key: key);
+
+  @override
+  __homeOptionsColumnState createState() => __homeOptionsColumnState();
+}
+
+class __homeOptionsColumnState extends State<_homeOptionsColumn> with SingleTickerProviderStateMixin{
+  
+  AnimationController _customHomeExpansionController;
+
+  @override
+  void initState() { 
+    super.initState();
+    _customHomeExpansionController = AnimationController(vsync: this, duration: Duration(milliseconds: 200), value: widget.box.get(HOME, defaultValue: HOME_DEFAULT) == _homeOptions[3] ? 1.0 : 0.0);
+    _customHomeExpansionController.addListener(() {
+      setState((){});
+    });
+  }
+
+  @override
+  void dispose() { 
+    _customHomeExpansionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+       children: <Widget>[
+         _SettingsTitleRow(
+            title: "Home",
+            description: "First community that opens when you start the app. Can also be quickly accessed via double-tapping the bottom appbar",
+            leading: DropdownButton<String>(
+              value: widget.box.get(HOME, defaultValue: HOME_DEFAULT),
+              items: _homeOptions.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                widget.box.put(HOME, value);
+                setState(() {
+                  if (value == _homeOptions[3]) {
+                    _customHomeExpansionController.forward();
+                  } else if (_customHomeExpansionController.value != 0.0) {
+                    _customHomeExpansionController.reverse();
+                  }
+                });
+              },
+            ),
+          ),
+          SizeTransition(
+            sizeFactor: _customHomeExpansionController,
+            axis: Axis.vertical,
+            child: WatchBoxBuilder(
+              box: Hive.box('settings'),
+              builder: (context, box){
+                return Padding(
+                  padding: EdgeInsets.all(5.0),
+                  child: TextFormField(
+                    //TODO: Add option for frontpage, popular etc for home subreddit
+                    initialValue: box.get(SUBREDDIT_HOME),
+                    decoration: InputDecoration(
+                      prefixText: "r/",
+                      labelText: 'Home Subreddit'
+                    ),   
+                    onFieldSubmitted: (value) {
+                      box.put(SUBREDDIT_HOME, value);
+                    },               
+                  )
+                );
+              },
+            ),
+          )
+       ],
+    );
+  }
+}
+
+List<String> _homeOptions = const [
+  "Frontpage",
+  "Popular",
+  "All",
+  "Custom Subreddit"
+];

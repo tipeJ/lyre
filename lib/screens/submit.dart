@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:lyre/widgets/widgets.dart';
 import '../Resources/globals.dart';
-import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import '../Resources/reddit_api_provider.dart';
 
 
@@ -132,110 +131,98 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
       onWillPop: _willPop,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: const Text("Create a Submission"),
+          actions: <Widget>[_sendingState == SendingState.Inactive
+            ? IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: (){
+                if(PostsProvider().isLoggedIn() && _sendingState != SendingState.Sending){
+                  setState(() {
+                    _sendingState = SendingState.Sending;
+                  });
+                  switch (_submitType) {
+                    case SubmitType.Selftext:
+                      submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, is_nsfw, send_replies).then((submission){
+                        setState(() {
+                          _sendingState = SendingState.Inactive;
+                        });
+                        if (submission is String){
+                          Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                        } else {
+                          _showComments(context, submission);
+                        }
+                      });
+                      break;
+                    case SubmitType.Link:
+                      submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
+                        setState(() {
+                          _sendingState = SendingState.Inactive;
+                        });
+                        if (submission is String){
+                          Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                        } else {
+                          _showComments(context, submission);
+                        }
+                      });
+                      break;
+                    case SubmitType.Image:
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context){
+                          return AlertDialog(
+                              title: Text('Uploading image'),
+                              content: Container(
+                                  width: 25.0,
+                                  height: 25.0,
+                                  child: Center(
+                                    child: CircularProgressIndicator()
+                                  )
+                                )
+                            );
+                        }
+                      );
+                      submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
+                        setState(() {
+                          _sendingState = SendingState.Inactive;
+                        });
+                        if (submission is String){
+                          Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
+                        } else {
+                          _showComments(context, submission);
+                        }
+                      });
+                      break;
+                    default:
+                    //Video
+                      break;
+                  }
+              } else {
+                final snackBar = const SnackBar(
+                  content: Text('Log in to create submissions'),
+                );
+                Scaffold.of(context).showSnackBar(snackBar);
+              }
+            },
+          )
+        : CircularProgressIndicator()],
+        ),
         body: Stack(
           children: [
             NestedScrollView(
               controller: _scrollController,
               headerSliverBuilder: (context, b) {
                 return [
-                  SliverAppBar(
-                    primary: true,
-                    titleSpacing: 0.0,
-                    automaticallyImplyLeading: false,
-                    leading: IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.of(context).maybePop();
-                      },
-                    ),
-                    title: Row(children: <Widget>[
-                      Expanded(
-                        child: TextField(
-                          textInputAction: TextInputAction.send,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
-                            labelText: _subredditController.text.isNotEmpty ? "Title For Your Submission in r/${_subredditController.text}" : "Title",
-                          ),
-                          controller: _titleController,
-                        ),
-                      ),
-                      _sendingState == SendingState.Inactive
-                        ? IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: (){
-                            if(PostsProvider().isLoggedIn() && _sendingState != SendingState.Sending){
-                              setState(() {
-                                _sendingState = SendingState.Sending;
-                              });
-                              switch (_submitType) {
-                                case SubmitType.Selftext:
-                                  submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, is_nsfw, send_replies).then((submission){
-                                    setState(() {
-                                      _sendingState = SendingState.Inactive;
-                                    });
-                                    if (submission is String){
-                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                    } else {
-                                      _showComments(context, submission);
-                                    }
-                                  });
-                                  break;
-                                case SubmitType.Link:
-                                  submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
-                                    setState(() {
-                                      _sendingState = SendingState.Inactive;
-                                    });
-                                    if (submission is String){
-                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                    } else {
-                                      _showComments(context, submission);
-                                    }
-                                  });
-                                  break;
-                                case SubmitType.Image:
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context){
-                                      return AlertDialog(
-                                          title: Text('Uploading image'),
-                                          content: Container(
-                                              width: 25.0,
-                                              height: 25.0,
-                                              child: Center(
-                                                child: CircularProgressIndicator()
-                                              )
-                                            )
-                                        );
-                                    }
-                                  );
-                                  submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
-                                    setState(() {
-                                      _sendingState = SendingState.Inactive;
-                                    });
-                                    if (submission is String){
-                                      Scaffold.of(context).showSnackBar(SnackBar(content: Text(submission),));
-                                    } else {
-                                      _showComments(context, submission);
-                                    }
-                                  });
-                                  break;
-                                default:
-                                //Video
-                                  break;
-                              }
-                          } else {
-                            final snackBar = const SnackBar(
-                              content: Text('Log in to create submissions'),
-                            );
-                            Scaffold.of(context).showSnackBar(snackBar);
-                          }
-                        },
-                      )
-                    : CircularProgressIndicator()
-                    ],)
-                  ),
                   SliverList(
-                  delegate: SliverChildListDelegate([
+                    delegate: SliverChildListDelegate([
+                      TextField(
+                        textInputAction: TextInputAction.send,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
+                          labelText: "Title",
+                        ),
+                        controller: _titleController,
+                      ),
                       TextField(
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
@@ -295,7 +282,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                       ),
                       Divider(),
                       Padding(
-                        padding: EdgeInsets.only(top: 10.0),
+                        padding: const EdgeInsets.only(top: 10.0),
                         child: Align(
                           alignment: Alignment.center,
                           child: ToggleButtons(
@@ -310,10 +297,10 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               _submitType == SubmitType.Image,
                               //_submitType == SubmitType.Video,
                             ],
-                            children: <Widget>[
-                              const Text('Text'),
-                              const Text('Link'),
-                              const Text('Image'),
+                            children: const <Widget>[
+                              Text('Text'),
+                              Text('Link'),
+                              Text('Image'),
                               //const Text('Video'),
                             ],
                             selectedColor: Theme.of(context).accentColor,

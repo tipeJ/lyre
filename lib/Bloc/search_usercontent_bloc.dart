@@ -14,7 +14,6 @@ class SearchUsercontentBloc extends Bloc<SearchUsercontentEvent, SearchUserconte
     if (event is UserContentQueryChanged) {
       yield(SearchUsercontentState(loading: true, results: [], parameters: event.parameters));
       final results = await PostsProvider().searchPushShiftComments(event.parameters);
-      print(results.length.toString());
       yield(SearchUsercontentState(loading: false, results: results, parameters: event.parameters));
     }
   }

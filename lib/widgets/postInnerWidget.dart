@@ -7,7 +7,6 @@ import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
@@ -16,14 +15,12 @@ import 'dart:ui';
 import '../screens/Animations/OnSlide.dart';
 import 'ActionItems.dart';
 import '../Resources/globals.dart';
-import '../utils/imageUtils.dart';
-import '../utils/urlUtils.dart';
+import '../utils/utils.dart';
 import 'package:draw/draw.dart';
 import '../screens/interfaces/previewCallback.dart';
 import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
-import '../utils/redditUtils.dart';
 
 ///Notification class for sending submission selection data to the parent widgets, Posts-List, for example.
 class SubmissionOptionsNotification extends Notification {
@@ -66,12 +63,12 @@ class postInnerWidget extends StatelessWidget{
       return getDefaultSlideColumn(context);
     }
     if (submission.preview != null && submission.preview.isNotEmpty) {
-      return getMediaWidget(context);
+      return _getMediaWidget(context);
     }
     return getDefaultSlideColumn(context);
   }
 
-  Widget getMediaWidget(BuildContext context) {
+  Widget _getMediaWidget(BuildContext context) {
     switch (postView) {
       case PostView.IntendedPreview:
         return intendedWidget(context);
@@ -80,7 +77,7 @@ class postInnerWidget extends StatelessWidget{
       case PostView.Compact:
         return compactWidget(context);
       default:
-        return new defaultColumn(submission, previewSource, linkType);
+        return defaultColumn(submission, previewSource, linkType);
     }
   }
 
@@ -104,7 +101,7 @@ class postInnerWidget extends StatelessWidget{
   Column imagePreview(BuildContext context) {
     return new Column(
       children: <Widget>[
-        getExpandedImage(context),
+        _getExpandedImage(context),
         getDefaultSlideColumn(context)
       ],
     );
@@ -114,7 +111,7 @@ class postInnerWidget extends StatelessWidget{
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
-        getExpandedImage(context),
+        _getExpandedImage(context),
         new Positioned(
           bottom: 0.0,
           child: 
@@ -132,10 +129,10 @@ class postInnerWidget extends StatelessWidget{
                 ),
               )
               : new Container(
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.black,
-                  child: defaultColumn(submission, previewSource, linkType),
-                ),
+                width: MediaQuery.of(context).size.width,
+                color: Theme.of(context).primaryColor,
+                child: getDefaultSlideColumn(context),
+              ),
         ),
         ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
@@ -143,7 +140,7 @@ class postInnerWidget extends StatelessWidget{
     ].where((w) => notNull(w)).toList());
   }
 
-  Widget getExpandedImage(BuildContext context){
+  Widget _getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
     var y = 250.0; //Default preview height
     final preview = submission.preview.first;
@@ -151,13 +148,13 @@ class postInnerWidget extends StatelessWidget{
       y = (x / preview.source.width) * preview.source.height;
     }
     return Container(
-      child: getImageWidget(context, fullSizePreviews),
-      height: (fullSizePreviews) ? y : 250.0,
+      child: _getImageWidget(context, fullSizePreviews),
+      height: y,
       width: x,
     );
   }
 
-  Widget getImageWidget(BuildContext context, [bool fullSizePreviews]){
+  Widget _getImageWidget(BuildContext context, [bool fullSizePreviews]){
     if (postView == PostView.Compact) {
       return getImageWrapper(context, BoxFit.cover);
     }
@@ -180,7 +177,7 @@ class postInnerWidget extends StatelessWidget{
       ),
       
       onTap: () {
-        handleClick(context);
+        _handleClick(context);
       },
       onLongPress: (){
         _handlePress(context);
@@ -193,23 +190,17 @@ class postInnerWidget extends StatelessWidget{
 
   Widget getSquaredImage(BuildContext context){
     return new Container(
-      child: getImageWidget(context, false),
+      child: _getImageWidget(context, false),
       //The fixed height of the post image:
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
   }
 
-  void handleClick(BuildContext context){
-    if(linkType == LinkType.YouTube){
-      //TODO: Implement YT plugin?
-      launchURL(context, submission);
-    } else if(linkType == LinkType.Default){
-      launchURL(context, submission);
-    } else if (linkType == LinkType.RedditVideo){
-      PreviewCall().callback.preview(submission.data["media"]["reddit_video"]["dash_url"]);
+  void _handleClick(BuildContext context){
+    if (linkType == LinkType.RedditVideo) {
+      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
     } else {
-      print("URL:" + submission.url.toString());
-      PreviewCall().callback.preview(submission.url.toString());
+      handleLinkClick(submission.url.toString(), linkType, context);
     }
   }
 
@@ -275,15 +266,17 @@ class postInnerWidget extends StatelessWidget{
 
 
   Widget build(BuildContext context) {
-    return Padding(
-      child: Container(
-        child: getWidget(context),
-        color: Theme.of(context).cardColor,
-      ),
-      padding: const EdgeInsets.only(
-        //The gap bewtween the widgets.
-        bottom: 5.0
-      ),
+    return ClipRRect(
+      child: Padding(
+        child: Container(
+          child: getWidget(context),
+          color: Theme.of(context).cardColor,
+        ),
+        padding: const EdgeInsets.only(
+          //The gap bewtween the widgets.
+          bottom: 5.0
+        ),
+      )
     );
   }
 }
@@ -351,7 +344,7 @@ class __SlideColumnState extends State<_SlideColumn> {
           icon: Icon(Icons.person,color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
-              'redditor'        : widget.submission.author,
+              'target'        : widget.submission.author,
               'content_source'  : ContentSource.Redditor
             });
           }

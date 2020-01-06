@@ -22,6 +22,7 @@ class LyreState extends Equatable {
   // * Preferences
 
   final LyreTheme currentTheme;
+  final String home;
   final String homeSubreddit;
 
   final PostView viewMode;
@@ -56,6 +57,7 @@ class LyreState extends Equatable {
       @required this.subscriptions,
 
       @required this.currentTheme,
+      @required this.home,
       @required this.homeSubreddit,
 
       @required this.viewMode,

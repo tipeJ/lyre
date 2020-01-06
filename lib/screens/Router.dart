@@ -21,18 +21,16 @@ class Router {
         ContentSource source = ContentSource.Subreddit; //Default ContentSource
         
         if(settings.arguments != null){
-          print('notnull');
           final args = settings.arguments as Map<String, Object>;
           source = args['content_source'] as ContentSource;
           if (source == ContentSource.Redditor || source == ContentSource.Subreddit) {
             target = args['target'];
-            print('target: ' + target.toString());
           } else {
             target = SelfContentType.Comments;
           }
         } else {
-          print('null');
           target = homeSubreddit;
+          if (target == FRONTPAGE_HOME_SUB) source = ContentSource.Frontpage;
         }
 
         return MaterialPageRoute(builder: (_) => BlocProvider(
@@ -40,6 +38,8 @@ class Router {
             state: LoadingState.Inactive,
             userContent: [],
             contentSource: source,
+            typeFilter: TypeFilter.Best,
+            timeFilter: 'all',
             target: target
           )),
           child: PostsList(),

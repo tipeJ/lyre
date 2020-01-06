@@ -307,6 +307,7 @@ class LyreVideoController extends ChangeNotifier {
       videoPlayerController.removeListener(_fullScreenListener);
     }
   }
+
   bool expanded = false;
 
   void toggleZoom(){

@@ -49,7 +49,7 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
       }
     });
     animation.addListener((){
-      zoomController.scale = (animation.value * (fittedScale -1)) + 1.0;
+      zoomController.scale = (animation.value * (PhotoViewComputedScale.covered.multiplier)) + 1.0;
     });
     return Center(
       child: Container(
@@ -72,9 +72,9 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
           lyreVideoController.placeholder ?? Container(),
           PhotoView.customChild(
             controller: zoomController,
-            initialScale: MediaQuery.of(context).size.aspectRatio / lyreVideoController.videoPlayerController.value.aspectRatio,
-            maxScale: 5.0,
-            minScale: MediaQuery.of(context).size.aspectRatio / lyreVideoController.videoPlayerController.value.aspectRatio, //Calculates the corrent initial and minimum scale
+            initialScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered,
+            minScale: PhotoViewComputedScale.contained, //Calculates the corrent initial and minimum scale
             childSize: lyreVideoController.videoPlayerController.value.size,
             child: VideoPlayer(lyreVideoController.videoPlayerController),
           ),

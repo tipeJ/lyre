@@ -52,7 +52,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<CommentsBloc>(context);
-    if(bloc.state == null || bloc.state.comments.isEmpty){
+    if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
       bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
     return  Scaffold(
@@ -95,14 +95,25 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               builder: (BuildContext context, setState) {
                 return BlocBuilder<CommentsBloc, CommentsState>(
                   builder: (context, state) {
-                    if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty) {
+                    if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
                       return CustomScrollView(
                         slivers: <Widget>[
                           SliverSafeArea(
                             sliver: SliverToBoxAdapter(
                               child:  Hero(
                                 tag: 'post_hero ${(state.submission as Submission).id}',
-                                child:  Container()//postInnerWidget(state.submission as Submission, PreviewSource.Comments,),
+                                child: postInnerWidget(
+                                  submission: state.submission,
+                                  previewSource: PreviewSource.Comments,
+                                  linkType: getLinkType((state.submission as Submission).url.toString()),
+                                  fullSizePreviews: false,
+                                  postView: PostView.IntendedPreview,
+                                  showCircle: false,
+                                  blurLevel: 0.0,
+                                  showNsfw: true,
+                                  showSpoiler: true,
+                                  onOptionsClick: () {},
+                                )
                               ),
                             ),
                           ),
@@ -110,30 +121,32 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         ],
                       );
                     } else {
-                      return Center(child: CircularProgressIndicator(),);
+                      return const Center(child: CircularProgressIndicator());
                     }
                   },
                 );
-                
               },
             ),
-            appBarContent: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.0),
-              child: BlocBuilder<CommentsBloc, CommentsState> (
-                builder: (context, state) {
-                  return Material(
-                    child: notNull(state) && state.parentComment == null
-                      ? Row(
-                        children: <Widget>[
-                          IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
-                          Text("Comments"),
-                          Spacer(),
-                          DropdownButton<CommentSortType>(
+            appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
+              builder: (context, state) {
+                return Material(
+                  child: notNull(state) && state.parentComment == null
+                    ? Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
+                        ),
+                        const Text("Comments"),
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: DropdownButton<CommentSortType>(
                             value: state.sortType,
                             items: CommentSortType.values.map((CommentSortType value) {
-                              return new DropdownMenuItem<CommentSortType>(
+                              return DropdownMenuItem<CommentSortType>(
                                 value: value,
-                                child: new Text(value.toString().split(".")[1]),
+                                child: Text(value.toString().split(".")[1]),
                               );
                             }).toList(),
                             onChanged: (value) {
@@ -142,29 +155,35 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                               });
                             },
                           )
-                        ],
-                      )
-                      : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Flexible(
-                            child: Text(
-                              "You are viewing a single comment",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                        )
+                      ],
+                    )
+                    : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                              child: const Text(
+                                "You are viewing a single comment",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 5.0),
+                              child: OutlineButton(
+                                child: const Text("View All Comments"),
+                                onPressed: (){
+                                  BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
+                                },
+                              )
                             )
-                          ),
-                          OutlineButton(
-                            child: Text("View All Comments"),
-                            onPressed: (){
-                              BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
-                            },
-                          )
-                        ],
-                      )
-                  );
-                }
-              )
+                          ],
+                        )
+                    )
+                );
+              }
             ),
           )
         );
@@ -187,7 +206,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   Widget getCommentWidget(dynamic comment, int i) {
     if (comment is Comment) {
-      return GestureDetector(
+      return InkWell(
         child: CommentWidget(comment, i, PreviewSource.Comments),
         onTap: (){
           setState(() {

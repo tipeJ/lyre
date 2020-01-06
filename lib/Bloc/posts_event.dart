@@ -1,3 +1,4 @@
+import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
@@ -25,7 +26,15 @@ class PostsSourceChanged extends PostsEvent {
 }
 
 class ParamsChanged extends PostsEvent{
-  List<dynamic> get props => [];
+  final TypeFilter typeFilter;
+  final String timeFilter;
+
+  ParamsChanged({
+    @required this.typeFilter,
+    @required this.timeFilter,
+  }) : assert(typeFilter != null && timeFilter != null);
+
+  List<dynamic> get props => [typeFilter, timeFilter];
 }
 
 class FetchMore extends PostsEvent {

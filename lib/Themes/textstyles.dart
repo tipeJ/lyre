@@ -8,6 +8,7 @@ class LyreTextStyles {
   );
 
   static const title = TextStyle(fontSize: 35.0);
+  static const titleSmaller = TextStyle(fontSize: 28.0);
 
   static const dialogTitle = TextStyle(fontSize: 24.0);
 

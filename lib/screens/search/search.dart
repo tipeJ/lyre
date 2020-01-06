@@ -200,10 +200,6 @@ class _expandingSearchParams extends StatefulWidget {
 
 class _expandingSearchParamsState extends State<_expandingSearchParams> with TickerProviderStateMixin {
 
-  AnimationController  _animationController;
-  static const _animationControllerDuration = Duration(milliseconds: 400);
-  double _lerp(double min, double max) => lerpDouble(min, max, _animationController.value);
-
   TextEditingController _userContentController;
   FocusNode _node;
   FocusNode _removeFocus;
@@ -213,7 +209,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   void dispose() {
     _userContentController.dispose();
     _authorController.dispose();
-    _animationController.dispose();
     _authorExpansionController.dispose();
     _subredditExpansionController.dispose();
     _subredditController.dispose();
@@ -233,11 +228,6 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
 
     _authorExpansionController = AnimationController(vsync: this);
     _subredditExpansionController = AnimationController(vsync: this);
-
-    _animationController = AnimationController(vsync: this);
-    _animationController.addListener(() {
-      setState(() {});
-    });
   }
 
   bool _submissions = true;
@@ -267,6 +257,8 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
   AnimationController _subredditExpansionController;
   TextEditingController _subredditController;
 
+  PersistentBottomSheetController _sheetController;
+
   ///Send a new Query Changed event to the [SearchUsercontentBloc] of the given context
   void _dispatchNewParameters(BuildContext context) {
     // TODO: Implement Submissions (and statistics?) search.
@@ -280,304 +272,286 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     )));
   }
 
-  Future<bool> _willPop() {
-    if (_animationController.value > 0.5) {
-      _animationController.animateTo(0.0, duration: _animationControllerDuration, curve: Curves.ease);
-      return Future.value(false);
-    } else if (_node.hasFocus) {
-      // Dismiss Focus so that the back button shows
-      FocusScope.of(context).requestFocus(_removeFocus);
-      // Clear the Search Field
-       _userContentController.clear();
-      return Future.value(false);
-    }
-    return Future.value(true);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _willPop,
-      child: ClipRRect(
-        clipBehavior: Clip.antiAlias,
-        borderRadius: const BorderRadius.only(
-          topLeft: const Radius.circular(15.0),
-          topRight: const Radius.circular(15.0),
-        ),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          color: Theme.of(context).canvasColor,
-          child: Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Material(
-                color: Theme.of(context).primaryColor,
-                child: Container(
-                  height: kBottomNavigationBarHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(right: _node.hasFocus ? 0.0 : 5.0),
-                        child: prefix0.Visibility(
-                          visible: !_node.hasFocus,
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            onPressed: () {
-                              Navigator.of(context).maybePop();
-                            },
-                          )
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          focusNode: _node,
-                          decoration: InputDecoration.collapsed(
-                            hintText: 'Search Reddit',
-                          ),
-                          controller: _userContentController,
-                          onSubmitted: (s) {
-                            _dispatchNewParameters(context);
+    return ClipRRect(
+      clipBehavior: Clip.antiAlias,
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(15.0),
+        topRight: Radius.circular(15.0),
+      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        color: Theme.of(context).canvasColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Material(
+              color: Theme.of(context).primaryColor,
+              child: Container(
+                height: kBottomNavigationBarHeight,
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(right: _node.hasFocus ? 0.0 : 5.0),
+                      child: prefix0.Visibility(
+                        visible: !_node.hasFocus,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () {
+                            Navigator.of(context).maybePop();
                           },
-                        ),
+                        )
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.search), 
-                          onPressed: () {
-                            if (_userContentController.text.isNotEmpty) {
-                              _dispatchNewParameters(context);
-                            } else {
-                              final warningSnackBar = SnackBar(content: Text("Can't search with an empty query"),);
-                              Scaffold.of(context).showSnackBar(warningSnackBar);
-                            }
-                          }
-                      ),
-                      IconButton(
-                        icon: AnimatedIcon(
-                          icon: AnimatedIcons.menu_close, progress: _animationController,), 
-                          onPressed: () {
-                            _animationController.value >= 0.9
-                              ? _animationController.animateTo(0.0, curve: Curves.easeOutSine, duration: _animationControllerDuration)
-                              : _animationController.animateTo(1.0, curve: Curves.easeOutSine, duration: Duration(milliseconds: (_animationController.value > 0.3 ? _animationControllerDuration.inMilliseconds / _animationController.value : _animationControllerDuration.inMilliseconds).round()));
-                          }
-                      )
-                    ],
-                  ),
-                )
-              ),
-              SizeTransition(
-                axis: Axis.vertical,
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).orientation == Orientation.portrait ? MediaQuery.of(context).size.height / 2.5 : MediaQuery.of(context).size.height / 1.25
-                  ),
-                  child: ListView(
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      // mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(vertical: 7.5),
-                          child: ToggleButtons(
-                            children: <Widget>[
-                              const Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                                child: const Text('Submissions')
-                              ),
-                              const Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                                child: const Text('Comments')
-                              ),
-                              const Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                                child: const Text('Statistics'),
-                              ),
-                            ],
-                            isSelected: [
-                              _submissions,
-                              _comments,
-                              _statistics
-                            ],
-                            onPressed: (i) {
-                              switch (i) {
-                                case 0:
-                                  if (!_submissions) {
-                                    setState(() {
-                                      _comments = false;
-                                      _statistics = false;
-                                      _submissions = true;
-                                    });
-                                  }
-                                  break;
-                                case 1:
-                                  if (!_comments) {
-                                    setState(() {
-                                      _comments = true;
-                                      _statistics = false;
-                                      _submissions = false;
-                                    });
-                                  }
-                                  break;
-                                
-                                default:
-                                  if (!_statistics) {
-                                    setState(() {
-                                      _comments = false;
-                                      _statistics = true;
-                                      _submissions = false;
-                                    });
-                                  }
-                                  break;
-                              }
-                            },
-                          )
-                        ),
-                        const Divider(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            children: <Widget>[
-                              const Text('Size'),
-                              Expanded(
-                                child: Slider(
-                                  value: _size.toDouble(),
-                                  min: 0.0,
-                                  max: (_sizeOptions.length - 1).toDouble(),
-                                  divisions: _sizeOptions.length - 1,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _size = value.round();
-                                    });
-                                  },
-                                )
-                              ),
-                              SizedBox(
-                                width: 25.0,
-                                child: Text(_sizeOptions[_size].toString())
-                              )
-                            ],
-                          )
-                        ),
-                        _parametersWidget(
-                          'Sort', 
-                          DropdownButton<PushShiftSort>(
-                            value: _sort,
-                            onChanged: (newSort) {
-                              setState(() {
-                                _sort = newSort;
-                              });
-                            },
-                            items: PushShiftSort.values.map((i) => DropdownMenuItem(
-                                value: i,
-                                child: Row(children: <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 3.5),
-                                    child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
-                                  ),
-                                  Text(i.toString().split('.').last)
-                                ],)
-                              ),
-                            ).toList())
-                        ),
-                        _parametersWidget(
-                          'Sort Type',
-                          DropdownButton<PushShiftSortType>(
-                            value: _sortType,
-                            onChanged: (newSort) {
-                              setState(() {
-                                _sortType = newSort;
-                              });
-                            },
-                            items: PushShiftSortType.values.map((i) {
-                              String _typeString;
-                              IconData _headingIconData;
-                              if (i == PushShiftSortType.Created_UTC) {
-                                _typeString = "Date";
-                                _headingIconData = MdiIcons.clock;
-                              } else if (i == PushShiftSortType.Num_Comments) {
-                                _typeString = "Number of Comments";
-                                _headingIconData = MdiIcons.commentMultiple;
-                              } else {
-                                _typeString = "Karma";
-                                _headingIconData = MdiIcons.yinYang;
-                              }
-                              return DropdownMenuItem(
-                                value: i,
-                                child: Row(children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 3.5),
-                                    child: Icon(_headingIconData)
-                                  ),
-                                  Text(_typeString)
-                                ],)
-                              );
-                            },
-                            ).toList())
-                         ),
-                         _parametersWidget(
-                           'Limit to Author', 
-                           Checkbox(
-                             value: _authorEnabled,
-                             onChanged: (enabled) {
-                               setState(() {
-                                 _authorEnabled = enabled;
-                                 _authorExpansionController.animateTo(_authorEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
-                               });
-                             },
-                           )
-                        ),
-                        SizeTransition(
-                          sizeFactor: _authorExpansionController,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: TextField(
-                              enabled: _authorEnabled,
-                              autofocus: false,
-                              controller: _authorController,
-                              decoration: InputDecoration(
-                                labelText: 'Author Username'
-                              ),
-                            )
-                          ),
-                        ),
-                         _parametersWidget(
-                           'Limit to Subreddit', 
-                           Checkbox(
-                             value: _subredditEnabled,
-                             onChanged: (enabled) {
-                               setState(() {
-                                 _subredditEnabled = enabled;
-                                 _subredditExpansionController.animateTo(_subredditEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
-                               });
-                             },
-                           )
-                        ),
-                        SizeTransition(
-                          sizeFactor: _subredditExpansionController,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: TextField(
-                              enabled: _subredditEnabled,
-                              autofocus: false,
-                              controller: _subredditController,
-                              decoration: InputDecoration(
-                                labelText: 'Subreddit'
-                              ),
-                            )
-                          ),
-                        ),
-                      ],
                     ),
+                    Expanded(
+                      child: TextField(
+                        focusNode: _node,
+                        decoration: InputDecoration.collapsed(
+                          hintText: 'Search Reddit',
+                        ),
+                        controller: _userContentController,
+                        onSubmitted: (s) {
+                          _dispatchNewParameters(context);
+                        },
+                      ),
+                    ),
+                    OutlineButton(
+                      child: Text("Filters"), 
+                      onPressed: () {
+                        _sheetController = Scaffold.of(context).showBottomSheet((context) => _filtersContent());
+                      }
+                    )
+                  ],
                 ),
-                  sizeFactor: _animationController,
               )
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Padding _filtersContent() {
+    return Padding(
+      padding: EdgeInsets.all(10.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            constraints: BoxConstraints.tightFor(height: 30.0),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text('Search Filters')
+                ),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            )
           ),
-        ),
-        ),
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: 7.5),
+            child: ToggleButtons(
+              renderBorder: false,
+              selectedColor: Theme.of(context).accentColor,
+              fillColor: Theme.of(context).primaryColor.withOpacity(0.4),
+              children: const <Widget>[
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3.5),
+                  child: Text('Submissions')
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3.5),
+                  child: Text('Comments')
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3.5),
+                  child: Text('Statistics'),
+                ),
+              ],
+              isSelected: [
+                _submissions,
+                _comments,
+                _statistics
+              ],
+              onPressed: (i) {
+                switch (i) {
+                  case 0:
+                    if (!_submissions) {
+                      _sheetController.setState(() {
+                        _comments = false;
+                        _statistics = false;
+                        _submissions = true;
+                      });
+                    }
+                    break;
+                  case 1:
+                    if (!_comments) {
+                      _sheetController.setState(() {
+                        _comments = true;
+                        _statistics = false;
+                        _submissions = false;
+                      });
+                    }
+                    break;
+                  
+                  default:
+                    if (!_statistics) {
+                      _sheetController.setState(() {
+                        _comments = false;
+                        _statistics = true;
+                        _submissions = false;
+                      });
+                    }
+                    break;
+                }
+              },
+            )
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Row(
+              children: <Widget>[
+                const Text('Size'),
+                Expanded(
+                  child: Slider(
+                    value: _size.toDouble(),
+                    min: 0.0,
+                    max: (_sizeOptions.length - 1).toDouble(),
+                    divisions: _sizeOptions.length - 1,
+                    onChanged: (value) {
+                      _sheetController.setState(() {
+                        _size = value.round();
+                      });
+                    },
+                  )
+                ),
+                SizedBox(
+                  width: 25.0,
+                  child: Text(_sizeOptions[_size].toString())
+                )
+              ],
+            )
+          ),
+          _parametersWidget(
+            'Sort', 
+            DropdownButton<PushShiftSort>(
+              value: _sort,
+              onChanged: (newSort) {
+                _sheetController.setState(() {
+                  _sort = newSort;
+                });
+              },
+              items: PushShiftSort.values.map((i) => DropdownMenuItem(
+                  value: i,
+                  child: Row(children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(right: 3.5),
+                      child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
+                    ),
+                    Text(i.toString().split('.').last)
+                  ],)
+                ),
+              ).toList())
+          ),
+          _parametersWidget(
+            'Sort Type',
+            DropdownButton<PushShiftSortType>(
+              value: _sortType,
+              onChanged: (newSort) {
+                _sheetController.setState(() {
+                  _sortType = newSort;
+                });
+              },
+              items: PushShiftSortType.values.map((i) {
+                String _typeString;
+                IconData _headingIconData;
+                if (i == PushShiftSortType.Created_UTC) {
+                  _typeString = "Date";
+                  _headingIconData = MdiIcons.clock;
+                } else if (i == PushShiftSortType.Num_Comments) {
+                  _typeString = "Number of Comments";
+                  _headingIconData = MdiIcons.commentMultiple;
+                } else {
+                  _typeString = "Karma";
+                  _headingIconData = MdiIcons.yinYang;
+                }
+                return DropdownMenuItem(
+                  value: i,
+                  child: Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 3.5),
+                      child: Icon(_headingIconData)
+                    ),
+                    Text(_typeString)
+                  ],)
+                );
+              },
+              ).toList())
+            ),
+            _parametersWidget(
+              'Limit to Author', 
+              Checkbox(
+                value: _authorEnabled,
+                onChanged: (enabled) {
+                  _sheetController.setState(() {
+                    _authorEnabled = enabled;
+                    _authorExpansionController.animateTo(_authorEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                  });
+                },
+              )
+          ),
+          SizeTransition(
+            sizeFactor: _authorExpansionController,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: TextField(
+                enabled: _authorEnabled,
+                autofocus: false,
+                controller: _authorController,
+                decoration: InputDecoration(
+                  labelText: 'Author Username'
+                ),
+              )
+            ),
+          ),
+            _parametersWidget(
+              'Limit to Subreddit', 
+              Checkbox(
+                value: _subredditEnabled,
+                onChanged: (enabled) {
+                  _sheetController.setState(() {
+                    _subredditEnabled = enabled;
+                    _subredditExpansionController.animateTo(_subredditEnabled ? 1.0 : 0.0, duration: Duration(milliseconds: 200), curve: Curves.ease);
+                  });
+                },
+              )
+          ),
+          SizeTransition(
+            sizeFactor: _subredditExpansionController,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: TextField(
+                enabled: _subredditEnabled,
+                autofocus: false,
+                controller: _subredditController,
+                decoration: InputDecoration(
+                  labelText: 'Subreddit'
+                ),
+              )
+            ),
+          ),
+        ],
       )
     );
   }

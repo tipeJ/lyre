@@ -6,16 +6,18 @@ import 'bloc.dart';
 
 @immutable
 class CommentsState extends Equatable {
+  final LoadingState state;
   final UserContent submission;
   Comment parentComment;
   final List<CommentM> comments;
   final CommentSortType sortType;
 
   CommentsState({
+      @required this.state,
       @required this.submission,
       @required this.comments,
       @required this.sortType,
       this.parentComment
     });
-    List<dynamic> get props => [comments, sortType, submission];
+    List<dynamic> get props => [state, comments, sortType, submission];
 }

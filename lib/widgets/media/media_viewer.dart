@@ -29,28 +29,32 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
         future: handleVideoLink(linkType, url),
         builder: (context, snapshot){
           if (snapshot.connectionState == ConnectionState.done){
-            return LyreVideo(
+            if (snapshot.error == null) return LyreVideo(
               controller: _vController,
             );
+            return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
           } else {
             return const Center(child: const CircularProgressIndicator(),);
           }
         },
       );
     } 
-    return const Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,),));
+    return  Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,),));
   }
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
-    if (linkType == LinkType.Gfycat){
+    if (linkType == LinkType.Gfycat) {
       final videoUrl = await getGfyVideoUrl(url);
-      print(videoUrl);
       _videoInitialized = _initializeVideo(videoUrl);
-    } else if (linkType == LinkType.RedditVideo){
+    } else if (linkType == LinkType.RedditVideo) {
       _videoInitialized = _initializeVideo(url, VideoFormat.dash);
-    } else if (linkType == LinkType.TwitchClip){
+    } else if (linkType == LinkType.TwitchClip) {
       final clipVideoUrl = await getTwitchClipVideoLink(url);
-      _videoInitialized = _initializeVideo(clipVideoUrl);
+      if (clipVideoUrl.contains('http')) {
+        _videoInitialized = _initializeVideo(clipVideoUrl);
+      } else {
+        _videoInitialized = Future.error(clipVideoUrl);
+      }
     }
     return _videoInitialized;
   }

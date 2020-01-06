@@ -6,22 +6,18 @@ import 'bloc.dart';
 class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
   CommentsState _firstState;
 
-  CommentsBloc(UserContent initialContent, [List<dynamic> testList]){
-    if (testList != null && testList.isNotEmpty){
-      _addCommentsFromForest(testList);
-    }
-    _firstState = CommentsState(submission: initialContent, comments: _comments, sortType: CommentSortType.blank);
+  CommentsBloc(UserContent initialContent){
+    _firstState = CommentsState(state: LoadingState.Inactive, submission: initialContent, comments: const [], sortType: CommentSortType.blank);
   }
 
   @override
-  CommentsState get initialState => _firstState ?? CommentsState(submission: null, comments: _comments, sortType: CommentSortType.blank);
+  CommentsState get initialState => _firstState ?? CommentsState(state: LoadingState.Inactive, submission: null, comments: const [], sortType: CommentSortType.blank);
 
-  List<CommentM> _comments = []; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
+  List<CommentM> get _comments => state.comments; //Even though this type is dynamic, it will only contain Comment or MoreComment objects.
 
   String loadingMoreId = ""; //The ID of the currently loading MoreComments object
 
   void _collapse(int location){
-    _comments = state.comments;
     var currentIndex = location+1;
     int parentDepth = _comments[location].c.data["depth"];
     if (currentIndex == _comments.length || _comments[currentIndex].c.data['depth'] == parentDepth) return;
@@ -35,70 +31,70 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       _comments[i].visible = visible;      
     }
   }
-  bool _loading = false;
 
   @override
   Stream<CommentsState> mapEventToState(
     CommentsEvent event
   ) async* {
-    if(_loading) return; //Prevents duplicate calls.
-    _loading = true;
     if(event is SortChanged){
-      _comments = [];
+      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission, comments: const [], sortType: event.commentSortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
       Comment parentComment;
       Submission submission;
       final userContent = event.submission;
+      List<CommentM> comments;
       //Only should occur when the submission is fetched from a comment permalink for the first time.
-      if (userContent is CommentRef) {
-        parentComment = await userContent.populate();
+      if (userContent is CommentRef || userContent is Comment) {
+        final Comment comment = userContent is CommentRef ? await userContent.populate() : userContent;
+        parentComment = comment.isRoot ? comment : await comment.parent();
         final submissionRef = parentComment.submission;
         submission = await submissionRef.populate();
-        _addCommentsFromForest([parentComment]);
+        comments = _retrieveCommentsFromForest([parentComment]);
       } else if (state.parentComment != null && userContent is Submission) {
         submission = userContent;
-        _addCommentsFromForest(userContent.comments.comments);
+        comments = _retrieveCommentsFromForest(userContent.comments.comments);
       } else {
         submission = event.submission as Submission;
         var forest = await submission.refreshComments(sort: event.commentSortType);
-        _addCommentsFromForest(forest.comments);
+        comments = _retrieveCommentsFromForest(forest.comments);
       }
-      yield CommentsState(submission: submission, comments: _comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
     } else if(event is FetchMoreComments){
+      yield CommentsState(state: LoadingState.LoadingMore, submission: state.submission, comments: _comments, sortType: state.sortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
       var more = event.moreComments;
+      var currentList = _comments;
       if(more.children != null && more.children.isNotEmpty){
         var results = await more.comments(update: true);
-        _addCommentsFromForest(results);
-        final currentList = state.comments;
+        var currentList = state.comments;
         currentList.removeAt(event.location); //Removes the used MoreComments object
-        currentList.insertAll(event.location, _comments); //Inserts the received objects into the comment list
-        _comments = currentList;
+        currentList.insertAll(event.location, _retrieveCommentsFromForest(results)); //Inserts the received objects into the comment list
       }
-      yield CommentsState(submission: state.submission, comments: _comments, sortType: state.sortType); //Return the updated list of dynamic comment objects.      
-    } else if(event is Collapse){
+      yield CommentsState(state: LoadingState.Inactive, submission: state.submission, comments: currentList, sortType: state.sortType); //Return the updated list of dynamic comment objects.      
+    } else if (event is Collapse){
       _collapse(event.location);
-      yield CommentsState(submission: state.submission, comments: _comments, sortType: state.sortType);
-    } else if(event is AddComment){
+      yield CommentsState(state: state.state, submission: state.submission, comments: _comments, sortType: state.sortType);
+    } else if (event is AddComment){
       final c = event.comment;
       c.data['depth'] = state.comments[event.location].c.data['depth'] + 1;
       state.comments.insert(event.location+1, CommentM.from(c));
-      yield CommentsState(submission: state.submission, comments: state.comments, sortType: state.sortType);
+      yield CommentsState(state: state.state, submission: state.submission, comments: state.comments, sortType: state.sortType);
     }
     loadingMoreId = ""; //Resets the loadingMoreId value.
-    _comments = [];
-    _loading = false;
     }
-  //Recursing function that adds the _comments to the list from a CommentForest
-  void _addCommentsFromForest(List<dynamic> forest){
+  
+  /// Recursing function that adds the _comments to the list from a CommentForest and returns the list
+  List<CommentM> _retrieveCommentsFromForest(List<dynamic> forest) {
+    final List<CommentM> list = [];
     forest.forEach((f){
       if(f is MoreComments){
-        _comments.add(CommentM.from(f));
+        list.add(CommentM.from(f));
       } else if(f is Comment){
-        _comments.add(CommentM.from(f));
+        list.add(CommentM.from(f));
         if(f.replies != null && f.replies.comments.isNotEmpty){
-          _addCommentsFromForest(f.replies.comments);
+          list.addAll(_retrieveCommentsFromForest(f.replies.comments));
         }
       }
     });
+    return list;
   }
 }
 class CommentM {

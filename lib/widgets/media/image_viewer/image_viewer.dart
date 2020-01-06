@@ -43,7 +43,7 @@ class _ImageViewerState extends State<ImageViewer> {
 
   @override 
   void dispose() {
-    _albumController.dispose();
+    _albumController?.dispose();
     super.dispose();
   }
 
@@ -275,8 +275,9 @@ class SingleImageViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PhotoView(
-      minScale: 0.5,
-      maxScale: 5.0,
+      minScale: PhotoViewComputedScale.contained,
+      maxScale: PhotoViewComputedScale.covered,
+      initialScale: PhotoViewComputedScale.contained,
       imageProvider: AdvancedNetworkImage(
         previewUrl,
         // TODO: IMPLEMENT loadingProgress indicator

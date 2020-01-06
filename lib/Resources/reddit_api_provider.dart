@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' show Client;
+import 'package:http/http.dart';
 import 'package:lyre/Models/models.dart' as rModel;
-import 'package:lyre/Models/reddit_content.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'dart:convert';
 import 'globals.dart';
@@ -14,6 +13,7 @@ import 'credential_loader.dart';
 
 enum ContentSource{
   Subreddit,
+  Frontpage,
   Redditor,
   Self
 }
@@ -237,7 +237,7 @@ class PostsProvider {
     return map;    
   }
 
-  ///Fetches User Content from Reddit. Return values may contain either Comments or Submissions
+  ///Fetches User Content from Reddit. Return values may contain either [Comment] or [Submissions]
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, String contentTarget, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
@@ -247,9 +247,6 @@ class PostsProvider {
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
-
-    if(after != null) print(after + ' : ' + params.values.toString());
-    if (after == null) print('NULL');
 
     if ([
       TypeFilter.Hot,
@@ -261,7 +258,7 @@ class PostsProvider {
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
     // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
-    final target = contentTarget.trim();
+    final target = contentTarget != null ? contentTarget.trim() : '';
 
     List<UserContent> v = [];
     if(timeFilter == ""){
@@ -271,11 +268,15 @@ class PostsProvider {
             v = await reddit.subreddit(target).newest(params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).newest(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.newest(params: params).toList();
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
             v = await reddit.subreddit(target).rising(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.rising(params: params).toList();
           }
           break;
         case TypeFilter.Gilded:
@@ -291,6 +292,8 @@ class PostsProvider {
             v = await reddit.subreddit(target).hot(params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).hot(params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.hot(params: params).toList();
           }
           break;
       }
@@ -302,6 +305,8 @@ class PostsProvider {
               v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.controversial(timeFilter: filter, params: params).toList();
           }
           break;
         default: //Default to top
@@ -309,6 +314,8 @@ class PostsProvider {
               v = await reddit.subreddit(target).top(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).top(timeFilter: filter, params: params).toList();
+          } else if (source == ContentSource.Frontpage) {
+            v = await reddit.front.top(timeFilter: filter, params: params).toList();
           }
           break;
       }
@@ -327,7 +334,7 @@ class PostsProvider {
   Future<List<UserContent>> fetchSelfUserContent(SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = "", String after}) async {
     Map<String, String> params = new Map<String, String>();
 
-    if(after != null)params["after"]= after;
+    if (after != null) params["after"]= after;
 
     params["limit"] = perPage.toString();
     params["raw_json"] = '1';
@@ -335,54 +342,66 @@ class PostsProvider {
 
     var self = await r.user.me();
     var filter = parseTimeFilter(timeFilter);
+    Stream<UserContent> userContent;
     switch (contentType) {
       case SelfContentType.Comments:
-        var comments = self.comments;
+        final comments = self.comments;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return comments.top(timeFilter: filter).toList();
+            userContent = comments.top(timeFilter: filter, params: params);
+            break;
           case TypeFilter.Controversial:
-            return comments.controversial(timeFilter: filter).toList();
+            userContent = comments.controversial(timeFilter: filter, params: params);
+            break;
           case TypeFilter.New:
-            return comments.newest().toList();
+            userContent = comments.newest(params: params);
+            break;
           default:
-            //Default: Return hot
-            return comments.hot().toList();
+            // Return Hot by default
+            userContent = comments.hot(params: params);
         }
         break;
       case SelfContentType.Hidden:
-        var hidden = self.hidden();
-        return hidden.toList();
+        var hidden = self.hidden(params: params);
+        userContent = hidden;
+        break;
       case SelfContentType.Submitted:
-        var submitted = self.submissions;
+        final submitted = self.submissions;
         switch (typeFilter) {
           case TypeFilter.Top:
-            return submitted.top(timeFilter: filter).toList();
+            userContent = submitted.top(timeFilter: filter, params: params);
+            break;
           case TypeFilter.Controversial:
-            return submitted.controversial(timeFilter: filter).toList();
+            userContent = submitted.controversial(timeFilter: filter, params: params);
+            break;
           case TypeFilter.New:
-            return submitted.newest().toList();
+            userContent = submitted.newest(params: params);
+            break;
           default:
             //Default: Return hot
-            return submitted.hot().toList();
+            userContent = submitted.hot(params: params);
         }
         break;
       case SelfContentType.Upvoted:
-        var upvoted = self.upvoted();
-        return upvoted.toList();
+        userContent = self.upvoted(params: params);
+        break;
       case SelfContentType.Saved:
-        return self.saved().toList();
+        userContent = self.saved(params: params);
+        break;
       case SelfContentType.Watching:
         // ! API Doesn't support
       default:
         return null; // Shouldn't happen
     }
+    return userContent.toList();
   }
 
   // * Subreddit infornation 
 
+  /// Returns a [Subreddit] with a given displayName. Will return null if a subreddit 
+  /// is not found with the given displayName (r/all, r/popular, multireddits, etc.)
   Future<Subreddit> getSubreddit(String displayName) async {
-    if (displayName == 'all') return null;
+    if (displayName == 'all' || displayName == "popular") return null;
     try {
       return await reddit.subreddit(displayName).populate();
     } catch (e) {
@@ -391,11 +410,17 @@ class PostsProvider {
   }
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
-    final styleSheet = await subreddit.stylesheet.call();
-    return styleSheet.images;
+    return null;
+    try {    
+      final styleSheet = await subreddit.stylesheet.call();
+      return styleSheet.images;
+    } catch (e) {
+      return null;
+    } //Fetch wiki page content for the sidebar
   }
 
   Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
+    return null;
     try {    
       final page = await subreddit.wiki[args].populate();
       return page;
@@ -510,6 +535,10 @@ class PostsProvider {
       //SHOULD NOT HAPPEN:
         return TimeFilter.day;
     }
+  }
+
+  Future<Response> httpget(String request, [Map<String, dynamic> headers]) async {
+    return client.get(request, headers: headers);
   }
 }
 

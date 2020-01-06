@@ -1,18 +1,24 @@
 library lyre.globals;
 import 'package:draw/draw.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'reddit_api_provider.dart';
 part 'globals.g.dart';
 
 const WIKI_SIDEBAR_ARGUMENTS = "config/sidebar";
+const FRONTPAGE_TARGET = "_";
 
 const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 const SEARCH_BASE_URL = "https://www.reddit.com/search.json";
 
+// * Client IDs
+
 const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";
 const GFYCAT_CLIENT_ID = "2__lD9Ci";
 const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0mcrnnBN8cMmuAr";
+
+const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
+
+const FRONTPAGE_HOME_SUB = "_";
 
 String homeSubreddit;
 
@@ -28,20 +34,20 @@ enum PostView{
   NoPreview
 }
 
-List<String> sortTypes = [
+const List<String> sortTypes = [
   "hot",
   "new",
   "rising",
   "top",
   "controversial",
 ];
-List<String> sortTypesuser = [
+const List<String> sortTypesuser = [
   "hot",
   "new",
   "top",
   "controversial",
 ];
-List<String> sortTimes = [
+const List<String> sortTimes = [
   "hour",
   "24h",
   "week",
@@ -49,7 +55,7 @@ List<String> sortTimes = [
   "year",
   "all time"
 ];
-List<String> commentSortTypes = [
+const List<String> commentSortTypes = [
   "Best",
   "Confidence",
   "Controversial",
@@ -69,28 +75,25 @@ enum SendingState {
 
 ContentSource currentContentSource = ContentSource.Subreddit;
 
-final TypeFilter defaultSortType = TypeFilter.Hot;
+const TypeFilter defaultSortType = TypeFilter.Hot;
 final String defaultSortTime = sortTimes[1];
 
-TypeFilter currentSortType = defaultSortType;
-String currentSortTime = "";
-
-void parseTypeFilter(String typeFilter){
+TypeFilter parseTypeFilter(String typeFilter){
   switch (typeFilter) {
     case 'hot':
-      currentSortType = TypeFilter.Hot;
+      return TypeFilter.Hot;
       break;
     case 'new':
-      currentSortType = TypeFilter.New;
+      return TypeFilter.New;
       break;
     case 'rising':
-      currentSortType = TypeFilter.Rising;
+      return TypeFilter.Rising;
       break;
     case 'top':
-      currentSortType = TypeFilter.Top;
+      return TypeFilter.Top;
       break;
     case 'controversial':
-      currentSortType = TypeFilter.Controversial;
+      return TypeFilter.Controversial;
       break;
     
     default:

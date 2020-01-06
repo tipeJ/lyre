@@ -742,6 +742,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             BottomSheetTitle(title: "Search", actionCallBack: (){
               _switchOptionsVisibility(_OptionsVisibility.Default);
             }),
+            const Divider(),
             InkWell(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -1180,44 +1181,92 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       decoration: InputDecoration.collapsed(hintText: 'Quick Action'),
                       onChanged: (s){
                         setState(() {
-                          
                         });
+                      },
+                      onSubmitted: (s) {
+                        _paramsVisibility = _ParamsVisibility.None;
+                        if (s.length > 2 && (s.startsWith("r ") || s.startsWith("u "))) {
+                          // Needed to fix doctype errors
+                          final target = s.substring(2).trim();
+                          if (s.startsWith("r")) {
+                            BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: target));
+                          } else {
+                            BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: target));
+                          }
+                        } else {
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
+                        }
                       },
                     )
                   ),
                 ),
-                _quickTextController.text.length > 1 && _quickTextController.text.substring(1, 2) == " "  && ["r", "u"].contains(_quickTextController.text.substring(0, 1))
-                  ? IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () async {
+                _quickTextController.text.length > 2 && (_quickTextController.text.startsWith("r ") || _quickTextController.text.startsWith("u "))
+                  ? InkWell(
+                    child: const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Icon(Icons.send)
+                    ),
+                    // Long press to open a new page
+                    onLongPress: () {
+                      final text = _quickTextController.text;
                       _paramsVisibility = _ParamsVisibility.None;
-                      if (_quickTextController.text.startsWith("r")) {
-                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _quickTextController.text.substring(2)));
+                      Navigator.of(context).pushNamed('posts', arguments: {
+                        'target'        : text.substring(2),
+                        'content_source'  : text.startsWith('r') ? ContentSource.Subreddit : ContentSource.Redditor
+                      });
+                    },
+                    // Tap to open in current page
+                    onTap: () {
+                      final text = _quickTextController.text;
+                      _paramsVisibility = _ParamsVisibility.None;
+                      if (text.startsWith("r")) {
+                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: text.substring(2)));
                       } else {
-                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _quickTextController.text.substring(2)));
+                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: text.substring(2)));
                       }
                     },
                   )
                   : Row(children: <Widget>[
-                      IconButton(
-                        icon: const Icon(Icons.person),
-                        tooltip: "Go To User",
-                        onPressed: () async {
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(Icons.person)
+                        ),
+                        onTap: () {
                           _paramsVisibility = _ParamsVisibility.None;
                           BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _quickTextController.text));
                         },
+                        onLongPress: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          Navigator.of(context).pushNamed('posts', arguments: {
+                            'target'        : _quickTextController.text,
+                            'content_source'  : ContentSource.Redditor
+                          });
+                        },
                       ),
-                      IconButton(
-                        icon: const Icon(MdiIcons.tag),
-                        tooltip: "Go To Subreddit",
-                        onPressed: () async {
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(MdiIcons.tag)
+                        ),
+                        onTap: () {
                           _paramsVisibility = _ParamsVisibility.None;
                           BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _quickTextController.text));
                         },
+                        onLongPress: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          Navigator.of(context).pushNamed('posts', arguments: {
+                            'target'        : _quickTextController.text,
+                            'content_source'  : ContentSource.Subreddit
+                          });
+                        },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () async {
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(Icons.search)
+                        ),
+                        onTap: () {
                           // TODO: Implement quick search
                         },
                       )

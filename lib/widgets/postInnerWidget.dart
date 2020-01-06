@@ -274,15 +274,17 @@ class postInnerWidget extends StatelessWidget{
 
 
   Widget build(BuildContext context) {
-    return Padding(
-      child: Container(
-        child: getWidget(context),
-        color: Theme.of(context).cardColor,
-      ),
-      padding: const EdgeInsets.only(
-        //The gap bewtween the widgets.
-        bottom: 5.0
-      ),
+    return ClipRRect(
+      child: Padding(
+        child: Container(
+          child: getWidget(context),
+          color: Theme.of(context).cardColor,
+        ),
+        padding: const EdgeInsets.only(
+          //The gap bewtween the widgets.
+          bottom: 5.0
+        ),
+      )
     );
   }
 }

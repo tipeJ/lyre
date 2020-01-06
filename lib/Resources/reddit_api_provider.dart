@@ -410,11 +410,17 @@ class PostsProvider {
   }
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
-    final styleSheet = await subreddit.stylesheet.call();
-    return styleSheet.images;
+    return null;
+    try {    
+      final styleSheet = await subreddit.stylesheet.call();
+      return styleSheet.images;
+    } catch (e) {
+      return null;
+    } //Fetch wiki page content for the sidebar
   }
 
   Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
+    return null;
     try {    
       final page = await subreddit.wiki[args].populate();
       return page;

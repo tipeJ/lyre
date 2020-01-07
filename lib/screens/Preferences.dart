@@ -25,7 +25,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     super.dispose();
   }
 
-  Future<bool> _willPop() {
+  Future<bool> _willPop() async {
     BlocProvider.of<LyreBloc>(context).add(SettingsChanged(settings: box));
     return Future.value(true);
   }
@@ -224,6 +224,15 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
               onChanged: (value){
                 box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
+              },)
+          ),
+          _SettingsTitleRow(
+            title: "Legacy Submission Sorting",
+            description: "When enabled, shows an older prototype of submissions filters. Takes less vertical space but was deprecated due to being too unfriendly towards smaller ppi displays",
+            leading: Switch(
+              value: box.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT),
+              onChanged: (value){
+                box.put(LEGACY_SORTING_OPTIONS, value);
               },)
           ),
 

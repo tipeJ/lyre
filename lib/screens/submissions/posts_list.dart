@@ -71,6 +71,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   _SubmissionSelectionVisibility _submissionSelectionVisibility;
 
   TextEditingController _quickTextController;
+  String get _quickText => _quickTextController != null ? _quickTextController.text : "";
   _QuickText _quickTextSelection;
   SendingState _replySendingState = SendingState.Inactive;
   String _replyErrorMessage;
@@ -501,9 +502,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           }
                         },
                         onTap: () {
-                          setState(() {
-                            _paramsVisibility = _ParamsVisibility.Type; 
-                          });
+                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                            // ! Will be deprecated
+                            setState(() {
+                              _paramsVisibility = _ParamsVisibility.Type; 
+                            });
+                          } else {
+                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                          }
                         },
                         child: Wrap(
                           direction: Axis.vertical,
@@ -739,31 +745,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            BottomSheetTitle(title: "Search", actionCallBack: (){
+            ActionSheetTitle(title: "Search", actionCallBack: (){
               _switchOptionsVisibility(_OptionsVisibility.Default);
             }),
             const Divider(),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Submissions'),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed("search_usercontent");
-              },
+            ActionSheetInkwell(
+              title: const Text("Submissions"),
+              onTap: () => Navigator.of(context).popAndPushNamed("search_usercontent")
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Communities'),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed('search_communities');
-              },
+            ActionSheetInkwell(
+              title: const Text("Communities"),
+              onTap: () => Navigator.of(context).popAndPushNamed("search_communities")
             ),
           ],
         );
@@ -771,29 +763,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const BottomSheetTitle(title: "Options",),
+            const ActionSheetTitle(title: "Options"),
             const Divider(),
-            InkWell(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: const Text('Search'),
-              ),
-              onTap: () {
-                _switchOptionsVisibility(_OptionsVisibility.Search);
-              },
+            ActionSheetInkwell(
+              title: const Text("Search"),
+              onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search)
             ),
-            InkWell(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: const Text('Open'),
-              ),
+            ActionSheetInkwell(
+              title: const Text("Open"),
               onTap: () {
                 // TODO: Implement Open
-              },
+              }
             ),
           ],
         );
@@ -1200,7 +1180,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     )
                   ),
                 ),
-                _quickTextController.text.length > 2 && (_quickTextController.text.startsWith("r ") || _quickTextController.text.startsWith("u "))
+                _quickText.length > 2 && (_quickText.startsWith("r ") || _quickText.startsWith("u "))
                   ? InkWell(
                     child: const Padding(
                       padding: EdgeInsets.all(10.0),
@@ -1208,7 +1188,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     ),
                     // Long press to open a new page
                     onLongPress: () {
-                      final text = _quickTextController.text;
+                      final text = _quickText;
                       _paramsVisibility = _ParamsVisibility.None;
                       Navigator.of(context).pushNamed('posts', arguments: {
                         'target'        : text.substring(2),
@@ -1217,7 +1197,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     },
                     // Tap to open in current page
                     onTap: () {
-                      final text = _quickTextController.text;
+                      final text = _quickText;
                       _paramsVisibility = _ParamsVisibility.None;
                       if (text.startsWith("r")) {
                         BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: text.substring(2)));
@@ -1234,12 +1214,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         ),
                         onTap: () {
                           _paramsVisibility = _ParamsVisibility.None;
-                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _quickTextController.text));
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _quickText));
                         },
                         onLongPress: () {
                           _paramsVisibility = _ParamsVisibility.None;
                           Navigator.of(context).pushNamed('posts', arguments: {
-                            'target'        : _quickTextController.text,
+                            'target'        : _quickText,
                             'content_source'  : ContentSource.Redditor
                           });
                         },
@@ -1251,12 +1231,12 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         ),
                         onTap: () {
                           _paramsVisibility = _ParamsVisibility.None;
-                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _quickTextController.text));
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _quickText));
                         },
                         onLongPress: () {
                           _paramsVisibility = _ParamsVisibility.None;
                           Navigator.of(context).pushNamed('posts', arguments: {
-                            'target'        : _quickTextController.text,
+                            'target'        : _quickText,
                             'content_source'  : ContentSource.Subreddit
                           });
                         },

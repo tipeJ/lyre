@@ -61,6 +61,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
         showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
         showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
+
+        legacySorting: settings.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT)
       );
     } else if (event is UserChanged) {
       final currentUser = await PostsProvider().logIn(event.userName);
@@ -141,6 +143,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
       showNSFWPreviews: state.showNSFWPreviews,
       showSpoilerPreviews: state.showSpoilerPreviews,
+
+      legacySorting: state.legacySorting
     );
   }
 }
@@ -241,6 +245,8 @@ Future<LyreState> getFirstLyreState() async {
 
       showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
       showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
+
+      legacySorting: settings.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT)
     );
 
 

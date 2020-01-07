@@ -58,8 +58,12 @@ const IMGUR_THUMBNAIL_QUALITY_DEFAULT = "Small Square (90x90)";
 const ALBUM_COLUMN_AMOUNT_PORTRAIT = "albumColumnAmountPortrait";
 const ALBUM_COLUMN_AMOUNT_LANDSCAPE = "albumColumnAmountLandscape";
 
-// * Filters:
+// * Filters
 const SHOW_NSFW_PREVIEWS = "showNSFWPreviews";
 const SHOW_NSFW_PREVIEWS_DEFAULT = false;
 const SHOW_SPOILER_PREVIEWS = "showSpoilerPreviews";
 const SHOW_SPOILER_PREVIEWS_DEFAULT = false;
+
+// * Legacy
+const LEGACY_SORTING_OPTIONS = "legacy_sortOptions";
+const LEGACY_SORTING_OPTIONS_DEFAULT = false;

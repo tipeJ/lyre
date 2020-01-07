@@ -912,6 +912,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(
+              title: _selectedSubmission.title,
+            ),
             !_selectedSubmission.archived
               ? InkWell(
                   child: Container(
@@ -947,15 +950,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Open a subreddit
             BlocBuilder<PostsBloc, PostsState>(
               builder: (context, state) {
-                return (state.target == ContentSource.Subreddit && state.target.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
-                  ? InkWell(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
-                        alignment: Alignment.centerLeft,
-                        height: 50.0,
-                        child: Text('r/${_selectedSubmission.subreddit.displayName}'),
-                      ),
-                    )
+                return (state.target.toString().toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
+                  ? ActionSheetInkwell(
+                    title: Text('r/${_selectedSubmission.subreddit.displayName}'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _selectedSubmission.subreddit.displayName));
+                    },
+                  )
                   : Container();
                 },
             ),

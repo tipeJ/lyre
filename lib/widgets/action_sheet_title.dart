@@ -16,7 +16,12 @@ class ActionSheetTitle extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Expanded(
-            child: Text(title, style: LyreTextStyles.bottomSheetTitle,)
+            child: Text(
+              title, 
+              maxLines: 1,
+              softWrap: true,
+              style: LyreTextStyles.bottomSheetTitle,
+            )
           ),
           showAction
             ? InkWell(

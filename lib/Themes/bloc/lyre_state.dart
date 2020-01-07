@@ -48,6 +48,10 @@ class LyreState extends Equatable {
   final bool showNSFWPreviews;
   final bool showSpoilerPreviews;
 
+  // * Legacy options
+
+  final bool legacySorting;
+
   const LyreState({
       @required this.themeData,
       @required this.userNames,
@@ -82,8 +86,19 @@ class LyreState extends Equatable {
 
       @required this.showNSFWPreviews,
       @required this.showSpoilerPreviews,
+
+      @required this.legacySorting,
     });
 
     @override
-    List<dynamic> get props => [themeData, readOnly, userNames, currentUser, subscriptions];
+    List<dynamic> get props => [
+      themeData, 
+      readOnly, 
+      userNames, 
+      currentUser, 
+      subscriptions,
+      
+      currentTheme,
+      legacySorting
+    ];
 }

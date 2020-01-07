@@ -35,7 +35,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
         subscriptions: state.subscriptions,
 
-        currentTheme: settings.get(CURRENT_THEME),
+        currentTheme: _getLyreTheme(settings.get(CURRENT_THEME, defaultValue: "")),
         homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
@@ -61,6 +61,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
         showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
         showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
+
+        legacySorting: settings.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT)
       );
     } else if (event is UserChanged) {
       final currentUser = await PostsProvider().logIn(event.userName);
@@ -141,6 +143,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
       showNSFWPreviews: state.showNSFWPreviews,
       showSpoilerPreviews: state.showSpoilerPreviews,
+
+      legacySorting: state.legacySorting
     );
   }
 }
@@ -167,6 +171,15 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
 
   return subscriptions;
 }
+LyreTheme _getLyreTheme(String t) {
+  var _cTheme = LyreTheme.DarkTeal;
+  LyreTheme.values.forEach((theme){
+    if(theme.toString() == t){
+      _cTheme = theme;
+    }
+  });
+  return _cTheme;
+}
 /// The first LyreState that the application receives when it starts for the first time,
 /// aka the splash-screen FutureBuilder
 Future<LyreState> getFirstLyreState() async { 
@@ -189,12 +202,7 @@ Future<LyreState> getFirstLyreState() async {
         globals.homeSubreddit = settings.get(SUBREDDIT_HOME, defaultValue: "all");
     }
 
-    var _cTheme = LyreTheme.DarkTeal;
-    LyreTheme.values.forEach((theme){
-      if(theme.toString() == initialTheme){
-        _cTheme = theme;
-      }
-    });
+    final _cTheme = _getLyreTheme(initialTheme);
 
     final userNames = (await getAllUsers()).map<String>((redditUser) => redditUser.username.isEmpty ? "Guest" : redditUser.username).toList();
     final currentUser = await PostsProvider().logInToLatest();
@@ -237,6 +245,8 @@ Future<LyreState> getFirstLyreState() async {
 
       showNSFWPreviews: settings.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
       showSpoilerPreviews: settings.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
+
+      legacySorting: settings.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT)
     );
 
 

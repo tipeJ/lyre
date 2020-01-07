@@ -71,6 +71,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   _SubmissionSelectionVisibility _submissionSelectionVisibility;
 
   TextEditingController _quickTextController;
+  String get _quickText => _quickTextController != null ? _quickTextController.text : "";
   _QuickText _quickTextSelection;
   SendingState _replySendingState = SendingState.Inactive;
   String _replyErrorMessage;
@@ -257,7 +258,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
-    return new WillPopScope(
+    return WillPopScope(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         drawer: new Drawer(
@@ -491,10 +492,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     child: Material(
                       child: InkWell(
                         onLongPress: () {
-                          _optionsVisibility = _OptionsVisibility.Default;
-                          _optionsController = Scaffold.of(context).showBottomSheet(
-                            (context) => _optionsSheet(context)
-                          );
+                          _prepareQuickTextInput(_QuickText.QuickAction);
                         },
                         onDoubleTap: () {
                           if (homeSubreddit == FRONTPAGE_HOME_SUB) {
@@ -504,9 +502,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           }
                         },
                         onTap: () {
-                          setState(() {
-                            _paramsVisibility = _ParamsVisibility.Type; 
-                          });
+                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                            // ! Will be deprecated
+                            setState(() {
+                              _paramsVisibility = _ParamsVisibility.Type; 
+                            });
+                          } else {
+                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                          }
                         },
                         child: Wrap(
                           direction: Axis.vertical,
@@ -527,24 +530,38 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     )
                   ),
                   Material(
-                    child: IconButton(
-                      icon: const Icon(Icons.create),
-                      tooltip: "Create a Submission",
-                      onPressed: () {
-                        setState(() {
-                          if (PostsProvider().isLoggedIn()) {
-                            Map<String, dynamic> args = Map();
-                            args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
-                            Navigator.of(context).pushNamed('submit', arguments: args);
-                          } else {
-                            final snackBar = SnackBar(
-                              content: Text(
-                                  'Log in to post your submission'),
+                    child: Row(
+                      children: <Widget>[
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          tooltip: "Menu",
+                          onPressed: () {
+                            _optionsVisibility = _OptionsVisibility.Default;
+                            _optionsController = Scaffold.of(context).showBottomSheet(
+                              (context) => _optionsSheet(context)
                             );
-                            Scaffold.of(context).showSnackBar(snackBar);
-                          }
-                        });
-                      },
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.create),
+                          tooltip: "Create a Submission",
+                          onPressed: () {
+                            setState(() {
+                              if (PostsProvider().isLoggedIn()) {
+                                Map<String, dynamic> args = Map();
+                                args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
+                                Navigator.of(context).pushNamed('submit', arguments: args);
+                              } else {
+                                final snackBar = SnackBar(
+                                  content: Text(
+                                      'Log in to post your submission'),
+                                );
+                                Scaffold.of(context).showSnackBar(snackBar);
+                              }
+                            });
+                          },
+                        ),
+                      ],
                     )
                   )
                 ],
@@ -721,63 +738,41 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
-  //Options sheet content
+  ///Options sheet content
   Widget _optionsSheet(BuildContext context) {
     switch (_optionsVisibility) {
       case _OptionsVisibility.Search:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Submissions'),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed("search_usercontent");
-              },
+            ActionSheetTitle(title: "Search", actionCallBack: (){
+              _switchOptionsVisibility(_OptionsVisibility.Default);
+            }),
+            const Divider(),
+            ActionSheetInkwell(
+              title: const Text("Submissions"),
+              onTap: () => Navigator.of(context).popAndPushNamed("search_usercontent")
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Communities'),
-              ),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed('search_communities');
-              },
+            ActionSheetInkwell(
+              title: const Text("Communities"),
+              onTap: () => Navigator.of(context).popAndPushNamed("search_communities")
             ),
-            _optionsBackButton
           ],
         );
       default:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Search'),
-              ),
-              onTap: () {
-                _switchOptionsVisibility(_OptionsVisibility.Search);
-              },
+            const ActionSheetTitle(title: "Options"),
+            ActionSheetInkwell(
+              title: const Text("Search"),
+              onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search)
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Open'),
-              ),
+            ActionSheetInkwell(
+              title: const Text("Open"),
               onTap: () {
                 // TODO: Implement Open
-              },
+              }
             ),
           ],
         );
@@ -1056,7 +1051,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 
   ///Builds the Quick Text Input content Row
-  Row _buildQuickTextInput(BuildContext context) {
+  Widget _buildQuickTextInput(BuildContext context) {
     switch (_quickTextSelection) {
       case _QuickText.Reply:
         return Row(
@@ -1150,7 +1145,115 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ],
         );
       default:
-        return Row(children: <Widget>[],);
+        // Quick Action
+        return StatefulBuilder(
+          builder: (BuildContext context, setState) {
+            return Row(
+              children: <Widget>[
+                Expanded(
+                  child: Visibility(
+                    visible: _paramsVisibility == _ParamsVisibility.QuickText,
+                    child: TextField(
+                      enabled: _paramsVisibility == _ParamsVisibility.QuickText,
+                      autofocus: true,
+                      controller: _quickTextController,
+                      decoration: InputDecoration.collapsed(hintText: 'Quick Action'),
+                      onChanged: (s){
+                        setState(() {
+                        });
+                      },
+                      onSubmitted: (s) {
+                        _paramsVisibility = _ParamsVisibility.None;
+                        if (s.length > 2 && (s.startsWith("r ") || s.startsWith("u "))) {
+                          // Needed to fix doctype errors
+                          final target = s.substring(2).trim();
+                          if (s.startsWith("r")) {
+                            BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: target));
+                          } else {
+                            BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: target));
+                          }
+                        } else {
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
+                        }
+                      },
+                    )
+                  ),
+                ),
+                _quickText.length > 2 && (_quickText.startsWith("r ") || _quickText.startsWith("u "))
+                  ? InkWell(
+                    child: const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Icon(Icons.send)
+                    ),
+                    // Long press to open a new page
+                    onLongPress: () {
+                      final text = _quickText;
+                      _paramsVisibility = _ParamsVisibility.None;
+                      Navigator.of(context).pushNamed('posts', arguments: {
+                        'target'        : text.substring(2),
+                        'content_source'  : text.startsWith('r') ? ContentSource.Subreddit : ContentSource.Redditor
+                      });
+                    },
+                    // Tap to open in current page
+                    onTap: () {
+                      final text = _quickText;
+                      _paramsVisibility = _ParamsVisibility.None;
+                      if (text.startsWith("r")) {
+                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: text.substring(2)));
+                      } else {
+                        BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: text.substring(2)));
+                      }
+                    },
+                  )
+                  : Row(children: <Widget>[
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(Icons.person)
+                        ),
+                        onTap: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _quickText));
+                        },
+                        onLongPress: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          Navigator.of(context).pushNamed('posts', arguments: {
+                            'target'        : _quickText,
+                            'content_source'  : ContentSource.Redditor
+                          });
+                        },
+                      ),
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(MdiIcons.tag)
+                        ),
+                        onTap: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _quickText));
+                        },
+                        onLongPress: () {
+                          _paramsVisibility = _ParamsVisibility.None;
+                          Navigator.of(context).pushNamed('posts', arguments: {
+                            'target'        : _quickText,
+                            'content_source'  : ContentSource.Subreddit
+                          });
+                        },
+                      ),
+                      InkWell(
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(Icons.search)
+                        ),
+                        onTap: () {
+                          // TODO: Implement quick search
+                        },
+                      )
+                  ],),
+              ].where((w) => notNull(w)).toList(),
+            );
+          },
+        );
     }    
   }
   ///Returns the back button used in some options (Share, Copy) 

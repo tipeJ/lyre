@@ -25,7 +25,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     super.dispose();
   }
 
-  Future<bool> _willPop() {
+  Future<bool> _willPop() async {
     BlocProvider.of<LyreBloc>(context).add(SettingsChanged(settings: box));
     return Future.value(true);
   }
@@ -51,7 +51,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                       pinned: true,
                       backgroundColor: Theme.of(context).canvasColor,
                       actions: <Widget>[
-                        const Material(child: Center(child: Text('Advanced',),),),
+                        const Material(child: Center(child: Text('Advanced'))),
                         Switch(
                           value: advanced,
                           onChanged: (value){
@@ -175,10 +175,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           _SettingsTitleRow(
             title: "Auto-Load Posts",
             description: "Enables Never-Ending scrolling",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
               onChanged: (value){
-                box.put(SUBMISSION_AUTO_LOAD, value);
+                setState(() {
+                  box.put(SUBMISSION_AUTO_LOAD, value);  
+                });
               },)
           ),
           WatchBoxBuilder(
@@ -211,19 +213,34 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           _SettingsTitleRow(
             title: "Reset Sorting When Refreshing Submission List",
             description: "Will refreshing Submission list or entering a submission list reset the Sorting params (Hot, Top, Time, etc..) to their default values (Can be set in the default Sorting Params settings)",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
               onChanged: (value){
-                box.put(SUBMISSION_RESET_SORTING, value);
+                setState(() {
+                  box.put(SUBMISSION_RESET_SORTING, value);
+                });
               },)
           ),
           _SettingsTitleRow(
             title: "Show Circle Around Preview Indicator",
             description: "When enabled, show a circle around the link indicator (video, image, etc..)",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
               onChanged: (value){
-                box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
+                setState(() {
+                  box.put(SUBMISSION_PREVIEW_SHOWCIRCLE, value);
+                });
+              },)
+          ),
+          _SettingsTitleRow(
+            title: "Legacy Submission Sorting",
+            description: "When enabled, shows an older prototype of submissions filters. Takes less vertical space but was deprecated due to being too unfriendly towards smaller ppi displays",
+            leading: Checkbox(
+              value: box.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT),
+              onChanged: (value){
+                setState(() {
+                  box.put(LEGACY_SORTING_OPTIONS, value);
+                });
               },)
           ),
 
@@ -265,10 +282,12 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               return _SettingsTitleRow(
                 title: 'Precollapse Threads', 
                 description: "Collapse all Comment threads to the top level comments by default",
-                leading: Switch(
+                leading: Checkbox(
                   value: box.get(COMMENTS_PRECOLLAPSE, defaultValue: COMMENTS_PRECOLLAPSE_DEFAULT),
                   onChanged: (value){
-                    box.put(COMMENTS_PRECOLLAPSE, value);
+                    setState(() {
+                      box.put(COMMENTS_PRECOLLAPSE, value);
+                    });
                   },)
               );
             },
@@ -286,19 +305,23 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           _SettingsTitleRow(
             title: 'Show NSFW Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain NSFW content",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(SHOW_NSFW_PREVIEWS, defaultValue: SHOW_NSFW_PREVIEWS_DEFAULT),
               onChanged: (value){
-                box.put(SHOW_NSFW_PREVIEWS, value);
+                setState(() {
+                  box.put(SHOW_NSFW_PREVIEWS, value);
+                });
               },)
           ),
           _SettingsTitleRow(
             title: 'Show Spoiler Previews', 
             description: "When disabled, Lyre will automatically blur previews that contain spoilers",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(SHOW_SPOILER_PREVIEWS, defaultValue: SHOW_SPOILER_PREVIEWS_DEFAULT),
               onChanged: (value){
-                box.put(SHOW_SPOILER_PREVIEWS, value);
+                setState(() {
+                  box.put(SHOW_SPOILER_PREVIEWS, value);
+                });
               },)
           ),
         ],
@@ -354,16 +377,18 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           _SettingsTitleRow(
             title: "Show Full Size Previews",
             description: "When enabled, shows the full-height images in large cards",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(IMAGE_SHOW_FULLSIZE) ?? false,
               onChanged: (value){
-                box.put(IMAGE_SHOW_FULLSIZE, value);
+                setState(() {
+                  box.put(IMAGE_SHOW_FULLSIZE, value);
+                });
             },)
           ),
           /*
           _SettingsTitleRow(
             title: "Enable Video Rotation",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(VIDEO_ENABLE_ROTATION) ?? false,
               onChanged: (value){
                 box.put(VIDEO_ENABLE_ROTATION, value);
@@ -384,19 +409,23 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           _SettingsTitleRow(
             title: "Loop Videos",
             description: "When enabled, all videos will automatically start again after ending",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(VIDEO_LOOP) ?? true,
               onChanged: (value){
-                box.put(VIDEO_LOOP, value);
+                setState(() {
+                  box.put(VIDEO_LOOP, value);
+                });
             },)
           ),
           _SettingsTitleRow(
             title: "Auto-Mute Videos",
             description: "When enabled, all videos will automatically be muted at start",
-            leading: Switch(
+            leading: Checkbox(
               value: box.get(VIDEO_AUTO_MUTE) ?? false,
               onChanged: (value){
-                box.put(VIDEO_AUTO_MUTE, value);
+                setState(() {
+                  box.put(VIDEO_AUTO_MUTE, value);
+                });
             },)
           ),
         ],

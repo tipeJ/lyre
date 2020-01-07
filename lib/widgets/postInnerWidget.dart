@@ -341,7 +341,7 @@ class __SlideColumnState extends State<_SlideColumn> {
           }
         ),
         ActionItems(
-          icon: Icon(Icons.person,color: Colors.grey,),
+          icon: const Icon(Icons.person, color: Colors.grey,),
           onPress: (){
             Navigator.of(context).pushNamed('posts', arguments: {
               'target'        : widget.submission.author,
@@ -350,7 +350,7 @@ class __SlideColumnState extends State<_SlideColumn> {
           }
         ),
         ActionItems(
-          icon: Icon(Icons.menu,color: Colors.grey,),
+          icon: const Icon(Icons.menu,color: Colors.grey,),
           onPress: (){
             SubmissionOptionsNotification(submission: this.widget.submission)..dispatch(context);
           }

@@ -97,11 +97,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           userContent: userContent, 
           contentSource : source,
           currentUser: currentUser, 
-          target: target is String ? target.toLowerCase() : target, 
+          target: target, 
           sideBar: sideBar,
           subreddit: subreddit,
-          typeFilter: state.typeFilter,
-          timeFilter: state.timeFilter
+          typeFilter: sortType,
+          timeFilter: sortTime
         );
         preferences.close();
       } else if (event is ParamsChanged){

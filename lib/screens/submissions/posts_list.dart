@@ -712,33 +712,45 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const ActionSheetTitle(title: "Options"),
+            const ActionSheetTitle(title: "Menu"),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 OutlineButton.icon(
-              icon: const Icon(Icons.search),
-              label: const Text("Search"),
-              onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                  icon: const Icon(Icons.search),
+                  label: const Text("Search"),
+                  onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                OutlineButton.icon(
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text("Open"),
+                  onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
+                  ? OutlineButton.icon(
+                      icon: const Icon(MdiIcons.pageLayoutSidebarRight),
+                      label: const Text("Sidebar"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        final state = BlocProvider.of<PostsBloc>(context).state;
+                        Navigator.of(context).push(CupertinoPageRoute(builder: (context) => Material(child: SidebarView(state: state))));
+                      },
+                    )
+                  : null
+                  ].where((w) => notNull(w)).toList(),
             ),
-            OutlineButton.icon(
-              icon: const Icon(Icons.open_in_new),
-              label: const Text("Open"),
-              onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
-            ),
-            BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
-              ? OutlineButton.icon(
-                  icon: const Icon(Icons.time_to_leave),
-                  label: const Text("Sidebar"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    final state = BlocProvider.of<PostsBloc>(context).state;
-                    Navigator.of(context).push(CupertinoPageRoute(builder: (context) => Material(child: SidebarView(state: state))));
-                  },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(children: [
+                const Expanded(
+                  child: Text("Night Mode"),
+                ),
+                Switch(
+                  value: true,
+                  onChanged: (newValue) {},
                 )
-              : null
-              ].where((w) => notNull(w)).toList(),
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-            ),
+              ],)
+            )
           ],
         );
     }

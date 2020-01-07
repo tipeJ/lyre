@@ -258,7 +258,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
-    return new WillPopScope(
+    return WillPopScope(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         drawer: new Drawer(
@@ -764,7 +764,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             const ActionSheetTitle(title: "Options"),
-            const Divider(),
             ActionSheetInkwell(
               title: const Text("Search"),
               onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search)

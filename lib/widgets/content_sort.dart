@@ -68,7 +68,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
             sizeFactor: _typeExpansionController,
             child: Column(
               children: <Widget>[
-            const ActionSheetTitle(title: "Sort", showAction: false,),
+            const ActionSheetTitle(title: "Sort"),
               ]..addAll(_sortTypeParams(widget.types)),
             ),
           ),
@@ -79,7 +79,10 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const ActionSheetTitle(title: "Period", showAction: false)
+                ActionSheetTitle(
+                  title: "Period",
+                  actionCallBack: _reverse,
+                )
               ]..addAll(_sortTimeParams()),
             ),
           )

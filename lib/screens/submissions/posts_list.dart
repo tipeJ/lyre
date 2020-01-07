@@ -378,7 +378,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 onNotification: (notification) {
                   if (notification is SubmissionOptionsNotification) {
                     _selectedUserContent = notification.submission;
-                    Scaffold.of(context).showBottomSheet(
+                    _submissionOptionsController = Scaffold.of(context).showBottomSheet(
                       (context) => _submissionOptionsSheet(context)
                     );
                   } else if (notification is ScrollNotification) {
@@ -745,6 +745,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Copy", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
               ? InkWell(
                   child: Container(
@@ -807,13 +808,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 });
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Share:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Share", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             //Only show preview sharing if a preview exists
             _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
               ? InkWell(
@@ -856,13 +857,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 shareString(_selectedSubmission.shortlink.toString());
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Filter:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Filter", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             //Only show domain filtering if post is a link submission
             !_selectedSubmission.isSelf
               ? InkWell(
@@ -905,7 +906,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 FilterManager().filter(_selectedSubmission.subreddit.displayName, FilterType.Subreddit);
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       default:
@@ -975,47 +975,27 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   : Container();
                 },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Launch In Browser'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Launch In Browser'),
               onTap: () {
                 launchURL(context, _selectedSubmission);
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Report'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Report'),
               onTap: () {
                 _prepareQuickTextInput(_QuickText.Report);
                 Navigator.of(context).pop();
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Copy'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Copy'),
               onTap: () {
                 _switchSelectionOptions(_SubmissionSelectionVisibility.Copy);
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Filter'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Filter'),
               onTap: () {
                 _switchSelectionOptions(_SubmissionSelectionVisibility.Filter);
               },
@@ -1231,24 +1211,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         );
     }    
   }
-  ///Returns the back button used in some options (Share, Copy) 
-  Widget get _submissionOptionsBackButton => InkWell(
-    child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0),
-      alignment: Alignment.centerLeft,
-      height: 50.0,
-      child: Row(children: <Widget>[
-        Icon(Icons.arrow_back),
-        Padding(
-          padding: EdgeInsets.only(left: 10.0),
-          child: Text('Back')
-        )
-      ],),
-    ),
-    onTap: () {
-      _switchSelectionOptions(_SubmissionSelectionVisibility.Default);
-    },
-  );
   ///Returns the back button used in some options (Share, Copy) 
   Widget get _optionsBackButton => InkWell(
     child: Container(

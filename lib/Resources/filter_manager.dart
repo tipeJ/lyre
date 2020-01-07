@@ -53,7 +53,7 @@ class FilterManager {
     }
   }
 
-  ///Checks whether given [Submission] should be filtered
+  ///Checks whether a given [Submission] should be filtered
   bool isFiltered({ContentSource source, Submission submission, String target}) {
     bool equalsTarget;
     if (source == ContentSource.Subreddit) {

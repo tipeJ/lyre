@@ -378,6 +378,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 onNotification: (notification) {
                   if (notification is SubmissionOptionsNotification) {
                     _selectedUserContent = notification.submission;
+                    _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
                     _submissionOptionsController = Scaffold.of(context).showBottomSheet(
                       (context) => _submissionOptionsSheet(context)
                     );

@@ -84,6 +84,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           case ContentSource.Frontpage:
             userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             break;
+          default:
+            // TODO: Implement domains
+            break;
         }
 
         if (userContent.isEmpty) {

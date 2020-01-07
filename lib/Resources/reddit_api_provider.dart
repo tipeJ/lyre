@@ -15,6 +15,7 @@ enum ContentSource{
   Subreddit,
   Frontpage,
   Redditor,
+  Domain,
   Self
 }
 

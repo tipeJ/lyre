@@ -713,27 +713,32 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             const ActionSheetTitle(title: "Options"),
-            ActionSheetInkwell(
-              title: const Text("Search"),
-              onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search)
+            Row(
+              children: <Widget>[
+                OutlineButton.icon(
+              icon: const Icon(Icons.search),
+              label: const Text("Search"),
+              onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
             ),
-            ActionSheetInkwell(
-              title: const Text("Open"),
-              onTap: () {
-                // TODO: Implement Open
-              }
+            OutlineButton.icon(
+              icon: const Icon(Icons.open_in_new),
+              label: const Text("Open"),
+              onPressed: () => _switchOptionsVisibility(_OptionsVisibility.Search),
             ),
-            BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state) => state.contentSource == ContentSource.Subreddit
-                ? ActionSheetInkwell(
-                  title: const Text("Sidebar"),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).push(CupertinoPageRoute(builder: (context) => Material(child: SidebarView(state: state))));
-                    }
-                  )
-                : Container(),
-            )
+            BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
+              ? OutlineButton.icon(
+                  icon: const Icon(Icons.time_to_leave),
+                  label: const Text("Sidebar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    final state = BlocProvider.of<PostsBloc>(context).state;
+                    Navigator.of(context).push(CupertinoPageRoute(builder: (context) => Material(child: SidebarView(state: state))));
+                  },
+                )
+              : null
+              ].where((w) => notNull(w)).toList(),
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            ),
           ],
         );
     }

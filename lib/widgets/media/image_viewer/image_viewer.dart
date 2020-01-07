@@ -292,7 +292,7 @@ class AlbumControlsBar extends StatefulWidget {
   ///The minimum height for the horizontal previewsBar. Will get one-tenths of gallery height if it's larger that way.
   final double minimumHeight;
 
-  AlbumControlsBar({Key key, this.minimumHeight = 75.00}) : super(key: key);
+  const AlbumControlsBar({Key key, this.minimumHeight = 75.00}) : super(key: key);
 
   _AlbumControlsBarState createState() => _AlbumControlsBarState();
 }
@@ -306,7 +306,6 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   void _handleExpandedDragUpdate(DragUpdateDetails details) {
     if(_expansionController.value == 1 && ((_gridController.offset == 0.0 && details.delta.dy < 0.0) || _gridController.offset != 0.0)){
       _gridController.jumpTo(_gridController.offset - details.delta.dy);
-      //TODO: ! ADD CUSTOM FLING ANIMATION FOR GRID
     } else {
       _expansionController.value -= details.primaryDelta /
       _maxExpandedBarHeight; //<-- Update the _expansionController.value by the movement done by user.
@@ -603,10 +602,10 @@ class ImageControlsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     _albumController = isAlbum ? AlbumController.of(context) : null;
     return Material(
+      color: Colors.black.withOpacity(0.6),
       child: Container(
         height: 50.0,
         width: MediaQuery.of(context).size.width,
-        color: Colors.black.withOpacity(0.6),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[

@@ -254,7 +254,6 @@ class postInnerWidget extends StatelessWidget{
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),
-        const Divider(indent: 250,endIndent: 250,)
       ],);
     } else if (videoLinkTypes.contains(type)){
       content = const Icon(Icons.play_arrow, color: Colors.white,);

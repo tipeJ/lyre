@@ -77,7 +77,7 @@ class postInnerWidget extends StatelessWidget{
       case PostView.Compact:
         return compactWidget(context);
       default:
-        return defaultColumn(submission, previewSource, linkType);
+        return defaultColumn(submission, previewSource, linkType, onOptionsClick);
     }
   }
 
@@ -88,7 +88,7 @@ class postInnerWidget extends StatelessWidget{
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            child: defaultColumn(submission, previewSource, linkType),
+            child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
             width: MediaQuery.of(context).size.width * 0.9,
           ),
           getSquaredImage(context)
@@ -261,7 +261,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getDefaultSlideColumn(BuildContext context){
-    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType), submission: submission,);
+    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
   }
 
 
@@ -363,11 +363,12 @@ class __SlideColumnState extends State<_SlideColumn> {
 }
 
 class defaultColumn extends StatelessWidget {
-  defaultColumn(this.submission, this.previewSource, this.linkType);
+  defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
 
   final PreviewSource previewSource;
   final LinkType linkType;
   final Submission submission;
+  final VoidCallback onLongPress;
 
   void showComments(BuildContext context) {
     Navigator.of(context).pushNamed('comments', arguments: submission);
@@ -584,6 +585,7 @@ class defaultColumn extends StatelessWidget {
             showComments(context);
           }
         },
+        onLongPress: onLongPress,
       )
     );
   }

@@ -950,12 +950,26 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Open a subreddit
             BlocBuilder<PostsBloc, PostsState>(
               builder: (context, state) {
-                return (state.target.toString().toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
+                return ((state.contentSource != ContentSource.Subreddit && state.contentSource != ContentSource.Frontpage) || state.target.toString().toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
                   ? ActionSheetInkwell(
                     title: Text('r/${_selectedSubmission.subreddit.displayName}'),
                     onTap: () {
                       Navigator.of(context).pop();
                       BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _selectedSubmission.subreddit.displayName));
+                    },
+                  )
+                  : Container();
+                },
+            ),
+            // * Open a profile
+            BlocBuilder<PostsBloc, PostsState>(
+              builder: (context, state) {
+                return (state.contentSource != ContentSource.Redditor || state.target.toString().toLowerCase() != _selectedSubmission.author.toLowerCase())
+                  ? ActionSheetInkwell(
+                    title: Text('u/${_selectedSubmission.author}'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _selectedSubmission.author));
                     },
                   )
                   : Container();

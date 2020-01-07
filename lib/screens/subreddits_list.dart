@@ -72,7 +72,8 @@ class SubredditsList extends State<ExpandingSheetContent> {
               child: TextField(
                 enabled: widget.innerController.extent.isAtMax,
                 onChanged: (String s) {
-                  searchQuery = s;
+                  // Remove spaces from search query
+                  searchQuery = s.replaceAll(" ", "");
                   setState(() {
                   });
                 },

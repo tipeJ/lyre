@@ -410,7 +410,6 @@ class PostsProvider {
   }
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
-    return null;
     try {    
       final styleSheet = await subreddit.stylesheet.call();
       return styleSheet.images;
@@ -420,7 +419,6 @@ class PostsProvider {
   }
 
   Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
-    return null;
     try {    
       final page = await subreddit.wiki[args].populate();
       return page;

@@ -9,6 +9,7 @@ import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:lyre/screens/subreddits_list.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
@@ -362,63 +363,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ],
           )
         ),
-        endDrawer: new Drawer(
+        endDrawer: Drawer(
           child: BlocBuilder<PostsBloc, PostsState>(
-                builder: (context, state){
-                  return CustomScrollView(
-                    slivers: <Widget>[
-                      SliverAppBar(
-                        expandedHeight: 125.0,
-                        floating: false,
-                        pinned: true,
-                        backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
-                        automaticallyImplyLeading: false,
-                        actions: <Widget>[Container()],
-                        leading: Container(),
-                        flexibleSpace: FlexibleSpaceBar(
-                          centerTitle: false,
-                          titlePadding: EdgeInsets.only(left: 10.0),
-                          title: Text(
-                            'Sidebar',
-                            style: LyreTextStyles.title,
-                            ),
-                          background: BlocBuilder<PostsBloc, PostsState>(
-                            builder: (context, state){
-                              return state.subreddit != null && state.subreddit.mobileHeaderImage != null
-                                ? FadeInImage(
-                                  placeholder: MemoryImage(kTransparentImage),
-                                  image: AdvancedNetworkImage(
-                                    state.subreddit.mobileHeaderImage.toString(),
-                                    useDiskCache: true,
-                                    cacheRule: CacheRule(maxAge: const Duration(days: 3)),
-                                  ),
-                                  fit: BoxFit.cover
-                                )
-                                : Container(); // TODO: Placeholder image
-                            }
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.all(5.0),
-                            helperText: "Search r/${state.target.toString()}",
-                            helperStyle: TextStyle(fontStyle: FontStyle.italic)
-                          ),
-                        ),
-                      ),
-                      notNull(state.sideBar)
-                        ? SliverToBoxAdapter(
-                          child: Text("Sidebar Coming Soon")//MarkdownBody(data: state.sideBar.contentMarkdown,)
-                        )
-                        : null
-                    ].where((w) => notNull(w)).toList(),
-                  );
-                },
-              )
-          
+            builder: (context, state) => SidebarView(state: state,)
+          )
         ),
         body: Builder(
           builder: (context) {
@@ -774,6 +722,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 // TODO: Implement Open
               }
             ),
+            BlocBuilder<PostsBloc, PostsState>(
+              builder: (context, state) => state.contentSource == ContentSource.Subreddit
+                ? ActionSheetInkwell(
+                  title: const Text("Sidebar"),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).push(CupertinoPageRoute(builder: (context) => Material(child: SidebarView(state: state))));
+                    }
+                  )
+                : Container(),
+            )
           ],
         );
     }
@@ -1369,56 +1328,14 @@ class _submissionList extends StatelessWidget {
             floating: false,
             pinned: false,
             backgroundColor: Theme.of(context).canvasColor,
-            actions: <Widget>[
-              BlocBuilder<LyreBloc, LyreState>(
-                builder: (BuildContext context, lyreState) {
-                  if (postsState.contentSource == ContentSource.Frontpage) return Container();
-                  return Container(
-                    color: LyreColors.subscribeColor,
-                    margin: EdgeInsets.all(10.0),
-                    child: ToggleButtons(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: postsState.contentSource == ContentSource.Subreddit
-                            ? Text(
-                              lyreState.isSubscribed(postsState.target) ? "Unsubscribe" : "Subscribe",
-                            )
-                            : Text(
-                              //TODO: Add friend button
-                              true ? "Friend" : "Unfriend",
-                            )
-                        )
-                      ],
-                      fillColor: LyreColors.unsubscribeColor,
-                      selectedColor: Colors.white70,
-                      renderBorder: false,
-                      isSelected: [
-                        postsState.contentSource == ContentSource.Subreddit ? lyreState.isSubscribed(postsState.target) : true
-                      ],
-                      onPressed: (i) {
-                        if (postsState.contentSource == ContentSource.Subreddit) {
-                          if (lyreState.isSubscribed(postsState.target)) {
-                            BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: postsState.target));
-                          } else {
-                            BlocProvider.of<LyreBloc>(context).add(Subscribe(subreddit: postsState.target));
-                          }
-                        } else {
-                          
-                        }
-                      },
-                    ),
-                  );
-                },
-              ),
-            ],
+            actions: const [],
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: false,
-              titlePadding: EdgeInsets.only(
+              titlePadding: const EdgeInsets.only(
                 left: 10.0,
                 bottom: 5.0
-                ),
+              ),
               title: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
                 child: Text(

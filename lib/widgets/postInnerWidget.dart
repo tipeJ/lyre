@@ -112,27 +112,27 @@ class postInnerWidget extends StatelessWidget{
       alignment: Alignment.center,
       children: <Widget>[
         _getExpandedImage(context),
-        new Positioned(
+        Positioned(
           bottom: 0.0,
           child: 
             (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
             (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
-              ? new BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: blurLevel,
-                  sigmaY: blurLevel,
-                ),
-                child: new Container(
+              ? BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: blurLevel,
+                    sigmaY: blurLevel,
+                  ),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.black,
+                    child: getDefaultSlideColumn(context),
+                  ),
+                )
+              : Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.black,
+                  color: Theme.of(context).primaryColor,
                   child: getDefaultSlideColumn(context),
                 ),
-              )
-              : new Container(
-                width: MediaQuery.of(context).size.width,
-                color: Theme.of(context).primaryColor,
-                child: getDefaultSlideColumn(context),
-              ),
         ),
         ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
@@ -226,24 +226,26 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getCenteredIndicator(LinkType type, bool showCircle){
-    return showCircle
-      ? Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white,
-            width: 2.0,
-          ),
-        ),
-        child: getIndicator(type),
-      )
-      : Container(
+    return IgnorePointer(
+      child: showCircle
+        ? Container(
           width: 50,
           height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: 2.0,
+            ),
+          ),
           child: getIndicator(type),
-      );
+        )
+        : Container(
+            width: 50,
+            height: 50,
+            child: getIndicator(type),
+        )
+    );
   }
 
   Widget getIndicator(LinkType type){

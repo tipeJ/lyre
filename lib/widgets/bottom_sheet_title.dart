@@ -10,18 +10,19 @@ class BottomSheetTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints.tightFor(height: 30.0),
       padding: const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
-      height: 50.0,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Expanded(
             child: Text(title, style: LyreTextStyles.bottomSheetTitle,)
           ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: actionCallBack ?? (){
+          InkWell(
+            child: const Padding(
+              child: Icon(Icons.close),
+              padding: EdgeInsets.all(10.0),
+            ),
+            onTap: actionCallBack ?? (){
               Navigator.of(context).pop();
             },
           )

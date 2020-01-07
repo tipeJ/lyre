@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,7 +68,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
             sizeFactor: _typeExpansionController,
             child: Column(
               children: <Widget>[
-            const ActionSheetTitle(title: "Sort"),
+            const ActionSheetTitle(title: "Sort", showAction: false,),
               ]..addAll(_sortTypeParams(widget.types)),
             ),
           ),
@@ -154,7 +155,7 @@ Widget _getTypeIcon(String type) {
       case 'month':
         return Icon(MdiIcons.calendarMonth);
       case 'year':
-        return Text('365', style: LyreTextStyles.iconText);
+        return Text('365', style: LyreTextStyles.iconText.apply(fontSizeFactor: 2/3));
       case 'all time':
         return Icon(MdiIcons.infinity);
       default:

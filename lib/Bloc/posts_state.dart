@@ -1,3 +1,4 @@
+import 'package:basic_utils/basic_utils.dart';
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:lyre/Models/User.dart';
@@ -59,35 +60,14 @@ class PostsState extends Equatable {
     String filterString = "";
 
     if(contentSource == ContentSource.Self){
-      switch (target) {
-        case SelfContentType.Comments:
-          filterString = "Comments";
-          break;
-        case SelfContentType.Hidden:
-          filterString = "Hidden";
-          break;
-        case SelfContentType.Saved:
-          filterString = "Saved";
-          break;
-        case SelfContentType.Submitted:
-          filterString = "Submitted";
-          break;
-        case SelfContentType.Upvoted:
-          filterString = "Upvoted";
-          break;
-        case SelfContentType.Watching:
-          filterString = "Watching";
-          break;
-        default:
-          break;
-      }
+      filterString = target.toString().split('.').first;
       filterString += " ● ";
     }
 
     if(typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial){
-      filterString += _parseTypeFilter() + " | " + timeFilter;
+      filterString += StringUtils.capitalize(_parseTypeFilter()) + " | " + StringUtils.capitalize(timeFilter);
     }else{
-      filterString += _parseTypeFilter();
+      filterString += StringUtils.capitalize(_parseTypeFilter());
     }
     return filterString;
   }

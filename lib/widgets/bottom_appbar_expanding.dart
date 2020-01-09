@@ -58,10 +58,10 @@ typedef ScrollableWidgetBuilder = Widget Function(
 ///   Widget build(BuildContext context) {
 ///     return Scaffold(
 ///       appBar: AppBar(
-///         title: const Text('DraggableScrollableSheet'),
+///         title: const Text('LyreDraggableScrollableSheet'),
 ///       ),
 ///       body: SizedBox.expand(
-///         child: DraggableScrollableSheet(
+///         child: LyreDraggableScrollableSheet(
 ///           builder: (BuildContext context, ScrollController scrollController) {
 ///             return Container(
 ///               color: Colors.blue[100],
@@ -81,12 +81,12 @@ typedef ScrollableWidgetBuilder = Widget Function(
 /// }
 /// ```
 /// {@end-tool}
-class DraggableScrollableSheet extends StatefulWidget {
+class LyreDraggableScrollableSheet extends StatefulWidget {
   /// Creates a widget that can be dragged and scrolled in a single gesture.
   ///
   /// The [builder], [initialChildSize], [minChildSize], [maxChildSize] and
   /// [expand] parameters must not be null.
-  const DraggableScrollableSheet({
+  const LyreDraggableScrollableSheet({
     Key key,
     this.initialChildSize = 0.5,
     this.minChildSize = 0.25,
@@ -139,18 +139,18 @@ class DraggableScrollableSheet extends StatefulWidget {
   final ValueNotifier<bool> visible;
 
   @override
-  _DraggableScrollableSheetState createState() => _DraggableScrollableSheetState();
+  _LyreDraggableScrollableSheetState createState() => _LyreDraggableScrollableSheetState();
 }
 
 /// A [Notification] related to the extent, which is the size, and scroll
 /// offset, which is the position of the child list, of the
-/// [DraggableScrollableSheet].
+/// [LyreDraggableScrollableSheet].
 ///
-/// [DraggableScrollableSheet] widgets notify their ancestors when the size of
+/// [LyreDraggableScrollableSheet] widgets notify their ancestors when the size of
 /// the sheet changes. When the extent of the sheet changes via a drag,
 /// this notification bubbles up through the tree, which means a given
 /// [NotificationListener] will receive notifications for all descendant
-/// [DraggableScrollableSheet] widgets. To focus on notifications from the
+/// [LyreDraggableScrollableSheet] widgets. To focus on notifications from the
 /// nearest [DraggableScorllableSheet] descendant, check that the [depth]
 /// property of the notification is zero.
 ///
@@ -163,7 +163,7 @@ class DraggableScrollableSheet extends StatefulWidget {
 /// listens for extent notifications and responds by driving animations for the
 /// [FloatingActionButton] as the bottom sheet scrolls up.
 class DraggableScrollableNotification extends Notification with ViewportNotificationMixin {
-  /// Creates a notification that the extent of a [DraggableScrollableSheet] has
+  /// Creates a notification that the extent of a [LyreDraggableScrollableSheet] has
   /// changed.
   ///
   /// All parameters are required. The [minExtent] must be >= 0.  The [maxExtent]
@@ -211,9 +211,9 @@ class DraggableScrollableNotification extends Notification with ViewportNotifica
   }
 }
 
-/// Manages state between [_DraggableScrollableSheetState],
-/// [DraggableScrollableSheetScrollController], and
-/// [_DraggableScrollableSheetScrollPosition].
+/// Manages state between [_LyreDraggableScrollableSheetState],
+/// [LyreDraggableScrollableSheetScrollController], and
+/// [_LyreDraggableScrollableSheetScrollPosition].
 ///
 /// The State knows the pixels available along the axis the widget wants to
 /// scroll, but expects to get a fraction of those pixels to render the sheet.
@@ -296,21 +296,21 @@ class DraggableSheetExtent {
 
 
 /// A [ScrollController] suitable for use in a [ScrollableWidgetBuilder] created
-/// by a [DraggableScrollableSheet].
+/// by a [LyreDraggableScrollableSheet].
 ///
-/// If a [DraggableScrollableSheet] contains content that is exceeds the height
+/// If a [LyreDraggableScrollableSheet] contains content that is exceeds the height
 /// of its container, this controller will allow the sheet to both be dragged to
 /// fill the container and then scroll the child content.
 ///
 /// See also:
 ///
-///  * [_DraggableScrollableSheetScrollPosition], which manages the positioning logic for
+///  * [_LyreDraggableScrollableSheetScrollPosition], which manages the positioning logic for
 ///    this controller.
 ///  * [PrimaryScrollController], which can be used to establish a
-///    [DraggableScrollableSheetScrollController] as the primary controller for
+///    [LyreDraggableScrollableSheetScrollController] as the primary controller for
 ///    descendants.
-class DraggableScrollableSheetScrollController extends ScrollController {
-  DraggableScrollableSheetScrollController({
+class LyreDraggableScrollableSheetScrollController extends ScrollController {
+  LyreDraggableScrollableSheetScrollController({
     double initialScrollOffset = 0.0,
     String debugLabel,
     @required this.extent,
@@ -323,12 +323,12 @@ class DraggableScrollableSheetScrollController extends ScrollController {
   final DraggableSheetExtent extent;
 
   @override
-  _DraggableScrollableSheetScrollPosition createScrollPosition(
+  _LyreDraggableScrollableSheetScrollPosition createScrollPosition(
     ScrollPhysics physics,
     ScrollContext context,
     ScrollPosition oldPosition,
   ) {
-    return _DraggableScrollableSheetScrollPosition(
+    return _LyreDraggableScrollableSheetScrollPosition(
       physics: physics,
       context: context,
       oldPosition: oldPosition,
@@ -350,7 +350,7 @@ class DraggableScrollableSheetScrollController extends ScrollController {
 }
 
 /// A scroll position that manages scroll activities for
-/// [DraggableScrollableSheetScrollController].
+/// [LyreDraggableScrollableSheetScrollController].
 ///
 /// This class is a concrete subclass of [ScrollPosition] logic that handles a
 /// single [ScrollContext], such as a [Scrollable]. An instance of this class
@@ -360,10 +360,10 @@ class DraggableScrollableSheetScrollController extends ScrollController {
 ///
 /// See also:
 ///
-///  * [DraggableScrollableSheetScrollController], which uses this as its [ScrollPosition].
-class _DraggableScrollableSheetScrollPosition
+///  * [LyreDraggableScrollableSheetScrollController], which uses this as its [ScrollPosition].
+class _LyreDraggableScrollableSheetScrollPosition
     extends ScrollPositionWithSingleContext {
-  _DraggableScrollableSheetScrollPosition({
+  _LyreDraggableScrollableSheetScrollPosition({
     @required ScrollPhysics physics,
     @required ScrollContext context,
     double initialPixels = 0.0,
@@ -468,7 +468,7 @@ class _DraggableScrollableSheetScrollPosition
   }
 }
 
-/// A widget that can notify a descendent [DraggableScrollableSheet] that it
+/// A widget that can notify a descendent [LyreDraggableScrollableSheet] that it
 /// should reset its position to the initial state.
 ///
 /// The [Scaffold] uses this widget to notify a persistentent bottom sheet that
@@ -476,7 +476,7 @@ class _DraggableScrollableSheetScrollPosition
 /// than when at its initial position. This is important for users of assistive
 /// technology, where dragging may be difficult to communicate.
 class DraggableScrollableActuator extends StatelessWidget {
-  /// Creates a widget that can notify descendent [DraggableScrollableSheet]s
+  /// Creates a widget that can notify descendent [LyreDraggableScrollableSheet]s
   /// to reset to their initial position.
   ///
   /// The [child] parameter is required.
@@ -485,7 +485,7 @@ class DraggableScrollableActuator extends StatelessWidget {
     @required this.child
   }) : super(key: key);
 
-  /// This child's [DraggableScrollableSheet] descendant will be reset when the
+  /// This child's [LyreDraggableScrollableSheet] descendant will be reset when the
   /// [reset] method is applied to a context that includes it.
   ///
   /// Must not be null.
@@ -493,11 +493,11 @@ class DraggableScrollableActuator extends StatelessWidget {
 
   final _ResetNotifier _notifier = _ResetNotifier();
 
-  /// Notifies any descendant [DraggableScrollableSheet] that it should reset
+  /// Notifies any descendant [LyreDraggableScrollableSheet] that it should reset
   /// to its initial position.
   ///
   /// Returns `true` if a [DraggableScrollableActuator] is available and
-  /// some [DraggableScrollableSheet] is listening for updates, `false`
+  /// some [LyreDraggableScrollableSheet] is listening for updates, `false`
   /// otherwise.
   static bool reset(BuildContext context) {
     final _InheritedResetNotifier notifier = context.inheritFromWidgetOfExactType(_InheritedResetNotifier);
@@ -535,7 +535,7 @@ class _ResetNotifier extends ChangeNotifier {
 }
 
 class _InheritedResetNotifier extends InheritedNotifier<_ResetNotifier> {
-  /// Creates an [InheritedNotifier] that the [DraggableScrollableSheet] will
+  /// Creates an [InheritedNotifier] that the [LyreDraggableScrollableSheet] will
   /// listen to for an indication that it should change its extent.
   ///
   /// The [child] and [notifier] properties must not be null.
@@ -547,7 +547,7 @@ class _InheritedResetNotifier extends InheritedNotifier<_ResetNotifier> {
 
   bool _sendReset() => notifier.sendReset();
 
-  /// Specifies whether the [DraggableScrollableSheet] should reset to its
+  /// Specifies whether the [LyreDraggableScrollableSheet] should reset to its
   /// initial position.
   ///
   /// Returns true if the notifier requested a reset, false otherwise.
@@ -564,8 +564,8 @@ class _InheritedResetNotifier extends InheritedNotifier<_ResetNotifier> {
   }
 }
 
-class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> with TickerProviderStateMixin {
-  DraggableScrollableSheetScrollController _scrollController;
+class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSheet> with TickerProviderStateMixin {
+  LyreDraggableScrollableSheetScrollController _scrollController;
   DraggableSheetExtent _extent;
 
   AnimationController _extentAnimation;
@@ -597,7 +597,7 @@ class _DraggableScrollableSheetState extends State<DraggableScrollableSheet> wit
         _visibilityAnimation.animateTo(0.0, curve: Curves.ease);
       }
     });
-    _scrollController = DraggableScrollableSheetScrollController(extent: _extent);
+    _scrollController = LyreDraggableScrollableSheetScrollController(extent: _extent);
   }
 
   @override

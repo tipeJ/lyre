@@ -43,6 +43,7 @@ class SidebarView extends StatelessWidget {
     }
   }
 
+  // TODO: Implement ?
   List<Widget> _redditorWidgets(BuildContext context, PostsState state) => const [
     SliverSafeArea(
       sliver: SliverToBoxAdapter(
@@ -72,7 +73,8 @@ class SidebarView extends StatelessWidget {
       sliver: SliverToBoxAdapter(
         child: CustomExpansionTile(
           title: "Trending Communities",
-          children: <Widget>[],
+          // TODO: Add Trending Communities
+          children: const [],
         )
       )
     ),
@@ -89,11 +91,16 @@ class SidebarView extends StatelessWidget {
   ];
 
   List<Widget> _subredditWidgets(BuildContext context, PostsState state) => [
-    SliverSafeArea(
-      sliver: SliverToBoxAdapter(child: Text(
-        'r/${state.target}',
+    SliverAppBar(
+      title: const Text(
+        'Sidebar',
         style: LyreTextStyles.title,
-      ))
+      ),
+      automaticallyImplyLeading: false,
+      pinned: true,
+      actions: [Container()],
+      backgroundColor: Theme.of(context).canvasColor,
+      titleSpacing: 0.0,
     ),
     notNull(state.sideBar)
       ? SliverToBoxAdapter(
@@ -184,16 +191,6 @@ class SidebarView extends StatelessWidget {
           )
         );
       },
-    ),
-    SliverToBoxAdapter(
-      child: TextField(
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.all(5.0),
-          helperText: "Search r/${state.target.toString()}",
-          helperStyle: const TextStyle(fontStyle: FontStyle.italic)
-        ),
-      ),
     ),
     notNull(state.sideBar)
       ? SliverToBoxAdapter(

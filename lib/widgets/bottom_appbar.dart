@@ -63,7 +63,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
           Align(
               alignment: Alignment.bottomCenter,
               //Expandable appbar
-              child: prefix0.DraggableScrollableSheet(
+              child: prefix0.LyreDraggableScrollableSheet(
               expand: true,
               visible: visibilityListener,
               maxChildSize: MediaQuery.of(context).size.height,
@@ -82,7 +82,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
 class ExpandingSheetContent extends StatefulWidget {
   final State<ExpandingSheetContent> state;
   final Widget appBarContent;
-  final prefix0.DraggableScrollableSheetScrollController innerController;
+  final prefix0.LyreDraggableScrollableSheetScrollController innerController;
   final ValueNotifier<bool> visible = ValueNotifier(true);
 
   ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent});

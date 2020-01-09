@@ -870,7 +870,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           Text("Sidebar"),
                         ],),
                       ),
-                      onTap: () => Scaffold.of(context).openEndDrawer(),
+                      onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
+                        builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
+                        initialChildSize: 0.45,
+                        minChildSize: 0.45,
+                        maxChildSize: 1.0,
+                        expand: false,
+                      ))
                     )
                   : null
                   ].where((w) => notNull(w)).toList(),

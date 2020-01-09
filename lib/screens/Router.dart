@@ -4,14 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
-import 'package:lyre/screens/comments/comment_list.dart';
-import 'package:lyre/screens/Preferences.dart';
-import 'package:lyre/screens/filters.dart';
-import 'package:lyre/screens/submissions/posts_list.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:lyre/Bloc/bloc.dart';
-import 'package:lyre/screens/reply.dart';
-import 'package:lyre/screens/search/search.dart';
-import 'package:lyre/screens/submit.dart';
 
 class Router {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -50,18 +44,16 @@ class Router {
           if(recentlyViewed.contains(content)) recentlyViewed.remove(content); //removes the submission from the list (will be readded, to index 0)
           recentlyViewed.add(content); //Adds the submission to the top of the recently viewed list
         }
-        // return CupertinoPageRoute(builder: (_) => BlocProvider(
-        //   builder: (context) => CommentsBloc(content),
-        //   child: CommentList(),
-        // ));
         return CupertinoPageRoute(builder: (_) => BlocProvider(
           create: (context) => CommentsBloc(content),
           child: CommentList(),
         ));
       case 'settings':
-        return MaterialPageRoute(builder: (_) => PreferencesView());
+        return CupertinoPageRoute(builder: (_) => PreferencesView());
       case 'filters':
-        return MaterialPageRoute(builder: (_) => FiltersView());
+        return CupertinoPageRoute(builder: (_) => FiltersView());
+      case 'themes':
+        return CupertinoPageRoute(builder: (_) => ThemeView());
       case 'search_communities':
         return CupertinoPageRoute(builder: (_) => MultiBlocProvider(
           providers: [

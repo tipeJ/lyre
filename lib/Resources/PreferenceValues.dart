@@ -9,6 +9,7 @@ const ASSET_FRONTPAGE_BANNER_NIGHT = "assets/banner_frontpage.png";
 // * Settings
 const BOX_SETTINGS_PREFIX = "settings_";
 const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
+const BOX_THEMES = "themesbox";
 
 // * Themes
 const CURRENT_THEME = "currentTheme";

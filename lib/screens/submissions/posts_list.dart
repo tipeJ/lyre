@@ -131,65 +131,62 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           },
         ));
     }
-    widgets.add(_registrationButton());
+    widgets.add(_registrationButton);
     return widgets;
   }
 
-  Widget _registrationButton() {
-   return OutlineButton(
+  Widget get _registrationButton => OutlineButton(
     child: const Text('Add an Account'),
-      color: Theme.of(context).primaryColor,
-      onPressed: () async {
-        var pp = PostsProvider();
-        final authUrl = await pp.redditAuthUrl();
-        PostsProvider().auth(authUrl.values.first).then((loggedInUserName) async {
-          BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: loggedInUserName));
-          //TODO: FIX OPENING NEW SUBREDDIT WHEN SWITCHING ACCOUNT
-          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit));
-        });
-        showDialog(
-          context: context,
-          builder: (BuildContext context) => Material(
-            child: Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-              backgroundColor: Theme.of(context).primaryColor,
-              child: Column(children: <Widget>[
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15.0),
-                  height: 50.0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
-                      IconButton(icon: Icon(Icons.close),onPressed: () async {
-                        await pp.closeAuthServer();
-                        Navigator.pop(context);
-                      },)
-                    ],
-                  ),
+    onPressed: () async {
+      var pp = PostsProvider();
+      final authUrl = await pp.redditAuthUrl();
+      PostsProvider().auth(authUrl.values.first).then((loggedInUserName) async {
+        BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: loggedInUserName));
+        //TODO: FIX OPENING NEW SUBREDDIT WHEN SWITCHING ACCOUNT
+        bloc.add(PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit));
+      });
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => Material(
+          child: Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+            backgroundColor: Theme.of(context).primaryColor,
+            child: Column(children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 15.0),
+                height: 50.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
+                    IconButton(icon: Icon(Icons.close),onPressed: () async {
+                      await pp.closeAuthServer();
+                      Navigator.pop(context);
+                    },)
+                  ],
                 ),
-                Expanded(
-                  child: InAppWebView(
-                    onLoadStop: (controller, s) async {
-                      if (s.contains('localhost:8080')) {
-                        //Exit on successful authorization;
-                        Navigator.pop(context);
-                      }
-                    },
-                    initialOptions: {
-                      'clearCache' : false,
-                      'clearSessionCache' : true
-                    },
-                    initialUrl: authUrl.keys.first
-                  )
+              ),
+              Expanded(
+                child: InAppWebView(
+                  onLoadStop: (controller, s) async {
+                    if (s.contains('localhost:8080')) {
+                      //Exit on successful authorization;
+                      Navigator.pop(context);
+                    }
+                  },
+                  initialOptions: {
+                    'clearCache' : false,
+                    'clearSessionCache' : true
+                  },
+                  initialUrl: authUrl.keys.first
                 )
-              ],),
-            )
+              )
+            ],),
           )
-        );
+        )
+      );
       },
     );
-  }
       
   Future<bool> _willPop() {
     if (_paramsVisibility != _ParamsVisibility.None) {

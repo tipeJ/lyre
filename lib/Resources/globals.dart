@@ -22,7 +22,7 @@ const FRONTPAGE_HOME_SUB = "_";
 
 String homeSubreddit;
 
-@HiveType(adapterName: "PostViewAdapter")
+@HiveType(typeId: 0, adapterName: "PostsViewAdapter")
 enum PostView{
   @HiveField(0)
   ImagePreview,

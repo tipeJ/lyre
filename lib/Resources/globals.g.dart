@@ -6,7 +6,10 @@ part of lyre.globals;
 // TypeAdapterGenerator
 // **************************************************************************
 
-class PostViewAdapter extends TypeAdapter<PostView> {
+class PostsViewAdapter extends TypeAdapter<PostView> {
+  @override
+  final typeId = 0;
+
   @override
   PostView read(BinaryReader reader) {
     switch (reader.readByte()) {

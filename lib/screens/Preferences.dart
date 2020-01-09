@@ -97,9 +97,9 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: false,
-                          title: 'Themes',
+                          title: 'Interface',
                           showDivider: true,
-                          children: _getThemeSettings(context),
+                          children: _getInterfaceSettings(context),
                         ),
                       ]),
                     )
@@ -476,36 +476,27 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       ),
     ];
   }
-  List<Widget> _getThemeSettings(BuildContext context){
-    List<Widget> list = [];
-    LyreTheme.values.forEach((lyreAppTheme){
-      list.add(Container(
-        decoration: BoxDecoration(
-          color: lyreThemeData[lyreAppTheme].accentColor,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.circular(8.0),
-          border: box.get(CURRENT_THEME) == lyreAppTheme.toString()
-            ? Border.all(
-              color: Theme.of(context).accentColor,
-              width: 3.5
-            )
-            : null
-        ),
-        margin: EdgeInsets.all(10.0),
-        child: ListTile(
-          title: Text(
-            lyreAppTheme.toString(),
-            style: lyreThemeData[lyreAppTheme].textTheme.body1
-          ),
-          onTap: (){
-            //Make the bloc output a ThemeState
-            box.put(CURRENT_THEME, lyreAppTheme.toString());
-            BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: lyreAppTheme));
-          },
-        ),
-      ));
-    });
-    return list;
+  List<Widget> _getInterfaceSettings(BuildContext context){
+    return [
+      _settingsWidget(
+        isAdvanced: false,
+        children: [
+          InkWell(
+            child: Container(
+              padding: const EdgeInsets.only(
+                left: 5.0,
+                top: 10.0,
+                bottom: 10.0
+              ),
+              child: const Text('Themes'),
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed('themes');
+            },
+          )
+        ]
+      )
+    ];
   }
   Widget _settingsWidget({@required List<Widget> children, @required  bool isAdvanced}){
     return Visibility(

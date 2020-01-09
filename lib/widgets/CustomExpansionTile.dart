@@ -29,7 +29,7 @@ class CustomExpansionTile extends StatefulWidget {
   /// be non-null.
   const CustomExpansionTile({
     Key key,
-    this.leading,
+    this.trailing,
     @required this.title,
     this.fontSize,
     this.backgroundColor,
@@ -40,10 +40,10 @@ class CustomExpansionTile extends StatefulWidget {
   }) : assert(initiallyExpanded != null),
         super(key: key);
 
-  /// A widget to display before the title.
+  /// A widget to display after the title.
   ///
   /// Typically a [CircleAvatar] widget.
-  final Widget leading;
+  final Widget trailing;
 
   /// The primary content of the list item.
   ///
@@ -161,15 +161,21 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
               bottom: 0.0,
             ),
             dense: true,
-            child: InkWell(
-              child: Text(
-                widget.title,
-                style: TextStyle(
-                  fontSize: widget.fontSize != null ? widget.fontSize : LyreTextStyles.title.fontSize, //25.0 Is the default font size for this type of widget
-                  color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                InkWell(
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: widget.fontSize != null ? widget.fontSize : LyreTextStyles.title.fontSize, //25.0 Is the default font size for this type of widget
+                      color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                    ),
+                  ),
+                  onTap: _handleTap,
                 ),
-              ),
-              onTap: _handleTap,
+                widget.trailing ?? Container()
+              ],
             ),
           ),
           ClipRect(

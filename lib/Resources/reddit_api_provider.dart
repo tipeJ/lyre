@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:lyre/Models/models.dart' as rModel;
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
@@ -66,13 +68,18 @@ class PostsProvider {
     return reddit.readOnly ? false : true;
   }
 
-  logInAsGuest() async {
-    reddit = await getReadOnlyReddit();
-  }
-
   Future<Redditor> getRedditor(String fullname) async {
     var r = await getRed();
     return r.redditor(fullname).populate();
+  }
+
+  Future<bool> logOut(String username, bool deleteSettings) async {
+    final logOutResult = await deleteCredentials(username);
+    if (deleteSettings) {
+      final box = await Hive.openBox(BOX_SETTINGS_PREFIX + username.toLowerCase());
+      await box.deleteFromDisk();
+    }
+    return logOutResult;
   }
 
   Future<Redditor> logIn(String username) async {

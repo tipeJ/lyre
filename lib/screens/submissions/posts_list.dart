@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
@@ -261,7 +262,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         },
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          drawer: new Drawer(
+          drawer: Drawer(
             child: Stack(
               children: <Widget>[
                 BlocBuilder<LyreBloc, LyreState>(
@@ -282,8 +283,57 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                       highlightedBorderColor: LyreColors.unsubscribeColor.withOpacity(0.6),
                                       icon: const Icon(MdiIcons.logout),
                                       label: const Text("Log Out"),
-                                      onPressed: () {
-                                        
+                                      onPressed: () async {
+                                        var deleteSettings = false;
+                                        final result = await showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return Material(
+                                              child: AlertDialog(
+                                                title: const Text("Log Out"),
+                                                content: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    const Text("Delete Settings"),
+                                                    StatefulBuilder(
+                                                      builder: (BuildContext context, setState) {
+                                                        return Checkbox(
+                                                          value: deleteSettings,
+                                                          onChanged: (newValue) {
+                                                            setState(() {
+                                                              deleteSettings = newValue;
+                                                            });
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  OutlineButton(
+                                                    child: const Text("Cancel"),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop(false);
+                                                    },
+                                                  ),
+                                                  OutlineButton(
+                                                    child: const Text("Log Out"),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop(true);
+                                                    },
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                        );
+                                        if (result) {
+                                          final logOutResult = await PostsProvider().logOut(state.currentUserName, deleteSettings);
+                                          final snackBar = SnackBar(content: Text(logOutResult ? "Logged Out" : "Failed To Log Out"));
+                                          BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only
+                                          Navigator.of(context).pop();
+                                          Scaffold.of(context).showSnackBar(snackBar);
+                                        }
                                       },
                                     ),
                                 showDivider: true,

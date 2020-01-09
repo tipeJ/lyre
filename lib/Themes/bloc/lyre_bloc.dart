@@ -78,7 +78,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         subList.removeAt(index);
         yield _changeState(subs: subList);
 
-        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
+        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
         //Delete the subreddit from the subreddit box.
         final subscriptionsBoxValue = subscriptionsBox.values.toList();
         for (var i = 0; i < subscriptionsBoxValue.length; i++) {
@@ -93,7 +93,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       final subList = List<String>();
       subList.addAll(state.subscriptions);
       if (!subList.contains(subreddit)) {
-        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
+        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
         //Delete the subreddit from the subreddit box.
         subList.add(subreddit);
         subscriptionsBox.add(subreddit);

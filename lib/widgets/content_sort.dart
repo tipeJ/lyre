@@ -80,7 +80,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
               mainAxisSize: MainAxisSize.min,
               children: [
                 ActionSheetTitle(
-                  title: "Period",
+                  title: _typeFilter.isNotEmpty ? StringUtils.capitalize(_typeFilter) : "",
                   actionCallBack: _reverse,
                 )
               ]..addAll(_sortTimeParams()),
@@ -107,7 +107,9 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
             BlocProvider.of<PostsBloc>(context).add(ParamsChanged(typeFilter: sortType, timeFilter: ""));
             Navigator.of(context).pop();
           } else {
-            _typeFilter = types[index];
+            setState(() {
+              _typeFilter = types[index];
+            });
             _expand();
           }
         },

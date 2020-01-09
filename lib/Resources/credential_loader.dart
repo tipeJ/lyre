@@ -58,7 +58,7 @@ Future<List<String>> readUsernames() async {
   final db = await DBProvider.db.database;
 
   var res = await db.query("User");
-  List<String> list = new List();
+  List<String> list = [];
   res.forEach((f)=>{
     list.add(f["username"])
   });
@@ -67,7 +67,7 @@ Future<List<String>> readUsernames() async {
 Future<List<RedditUser>> getAllUsers() async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User");
-  List<RedditUser> list = res.isNotEmpty ? res.map((u) => RedditUser.fromJson(u)).toList() : [];
+  final res = await db.query("User");
+  List<RedditUser> list = res.isNotEmpty ? res.map((u) => RedditUser.fromJson(u)).toList() : const [];
   return list;
 }

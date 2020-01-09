@@ -36,7 +36,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       onWillPop: _willPop,
       child: Scaffold(
         body: FutureBuilder(
-          future: Hive.openBox('settings'),
+          future: Hive.openBox(BOX_SETTINGS_PREFIX + BlocProvider.of<LyreBloc>(context).state.currentUserName),
           builder: (context, snapshot){
             if (snapshot.hasData) {
               this.box = snapshot.data;
@@ -129,7 +129,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       _settingsWidget(
         children: [
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Sorting Type",
@@ -152,7 +152,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Sorting Time",
@@ -184,7 +184,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               },)
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Post View Mode",
@@ -256,7 +256,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children: [
           WatchBoxBuilder(
             watchKeys: [COMMENTS_DEFAULT_SORT],
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Comments Sort",
@@ -277,7 +277,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: 'Precollapse Threads', 
@@ -333,7 +333,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           StatefulBuilder(
             builder: (context, setState){
               return WatchBoxBuilder(
-                box: Hive.box('settings'),
+                box: box,
                 builder: (context, box){
                   return Slider(
                     min: 5.0,
@@ -435,7 +435,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children: [
           WatchBoxBuilder(
             watchKeys: [IMGUR_THUMBNAIL_QUALITY],
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Imgur Thumbnail Quality",
@@ -738,7 +738,7 @@ class __homeOptionsColumnState extends State<_homeOptionsColumn> with SingleTick
             sizeFactor: _customHomeExpansionController,
             axis: Axis.vertical,
             child: WatchBoxBuilder(
-              box: Hive.box('settings'),
+              box: widget.box,
               builder: (context, box){
                 return Padding(
                   padding: EdgeInsets.all(5.0),

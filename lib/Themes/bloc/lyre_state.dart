@@ -19,6 +19,8 @@ class LyreState extends Equatable {
 
   bool isSubscribed (String sub) => subscriptions.contains(StringUtils.capitalize(sub));
 
+  String get currentUserName => currentUser != null ? currentUser.displayName.toLowerCase() : '';
+
   // * Preferences
 
   final LyreTheme currentTheme;

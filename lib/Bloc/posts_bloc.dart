@@ -3,7 +3,6 @@ import 'package:bloc/bloc.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:draw/draw.dart';
 import 'package:hive/hive.dart';
-import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'bloc.dart';
@@ -32,7 +31,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         errorMessage: noConnectionErrorMessage,
         userContent: userContent,
         contentSource: state.contentSource,
-        currentUser: state.currentUser,
         target: state.target,
         sideBar: state.sideBar,
         typeFilter: state.typeFilter,
@@ -46,20 +44,19 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           contentSource: event.source,
           target: event.target,
           userContent: const [],
-          currentUser: state.currentUser,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter
         );
         WikiPage sideBar;
         Subreddit subreddit;
-        RedditUser currentUser = await _repository.getLatestUser();
         List<UserContent> userContent;
 
         LoadingState loadingState = LoadingState.Inactive;
         String errorMessage;
 
-        final source = event.source ?? state.contentSource;
-        final preferences = await Hive.openBox(BOX_SETTINGS);
+        final source = homeSubreddit == FRONTPAGE_HOME_SUB ? ContentSource.Frontpage : event.source ?? state.contentSource;
+        final userName = _repository.isLoggedIn() ? (await _repository.getLoggedInUser()).displayName.toLowerCase() : '';
+        final preferences = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
         TypeFilter sortType;
         String sortTime;
         if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ 
@@ -99,7 +96,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           errorMessage: errorMessage,
           userContent: userContent, 
           contentSource : source,
-          currentUser: currentUser, 
           target: target, 
           sideBar: sideBar,
           subreddit: subreddit,
@@ -112,7 +108,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.Refreshing,
           contentSource: state.contentSource,
           target: state.target,
-          currentUser: state.currentUser,
           userContent: const [],
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter
@@ -134,7 +129,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           errorMessage: errorMessage,
           userContent: userContent,
           contentSource: state.contentSource,
-          currentUser: state.currentUser,
           target: state.target,
           sideBar: state.sideBar,
           typeFilter: event.typeFilter,
@@ -145,7 +139,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.LoadingMore,
           contentSource: state.contentSource,
           target: state.target,
-          currentUser: state.currentUser,
           userContent: state.userContent,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter
@@ -165,7 +158,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.Inactive,
           userContent: state.userContent..addAll(fetchedContent),
           contentSource: state.contentSource,
-          currentUser: state.currentUser,
           target: state.target,
           sideBar: state.sideBar,
           typeFilter: state.typeFilter,

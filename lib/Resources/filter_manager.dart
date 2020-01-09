@@ -64,7 +64,6 @@ class FilterManager {
 
     //Return false if target is the same as the possibly filtered content (Filters do not go into effect if, for example, user visits a filtered subreddit)
     if (equalsTarget) return false;
-    print(submission.url.authority);
     if (_filteredSubredditsBox.values.contains(submission.subreddit.displayName.toLowerCase()) || _filteredUsersBox.values.contains(submission.author.toLowerCase()) || _filteredDomainsBox.values.contains(submission.url.authority)) return true;
     return false;
   }

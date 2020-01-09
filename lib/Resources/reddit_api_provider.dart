@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:lyre/Models/models.dart' as rModel;
 import 'package:lyre/Resources/filter_manager.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'globals.dart';
 import 'package:draw/draw.dart';
@@ -74,7 +75,7 @@ class PostsProvider {
     return r.redditor(fullname).populate();
   }
 
-  Future<Redditor> logIn(String username) async{
+  Future<Redditor> logIn(String username) async {
     if (username.isEmpty) { //Read-only
       reddit = await getReadOnlyReddit();
       return null;
@@ -211,16 +212,20 @@ class PostsProvider {
   }
 
   Future<Reddit> getReadOnlyReddit() async {
-    return Reddit.createReadOnlyInstance(
+    final uuid = Uuid();
+    final configUri = Uri.parse('draw.ini');
+    final deviceId = uuid.v5(Uuid.NAMESPACE_OID, 'lyre').substring(0, 26);
+    return Reddit.createUntrustedReadOnlyInstance(
       userAgent: "$appName $appVersion by u/tipezuke",
-        clientId: "6sQY26tkKTP99w",
-        clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
+      clientId: "JfjOgtm3pWG22g",
+      deviceId: deviceId,
+      configUri: configUri
     );
   }
 
   Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
     final r = await getRed();
-    Map<String, String> headers = new Map<String, String>();
+    Map<String, String> headers = Map<String, String>();
       headers["api_type"] = "json";
     
     final x = await client.get(query);
@@ -303,7 +308,7 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
+            v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
           } else if (source == ContentSource.Frontpage) {

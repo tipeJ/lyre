@@ -19,7 +19,7 @@ class App extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: getFirstLyreState(),
+      future: newLyreState(),
       builder: (context, AsyncSnapshot<LyreState> snapshot){
         if(snapshot.hasData){
           return BlocProvider(

@@ -3,25 +3,25 @@ import 'package:lyre/Themes/themes.dart';
 
 class ActionSheetTitle extends StatelessWidget {
   final String title;
+  final Widget customTitle;
   final VoidCallback actionCallBack;
   final bool showAction;
 
-  const ActionSheetTitle({@required this.title, this.actionCallBack, this.showAction = true, Key key}) : super(key: key);
+  const ActionSheetTitle({this.title, this.actionCallBack, this.showAction = true, this.customTitle, Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
+      padding: const EdgeInsets.only(top: 5.0, left: 5.0, right: 5.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Expanded(
-            child: Text(
-              title, 
-              maxLines: 1,
-              softWrap: true,
-              style: LyreTextStyles.bottomSheetTitle,
-            )
+          customTitle ?? Text(
+            title, 
+            maxLines: 1,
+            softWrap: true,
+            style: LyreTextStyles.bottomSheetTitle,
           ),
           showAction
             ? InkWell(

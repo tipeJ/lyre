@@ -199,7 +199,7 @@ class SidebarView extends StatelessWidget {
       ? SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.only(top: 10.0),
-          child: MarkdownBody(data: state.sideBar.contentMarkdown,)
+          child: Text(state.sideBar.contentHtml)
         )
       )
       : null

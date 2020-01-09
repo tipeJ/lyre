@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart';
 import 'package:lyre/Models/models.dart' as rModel;
+import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/filter_manager.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'globals.dart';
 import 'package:draw/draw.dart';
@@ -15,6 +18,7 @@ enum ContentSource{
   Subreddit,
   Frontpage,
   Redditor,
+  Domain,
   Self
 }
 
@@ -64,16 +68,21 @@ class PostsProvider {
     return reddit.readOnly ? false : true;
   }
 
-  logInAsGuest() async {
-    reddit = await getReadOnlyReddit();
-  }
-
   Future<Redditor> getRedditor(String fullname) async {
     var r = await getRed();
     return r.redditor(fullname).populate();
   }
 
-  Future<Redditor> logIn(String username) async{
+  Future<bool> logOut(String username, bool deleteSettings) async {
+    final logOutResult = await deleteCredentials(username);
+    if (deleteSettings) {
+      final box = await Hive.openBox(BOX_SETTINGS_PREFIX + username.toLowerCase());
+      await box.deleteFromDisk();
+    }
+    return logOutResult;
+  }
+
+  Future<Redditor> logIn(String username) async {
     if (username.isEmpty) { //Read-only
       reddit = await getReadOnlyReddit();
       return null;
@@ -210,16 +219,20 @@ class PostsProvider {
   }
 
   Future<Reddit> getReadOnlyReddit() async {
-    return Reddit.createReadOnlyInstance(
+    final uuid = Uuid();
+    final configUri = Uri.parse('draw.ini');
+    final deviceId = uuid.v5(Uuid.NAMESPACE_OID, 'lyre').substring(0, 26);
+    return Reddit.createUntrustedReadOnlyInstance(
       userAgent: "$appName $appVersion by u/tipezuke",
-        clientId: "6sQY26tkKTP99w",
-        clientSecret: "Kpt1s3sUt2GMYhEBqLNZVPkeSW8",
+      clientId: "JfjOgtm3pWG22g",
+      deviceId: deviceId,
+      configUri: configUri
     );
   }
 
   Future<Map<dynamic, dynamic>> fetchRedditContent(String query) async {
     final r = await getRed();
-    Map<String, String> headers = new Map<String, String>();
+    Map<String, String> headers = Map<String, String>();
       headers["api_type"] = "json";
     
     final x = await client.get(query);
@@ -302,7 +315,7 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
+            v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
           } else if(source == ContentSource.Redditor){
             v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
           } else if (source == ContentSource.Frontpage) {
@@ -410,7 +423,6 @@ class PostsProvider {
   }
 
   Future<List<StyleSheetImage>> getStyleSheetImages(Subreddit subreddit) async {
-    return null;
     try {    
       final styleSheet = await subreddit.stylesheet.call();
       return styleSheet.images;
@@ -420,7 +432,6 @@ class PostsProvider {
   }
 
   Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
-    return null;
     try {    
       final page = await subreddit.wiki[args].populate();
       return page;

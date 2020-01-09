@@ -2,12 +2,14 @@ import '../Database/database.dart';
 import '../Models/User.dart';
 import 'dart:core';
 
+const USER_TABLE = "User";
+
 Future<int> writeCredentials(String usern, String creds) async {
   final db = await DBProvider.db.database;
 
   String lowercase = usern.toLowerCase();
 
-  var res = await db.rawInsert(
+  final res = await db.rawInsert(
       "INSERT Into User (username,credentials,date) "
       " VALUES(?, ?, ?)",[
         lowercase,
@@ -16,11 +18,19 @@ Future<int> writeCredentials(String usern, String creds) async {
       ]);
   return res;
 }
+Future<bool> deleteCredentials(String usern) async {
+  final db = await DBProvider.db.database;
+
+  String lowercase = usern.toLowerCase();
+
+  var res = await db.delete(USER_TABLE, where: "username = ?", whereArgs: [lowercase]);
+  return res == 1;
+}
 updateCredentials(String user, String creds) async {
   final db = await DBProvider.db.database;
 
   var userLow = user.toLowerCase();
-  var res = await db.update("User", toJson(userLow, creds),
+  var res = await db.update(USER_TABLE, toJson(userLow, creds),
   where: "username = ?", whereArgs: [userLow]);
   return res;
 }
@@ -29,7 +39,7 @@ updateLogInDate(String user) async {
 
   String creds = await readCredentials(user);
 
-  var res = await db.update("User", toJson2(user, creds), where: "username = ?", whereArgs: [user.toLowerCase()]);
+  var res = await db.update(USER_TABLE, toJson2(user, creds), where: "username = ?", whereArgs: [user.toLowerCase()]);
   return res;
 }
 Map<String, dynamic> toJson2(String username, String creds) => {
@@ -44,21 +54,21 @@ Map<String, dynamic> toJson(String username, String credentials) => {
 Future<DateTime> readLatestLogInDate(String username) async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User", where: "username = ?", whereArgs: [username.toLowerCase()]);
+  var res = await db.query(USER_TABLE, where: "username = ?", whereArgs: [username.toLowerCase()]);
   var x = res.isNotEmpty ? res.first["date"] : null;
   return DateTime.fromMillisecondsSinceEpoch(x);
 }
 Future<String> readCredentials(String username) async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User", where: "username = ?", whereArgs: [username.toLowerCase()]);
+  var res = await db.query(USER_TABLE, where: "username = ?", whereArgs: [username.toLowerCase()]);
   return res.isNotEmpty ? res.first["credentials"] : null;
 }
 Future<List<String>> readUsernames() async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User");
-  List<String> list = new List();
+  var res = await db.query(USER_TABLE);
+  List<String> list = [];
   res.forEach((f)=>{
     list.add(f["username"])
   });
@@ -67,7 +77,7 @@ Future<List<String>> readUsernames() async {
 Future<List<RedditUser>> getAllUsers() async {
   final db = await DBProvider.db.database;
 
-  var res = await db.query("User");
-  List<RedditUser> list = res.isNotEmpty ? res.map((u) => RedditUser.fromJson(u)).toList() : [];
+  final res = await db.query(USER_TABLE);
+  List<RedditUser> list = res.isNotEmpty ? res.map((u) => RedditUser.fromJson(u)).toList() : const [];
   return list;
 }

@@ -19,11 +19,15 @@ class LyreState extends Equatable {
 
   bool isSubscribed (String sub) => subscriptions.contains(StringUtils.capitalize(sub));
 
+  String get currentUserName => currentUser != null ? currentUser.displayName.toLowerCase() : '';
+
   // * Preferences
 
   final LyreTheme currentTheme;
   final String home;
   final String homeSubreddit;
+
+  final bool showKarmaInMenuSheet;
 
   final PostView viewMode;
   final bool showPreviewCircle;
@@ -64,6 +68,8 @@ class LyreState extends Equatable {
       @required this.home,
       @required this.homeSubreddit,
 
+      @required this.showKarmaInMenuSheet,
+
       @required this.viewMode,
       @required this.showPreviewCircle,
       @required this.defaultSortType,
@@ -99,6 +105,34 @@ class LyreState extends Equatable {
       subscriptions,
       
       currentTheme,
-      legacySorting
+      home,
+      homeSubreddit,
+
+      showKarmaInMenuSheet,
+
+      viewMode,
+      showPreviewCircle,
+      defaultSortType,
+      defaultSortTime,
+      resetWhenRefreshingSubmissions,
+      autoLoadSubmissions,
+
+      defaultCommentsSort,
+      precollapseComments,
+
+      enableImageRotation,
+      enableVideoRotation,
+      blurLevel,
+      fullSizePreviews,
+      loopVideos,
+      autoMuteVideos,
+      imgurThumbnailQuality,
+      albumColumnPortrait,
+      albumColumnLandscape,
+
+      showNSFWPreviews,
+      showSpoilerPreviews,
+
+      legacySorting,
     ];
 }

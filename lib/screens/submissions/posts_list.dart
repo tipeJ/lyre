@@ -6,9 +6,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
+import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:lyre/screens/subreddits_list.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
@@ -126,9 +128,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: list[i]));
             }
             Navigator.of(context).pop();
-            setState(() {
-              _refreshList();
-            });
           },
         ));
     }
@@ -146,7 +145,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         PostsProvider().auth(authUrl.values.first).then((loggedInUserName) async {
           BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: loggedInUserName));
           //TODO: FIX OPENING NEW SUBREDDIT WHEN SWITCHING ACCOUNT
-          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit, target: 'all'));
+          bloc.add(PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit));
         });
         showDialog(
           context: context,
@@ -248,9 +247,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     Scaffold.of(context).showSnackBar(successSnackBar);
   }
 
-  void _refreshList(){
-    bloc.add(PostsSourceChanged());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,339 +255,363 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
     }
     return WillPopScope(
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        drawer: new Drawer(
-          child: Stack(
-            children: <Widget>[
-              BlocBuilder<LyreBloc, LyreState>(
-                builder: (context, LyreState state) {
-                  final currentUser = state.readOnly ? "" : state.currentUser.displayName;
-                  return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomScrollView(
-                      slivers: <Widget>[
-                        SliverSafeArea(
-                          sliver: SliverToBoxAdapter(
+      child: BlocListener<LyreBloc, LyreState>(
+        condition: (prev, curr) => prev.currentUserName != curr.currentUserName,
+        listener: (context, state) {
+          BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(target: homeSubreddit, source: ContentSource.Subreddit));
+        },
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          drawer: Drawer(
+            child: Stack(
+              children: <Widget>[
+                BlocBuilder<LyreBloc, LyreState>(
+                  builder: (context, LyreState state) {
+                    final currentUser = state.readOnly ? "" : state.currentUser.displayName;
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomScrollView(
+                        slivers: <Widget>[
+                          SliverSafeArea(
+                            sliver: SliverToBoxAdapter(
+                              child: CustomExpansionTile(
+                                title: currentUser.isNotEmpty ? currentUser : "Guest",
+                                trailing: state.readOnly
+                                  ? Container()
+                                  : OutlineButton.icon(
+                                      textColor: LyreColors.unsubscribeColor,
+                                      highlightedBorderColor: LyreColors.unsubscribeColor.withOpacity(0.6),
+                                      icon: const Icon(MdiIcons.logout),
+                                      label: const Text("Log Out"),
+                                      onPressed: () async {
+                                        var deleteSettings = false;
+                                        final result = await showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return Material(
+                                              child: AlertDialog(
+                                                title: const Text("Log Out"),
+                                                content: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    const Text("Delete Settings"),
+                                                    StatefulBuilder(
+                                                      builder: (BuildContext context, setState) {
+                                                        return Checkbox(
+                                                          value: deleteSettings,
+                                                          onChanged: (newValue) {
+                                                            setState(() {
+                                                              deleteSettings = newValue;
+                                                            });
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  OutlineButton(
+                                                    child: const Text("Cancel"),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop(false);
+                                                    },
+                                                  ),
+                                                  OutlineButton(
+                                                    child: const Text("Log Out"),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop(true);
+                                                    },
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                        );
+                                        if (result) {
+                                          final logOutResult = await PostsProvider().logOut(state.currentUserName, deleteSettings);
+                                          final snackBar = SnackBar(content: Text(logOutResult ? "Logged Out" : "Failed To Log Out"));
+                                          BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only
+                                          Navigator.of(context).pop();
+                                          Scaffold.of(context).showSnackBar(snackBar);
+                                        }
+                                      },
+                                    ),
+                                showDivider: true,
+                                initiallyExpanded: true,
+                                children: _getRegisteredUsernamesList(state.userNames, currentUser),
+                              ),
+                            )
+                          ),
+                          state.currentUser != null ? SliverToBoxAdapter(
                             child: CustomExpansionTile(
-                              title: currentUser.isNotEmpty ? currentUser : "Guest",
-                              showDivider: true,
+                              title: "Profile",
                               initiallyExpanded: true,
-                              children: _getRegisteredUsernamesList(state.userNames, currentUser),
-                            ),
-                          )
-                        ),
-                        state.currentUser != null ? SliverToBoxAdapter(
-                          child: CustomExpansionTile(
-                            title: "Profile",
-                            initiallyExpanded: true,
-                            showDivider: true,
-                            children: <Widget>[
-                              Text(
-                                state.currentUser.commentKarma.toString(),
-                                style: LyreTextStyles.title,
-                                textScaleFactor: 0.8,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 5.0),
-                                child: const Text(
-                                  'Comment karma',
-                                  style: const TextStyle(fontSize: 18.0, color: Colors.grey),
+                              showDivider: true,
+                              children: <Widget>[
+                                Text(
+                                  state.currentUser.commentKarma.toString(),
+                                  style: LyreTextStyles.title,
+                                  textScaleFactor: 0.8,
                                 ),
-                              ),
-                              Text(
-                                state.currentUser.linkKarma.toString(),
-                                style: const  TextStyle(fontSize: 28.0),
-                              ),
-                              const Text(
-                                'Link karma',
-                                style: TextStyle(fontSize: 18.0, color: Colors.grey),
-                              ),
-                              const Divider(),
-                              const _SelfContentTypeWidget("Comments"),
-                              const _SelfContentTypeWidget("Submitted"),
-                              const _SelfContentTypeWidget("Upvoted"),
-                              const _SelfContentTypeWidget("Saved"),
-                              const _SelfContentTypeWidget("Hidden"),
-                              const _SelfContentTypeWidget("Watching"),
-                              const _SelfContentTypeWidget("Friends")
-                            ],
-                          )
-                        ) : null,
-                      ].where(notNull).toList(),
-                    )
-                  );
-                },
-              ),
-              
-              Positioned(
-                bottom: 0.0,
-                child: Container(
-                  height: 50.0,
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 25.0,
-                        spreadRadius: 20.0,
-                        offset: Offset(0.0, -5)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 5.0),
+                                  child: const Text(
+                                    'Comment karma',
+                                    style: const TextStyle(fontSize: 18.0, color: Colors.grey),
+                                  ),
+                                ),
+                                Text(
+                                  state.currentUser.linkKarma.toString(),
+                                  style: const  TextStyle(fontSize: 28.0),
+                                ),
+                                const Text(
+                                  'Link karma',
+                                  style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                                ),
+                                const Divider(),
+                                const _SelfContentTypeWidget("Comments"),
+                                const _SelfContentTypeWidget("Submitted"),
+                                const _SelfContentTypeWidget("Upvoted"),
+                                const _SelfContentTypeWidget("Saved"),
+                                const _SelfContentTypeWidget("Hidden"),
+                                const _SelfContentTypeWidget("Watching"),
+                                const _SelfContentTypeWidget("Friends")
+                              ],
+                            )
+                          ) : null,
+                        ].where(notNull).toList(),
                       )
-                    ]
+                    );
+                  },
+                ),
+                
+                Positioned(
+                  bottom: 0.0,
+                  child: Container(
+                    height: 50.0,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).canvasColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 25.0,
+                          spreadRadius: 20.0,
+                          offset: Offset(0.0, -5)
+                        )
+                      ]
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                bottom: 0.0,
-                right: 0.0,
-                child: Material(
-                  child: Row(
-                    children: <Widget>[
-                      Text(appName + ' v.' + appVersion),
-                      IconButton(
-                        icon: Icon(Icons.settings),
-                        onPressed: (){
-                          Navigator.of(context).pushNamed('settings');
-                        },
-                      )
-                    ],
-                  )
-                ),
-              )
-            ],
-          )
-        ),
-        endDrawer: new Drawer(
-          child: BlocBuilder<PostsBloc, PostsState>(
-                builder: (context, state){
-                  return CustomScrollView(
-                    slivers: <Widget>[
-                      SliverAppBar(
-                        expandedHeight: 125.0,
-                        floating: false,
-                        pinned: true,
-                        backgroundColor: Theme.of(context).canvasColor.withOpacity(0.8),
-                        automaticallyImplyLeading: false,
-                        actions: <Widget>[Container()],
-                        leading: Container(),
-                        flexibleSpace: FlexibleSpaceBar(
-                          centerTitle: false,
-                          titlePadding: EdgeInsets.only(left: 10.0),
-                          title: Text(
-                            'Sidebar',
-                            style: LyreTextStyles.title,
-                            ),
-                          background: BlocBuilder<PostsBloc, PostsState>(
-                            builder: (context, state){
-                              return state.subreddit != null && state.subreddit.mobileHeaderImage != null
-                                ? FadeInImage(
-                                  placeholder: MemoryImage(kTransparentImage),
-                                  image: AdvancedNetworkImage(
-                                    state.subreddit.mobileHeaderImage.toString(),
-                                    useDiskCache: true,
-                                    cacheRule: CacheRule(maxAge: const Duration(days: 3)),
-                                  ),
-                                  fit: BoxFit.cover
-                                )
-                                : Container(); // TODO: Placeholder image
-                            }
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.all(5.0),
-                            helperText: "Search r/${state.target.toString()}",
-                            helperStyle: TextStyle(fontStyle: FontStyle.italic)
-                          ),
-                        ),
-                      ),
-                      notNull(state.sideBar)
-                        ? SliverToBoxAdapter(
-                          child: Text("Sidebar Coming Soon")//MarkdownBody(data: state.sideBar.contentMarkdown,)
+                Positioned(
+                  bottom: 0.0,
+                  right: 0.0,
+                  child: Material(
+                    child: Row(
+                      children: <Widget>[
+                        Text(appName + ' v.' + appVersion),
+                        IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: (){
+                            Navigator.of(context).pushNamed('settings');
+                          },
                         )
-                        : null
-                    ].where((w) => notNull(w)).toList(),
-                  );
-                },
-              )
-          
-        ),
-        body: Builder(
-          builder: (context) {
-            return PersistentBottomAppbarWrapper(
-              fullSizeHeight: MediaQuery.of(context).size.height,
-              listener: _appBarVisibleNotifier,
-              body: NotificationListener<Notification>(
-                child: _submissionList(),
-                onNotification: (notification) {
-                  if (notification is SubmissionOptionsNotification) {
-                    _selectedUserContent = notification.submission;
-                    Scaffold.of(context).showBottomSheet(
-                      (context) => _submissionOptionsSheet(context)
-                    );
-                  } else if (notification is ScrollNotification) {
-                    if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
-                      BlocProvider.of<PostsBloc>(context).add(FetchMore());
-                    }
-                    if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-                      if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
-                        _appBarVisibleNotifier.value = false;
-                      } else if (notification.scrollDelta <= -10.0){
-                        _appBarVisibleNotifier.value = true;
+                      ],
+                    )
+                  ),
+                )
+              ],
+            )
+          ),
+          endDrawer: Drawer(
+            child: BlocBuilder<PostsBloc, PostsState>(
+              builder: (context, state) => SidebarView(state: state,)
+            )
+          ),
+          body: Builder(
+            builder: (context) {
+              return PersistentBottomAppbarWrapper(
+                fullSizeHeight: MediaQuery.of(context).size.height,
+                listener: _appBarVisibleNotifier,
+                body: NotificationListener<Notification>(
+                  child: _submissionList(),
+                  onNotification: (notification) {
+                    if (notification is SubmissionOptionsNotification) {
+                      _selectedUserContent = notification.submission;
+                      _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
+                      _submissionOptionsController = Scaffold.of(context).showBottomSheet(
+                        (context) => _submissionOptionsSheet(context)
+                      );
+                    } else if (notification is ScrollNotification) {
+                      if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
+                        BlocProvider.of<PostsBloc>(context).add(FetchMore());
+                      }
+                      if (notification.depth == 0 && notification is ScrollUpdateNotification) {
+                        if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
+                          _appBarVisibleNotifier.value = false;
+                        } else if (notification.scrollDelta <= -10.0){
+                          _appBarVisibleNotifier.value = true;
+                        }
                       }
                     }
-                  }
-                  return false;
-                },
-              ),
-              appBarContent: _postsAppBar,
-              expandingSheetContent: SubredditsList(),
-            );
-          },
+                    return false;
+                  },
+                ),
+                appBarContent: _postsAppBar,
+                expandingSheetContent: SubredditsList(),
+              );
+            },
+          )
         )
       ),
       onWillPop: _willPop);
   }
 
-  Widget get _postsAppBar => BlocBuilder<PostsBloc, PostsState>(
-    builder: (context, state) {
-      return Container(
-        width: MediaQuery.of(context).size.width,
-        height: 56.0,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            // * Reply container
-            AnimatedContainer(
-              height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
-              curve: Curves.ease,
-              child: Material(
-                child:  Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10.0),
-                  child: _buildQuickTextInput(context)
-                ),
-              ),
-            ),
-            // * Default appBar contents
-            AnimatedContainer(
-              height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
-              curve: Curves.ease,
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
-                  Expanded(
-                    child: Material(
-                      child: InkWell(
-                        onLongPress: () {
-                          _prepareQuickTextInput(_QuickText.QuickAction);
-                        },
-                        onDoubleTap: () {
-                          if (homeSubreddit == FRONTPAGE_HOME_SUB) {
-                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
-                          } else {
-                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
-                          }
-                        },
-                        onTap: () {
-                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
-                            // ! Will be deprecated
-                            setState(() {
-                              _paramsVisibility = _ParamsVisibility.Type; 
-                            });
-                          } else {
-                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
-                          }
-                        },
-                        child: Wrap(
-                          direction: Axis.vertical,
-                          children: <Widget>[
-                            Text(
-                              state.getSourceString(prefix: false),
-                              style: LyreTextStyles.typeParams
-                            ),
-                            Text(
-                              state.getFilterString(),
-                              style: LyreTextStyles.timeParams.apply(
-                                color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
-                              ),
-                            )
-                          ],
-                        )
-                      )
-                    )
-                  ),
-                  Material(
-                    child: Row(
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.menu),
-                          tooltip: "Menu",
-                          onPressed: () {
-                            _optionsVisibility = _OptionsVisibility.Default;
-                            _optionsController = Scaffold.of(context).showBottomSheet(
-                              (context) => _optionsSheet(context)
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.create),
-                          tooltip: "Create a Submission",
-                          onPressed: () {
-                            setState(() {
-                              if (PostsProvider().isLoggedIn()) {
-                                Map<String, dynamic> args = Map();
-                                args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
-                                Navigator.of(context).pushNamed('submit', arguments: args);
-                              } else {
-                                final snackBar = SnackBar(
-                                  content: Text(
-                                      'Log in to post your submission'),
-                                );
-                                Scaffold.of(context).showSnackBar(snackBar);
-                              }
-                            });
-                          },
-                        ),
-                      ],
-                    )
-                  )
-                ],
-              )
-            ),
-          // * Type Params
-          BlocBuilder<PostsBloc, PostsState>(
-            builder: (context, state) {
-              return AnimatedContainer(
-                height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
-                duration: _appBarContentTransitionDuration,
-                curve: Curves.ease,
-                child: Material(
-                  child: Row(children: state.contentSource == ContentSource.Self ? _sortTypeParams(sortTypesuser) : _sortTypeParams(sortTypes),),
-                ),
-              );
-            },
-          ),
-          // * Time Params
+  Widget get _postsAppBar => Builder(
+    builder: (context) => Container(
+      width: MediaQuery.of(context).size.width,
+      height: 56.0,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          // * Reply container
           AnimatedContainer(
-            height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
+            height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
             duration: _appBarContentTransitionDuration,
             curve: Curves.ease,
             child: Material(
-              child: Row(children: _sortTimeParams(),),
+              child:  Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                child: _buildQuickTextInput(context)
+              ),
             ),
           ),
-        ],)
-      );
-    },
+          // * Default appBar contents
+          AnimatedContainer(
+            height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
+            duration: _appBarContentTransitionDuration,
+            curve: Curves.ease,
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Expanded(
+                  child: Material(
+                    child: InkWell(
+                      onLongPress: () {
+                        _prepareQuickTextInput(_QuickText.QuickAction);
+                      },
+                      onDoubleTap: () {
+                        if (homeSubreddit == FRONTPAGE_HOME_SUB) {
+                          BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
+                        } else {
+                          BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
+                        }
+                      },
+                      onTap: () {
+                        if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                          // ! Will be deprecated
+                          setState(() {
+                            _paramsVisibility = _ParamsVisibility.Type; 
+                          });
+                        } else {
+                          Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                        }
+                      },
+                      child: BlocBuilder<PostsBloc, PostsState>(
+                        builder: (context, state) {
+                          return Wrap(
+                            direction: Axis.vertical,
+                            children: <Widget>[
+                              BlocBuilder<LyreBloc, LyreState>(
+                                builder: (context, lyreState) {
+                                  return Text(
+                                    state.contentSource == ContentSource.Self ? lyreState.currentUserName : state.getSourceString(prefix: false),
+                                    style: LyreTextStyles.typeParams
+                                  );
+                                },
+                              ),
+                              Text(
+                                state.getFilterString(),
+                                style: LyreTextStyles.timeParams.apply(
+                                  color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
+                                ),
+                              )
+                            ],
+                          );
+                        },
+                      )
+                    )
+                  )
+                ),
+                Material(
+                  child: Row(
+                    children: <Widget>[
+                      IconButton(
+                        icon: const Icon(Icons.menu),
+                        tooltip: "Menu",
+                        onPressed: () {
+                          _optionsVisibility = _OptionsVisibility.Default;
+                          _optionsController = Scaffold.of(context).showBottomSheet(
+                            (context) => _optionsSheet(context)
+                          );
+                        },
+                      ),
+                      BlocBuilder<PostsBloc, PostsState>(
+                        builder: (context, state) {
+                          return IconButton(
+                            icon: const Icon(Icons.create),
+                            tooltip: "Create a Submission",
+                            onPressed: () {
+                              setState(() {
+                                if (PostsProvider().isLoggedIn()) {
+                                  Map<String, dynamic> args = Map();
+                                  args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
+                                  Navigator.of(context).pushNamed('submit', arguments: args);
+                                } else {
+                                  final snackBar = SnackBar(
+                                    content: Text(
+                                        'Log in to post your submission'),
+                                  );
+                                  Scaffold.of(context).showSnackBar(snackBar);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  )
+                )
+              ],
+            )
+          ),
+        // * Type Params
+        BlocBuilder<PostsBloc, PostsState>(
+          builder: (context, state) {
+            return AnimatedContainer(
+              height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
+              duration: _appBarContentTransitionDuration,
+              curve: Curves.ease,
+              child: Material(
+                child: Row(children: state.contentSource == ContentSource.Self ? _sortTypeParams(sortTypesuser) : _sortTypeParams(sortTypes),),
+              ),
+            );
+          },
+        ),
+        // * Time Params
+        AnimatedContainer(
+          height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
+          duration: _appBarContentTransitionDuration,
+          curve: Curves.ease,
+          child: Material(
+            child: Row(children: _sortTimeParams(),),
+          ),
+        ),
+      ],)
+    ),
   );
 
   List<Widget> _sortTimeParams() {
@@ -763,17 +783,116 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const ActionSheetTitle(title: "Options"),
-            ActionSheetInkwell(
-              title: const Text("Search"),
-              onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search)
+            ActionSheetTitle(
+              customTitle: BlocBuilder<LyreBloc, LyreState>(
+                builder: (context, state) => InkWell(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ClipOval(
+                          child: Container(
+                            width: 25,
+                            height: 25,
+                            color: Theme.of(context).primaryColor,
+                            child: state.currentUser != null
+                              ? Image(
+                                  image: AdvancedNetworkImage(
+                                    state.currentUser.data["icon_img"],
+                                    cacheRule: const CacheRule(maxAge: Duration(days: 31))
+                                  ),
+                                )
+                              : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
+                          )
+                        )
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: Text(state.currentUserName)
+                      ),
+                      state.showKarmaInMenuSheet && state.currentUser != null
+                        ? Column(
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                const Icon(Icons.comment, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                )
+                              ],),
+                              Row(children: <Widget>[
+                                const Icon(Icons.link, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                )
+                              ],)
+                            ],
+                          )
+                        : Container()
+                    ],
+                  )
+                ),
+              )
             ),
-            ActionSheetInkwell(
-              title: const Text("Open"),
-              onTap: () {
-                // TODO: Implement Open
-              }
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                InkWell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.5),
+                    child: Row(children: const [
+                      Icon(Icons.search),
+                      Text("Search"),
+                    ],),
+                  ),
+                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                InkWell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.5),
+                    child: Row(children: const [
+                      Icon(Icons.open_in_new),
+                      Text("Open"),
+                    ],),
+                  ),
+                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
+                  ? InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(3.5),
+                        child: Row(children: const [
+                          Icon(MdiIcons.pageLayoutSidebarRight),
+                          Text("Sidebar"),
+                        ],),
+                      ),
+                      onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
+                        builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
+                        initialChildSize: 0.45,
+                        minChildSize: 0.45,
+                        maxChildSize: 1.0,
+                        expand: false,
+                      ))
+                    )
+                  : null
+                  ].where((w) => notNull(w)).toList(),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(children: [
+                const Expanded(
+                  child: Text("Night Mode"),
+                ),
+                Switch(
+                  value: true,
+                  onChanged: (newValue) {},
+                )
+              ],)
+            )
           ],
         );
     }
@@ -786,6 +905,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Copy", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
               ? InkWell(
                   child: Container(
@@ -848,13 +968,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 });
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Share:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Share", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             //Only show preview sharing if a preview exists
             _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
               ? InkWell(
@@ -897,13 +1017,13 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 shareString(_selectedSubmission.shortlink.toString());
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       case _SubmissionSelectionVisibility.Filter:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(title: "Filter", actionCallBack: () => _switchSelectionOptions(_SubmissionSelectionVisibility.Default)),
             //Only show domain filtering if post is a link submission
             !_selectedSubmission.isSelf
               ? InkWell(
@@ -946,13 +1066,15 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 FilterManager().filter(_selectedSubmission.subreddit.displayName, FilterType.Subreddit);
               },
             ),
-            _submissionOptionsBackButton
           ].where((w) => notNull(w)).toList(),
         );
       default:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            ActionSheetTitle(
+              title: _selectedSubmission.title,
+            ),
             !_selectedSubmission.archived
               ? InkWell(
                   child: Container(
@@ -988,59 +1110,52 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Open a subreddit
             BlocBuilder<PostsBloc, PostsState>(
               builder: (context, state) {
-                return (state.target == ContentSource.Subreddit && state.target.toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
-                  ? InkWell(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
-                        alignment: Alignment.centerLeft,
-                        height: 50.0,
-                        child: Text('r/${_selectedSubmission.subreddit.displayName}'),
-                      ),
-                    )
+                return ((state.contentSource != ContentSource.Subreddit && state.contentSource != ContentSource.Frontpage) || state.target.toString().toLowerCase() != _selectedSubmission.subreddit.displayName.toLowerCase())
+                  ? ActionSheetInkwell(
+                    title: Text('r/${_selectedSubmission.subreddit.displayName}'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: _selectedSubmission.subreddit.displayName));
+                    },
+                  )
                   : Container();
                 },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Launch In Browser'),
-              ),
+            // * Open a profile
+            BlocBuilder<PostsBloc, PostsState>(
+              builder: (context, state) {
+                return (state.contentSource != ContentSource.Redditor || state.target.toString().toLowerCase() != _selectedSubmission.author.toLowerCase())
+                  ? ActionSheetInkwell(
+                    title: Text('u/${_selectedSubmission.author}'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Redditor, target: _selectedSubmission.author));
+                    },
+                  )
+                  : Container();
+                },
+            ),
+            ActionSheetInkwell(
+              title: const Text('Launch In Browser'),
               onTap: () {
                 launchURL(context, _selectedSubmission);
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Report'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Report'),
               onTap: () {
                 _prepareQuickTextInput(_QuickText.Report);
                 Navigator.of(context).pop();
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Copy'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Copy'),
               onTap: () {
                 _switchSelectionOptions(_SubmissionSelectionVisibility.Copy);
               },
             ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                alignment: Alignment.centerLeft,
-                height: 50.0,
-                child: Text('Filter'),
-              ),
+            ActionSheetInkwell(
+              title: const Text('Filter'),
               onTap: () {
                 _switchSelectionOptions(_SubmissionSelectionVisibility.Filter);
               },
@@ -1257,24 +1372,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }    
   }
   ///Returns the back button used in some options (Share, Copy) 
-  Widget get _submissionOptionsBackButton => InkWell(
-    child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0),
-      alignment: Alignment.centerLeft,
-      height: 50.0,
-      child: Row(children: <Widget>[
-        Icon(Icons.arrow_back),
-        Padding(
-          padding: EdgeInsets.only(left: 10.0),
-          child: Text('Back')
-        )
-      ],),
-    ),
-    onTap: () {
-      _switchSelectionOptions(_SubmissionSelectionVisibility.Default);
-    },
-  );
-  ///Returns the back button used in some options (Share, Copy) 
   Widget get _optionsBackButton => InkWell(
     child: Container(
       padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -1369,56 +1466,14 @@ class _submissionList extends StatelessWidget {
             floating: false,
             pinned: false,
             backgroundColor: Theme.of(context).canvasColor,
-            actions: <Widget>[
-              BlocBuilder<LyreBloc, LyreState>(
-                builder: (BuildContext context, lyreState) {
-                  if (postsState.contentSource == ContentSource.Frontpage) return Container();
-                  return Container(
-                    color: LyreColors.subscribeColor,
-                    margin: EdgeInsets.all(10.0),
-                    child: ToggleButtons(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: postsState.contentSource == ContentSource.Subreddit
-                            ? Text(
-                              lyreState.isSubscribed(postsState.target) ? "Unsubscribe" : "Subscribe",
-                            )
-                            : Text(
-                              //TODO: Add friend button
-                              true ? "Friend" : "Unfriend",
-                            )
-                        )
-                      ],
-                      fillColor: LyreColors.unsubscribeColor,
-                      selectedColor: Colors.white70,
-                      renderBorder: false,
-                      isSelected: [
-                        postsState.contentSource == ContentSource.Subreddit ? lyreState.isSubscribed(postsState.target) : true
-                      ],
-                      onPressed: (i) {
-                        if (postsState.contentSource == ContentSource.Subreddit) {
-                          if (lyreState.isSubscribed(postsState.target)) {
-                            BlocProvider.of<LyreBloc>(context).add(UnSubscribe(subreddit: postsState.target));
-                          } else {
-                            BlocProvider.of<LyreBloc>(context).add(Subscribe(subreddit: postsState.target));
-                          }
-                        } else {
-                          
-                        }
-                      },
-                    ),
-                  );
-                },
-              ),
-            ],
+            actions: const [],
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: false,
-              titlePadding: EdgeInsets.only(
+              titlePadding: const EdgeInsets.only(
                 left: 10.0,
                 bottom: 5.0
-                ),
+              ),
               title: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
                 child: Text(

@@ -7,11 +7,15 @@ const ASSET_FRONTPAGE_BANNER_DAY = "assets/banner_frontpage.png";
 const ASSET_FRONTPAGE_BANNER_NIGHT = "assets/banner_frontpage.png";
 
 // * Settings
-const BOX_SETTINGS = "settings";
+const BOX_SETTINGS_PREFIX = "settings_";
 const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
 
 // * Themes
 const CURRENT_THEME = "currentTheme";
+
+// * UI And Layout
+const MENUSHEET_SHOW_KARMA = "menuSheetShowKarma";
+const MENUSHEET_SHOW_KARMA_DEFAULT = false;
 
 // * Subreddits
 const HOME = "preferencesHome";

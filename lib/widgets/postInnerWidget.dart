@@ -77,7 +77,7 @@ class postInnerWidget extends StatelessWidget{
       case PostView.Compact:
         return compactWidget(context);
       default:
-        return defaultColumn(submission, previewSource, linkType);
+        return defaultColumn(submission, previewSource, linkType, onOptionsClick);
     }
   }
 
@@ -88,7 +88,7 @@ class postInnerWidget extends StatelessWidget{
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            child: defaultColumn(submission, previewSource, linkType),
+            child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
             width: MediaQuery.of(context).size.width * 0.9,
           ),
           getSquaredImage(context)
@@ -112,27 +112,27 @@ class postInnerWidget extends StatelessWidget{
       alignment: Alignment.center,
       children: <Widget>[
         _getExpandedImage(context),
-        new Positioned(
+        Positioned(
           bottom: 0.0,
           child: 
             (((!(showNsfw ?? false) && submission.over18) ||    //Blur NSFW
             (!(showSpoiler ?? false) && submission.spoiler)) && previewSource == PreviewSource.PostsList)   //Blur Spoiler
-              ? new BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: blurLevel,
-                  sigmaY: blurLevel,
-                ),
-                child: new Container(
+              ? BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: blurLevel,
+                    sigmaY: blurLevel,
+                  ),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.black,
+                    child: getDefaultSlideColumn(context),
+                  ),
+                )
+              : Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.black,
+                  color: Theme.of(context).primaryColor,
                   child: getDefaultSlideColumn(context),
                 ),
-              )
-              : new Container(
-                width: MediaQuery.of(context).size.width,
-                color: Theme.of(context).primaryColor,
-                child: getDefaultSlideColumn(context),
-              ),
         ),
         ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))
           ? getCenteredIndicator(linkType, showCircle)
@@ -226,24 +226,26 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getCenteredIndicator(LinkType type, bool showCircle){
-    return showCircle
-      ? Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white,
-            width: 2.0,
-          ),
-        ),
-        child: getIndicator(type),
-      )
-      : Container(
+    return IgnorePointer(
+      child: showCircle
+        ? Container(
           width: 50,
           height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: 2.0,
+            ),
+          ),
           child: getIndicator(type),
-      );
+        )
+        : Container(
+            width: 50,
+            height: 50,
+            child: getIndicator(type),
+        )
+    );
   }
 
   Widget getIndicator(LinkType type){
@@ -252,7 +254,6 @@ class postInnerWidget extends StatelessWidget{
       content = Column(children: <Widget>[
         const Icon(Icons.warning),
         Text(submission.over18 ? "NSFW" : "SPOILER"),
-        const Divider(indent: 250,endIndent: 250,)
       ],);
     } else if (videoLinkTypes.contains(type)){
       content = const Icon(Icons.play_arrow, color: Colors.white,);
@@ -261,7 +262,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getDefaultSlideColumn(BuildContext context){
-    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType), submission: submission,);
+    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
   }
 
 
@@ -363,11 +364,12 @@ class __SlideColumnState extends State<_SlideColumn> {
 }
 
 class defaultColumn extends StatelessWidget {
-  defaultColumn(this.submission, this.previewSource, this.linkType);
+  defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
 
   final PreviewSource previewSource;
   final LinkType linkType;
   final Submission submission;
+  final VoidCallback onLongPress;
 
   void showComments(BuildContext context) {
     Navigator.of(context).pushNamed('comments', arguments: submission);
@@ -584,6 +586,7 @@ class defaultColumn extends StatelessWidget {
             showComments(context);
           }
         },
+        onLongPress: onLongPress,
       )
     );
   }

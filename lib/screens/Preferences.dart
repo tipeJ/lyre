@@ -36,7 +36,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       onWillPop: _willPop,
       child: Scaffold(
         body: FutureBuilder(
-          future: Hive.openBox('settings'),
+          future: Hive.openBox(BOX_SETTINGS_PREFIX + BlocProvider.of<LyreBloc>(context).state.currentUserName),
           builder: (context, snapshot){
             if (snapshot.hasData) {
               this.box = snapshot.data;
@@ -69,37 +69,37 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                           initiallyExpanded: true,
                           title: 'General',
                           showDivider: true,
-                          children: getGeneralSettings(context),
+                          children: _getGeneralSettings(context),
                           ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Submissions',
                           showDivider: true,
-                          children: getSubmissionSettings(context),
+                          children: _getSubmissionSettings(context),
                           ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Comments',
                           showDivider: true,
-                          children: getCommentsSettings(context),
+                          children: _getCommentsSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Filters',
                           showDivider: true,
-                          children: getFiltersSettings(context),
+                          children: _getFiltersSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Media',
                           showDivider: true,
-                          children: getMediaSettings(context),
+                          children: _getMediaSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: false,
                           title: 'Themes',
                           showDivider: true,
-                          children: getThemeSettings(context),
+                          children: _getThemeSettings(context),
                         ),
                       ]),
                     )
@@ -114,22 +114,38 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       )
     );
   }
-  List<Widget> getGeneralSettings(BuildContext context) {
+  List<Widget> _getGeneralSettings(BuildContext context) {
     return [
       _settingsWidget(
         children: [
           _homeOptionsColumn(box: box,)
         ],
         isAdvanced: false
+      ),
+      _settingsWidget(
+        children: [
+          _SettingsTitleRow(
+            title: "Show Karma in Quick Menu",
+            description: "Shows Comment and Link Karma in Submission List Quick menu next to the user name",
+            leading: Checkbox(
+              value: box.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+              onChanged: (value){
+                setState(() {
+                  box.put(MENUSHEET_SHOW_KARMA, value);  
+                });
+              },)
+          ),
+        ],
+        isAdvanced: true
       )
     ];
   }
-  List<Widget> getSubmissionSettings(BuildContext context){
+  List<Widget> _getSubmissionSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Sorting Type",
@@ -152,7 +168,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Sorting Time",
@@ -184,7 +200,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               },)
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Post View Mode",
@@ -250,13 +266,13 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       
     ];
   }
-  List<Widget> getCommentsSettings(BuildContext context){
+  List<Widget> _getCommentsSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
           WatchBoxBuilder(
             watchKeys: [COMMENTS_DEFAULT_SORT],
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Default Comments Sort",
@@ -277,7 +293,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
             },
           ),
           WatchBoxBuilder(
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: 'Precollapse Threads', 
@@ -298,7 +314,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     ];
   }
   double blurLevel = 20.0;
-  List<Widget> getFiltersSettings(BuildContext context){
+  List<Widget> _getFiltersSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -333,7 +349,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           StatefulBuilder(
             builder: (context, setState){
               return WatchBoxBuilder(
-                box: Hive.box('settings'),
+                box: box,
                 builder: (context, box){
                   return Slider(
                     min: 5.0,
@@ -370,7 +386,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       )
     ];
   }
-  List<Widget> getMediaSettings(BuildContext context){
+  List<Widget> _getMediaSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -435,7 +451,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         children: [
           WatchBoxBuilder(
             watchKeys: [IMGUR_THUMBNAIL_QUALITY],
-            box: Hive.box('settings'),
+            box: box,
             builder: (context, box){
               return _SettingsTitleRow(
                 title: "Imgur Thumbnail Quality",
@@ -460,7 +476,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       ),
     ];
   }
-  List<Widget> getThemeSettings(BuildContext context){
+  List<Widget> _getThemeSettings(BuildContext context){
     List<Widget> list = [];
     LyreTheme.values.forEach((lyreAppTheme){
       list.add(Container(
@@ -738,7 +754,7 @@ class __homeOptionsColumnState extends State<_homeOptionsColumn> with SingleTick
             sizeFactor: _customHomeExpansionController,
             axis: Axis.vertical,
             child: WatchBoxBuilder(
-              box: Hive.box('settings'),
+              box: widget.box,
               builder: (context, box){
                 return Padding(
                   padding: EdgeInsets.all(5.0),

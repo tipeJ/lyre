@@ -21,9 +21,6 @@ class PostsState extends Equatable {
   final TypeFilter typeFilter;
   final String timeFilter;
 
-  //LOGGED IN USER INFORMATION
-  final RedditUser currentUser;
-
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   final WikiPage sideBar;
   final Subreddit subreddit;
@@ -37,7 +34,6 @@ class PostsState extends Equatable {
     @required this.typeFilter,
     @required this.timeFilter,
     this.errorMessage,
-    this.currentUser,
     this.sideBar,
     this.subreddit,
   });
@@ -51,7 +47,7 @@ class PostsState extends Equatable {
       case ContentSource.Redditor:
         return '${prefix ? "u/" : ""}$target';
       case ContentSource.Self:
-        return currentUser.username;
+        return target.toString().split('.').last;
       default:
         return 'frontpage';
     }
@@ -60,7 +56,7 @@ class PostsState extends Equatable {
     String filterString = "";
 
     if(contentSource == ContentSource.Self){
-      filterString = target.toString().split('.').first;
+      filterString = target.toString().split('.').last;
       filterString += " ● ";
     }
 

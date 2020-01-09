@@ -53,14 +53,14 @@ class FilterManager {
     }
   }
 
-  ///Checks whether given [Submission] should be filtered
+  ///Checks whether a given [Submission] should be filtered
   bool isFiltered({ContentSource source, Submission submission, String target}) {
-    bool equalsTarget;
-    if (source == ContentSource.Subreddit) {
-      equalsTarget = submission.subreddit.displayName.toLowerCase() == target;
-    } else {
-      equalsTarget = submission.author.toLowerCase() == target;
-    }
+    bool equalsTarget = false;
+
+    //TODO: Figure this out.
+    equalsTarget = submission.subreddit.displayName.toLowerCase() == target.toLowerCase();
+    equalsTarget = submission.author.toLowerCase() == target.toLowerCase();
+    equalsTarget = submission.url.authority == target.toLowerCase();
 
     //Return false if target is the same as the possibly filtered content (Filters do not go into effect if, for example, user visits a filtered subreddit)
     if (equalsTarget) return false;

@@ -39,6 +39,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
+        showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+
         viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
         showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
         defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
@@ -65,14 +67,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         legacySorting: settings.get(LEGACY_SORTING_OPTIONS, defaultValue: LEGACY_SORTING_OPTIONS_DEFAULT)
       );
     } else if (event is UserChanged) {
-      final currentUser = await PostsProvider().logIn(event.userName);
-      final usernames = await readUsernames();
-      final subscriptions = await _getUserSubscriptions(currentUser.displayName);
-      yield(_changeState(
-        currentUser: currentUser,
-        userNames: usernames,
-        subs: subscriptions
-      ));
+      final newState = await newLyreState(event.userName);
+      yield newState;
     } else if (event is UnSubscribe) {
       final index = state.subscriptions.indexOf(StringUtils.capitalize(event.subreddit));
       //IF element is found, delete the entry from the subscription lists
@@ -84,7 +80,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         subList.removeAt(index);
         yield _changeState(subs: subList);
 
-        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
+        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
         //Delete the subreddit from the subreddit box.
         final subscriptionsBoxValue = subscriptionsBox.values.toList();
         for (var i = 0; i < subscriptionsBoxValue.length; i++) {
@@ -99,7 +95,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       final subList = List<String>();
       subList.addAll(state.subscriptions);
       if (!subList.contains(subreddit)) {
-        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + (state.currentUser != null ? state.currentUser.displayName.toLowerCase() : ''));
+        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
         //Delete the subreddit from the subreddit box.
         subList.add(subreddit);
         subscriptionsBox.add(subreddit);
@@ -120,6 +116,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       currentTheme: state.currentTheme,
       homeSubreddit: state.homeSubreddit,
       home: state.home,
+
+      showKarmaInMenuSheet: state.showKarmaInMenuSheet,
 
       viewMode: state.viewMode,
       showPreviewCircle: state.showPreviewCircle,
@@ -148,6 +146,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
     );
   }
 }
+
+
 
 Future<List<String>> _getUserSubscriptions(String displayName) async {
   final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + displayName.toLowerCase());
@@ -180,10 +180,15 @@ LyreTheme _getLyreTheme(String t) {
   });
   return _cTheme;
 }
-/// The first LyreState that the application receives when it starts for the first time,
-/// aka the splash-screen FutureBuilder
-Future<LyreState> getFirstLyreState() async { 
-    final settings = await Hive.openBox('settings');
+
+Future<LyreState> newLyreState([String displayName]) async {
+    final userNames = (await getAllUsers()).map<String>((redditUser) => redditUser.username.isEmpty ? "Guest" : redditUser.username).toList();
+    final currentUser = displayName == null ? await PostsProvider().logInToLatest() : await PostsProvider().logIn(displayName);
+
+    //Empty username for guest
+    final userName = currentUser != null ? currentUser.displayName.toLowerCase() : '';
+
+    final settings = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
     final initialTheme = settings.get(CURRENT_THEME, defaultValue: "");
 
     final home = settings.get(HOME, defaultValue: HOME_DEFAULT);
@@ -204,12 +209,7 @@ Future<LyreState> getFirstLyreState() async {
 
     final _cTheme = _getLyreTheme(initialTheme);
 
-    final userNames = (await getAllUsers()).map<String>((redditUser) => redditUser.username.isEmpty ? "Guest" : redditUser.username).toList();
-    final currentUser = await PostsProvider().logInToLatest();
-    
-    //Empty username for guest
-    final subscriptions = await _getUserSubscriptions(currentUser != null ? currentUser.displayName : '');
-
+    final subscriptions = await _getUserSubscriptions(userName);
 
     final state = LyreState(
       themeData: lyreThemeData[_cTheme],
@@ -223,6 +223,8 @@ Future<LyreState> getFirstLyreState() async {
       homeSubreddit: globals.homeSubreddit,
       home: home,
 
+      showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+      
       viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
       showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
       defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
@@ -254,4 +256,4 @@ Future<LyreState> getFirstLyreState() async {
     //settings.close();
 
     return state;
-  }
+}

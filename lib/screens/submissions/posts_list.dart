@@ -275,6 +275,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                             sliver: SliverToBoxAdapter(
                               child: CustomExpansionTile(
                                 title: currentUser.isNotEmpty ? currentUser : "Guest",
+                                trailing: state.readOnly
+                                  ? Container()
+                                  : OutlineButton.icon(
+                                      textColor: LyreColors.unsubscribeColor,
+                                      highlightedBorderColor: LyreColors.unsubscribeColor.withOpacity(0.6),
+                                      icon: const Icon(MdiIcons.logout),
+                                      label: const Text("Log Out"),
+                                      onPressed: () {
+                                        
+                                      },
+                                    ),
                                 showDivider: true,
                                 initiallyExpanded: true,
                                 children: _getRegisteredUsernamesList(state.userNames, currentUser),

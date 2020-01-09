@@ -11,6 +11,7 @@ import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
 import 'package:lyre/Bloc/bloc.dart';
+import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SearchCommunitiesView extends StatefulWidget {
@@ -341,21 +342,8 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Container(
-            constraints: BoxConstraints.tightFor(height: 30.0),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text('Search Filters')
-                ),
-                IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: (){
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            )
+          ActionSheetTitle(
+            title: "Search Filters",
           ),
           Container(
             alignment: Alignment.center,
@@ -445,24 +433,25 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
           ),
           _parametersWidget(
             'Sort', 
-            DropdownButton<PushShiftSort>(
-              value: _sort,
-              onChanged: (newSort) {
-                _sheetController.setState(() {
-                  _sort = newSort;
-                });
-              },
-              items: PushShiftSort.values.map((i) => DropdownMenuItem(
-                  value: i,
-                  child: Row(children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(right: 3.5),
-                      child: Icon(i == PushShiftSort.Asending ? MdiIcons.sortAscending : MdiIcons.sortDescending)
-                    ),
-                    Text(i.toString().split('.').last)
-                  ],)
-                ),
-              ).toList())
+            _sort == PushShiftSort.Asending
+              ? OutlineButton.icon(
+                  icon: Icon(MdiIcons.sortAscending),
+                  label: const Text("Ascending"),
+                  onPressed: () {
+                    _sheetController.setState(() {
+                      _sort = PushShiftSort.Descending;
+                    });
+                  },
+                )
+              : OutlineButton.icon(
+                  icon: Icon(MdiIcons.sortDescending),
+                  label: const Text("Descending"),
+                  onPressed: () {
+                    _sheetController.setState(() {
+                      _sort = PushShiftSort.Asending;
+                    });
+                  },
+                )
           ),
           _parametersWidget(
             'Sort Type',

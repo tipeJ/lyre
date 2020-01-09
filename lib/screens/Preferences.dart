@@ -69,37 +69,37 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                           initiallyExpanded: true,
                           title: 'General',
                           showDivider: true,
-                          children: getGeneralSettings(context),
+                          children: _getGeneralSettings(context),
                           ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Submissions',
                           showDivider: true,
-                          children: getSubmissionSettings(context),
+                          children: _getSubmissionSettings(context),
                           ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Comments',
                           showDivider: true,
-                          children: getCommentsSettings(context),
+                          children: _getCommentsSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Filters',
                           showDivider: true,
-                          children: getFiltersSettings(context),
+                          children: _getFiltersSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: true,
                           title: 'Media',
                           showDivider: true,
-                          children: getMediaSettings(context),
+                          children: _getMediaSettings(context),
                         ),
                         CustomExpansionTile(
                           initiallyExpanded: false,
                           title: 'Themes',
                           showDivider: true,
-                          children: getThemeSettings(context),
+                          children: _getThemeSettings(context),
                         ),
                       ]),
                     )
@@ -114,17 +114,33 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       )
     );
   }
-  List<Widget> getGeneralSettings(BuildContext context) {
+  List<Widget> _getGeneralSettings(BuildContext context) {
     return [
       _settingsWidget(
         children: [
           _homeOptionsColumn(box: box,)
         ],
         isAdvanced: false
+      ),
+      _settingsWidget(
+        children: [
+          _SettingsTitleRow(
+            title: "Show Karma in Quick Menu",
+            description: "Shows Comment and Link Karma in Submission List Quick menu next to the user name",
+            leading: Checkbox(
+              value: box.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+              onChanged: (value){
+                setState(() {
+                  box.put(MENUSHEET_SHOW_KARMA, value);  
+                });
+              },)
+          ),
+        ],
+        isAdvanced: true
       )
     ];
   }
-  List<Widget> getSubmissionSettings(BuildContext context){
+  List<Widget> _getSubmissionSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -250,7 +266,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       
     ];
   }
-  List<Widget> getCommentsSettings(BuildContext context){
+  List<Widget> _getCommentsSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -298,7 +314,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
     ];
   }
   double blurLevel = 20.0;
-  List<Widget> getFiltersSettings(BuildContext context){
+  List<Widget> _getFiltersSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -370,7 +386,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       )
     ];
   }
-  List<Widget> getMediaSettings(BuildContext context){
+  List<Widget> _getMediaSettings(BuildContext context){
     return [
       _settingsWidget(
         children: [
@@ -460,7 +476,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
       ),
     ];
   }
-  List<Widget> getThemeSettings(BuildContext context){
+  List<Widget> _getThemeSettings(BuildContext context){
     List<Widget> list = [];
     LyreTheme.values.forEach((lyreAppTheme){
       list.add(Container(

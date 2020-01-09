@@ -39,6 +39,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
+        showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+
         viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
         showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
         defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
@@ -114,6 +116,8 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       currentTheme: state.currentTheme,
       homeSubreddit: state.homeSubreddit,
       home: state.home,
+
+      showKarmaInMenuSheet: state.showKarmaInMenuSheet,
 
       viewMode: state.viewMode,
       showPreviewCircle: state.showPreviewCircle,
@@ -219,6 +223,8 @@ Future<LyreState> newLyreState([String displayName]) async {
       homeSubreddit: globals.homeSubreddit,
       home: home,
 
+      showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+      
       viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
       showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
       defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),

@@ -13,6 +13,10 @@ const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
 // * Themes
 const CURRENT_THEME = "currentTheme";
 
+// * UI And Layout
+const MENUSHEET_SHOW_KARMA = "menuSheetShowKarma";
+const MENUSHEET_SHOW_KARMA_DEFAULT = false;
+
 // * Subreddits
 const HOME = "preferencesHome";
 const HOME_DEFAULT = "Frontpage";

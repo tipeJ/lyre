@@ -27,6 +27,8 @@ class LyreState extends Equatable {
   final String home;
   final String homeSubreddit;
 
+  final bool showKarmaInMenuSheet;
+
   final PostView viewMode;
   final bool showPreviewCircle;
   final String defaultSortType;
@@ -66,6 +68,8 @@ class LyreState extends Equatable {
       @required this.home,
       @required this.homeSubreddit,
 
+      @required this.showKarmaInMenuSheet,
+
       @required this.viewMode,
       @required this.showPreviewCircle,
       @required this.defaultSortType,
@@ -101,6 +105,7 @@ class LyreState extends Equatable {
       subscriptions,
       
       currentTheme,
-      legacySorting
+      legacySorting,
+      showKarmaInMenuSheet
     ];
 }

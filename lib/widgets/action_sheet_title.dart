@@ -15,13 +15,15 @@ class ActionSheetTitle extends StatelessWidget {
       padding: const EdgeInsets.only(top: 5.0, left: 5.0, right: 5.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          customTitle ?? Text(
-            title, 
-            maxLines: 1,
-            softWrap: true,
-            style: LyreTextStyles.bottomSheetTitle,
+          Expanded(
+            child: customTitle ?? Text(
+              title, 
+              maxLines: 1,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              style: LyreTextStyles.bottomSheetTitle,
+            )
           ),
           showAction
             ? InkWell(

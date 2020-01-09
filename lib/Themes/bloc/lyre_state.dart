@@ -105,7 +105,34 @@ class LyreState extends Equatable {
       subscriptions,
       
       currentTheme,
+      home,
+      homeSubreddit,
+
+      showKarmaInMenuSheet,
+
+      viewMode,
+      showPreviewCircle,
+      defaultSortType,
+      defaultSortTime,
+      resetWhenRefreshingSubmissions,
+      autoLoadSubmissions,
+
+      defaultCommentsSort,
+      precollapseComments,
+
+      enableImageRotation,
+      enableVideoRotation,
+      blurLevel,
+      fullSizePreviews,
+      loopVideos,
+      autoMuteVideos,
+      imgurThumbnailQuality,
+      albumColumnPortrait,
+      albumColumnLandscape,
+
+      showNSFWPreviews,
+      showSpoilerPreviews,
+
       legacySorting,
-      showKarmaInMenuSheet
     ];
 }

@@ -9,12 +9,12 @@ abstract class LyreEvent extends Equatable {
 }
 
 class ThemeChanged extends LyreEvent{
-  final String themeName;
+  final LyreTheme theme;
 
   ThemeChanged({
-    @required this.themeName,
+    @required this.theme,
   });
-  List<dynamic> get props => [themeName];
+  List<dynamic> get props => [theme];
 }
 class SettingsChanged extends LyreEvent{
   final Box settings;

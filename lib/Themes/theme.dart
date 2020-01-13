@@ -18,6 +18,7 @@ class LyreTheme {
     Color canvasColor,
     Color contentBackgroundColor,
     this.borderRadius,
+    this.contentElevation
   }) : 
     this.primaryColor = primaryColor.toHex(),
     this.accentColor = accentColor.toHex(),
@@ -50,23 +51,24 @@ class LyreTheme {
 
   @HiveField(9)
   final int borderRadius;
+  @HiveField(10)
+  final double contentElevation;
 
   ThemeData get toThemeData => ThemeData(
+    // brightness: Brightness.light,
     primaryColor: HexColor.fromHex(primaryColor),
-    cardColor: HexColor.fromHex(primaryColor),
+    cardColor: HexColor.fromHex(contentBackgroundColor),
     accentColor: HexColor.fromHex(accentColor),
     highlightColor: HexColor.fromHex(highLightColor),
-    textTheme: TextTheme(
-      body1: TextStyle(color: HexColor.fromHex(primaryTextColor)),
-      body2: TextStyle(color: HexColor.fromHex(secondaryTextColor)),
-      display1: TextStyle(color: HexColor.fromHex(pinnedTextColor)),
-      display2: TextStyle(color: HexColor.fromHex(pinnedTextColor)),
-      display3: TextStyle(color: HexColor.fromHex(pinnedTextColor)),
-      display4: TextStyle(color: HexColor.fromHex(pinnedTextColor)),
+    textTheme: Typography.whiteMountainView..apply(
+      bodyColor: HexColor.fromHex(primaryTextColor),
+      displayColor: HexColor.fromHex(secondaryTextColor),
     ),
     buttonColor: HexColor.fromHex(accentColor),
     canvasColor: HexColor.fromHex(canvasColor),
     backgroundColor: HexColor.fromHex(contentBackgroundColor),
+    iconTheme: IconThemeData(color: HexColor.fromHex(primaryTextColor)),
+    cardTheme: CardTheme(elevation: contentElevation, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()))),
     buttonTheme: ButtonThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()))),
     bottomSheetTheme: BottomSheetThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble())))
   );

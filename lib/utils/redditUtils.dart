@@ -10,7 +10,7 @@ Color getScoreColor(VoteableMixin m, BuildContext context){
         return Colors.amberAccent;
 
       default:
-        return Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87;
+        return Theme.of(context).primaryTextTheme.display1.color;
     }
 }
 CommentSortType parseCommentSortType(String sortString){

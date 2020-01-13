@@ -651,10 +651,7 @@ class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSh
               topLeft: Radius.circular(_lerp(15.0, 0.0)),
               topRight: Radius.circular(_lerp(15.0, 0.0)),
             ),
-            child: Container(
-              color: Theme.of(context).canvasColor,
-              child: widget.builder(context, _scrollController)
-            )
+            child: widget.builder(context, _scrollController)
           ),
           decoration: BoxDecoration(
                 boxShadow: [

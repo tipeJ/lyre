@@ -61,32 +61,35 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _willPop,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizeTransition(
-            sizeFactor: _typeExpansionController,
-            child: Column(
-              children: <Widget>[
-            const ActionSheetTitle(title: "Sort"),
-              ]..addAll(_sortTypeParams(widget.types)),
+      child: Container(
+        color: Theme.of(context).cardColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizeTransition(
+              sizeFactor: _typeExpansionController,
+              child: Column(
+                children: <Widget>[
+              const ActionSheetTitle(title: "Sort"),
+                ]..addAll(_sortTypeParams(widget.types)),
+              ),
             ),
+            //const Divider(),
+          ]..add(
+            SizeTransition(
+              sizeFactor: _timeExpansionController,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ActionSheetTitle(
+                    title: _typeFilter.isNotEmpty ? StringUtils.capitalize(_typeFilter) : "",
+                    actionCallBack: _reverse,
+                  )
+                ]..addAll(_sortTimeParams()),
+              ),
+            )
           ),
-          //const Divider(),
-        ]..add(
-          SizeTransition(
-            sizeFactor: _timeExpansionController,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ActionSheetTitle(
-                  title: _typeFilter.isNotEmpty ? StringUtils.capitalize(_typeFilter) : "",
-                  actionCallBack: _reverse,
-                )
-              ]..addAll(_sortTimeParams()),
-            ),
-          )
-        ),
+        )
       )
     );
   }

@@ -13,6 +13,7 @@ class SubredditsList extends State<ExpandingSheetContent> {
   @override
   Widget build(BuildContext context) {
     return Material(
+      color: Theme.of(context).cardColor,
       child: CustomScrollView(
         controller: widget.innerController,
         slivers: <Widget>[

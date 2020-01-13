@@ -64,14 +64,14 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
               alignment: Alignment.bottomCenter,
               //Expandable appbar
               child: prefix0.LyreDraggableScrollableSheet(
-              expand: true,
-              visible: visibilityListener,
-              maxChildSize: MediaQuery.of(context).size.height,
-              minChildSize: kBottomNavigationBarHeight,
-              initialChildSize: kBottomNavigationBarHeight,
-              builder: (context, scontrol) {
-                return ExpandingSheetContent(state: expandingSheetContent, innerController: scontrol, appBarContent: appBarContent);
-              },
+                expand: true,
+                visible: visibilityListener,
+                maxChildSize: MediaQuery.of(context).size.height,
+                minChildSize: kBottomNavigationBarHeight,
+                initialChildSize: kBottomNavigationBarHeight,
+                builder: (context, scontrol) {
+                  return ExpandingSheetContent(state: expandingSheetContent, innerController: scontrol, appBarContent: appBarContent);
+                },
             )
           )
         ],
@@ -115,7 +115,7 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
             ),
             child: Container(
               width: MediaQuery.of(context).size.width,
-              color: Theme.of(context).canvasColor,
+              color: Theme.of(context).primaryColor,
               height: kBottomNavigationBarHeight,
               child: appBarContent,
             ),

@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
-import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/filter_manager.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
@@ -264,7 +263,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               children: <Widget>[
                 BlocBuilder<LyreBloc, LyreState>(
                   builder: (context, LyreState state) {
-                    final currentUser = state.readOnly ? "" : state.currentUser.displayName;
+                    final currentUser = state.readOnly ? "" : state.currentUserName;
                     return Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomScrollView(
@@ -391,7 +390,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       color: Theme.of(context).canvasColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black26,
+                          color: Colors.black12,
                           blurRadius: 25.0,
                           spreadRadius: 20.0,
                           offset: Offset(0.0, -5)
@@ -437,7 +436,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       _selectedUserContent = notification.submission;
                       _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
                       _submissionOptionsController = Scaffold.of(context).showBottomSheet(
-                        (context) => _submissionOptionsSheet(context)
+                        (context) => Container(
+                          color: Theme.of(context).cardColor,
+                          child: _submissionOptionsSheet(context)
+                        )
                       );
                     } else if (notification is ScrollNotification) {
                       if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
@@ -466,148 +468,156 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   Widget get _postsAppBar => Builder(
     builder: (context) => Container(
-      width: MediaQuery.of(context).size.width,
-      height: 56.0,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          // * Reply container
-          AnimatedContainer(
-            height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
-            duration: _appBarContentTransitionDuration,
-            curve: Curves.ease,
-            child: Material(
-              child:  Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                child: _buildQuickTextInput(context)
-              ),
-            ),
-          ),
-          // * Default appBar contents
-          AnimatedContainer(
-            height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
-            duration: _appBarContentTransitionDuration,
-            curve: Curves.ease,
-            padding: EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Expanded(
-                  child: Material(
-                    child: InkWell(
-                      onLongPress: () {
-                        _prepareQuickTextInput(_QuickText.QuickAction);
-                      },
-                      onDoubleTap: () {
-                        if (homeSubreddit == FRONTPAGE_HOME_SUB) {
-                          BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
-                        } else {
-                          BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
-                        }
-                      },
-                      onTap: () {
-                        if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
-                          // ! Will be deprecated
-                          setState(() {
-                            _paramsVisibility = _ParamsVisibility.Type; 
-                          });
-                        } else {
-                          Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
-                        }
-                      },
-                      child: BlocBuilder<PostsBloc, PostsState>(
-                        builder: (context, state) {
-                          return Wrap(
-                            direction: Axis.vertical,
-                            children: <Widget>[
-                              BlocBuilder<LyreBloc, LyreState>(
-                                builder: (context, lyreState) {
-                                  return Text(
-                                    state.contentSource == ContentSource.Self ? lyreState.currentUserName : state.getSourceString(prefix: false),
-                                    style: LyreTextStyles.typeParams
-                                  );
-                                },
-                              ),
-                              Text(
-                                state.getFilterString(),
-                                style: LyreTextStyles.timeParams.apply(
-                                  color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
-                                ),
-                              )
-                            ],
-                          );
-                        },
-                      )
-                    )
-                  )
-                ),
-                Material(
-                  child: Row(
-                    children: <Widget>[
-                      IconButton(
-                        icon: const Icon(Icons.menu),
-                        tooltip: "Menu",
-                        onPressed: () {
-                          _optionsVisibility = _OptionsVisibility.Default;
-                          _optionsController = Scaffold.of(context).showBottomSheet(
-                            (context) => _optionsSheet(context)
-                          );
-                        },
-                      ),
-                      BlocBuilder<PostsBloc, PostsState>(
-                        builder: (context, state) {
-                          return IconButton(
-                            icon: const Icon(Icons.create),
-                            tooltip: "Create a Submission",
-                            onPressed: () {
-                              setState(() {
-                                if (PostsProvider().isLoggedIn()) {
-                                  Map<String, dynamic> args = Map();
-                                  args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
-                                  Navigator.of(context).pushNamed('submit', arguments: args);
-                                } else {
-                                  final snackBar = SnackBar(
-                                    content: Text(
-                                        'Log in to post your submission'),
-                                  );
-                                  Scaffold.of(context).showSnackBar(snackBar);
-                                }
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  )
-                )
-              ],
-            )
-          ),
-        // * Type Params
-        BlocBuilder<PostsBloc, PostsState>(
-          builder: (context, state) {
-            return AnimatedContainer(
-              height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: 56.0,
+        color: Theme.of(context).primaryColor,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            // * Reply container
+            AnimatedContainer(
+              height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
               duration: _appBarContentTransitionDuration,
               curve: Curves.ease,
               child: Material(
-                child: Row(children: state.contentSource == ContentSource.Self ? _sortTypeParams(sortTypesuser) : _sortTypeParams(sortTypes),),
+                color: Theme.of(context).primaryColor,
+                child:  Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: _buildQuickTextInput(context)
+                ),
               ),
-            );
-          },
-        ),
-        // * Time Params
-        AnimatedContainer(
-          height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
-          duration: _appBarContentTransitionDuration,
-          curve: Curves.ease,
-          child: Material(
-            child: Row(children: _sortTimeParams(),),
+            ),
+            // * Default appBar contents
+            AnimatedContainer(
+              height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
+              duration: _appBarContentTransitionDuration,
+              curve: Curves.ease,
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Expanded(
+                    child: Material(
+                      color: Theme.of(context).primaryColor,
+                      child: InkWell(
+                        onLongPress: () {
+                          _prepareQuickTextInput(_QuickText.QuickAction);
+                        },
+                        onDoubleTap: () {
+                          if (homeSubreddit == FRONTPAGE_HOME_SUB) {
+                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Frontpage)));
+                          } else {
+                            BlocProvider.of<PostsBloc>(context).add((PostsSourceChanged(source: ContentSource.Subreddit, target: homeSubreddit)));
+                          }
+                        },
+                        onTap: () {
+                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                            // ! Will be deprecated
+                            setState(() {
+                              _paramsVisibility = _ParamsVisibility.Type; 
+                            });
+                          } else {
+                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                          }
+                        },
+                        child: BlocBuilder<PostsBloc, PostsState>(
+                          builder: (context, state) {
+                            return Wrap(
+                              direction: Axis.vertical,
+                              children: <Widget>[
+                                BlocBuilder<LyreBloc, LyreState>(
+                                  builder: (context, lyreState) {
+                                    return Text(
+                                      state.contentSource == ContentSource.Self ? lyreState.currentUserName : state.getSourceString(prefix: false),
+                                      style: LyreTextStyles.typeParams
+                                    );
+                                  },
+                                ),
+                                Text(
+                                  state.getFilterString(),
+                                  style: LyreTextStyles.timeParams.apply(
+                                    color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
+                                  ),
+                                )
+                              ],
+                            );
+                          },
+                        )
+                      )
+                    )
+                  ),
+                  Material(
+                    color: Theme.of(context).primaryColor,
+                    child: Row(
+                      children: <Widget>[
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          tooltip: "Menu",
+                          onPressed: () {
+                            _optionsVisibility = _OptionsVisibility.Default;
+                            _optionsController = Scaffold.of(context).showBottomSheet(
+                              (context) => _optionsSheet(context)
+                            );
+                          },
+                        ),
+                        BlocBuilder<PostsBloc, PostsState>(
+                          builder: (context, state) {
+                            return IconButton(
+                              icon: const Icon(Icons.create),
+                              tooltip: "Create a Submission",
+                              onPressed: () {
+                                setState(() {
+                                  if (PostsProvider().isLoggedIn()) {
+                                    Map<String, dynamic> args = Map();
+                                    args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
+                                    Navigator.of(context).pushNamed('submit', arguments: args);
+                                  } else {
+                                    final snackBar = SnackBar(
+                                      content: Text(
+                                          'Log in to post your submission'),
+                                    );
+                                    Scaffold.of(context).showSnackBar(snackBar);
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    )
+                  )
+                ],
+              )
+            ),
+          // * Type Params
+          BlocBuilder<PostsBloc, PostsState>(
+            builder: (context, state) {
+              return AnimatedContainer(
+                height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
+                duration: _appBarContentTransitionDuration,
+                curve: Curves.ease,
+                child: Material(
+                  color: Theme.of(context).primaryColor,
+                  child: Row(children: state.contentSource == ContentSource.Self ? _sortTypeParams(sortTypesuser) : _sortTypeParams(sortTypes),),
+                ),
+              );
+            },
           ),
-        ),
-      ],)
+          // * Time Params
+          AnimatedContainer(
+            height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
+            duration: _appBarContentTransitionDuration,
+            curve: Curves.ease,
+            child: Material(
+              color: Theme.of(context).primaryColor,
+              child: Row(children: _sortTimeParams(),),
+            ),
+          ),
+        ],)
+      )
     ),
   );
 
@@ -777,120 +787,125 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ],
         );
       default:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ActionSheetTitle(
-              customTitle: BlocBuilder<LyreBloc, LyreState>(
-                builder: (context, state) => InkWell(
-                  onTap: () => Scaffold.of(context).openDrawer(),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: ClipOval(
-                          child: Container(
-                            width: 25,
-                            height: 25,
-                            color: Theme.of(context).primaryColor,
-                            child: state.currentUser != null
-                              ? Image(
-                                  image: AdvancedNetworkImage(
-                                    state.currentUser.data["icon_img"],
-                                    cacheRule: const CacheRule(maxAge: Duration(days: 31))
-                                  ),
-                                )
-                              : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
+        return Material(
+          color: Theme.of(context).cardColor,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ActionSheetTitle(
+                customTitle: BlocBuilder<LyreBloc, LyreState>(
+                  builder: (context, state) => InkWell(
+                    onTap: () => Scaffold.of(context).openDrawer(),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: ClipOval(
+                            child: Container(
+                              width: 25,
+                              height: 25,
+                              color: Theme.of(context).primaryColor,
+                              child: state.currentUser != null
+                                ? Image(
+                                    image: AdvancedNetworkImage(
+                                      state.currentUser.data["icon_img"],
+                                      cacheRule: const CacheRule(maxAge: Duration(days: 31))
+                                    ),
+                                  )
+                                : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
+                            )
                           )
-                        )
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: Text(state.currentUserName)
-                      ),
-                      state.showKarmaInMenuSheet && state.currentUser != null
-                        ? Column(
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                const Icon(Icons.comment, size: 12.0),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 3.5),
-                                  child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                )
-                              ],),
-                              Row(children: <Widget>[
-                                const Icon(Icons.link, size: 12.0),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 3.5),
-                                  child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                )
-                              ],)
-                            ],
-                          )
-                        : Container()
-                    ],
-                  )
-                ),
-              )
-            ),
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                InkWell(
-                  child: Padding(
-                    padding: const EdgeInsets.all(3.5),
-                    child: Row(children: const [
-                      Icon(Icons.search),
-                      Text("Search"),
-                    ],),
-                  ),
-                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
-                ),
-                InkWell(
-                  child: Padding(
-                    padding: const EdgeInsets.all(3.5),
-                    child: Row(children: const [
-                      Icon(Icons.open_in_new),
-                      Text("Open"),
-                    ],),
-                  ),
-                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
-                ),
-                BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
-                  ? InkWell(
-                      child: Padding(
-                        padding: const EdgeInsets.all(3.5),
-                        child: Row(children: const [
-                          Icon(MdiIcons.pageLayoutSidebarRight),
-                          Text("Sidebar"),
-                        ],),
-                      ),
-                      onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
-                        builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
-                        initialChildSize: 0.45,
-                        minChildSize: 0.45,
-                        maxChildSize: 1.0,
-                        expand: false,
-                      ))
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: Text(state.currentUserName)
+                        ),
+                        state.showKarmaInMenuSheet && state.currentUser != null
+                          ? Column(
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                  const Icon(Icons.comment, size: 12.0),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 3.5),
+                                    child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                  )
+                                ],),
+                                Row(children: <Widget>[
+                                  const Icon(Icons.link, size: 12.0),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 3.5),
+                                    child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                  )
+                                ],)
+                              ],
+                            )
+                          : Container()
+                      ],
                     )
-                  : null
-                  ].where((w) => notNull(w)).toList(),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(children: [
-                const Expanded(
-                  child: Text("Night Mode"),
-                ),
-                Switch(
-                  value: true,
-                  onChanged: (newValue) {},
+                  ),
                 )
-              ],)
-            )
-          ],
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  InkWell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.5),
+                      child: Row(children: const [
+                        Icon(Icons.search),
+                        Text("Search"),
+                      ],),
+                    ),
+                    onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                  ),
+                  InkWell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.5),
+                      child: Row(children: const [
+                        Icon(Icons.open_in_new),
+                        Text("Open"),
+                      ],),
+                    ),
+                    onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                  ),
+                  BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
+                    ? InkWell(
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.5),
+                          child: Row(children: const [
+                            Icon(MdiIcons.pageLayoutSidebarRight),
+                            Text("Sidebar"),
+                          ],),
+                        ),
+                        onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
+                          builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
+                          initialChildSize: 0.45,
+                          minChildSize: 0.45,
+                          maxChildSize: 1.0,
+                          expand: false,
+                        ))
+                      )
+                    : null
+                    ].where((w) => notNull(w)).toList(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(children: [
+                  const Expanded(
+                    child: Text("Night Mode"),
+                  ),
+                  Switch(
+                    value: BlocProvider.of<LyreBloc>(context).state.currentTheme == defaultLyreThemes.darkTeal,
+                    onChanged: (newValue) {
+                      BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: newValue ? defaultLyreThemes.darkTeal : defaultLyreThemes.lightBlue));
+                    },
+                  )
+                ],)
+              )
+            ],
+          )
         );
     }
   }

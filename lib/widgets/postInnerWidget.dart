@@ -58,7 +58,7 @@ class postInnerWidget extends StatelessWidget{
 
   final VoidCallback onOptionsClick;
 
-  Widget getWidget(BuildContext context){
+  Widget _getWidget(BuildContext context){
     if (submission.isSelf) {
       return getDefaultSlideColumn(context);
     }
@@ -83,13 +83,13 @@ class postInnerWidget extends StatelessWidget{
 
   Widget compactWidget(BuildContext context) {
     return _SlideColumn(
-      child: new Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Row(
         children: <Widget>[
-          Container(
-            child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
-            width: MediaQuery.of(context).size.width * 0.9,
+          Expanded(
+            child: Container(
+              child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
+              width: MediaQuery.of(context).size.width * 0.9,
+            )
           ),
           getSquaredImage(context)
         ],
@@ -99,7 +99,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Column imagePreview(BuildContext context) {
-    return new Column(
+    return Column(
       children: <Widget>[
         _getExpandedImage(context),
         getDefaultSlideColumn(context)
@@ -162,7 +162,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getImageWrapper(BuildContext context, BoxFit fit){
-    return new GestureDetector(
+    return GestureDetector(
       child: Image(
         color: Colors.black38,
         colorBlendMode: BlendMode.luminosity,
@@ -189,7 +189,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getSquaredImage(BuildContext context){
-    return new Container(
+    return Container(
       child: _getImageWidget(context, false),
       //The fixed height of the post image:
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
@@ -267,17 +267,15 @@ class postInnerWidget extends StatelessWidget{
 
 
   Widget build(BuildContext context) {
-    return ClipRRect(
-      child: Padding(
-        child: Container(
-          child: getWidget(context),
-          color: Theme.of(context).cardColor,
-        ),
-        padding: const EdgeInsets.only(
-          //The gap bewtween the widgets.
-          bottom: 5.0
-        ),
-      )
+    return Padding(
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: _getWidget(context),
+      ),
+      padding: const EdgeInsets.only(
+        //The gap bewtween the widgets.
+        bottom: 5.0
+      ),
     );
   }
 }
@@ -300,7 +298,7 @@ class _SlideColumn extends StatefulWidget {
 class __SlideColumnState extends State<_SlideColumn> {
   @override
   Widget build(BuildContext context) {
-    return new OnSlide(
+    return OnSlide(
       items: <ActionItems>[
         ActionItems(
           icon: Icon(
@@ -377,14 +375,14 @@ class defaultColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Material(
+    return Material(
       color: Theme.of(context).cardColor,
       child: InkWell(
-        child: new Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            new Padding(
+            Padding(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   child: Text(
@@ -392,7 +390,7 @@ class defaultColumn extends StatelessWidget {
                     style: LyreTextStyles.submissionTitle.apply(
                       color: (submission.stickied)
                         ? Color.fromARGB(255, 0, 200, 53)
-                        : Colors.white),
+                        : Theme.of(context).primaryTextTheme.body1.color),
                   ),
                   onTap: (){
                     switch (linkType) {
@@ -413,7 +411,6 @@ class defaultColumn extends StatelessWidget {
             (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
               ? Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(10.0)
                 ),
                 child: MarkdownBody(
@@ -450,11 +447,11 @@ class defaultColumn extends StatelessWidget {
                   )
                   : null,
                 
-                new Padding(
-                  child: new Text(
+                Padding(
+                  child: Text(
                     "${submission.score}",
                     textAlign: TextAlign.left,
-                    style: new TextStyle(
+                    style: TextStyle(
                       fontSize: _defaultColumnTextSize,
                       color: getScoreColor(submission, context))),
                   padding:
@@ -465,9 +462,10 @@ class defaultColumn extends StatelessWidget {
                       return prefix1.Visibility(
                         visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
                         child: Padding(
-                          child: new Text(
+                          child: Text(
                             "u/${submission.author}",
                             style: TextStyle(
+                              color: Theme.of(context).primaryTextTheme.body2.color,
                               fontSize: _defaultColumnTextSize,
                             ),
                             textAlign: TextAlign.left,),
@@ -477,9 +475,10 @@ class defaultColumn extends StatelessWidget {
                     },
                   )
                   : Padding(
-                      child: new Text(
+                      child: Text(
                         "u/${submission.author}",
                         style: TextStyle(
+                          color: Theme.of(context).primaryTextTheme.body2.color,
                           fontSize: _defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
@@ -491,7 +490,7 @@ class defaultColumn extends StatelessWidget {
                       return prefix1.Visibility(
                         visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
                         child: Padding(
-                          child: new Text(
+                          child: Text(
                             "r/${submission.subreddit.displayName}",
                             style: TextStyle(
                               fontSize: _defaultColumnTextSize,
@@ -504,65 +503,69 @@ class defaultColumn extends StatelessWidget {
                     },
                   )
                   : Padding(
-                      child: new Text(
+                      child: Text(
                         "r/${submission.subreddit.displayName}",
                         style: TextStyle(
+                          color: Theme.of(context).primaryTextTheme.body2.color,
                           fontSize: _defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
                       padding:
                         const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                new Text(
+                Text(
                   "${submission.numComments} comments",
                   style: TextStyle(
+                    color: Theme.of(context).primaryTextTheme.body2.color,
                     fontSize: _defaultColumnTextSize,
                   )
                   ),
-                new Padding(
-                  child: new Text(
+                Padding(
+                  child: Text(
                     getSubmissionAge(submission.createdUtc),
                     style: TextStyle(
+                      color: Theme.of(context).primaryTextTheme.body2.color,
                       fontSize: _defaultColumnTextSize,
                     )
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 ),
                 submission.isSelf ? null :
-                new Padding(
-                    child: new Text(
-                        submission.domain,
-                        style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
+                  Padding(
+                      child: Text(
+                          submission.domain,
+                          style: TextStyle(
+                            color: Theme.of(context).primaryTextTheme.body2.color,
+                            fontSize: _defaultColumnTextSize,
+                          ),
+                          textAlign: TextAlign.left,),
+                      padding:
+                          const EdgeInsets.only(left: 4.0)),
+                    submission.gold != null && submission.gold >= 1 ?
+                  Padding(
+                    child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 255, 223, 0),
                         ),
-                        textAlign: TextAlign.left,),
-                    padding:
-                        const EdgeInsets.only(left: 4.0)),
-                  submission.gold != null && submission.gold >= 1 ?
-                new Padding(
-                  child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 255, 223, 0),
+                        width: 8.0,
+                        height: 8.0
                       ),
-                      width: 8.0,
-                      height: 8.0
-                    ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                ) : null,
+                    padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                  ) : null,
                   submission.silver != null && submission.silver >= 1 ?
-                new Padding(
-                  child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 192, 192, 192),
-                      ),
-                      width: 8.0,
-                      height: 8.0
-                    ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                ) : null,
+                    Padding(
+                      child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color.fromARGB(255, 192, 192, 192),
+                          ),
+                          width: 8.0,
+                          height: 8.0
+                        ),
+                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                    ) : null,
                 submission.platinum != null && submission.platinum >= 1 ?
-                new Padding(
+                Padding(
                   child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,

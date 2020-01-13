@@ -23,10 +23,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
     LyreEvent event,
   ) async* {
     if (event is ThemeChanged) {
-      final themeBox = await Hive.openBox(BOX_THEMES);
-      final LyreTheme theme = themeBox.get(event.themeName);
-      yield _changeState(currentTheme: theme);
-      themeBox.close();
+      yield _changeState(currentTheme: event.theme);
     } else if (event is SettingsChanged) {
       final Box settings = event.settings;
       yield LyreState(
@@ -206,7 +203,7 @@ Future<LyreState> newLyreState([String displayName]) async {
 
       subscriptions: subscriptions,
 
-      currentTheme: settings.get(CURRENT_THEME, defaultValue: darkTeal),
+      currentTheme: settings.get(CURRENT_THEME, defaultValue: defaultLyreThemes.lightBlue),
       homeSubreddit: globals.homeSubreddit,
       home: home,
 

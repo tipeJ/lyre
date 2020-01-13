@@ -54,17 +54,18 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         LoadingState loadingState = LoadingState.Inactive;
         String errorMessage;
 
-        final source = homeSubreddit == FRONTPAGE_HOME_SUB ? ContentSource.Frontpage : event.source ?? state.contentSource;
+        final target = event.target ?? state.target;
+
+        final source =  event.source ?? (target == FRONTPAGE_HOME_SUB ? ContentSource.Frontpage : state.contentSource);
         final userName = _repository.isLoggedIn() ? (await _repository.getLoggedInUser()).displayName.toLowerCase() : '';
         final preferences = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
         TypeFilter sortType;
         String sortTime;
         if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ 
-          //Reset Current Sort Configuration if user has set it to reset
+          // Reset Current Sort Configuration if user has set it to reset
           sortType = parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: sortTypes[0]));
           sortTime = preferences.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: defaultSortTime);
         }
-        final target = event.target ?? state.target;
 
         switch (source) {
           case ContentSource.Subreddit:

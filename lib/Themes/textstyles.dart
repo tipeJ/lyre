@@ -22,6 +22,8 @@ class LyreTextStyles {
   static const submissionPreviewSelftext = TextStyle(fontSize: 13.0, fontWeight: FontWeight.normal);
 
   static MarkdownStyleSheet getMarkdownStyleSheet(BuildContext context) => MarkdownStyleSheet(
-    blockquoteDecoration: BoxDecoration(color: Theme.of(context).cardColor),
+    blockquoteDecoration: BoxDecoration(
+      border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 3.5))
+    ),
   );
 }

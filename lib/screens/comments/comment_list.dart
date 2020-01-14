@@ -129,60 +129,71 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             ),
             appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
               builder: (context, state) {
-                return Material(
-                  child: notNull(state) && state.parentComment == null
-                    ? Row(
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
+                return notNull(state) && state.parentComment == null
+                  ? Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12.0),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),)
                         ),
-                        const Text("Comments"),
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12.0),
-                          child: DropdownButton<CommentSortType>(
-                            value: state.sortType,
-                            items: CommentSortType.values.map((CommentSortType value) {
-                              return DropdownMenuItem<CommentSortType>(
-                                value: value,
-                                child: Text(value.toString().split(".")[1]),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
-                              setState(() {
-                              });
-                            },
-                          )
+                      ),
+                      Text(
+                        "Comments",
+                        style: Theme.of(context).primaryTextTheme.body1,
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: DropdownButton<CommentSortType>(
+                          value: state.sortType,
+                          items: CommentSortType.values.map((CommentSortType value) {
+                            return DropdownMenuItem<CommentSortType>(
+                              value: value,
+                              child: Text(
+                                value.toString().split(".")[1],
+                                style: Theme.of(context).primaryTextTheme.body1,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: value));
+                            setState(() {
+                            });
+                          },
                         )
-                      ],
-                    )
-                    : Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Flexible(
-                              child: const Text(
-                                "You are viewing a single comment",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 5.0),
-                              child: OutlineButton(
-                                child: const Text("View All Comments"),
-                                onPressed: (){
-                                  BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
-                                },
-                              )
+                      )
+                    ],
+                  )
+                  : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text(
+                              "You are viewing a single comment",
+                              maxLines: 1,
+                              style: Theme.of(context).primaryTextTheme.body1,
+                              overflow: TextOverflow.ellipsis,
                             )
-                          ],
-                        )
-                    )
-                );
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5.0),
+                            child: FlatButton(
+                              textColor: Theme.of(context).primaryTextTheme.body1.color,
+                              child: Text(
+                                "View All Comments",
+                              ),
+                              onPressed: (){
+                                BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: state.submission, commentSortType: CommentSortType.top));
+                              },
+                            )
+                          )
+                        ],
+                      )
+                    );
               }
             ),
           )

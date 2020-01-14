@@ -3,12 +3,12 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'dart:ui';
@@ -29,6 +29,7 @@ class SubmissionOptionsNotification extends Notification {
   const SubmissionOptionsNotification({@required this.submission});
 }
 const _defaultColumnTextSize = 11.0;
+const _defaultColumnPadding = EdgeInsets.only(left: 5.0);
 
 class postInnerWidget extends StatelessWidget{
   const postInnerWidget({
@@ -269,12 +270,11 @@ class postInnerWidget extends StatelessWidget{
   Widget build(BuildContext context) {
     return Padding(
       child: Card(
-        clipBehavior: Clip.antiAlias,
         child: _getWidget(context),
       ),
       padding: const EdgeInsets.only(
         //The gap bewtween the widgets.
-        bottom: 5.0
+        bottom: 0.0
       ),
     );
   }
@@ -350,7 +350,7 @@ class __SlideColumnState extends State<_SlideColumn> {
         ),
         ActionItems(
           icon: const Icon(Icons.menu,color: Colors.grey,),
-          onPress: (){
+          onPress: () {
             SubmissionOptionsNotification(submission: this.widget.submission)..dispatch(context);
           }
         ),
@@ -375,222 +375,217 @@ class defaultColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).cardColor,
-      child: InkWell(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Padding(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  child: Text(
-                    submission.title,
-                    style: LyreTextStyles.submissionTitle.apply(
-                      color: (submission.stickied)
-                        ? Color.fromARGB(255, 0, 200, 53)
-                        : Theme.of(context).primaryTextTheme.body1.color),
-                  ),
-                  onTap: (){
-                    switch (linkType) {
-                      case LinkType.YouTube:
-                        playYouTube(submission.url.toString());
-                        break;
-                      case LinkType.Default:
-                        launchURL(context, submission);
-                        break;
-                      default:
-                        PreviewCall().callback.preview(submission.url.toString());
-                        break;
-                    }
-                  },
+    return InkWell(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                child: Text(
+                  submission.title,
+                  style: LyreTextStyles.submissionTitle.apply(
+                    color: (submission.stickied)
+                      ? Color.fromARGB(255, 0, 200, 53)
+                      : Theme.of(context).textTheme.body1.color),
                 ),
-                padding:
-                    const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
-            (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
-              ? Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0)
-                ),
-                child: MarkdownBody(
-                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
-                  fitContent: true,
-                ),
-                padding: const EdgeInsets.only(
-                  left: 8.0,
-                  right: 8.0,
-                  top: 8.0,
-                  bottom: 8.0
-                ),
-                margin: const EdgeInsets.only(
-                  left: 8.0,
-                  right: 8.0,
-                  top: 8.0,
-                  bottom: 8.0
-                ),
-              )
-            : Container(height: 3.5),
-            Wrap(
-              children: <Widget>[
-                submission.over18
-                  ? Padding(
-                    padding: const EdgeInsets.only(left: 6.0, right: 4.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3.5),
-                        color: Colors.red
-                      ),
-                      child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
-                    )
-                  )
-                  : null,
-                
-                Padding(
-                  child: Text(
-                    "${submission.score}",
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: _defaultColumnTextSize,
-                      color: getScoreColor(submission, context))),
-                  padding:
-                      const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                previewSource == PreviewSource.PostsList
-                ? BlocBuilder<PostsBloc, PostsState>(
-                    builder: (context, state) {
-                      return prefix1.Visibility(
-                        visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
-                        child: Padding(
-                          child: Text(
-                            "u/${submission.author}",
-                            style: TextStyle(
-                              color: Theme.of(context).primaryTextTheme.body2.color,
-                              fontSize: _defaultColumnTextSize,
-                            ),
-                            textAlign: TextAlign.left,),
-                          padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                      );
-                    },
-                  )
-                  : Padding(
-                      child: Text(
-                        "u/${submission.author}",
-                        style: TextStyle(
-                          color: Theme.of(context).primaryTextTheme.body2.color,
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                      padding:
-                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                previewSource == PreviewSource.PostsList
-                  ? BlocBuilder<PostsBloc, PostsState>(
-                    builder: (context, state) {
-                      return prefix1.Visibility(
-                        visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
-                        child: Padding(
-                          child: Text(
-                            "r/${submission.subreddit.displayName}",
-                            style: TextStyle(
-                              fontSize: _defaultColumnTextSize,
-                              color: Theme.of(context).accentColor
-                            ),
-                            textAlign: TextAlign.left,),
-                          padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
-                      );
-                    },
-                  )
-                  : Padding(
-                      child: Text(
-                        "r/${submission.subreddit.displayName}",
-                        style: TextStyle(
-                          color: Theme.of(context).primaryTextTheme.body2.color,
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                      padding:
-                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                Text(
-                  "${submission.numComments} comments",
-                  style: TextStyle(
-                    color: Theme.of(context).primaryTextTheme.body2.color,
-                    fontSize: _defaultColumnTextSize,
-                  )
-                  ),
-                Padding(
-                  child: Text(
-                    getSubmissionAge(submission.createdUtc),
-                    style: TextStyle(
-                      color: Theme.of(context).primaryTextTheme.body2.color,
-                      fontSize: _defaultColumnTextSize,
-                    )
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                ),
-                submission.isSelf ? null :
-                  Padding(
-                      child: Text(
-                          submission.domain,
+                onTap: (){
+                  switch (linkType) {
+                    case LinkType.YouTube:
+                      playYouTube(submission.url.toString());
+                      break;
+                    case LinkType.Default:
+                      launchURL(context, submission);
+                      break;
+                    default:
+                      PreviewCall().callback.preview(submission.url.toString());
+                      break;
+                  }
+                },
+              ),
+              padding:
+                  const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
+          (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
+            ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0)
+              ),
+              child: MarkdownBody(
+                data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
+                styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+                fitContent: true,
+              ),
+              padding: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+              margin: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+            )
+          : Container(height: 3.5),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  "${submission.score}",
+                  textAlign: TextAlign.left,
+                  style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(submission, context), fontSizeFactor: 0.9)),
+                padding: _defaultColumnPadding),
+
+              submission.over18
+                ? Padding(
+                  padding: _defaultColumnPadding,
+                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
+                )
+                : null,
+
+              submission.spoiler
+                ? Padding(
+                  padding: _defaultColumnPadding,
+                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
+                )
+                : null,
+
+              previewSource == PreviewSource.PostsList
+              ? BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state) {
+                    return prefix1.Visibility(
+                      visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
+                      child: Padding(
+                        child: Text(
+                          "u/${submission.author}",
                           style: TextStyle(
-                            color: Theme.of(context).primaryTextTheme.body2.color,
+                            color: Theme.of(context).textTheme.body2.color,
                             fontSize: _defaultColumnTextSize,
                           ),
                           textAlign: TextAlign.left,),
-                      padding:
-                          const EdgeInsets.only(left: 4.0)),
-                    submission.gold != null && submission.gold >= 1 ?
-                  Padding(
-                    child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 255, 223, 0),
-                        ),
-                        width: 8.0,
-                        height: 8.0
+                        padding: _defaultColumnPadding),
+                    );
+                  },
+                )
+                : Padding(
+                    child: Text(
+                      "u/${submission.author}",
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.body2.color,
+                        fontSize: _defaultColumnTextSize,
                       ),
-                    padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                  ) : null,
-                  submission.silver != null && submission.silver >= 1 ?
-                    Padding(
-                      child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 192, 192, 192),
+                      textAlign: TextAlign.left,),
+                    padding: _defaultColumnPadding),
+              previewSource == PreviewSource.PostsList
+                ? BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state) {
+                    return prefix1.Visibility(
+                      visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
+                      child: Padding(
+                        child: Text(
+                          "r/${submission.subreddit.displayName}",
+                          style: TextStyle(
+                            fontSize: _defaultColumnTextSize,
+                            color: Theme.of(context).accentColor
                           ),
-                          width: 8.0,
-                          height: 8.0
+                          textAlign: TextAlign.left,),
+                        padding: _defaultColumnPadding)
+                    );
+                  },
+                )
+                : Padding(
+                    child: Text(
+                      "r/${submission.subreddit.displayName}",
+                      style: TextStyle(
+                        color: Theme.of(context).accentColor,
+                        fontSize: _defaultColumnTextSize,
+                      ),
+                      textAlign: TextAlign.left,),
+                    padding: _defaultColumnPadding),
+              Padding(
+                child: Text(
+                  "${submission.numComments} comments",
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.body2.color,
+                    fontSize: _defaultColumnTextSize,
+                  )
+                ),
+                padding: _defaultColumnPadding,
+              ),
+              Padding(
+                child: Text(
+                  getSubmissionAge(submission.createdUtc),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.body2.color,
+                    fontSize: _defaultColumnTextSize,
+                  )
+                ),
+                padding: _defaultColumnPadding,
+              ),
+              submission.isSelf ? null :
+                Padding(
+                    child: Text(
+                        submission.domain,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.body2.color,
+                          fontSize: _defaultColumnTextSize,
                         ),
-                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
-                    ) : null,
-                submission.platinum != null && submission.platinum >= 1 ?
+                        textAlign: TextAlign.left,),
+                    padding: _defaultColumnPadding),
+                  submission.gold != null && submission.gold >= 1 ?
                 Padding(
                   child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 229, 228, 226),
+                        color: Color.fromARGB(255, 255, 223, 0),
                       ),
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                  padding: _defaultColumnPadding,
                 ) : null,
-                  
-            ].where(notNull).toList()
-            ),
-            const SizedBox(
-              height: 3.5,
-            )
-          ]),
-        onTap: (){
-          if (previewSource != PreviewSource.Comments) {
-            currentPostId = submission.id;
-            showComments(context);
-          }
-        },
-        onLongPress: onLongPress,
-      )
+                submission.silver != null && submission.silver >= 1 ?
+                  Padding(
+                    child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 192, 192, 192),
+                        ),
+                        width: 8.0,
+                        height: 8.0
+                      ),
+                    padding: _defaultColumnPadding,
+                  ) : null,
+              submission.platinum != null && submission.platinum >= 1 ?
+              Padding(
+                child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color.fromARGB(255, 229, 228, 226),
+                    ),
+                    width: 8.0,
+                    height: 8.0
+                  ),
+                padding: _defaultColumnPadding,
+              ) : null,
+                
+          ].where(notNull).toList()
+          ),
+          const SizedBox(
+            height: 3.5,
+          )
+        ]),
+      onTap: (){
+        if (previewSource != PreviewSource.Comments) {
+          currentPostId = submission.id;
+          showComments(context);
+        }
+      },
+      onLongPress: onLongPress,
     );
   }
 }

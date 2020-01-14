@@ -107,11 +107,11 @@ class SidebarView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 5.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0),
               child: Text(
                 "Subscribers",
-                style: LyreTextStyles.bottomSheetTitle,
+                style: LyreTextStyles.bottomSheetTitle(context),
               )
             ),
             Padding(
@@ -120,11 +120,11 @@ class SidebarView extends StatelessWidget {
                 state.subreddit.data["subscribers"].toString(),
               )
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 5.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0),
               child: Text(
                 "Online",
-                style: LyreTextStyles.bottomSheetTitle,
+                style: LyreTextStyles.bottomSheetTitle(context),
               )
             ),
             Padding(
@@ -196,7 +196,11 @@ class SidebarView extends StatelessWidget {
       ? SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.only(top: 10.0),
-          child: Text(state.sideBar.contentHtml)
+          // child: Text(state.sideBar.contentMarkdown, style: TextStyle(color: Colors.white),),
+          child: MarkdownBody(
+            data: state.sideBar.contentMarkdown,
+            styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+          )
         )
       )
       : null

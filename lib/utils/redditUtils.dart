@@ -10,7 +10,7 @@ Color getScoreColor(VoteableMixin m, BuildContext context){
         return Colors.amberAccent;
 
       default:
-        return Theme.of(context).primaryTextTheme.display1.color;
+        return Theme.of(context).textTheme.body2.color;
     }
 }
 CommentSortType parseCommentSortType(String sortString){

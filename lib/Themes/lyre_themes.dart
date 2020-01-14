@@ -13,6 +13,7 @@ Color _getC(int r, int g, int b){
 class defaultLyreThemes {
   static LyreTheme darkTeal = LyreTheme(
     name: "Dark Teal",
+    dark: true,
     primaryColor: _getC(34, 34, 34),
     accentColor: _getC(128, 255, 212),
     highLightColor: _getC(255, 86, 34),
@@ -23,10 +24,12 @@ class defaultLyreThemes {
     contentBackgroundColor: _getC(28, 30, 32),
 
     borderRadius: 10,
-    contentElevation: 3.5
+    contentElevation: 3.5,
+    cardMargin: 2.5
   );
   static LyreTheme lightBlue = LyreTheme(
     name: "Light Blue",
+    dark: false,
 
     primaryColor: _getC(133, 177, 255),
     accentColor: _getC(225, 115, 255),
@@ -38,6 +41,7 @@ class defaultLyreThemes {
     contentBackgroundColor: _getC(255, 255, 255),
 
     borderRadius: 10,
-    contentElevation: 3.5
+    contentElevation: 3.5,
+    cardMargin: 2.5
   );
 }

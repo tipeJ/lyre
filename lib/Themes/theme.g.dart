@@ -18,22 +18,15 @@ class LyreThemeAdapter extends TypeAdapter<LyreTheme> {
     };
     return LyreTheme(
       name: fields[0] as String,
-      primaryColor: fields[1] as Color,
-      accentColor: fields[2] as Color,
-      highLightColor: fields[3] as Color,
-      primaryTextColor: fields[4] as Color,
-      secondaryTextColor: fields[5] as Color,
-      pinnedTextColor: fields[6] as Color,
-      canvasColor: fields[7] as Color,
-      contentBackgroundColor: fields[8] as Color,
       borderRadius: fields[9] as int,
+      contentElevation: fields[10] as double,
     );
   }
 
   @override
   void write(BinaryWriter writer, LyreTheme obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -53,6 +46,8 @@ class LyreThemeAdapter extends TypeAdapter<LyreTheme> {
       ..writeByte(8)
       ..write(obj.contentBackgroundColor)
       ..writeByte(9)
-      ..write(obj.borderRadius);
+      ..write(obj.borderRadius)
+      ..writeByte(10)
+      ..write(obj.contentElevation);
   }
 }

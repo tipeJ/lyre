@@ -128,7 +128,7 @@ class PostsProvider {
   Future<Reddit> restoreAuth(String jsonCredentials) async {
     final configUri = Uri.parse('draw.ini');
     var userAgent = "$appName $appVersion by u/tipezuke";
-    return await Reddit.restoreAuthenticatedInstance(
+    return Reddit.restoreAuthenticatedInstance(
         jsonCredentials,
         userAgent: userAgent,
         configUri: configUri,

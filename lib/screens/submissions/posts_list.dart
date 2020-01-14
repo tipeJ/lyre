@@ -110,13 +110,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
 
   List<Widget> _getRegisteredUsernamesList(List<String> list, String currentUserName) {
+    print(currentUserName);
     List<Widget> widgets = [];
     for(int i = 0; i < list.length; i++){
       widgets.add(InkWell(
           child: Container(
             child: Text(
               list[i],
-              style: TextStyle(fontSize: 18.0, fontWeight: ((i == 0 && currentUserName.isEmpty) || (i != 0 && currentUserName == list[i])) ? FontWeight.bold : FontWeight.w400),
+              style : Theme.of(context).textTheme.title.apply(
+                fontWeightDelta: ((i == 0 && currentUserName.isEmpty) || (i != 0 && currentUserName == list[i])) ? 0 : -2,
+              ),
             ),
             padding: EdgeInsets.symmetric(vertical: 18.0),
           ),
@@ -135,6 +138,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 
   Widget get _registrationButton => OutlineButton(
+    textColor: Theme.of(context).textTheme.body1.color,
     child: const Text('Add an Account'),
     onPressed: () async {
       var pp = PostsProvider();
@@ -157,7 +161,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text('Authenticate Lyre', style: LyreTextStyles.dialogTitle),
+                    Text('Authenticate Lyre', style: Theme.of(context).textTheme.title),
                     IconButton(icon: Icon(Icons.close),onPressed: () async {
                       await pp.closeAuthServer();
                       Navigator.pop(context);
@@ -284,42 +288,40 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                         final result = await showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
-                                            return Material(
-                                              child: AlertDialog(
-                                                title: const Text("Log Out"),
-                                                content: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    const Text("Delete Settings"),
-                                                    StatefulBuilder(
-                                                      builder: (BuildContext context, setState) {
-                                                        return Checkbox(
-                                                          value: deleteSettings,
-                                                          onChanged: (newValue) {
-                                                            setState(() {
-                                                              deleteSettings = newValue;
-                                                            });
-                                                          },
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                actions: [
-                                                  OutlineButton(
-                                                    child: const Text("Cancel"),
-                                                    onPressed: () {
-                                                      Navigator.of(context).pop(false);
+                                            return AlertDialog(
+                                              title: const Text("Log Out"),
+                                              content: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  const Text("Delete Settings"),
+                                                  StatefulBuilder(
+                                                    builder: (BuildContext context, setState) {
+                                                      return Checkbox(
+                                                        value: deleteSettings,
+                                                        onChanged: (newValue) {
+                                                          setState(() {
+                                                            deleteSettings = newValue;
+                                                          });
+                                                        },
+                                                      );
                                                     },
                                                   ),
-                                                  OutlineButton(
-                                                    child: const Text("Log Out"),
-                                                    onPressed: () {
-                                                      Navigator.of(context).pop(true);
-                                                    },
-                                                  )
                                                 ],
                                               ),
+                                              actions: [
+                                                OutlineButton(
+                                                  child: const Text("Cancel"),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop(false);
+                                                  },
+                                                ),
+                                                OutlineButton(
+                                                  child: const Text("Log Out"),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop(true);
+                                                  },
+                                                )
+                                              ],
                                             );
                                           }
                                         );
@@ -346,8 +348,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                               children: <Widget>[
                                 Text(
                                   state.currentUser.commentKarma.toString(),
-                                  style: LyreTextStyles.title,
-                                  textScaleFactor: 0.8,
+                                  style: Theme.of(context).textTheme.display1,
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 5.0),
@@ -358,7 +359,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                 ),
                                 Text(
                                   state.currentUser.linkKarma.toString(),
-                                  style: const  TextStyle(fontSize: 28.0),
+                                  style: Theme.of(context).textTheme.display1,
                                 ),
                                 const Text(
                                   'Link karma',
@@ -403,6 +404,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   bottom: 0.0,
                   right: 0.0,
                   child: Material(
+                    textStyle: Theme.of(context).textTheme.body1,
                     child: Row(
                       children: <Widget>[
                         Text(appName + ' v.' + appVersion),
@@ -436,8 +438,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       _selectedUserContent = notification.submission;
                       _submissionSelectionVisibility = _SubmissionSelectionVisibility.Default;
                       _submissionOptionsController = Scaffold.of(context).showBottomSheet(
-                        (context) => Container(
-                          color: Theme.of(context).cardColor,
+                        (context) => Material(
+                          textStyle: Theme.of(context).textTheme.body1,
                           child: _submissionOptionsSheet(context)
                         )
                       );
@@ -532,14 +534,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   builder: (context, lyreState) {
                                     return Text(
                                       state.contentSource == ContentSource.Self ? lyreState.currentUserName : state.getSourceString(prefix: false),
-                                      style: LyreTextStyles.typeParams
+                                      style: Theme.of(context).textTheme.title
                                     );
                                   },
                                 ),
                                 Text(
                                   state.getFilterString(),
                                   style: LyreTextStyles.timeParams.apply(
-                                    color: Theme.of(context).textTheme.body1.color.withOpacity(0.75)
+                                    color: Theme.of(context).textTheme.display1.color
                                   ),
                                 )
                               ],
@@ -613,7 +615,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             curve: Curves.ease,
             child: Material(
               color: Theme.of(context).primaryColor,
-              child: Row(children: _sortTimeParams(),),
+              textStyle: Theme.of(context).textTheme.body1,
+              child: Row(children: _sortTimeParams(),)
             ),
           ),
         ],)
@@ -632,9 +635,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               AutoSizeText(
                 sortTimes[index],
                 softWrap: false,
+                style: Theme.of(context).textTheme.body1,
                 maxFontSize: 12.0,
                 minFontSize: 8.0,
-                ),
+              ),
             ],
           ),
           onLongPress: () {
@@ -668,6 +672,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               AutoSizeText(
                 types[index],
                 softWrap: false,
+                style: Theme.of(context).textTheme.body1,
                 maxFontSize: 12.0,
                 minFontSize: 8.0,
                 ),
@@ -777,135 +782,132 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             }),
             const Divider(),
             ActionSheetInkwell(
-              title: const Text("Submissions"),
+              title: Text("Submissions", style: Theme.of(context).textTheme.body1),
               onTap: () => Navigator.of(context).popAndPushNamed("search_usercontent")
             ),
             ActionSheetInkwell(
-              title: const Text("Communities"),
+              title: Text("Communities", style: Theme.of(context).textTheme.body1),
               onTap: () => Navigator.of(context).popAndPushNamed("search_communities")
             ),
           ],
         );
       default:
-        return Material(
-          color: Theme.of(context).cardColor,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ActionSheetTitle(
-                customTitle: BlocBuilder<LyreBloc, LyreState>(
-                  builder: (context, state) => InkWell(
-                    onTap: () => Scaffold.of(context).openDrawer(),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: ClipOval(
-                            child: Container(
-                              width: 25,
-                              height: 25,
-                              color: Theme.of(context).primaryColor,
-                              child: state.currentUser != null
-                                ? Image(
-                                    image: AdvancedNetworkImage(
-                                      state.currentUser.data["icon_img"],
-                                      cacheRule: const CacheRule(maxAge: Duration(days: 31))
-                                    ),
-                                  )
-                                : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
-                            )
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ActionSheetTitle(
+              customTitle: BlocBuilder<LyreBloc, LyreState>(
+                builder: (context, state) => InkWell(
+                  onTap: () => Scaffold.of(context).openDrawer(),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ClipOval(
+                          child: Container(
+                            width: 25,
+                            height: 25,
+                            color: Theme.of(context).primaryColor,
+                            child: state.currentUser != null
+                              ? Image(
+                                  image: AdvancedNetworkImage(
+                                    state.currentUser.data["icon_img"],
+                                    cacheRule: const CacheRule(maxAge: Duration(days: 31))
+                                  ),
+                                )
+                              : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
                           )
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10.0),
-                          child: Text(state.currentUserName)
-                        ),
-                        state.showKarmaInMenuSheet && state.currentUser != null
-                          ? Column(
-                              children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                  const Icon(Icons.comment, size: 12.0),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 3.5),
-                                    child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                  )
-                                ],),
-                                Row(children: <Widget>[
-                                  const Icon(Icons.link, size: 12.0),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 3.5),
-                                    child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                  )
-                                ],)
-                              ],
-                            )
-                          : Container()
-                      ],
-                    )
-                  ),
-                )
-              ),
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  InkWell(
-                    child: Padding(
-                      padding: const EdgeInsets.all(3.5),
-                      child: Row(children: const [
-                        Icon(Icons.search),
-                        Text("Search"),
-                      ],),
-                    ),
-                    onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
-                  ),
-                  InkWell(
-                    child: Padding(
-                      padding: const EdgeInsets.all(3.5),
-                      child: Row(children: const [
-                        Icon(Icons.open_in_new),
-                        Text("Open"),
-                      ],),
-                    ),
-                    onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
-                  ),
-                  BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
-                    ? InkWell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(3.5),
-                          child: Row(children: const [
-                            Icon(MdiIcons.pageLayoutSidebarRight),
-                            Text("Sidebar"),
-                          ],),
-                        ),
-                        onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
-                          builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
-                          initialChildSize: 0.45,
-                          minChildSize: 0.45,
-                          maxChildSize: 1.0,
-                          expand: false,
-                        ))
-                      )
-                    : null
-                    ].where((w) => notNull(w)).toList(),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Row(children: [
-                  const Expanded(
-                    child: Text("Night Mode"),
-                  ),
-                  Switch(
-                    value: BlocProvider.of<LyreBloc>(context).state.currentTheme == defaultLyreThemes.darkTeal,
-                    onChanged: (newValue) {
-                      BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: newValue ? defaultLyreThemes.darkTeal : defaultLyreThemes.lightBlue));
-                    },
+                        )
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1)
+                      ),
+                      state.showKarmaInMenuSheet && state.currentUser != null
+                        ? Column(
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                const Icon(Icons.comment, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                )
+                              ],),
+                              Row(children: <Widget>[
+                                const Icon(Icons.link, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
+                                )
+                              ],)
+                            ],
+                          )
+                        : Container()
+                    ],
                   )
-                ],)
+                ),
               )
-            ],
-          )
+            ),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                InkWell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.5),
+                    child: Row(children: [
+                      const Icon(Icons.search),
+                      Text("Search", style: Theme.of(context).textTheme.body2),
+                    ],),
+                  ),
+                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                InkWell(
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.5),
+                    child: Row(children: [
+                      const Icon(Icons.open_in_new),
+                      Text("Open", style: Theme.of(context).textTheme.body2),
+                    ],),
+                  ),
+                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                ),
+                BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
+                  ? InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(3.5),
+                        child: Row(children: [
+                          const Icon(MdiIcons.pageLayoutSidebarRight),
+                          Text("Sidebar", style: Theme.of(context).textTheme.body2),
+                        ],),
+                      ),
+                      onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
+                        builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
+                        initialChildSize: 0.45,
+                        minChildSize: 0.45,
+                        maxChildSize: 1.0,
+                        expand: false,
+                      ))
+                    )
+                  : null
+                  ].where((w) => notNull(w)).toList(),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(children: [
+                Expanded(
+                  child: Text("Night Mode", style: Theme.of(context).textTheme.body1),
+                ),
+                Switch(
+                  value: BlocProvider.of<LyreBloc>(context).state.currentTheme == defaultLyreThemes.darkTeal,
+                  onChanged: (newValue) {
+                    BlocProvider.of<LyreBloc>(context).add(ThemeChanged(theme: newValue ? defaultLyreThemes.darkTeal : defaultLyreThemes.lightBlue));
+                  },
+                )
+              ],)
+            )
+          ],
         );
     }
   }
@@ -1517,21 +1519,23 @@ class _submissionList extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, i) {
                   if (i == posts.length) {
-                    return Container(
-                      color: Theme.of(context).primaryColor,
-                      child: FlatButton(
-                        onPressed: () {
+                    return Card(
+                      child: InkWell(
+                        onTap: () {
                           BlocProvider.of<PostsBloc>(context).add(FetchMore());
                         },
-                        child: Builder(
-                          builder: (context) {
-                            if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore) {
-                              return const CircularProgressIndicator();
-                            } else if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.Error) {
-                              return const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage);
-                            }
-                            return const Text("Load More");
-                          },
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Builder(
+                            builder: (context) {
+                              if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore) {
+                                return Center(child: const CircularProgressIndicator());
+                              } else if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.Error) {
+                                return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
+                              }
+                              return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
+                            },
+                          )
                         )
                     ));
                   } else if (posts[i] is draw.Submission) {
@@ -1552,16 +1556,13 @@ class _submissionList extends StatelessWidget {
                       },
                     );
                   } else {
-                    return Material(
-                      color: Theme.of(context).cardColor,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 5.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('comments', arguments: posts[i]);
-                          },
-                          child: CommentContent(posts[i], PreviewSource.PostsList),
-                        )
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 5.0),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                        },
+                        child: CommentContent(posts[i], PreviewSource.PostsList),
                       )
                     );
                   }
@@ -1590,9 +1591,7 @@ class _SelfContentTypeWidget extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.all(5.0),
         width: MediaQuery.of(context).size.width,
-        child: Text(contentType, style: TextStyle(
-          fontSize: 22.0
-        ),)
+        child: Text(contentType, style: Theme.of(context).textTheme.title)
       ),
       onTap: (){
         final bloc = BlocProvider.of<PostsBloc>(context);

@@ -117,9 +117,9 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
     return Future.value(true);
   }
 
-  bool send_replies = true;
-  bool is_nsfw = false;
-  bool is_spoiler = true;
+  bool _sendReplies = true;
+  bool _isNsfw = false;
+  bool _isSpoiler = true;
 
   TabController _selfTextTabController;
 
@@ -143,7 +143,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                   });
                   switch (_submitType) {
                     case SubmitType.Selftext:
-                      submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, is_nsfw, send_replies).then((submission){
+                      submitSelf(_subredditController.text, _titleController.text, _selfTextController.text, _isNsfw, _sendReplies).then((submission){
                         setState(() {
                           _sendingState = SendingState.Inactive;
                         });
@@ -155,7 +155,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                       });
                       break;
                     case SubmitType.Link:
-                      submitLink(_subredditController.text, _titleController.text, _urlController.text, is_nsfw, send_replies).then((submission){
+                      submitLink(_subredditController.text, _titleController.text, _urlController.text, _isNsfw, _sendReplies).then((submission){
                         setState(() {
                           _sendingState = SendingState.Inactive;
                         });
@@ -182,7 +182,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                             );
                         }
                       );
-                      submitImage(_subredditController.text, _titleController.text, is_nsfw, send_replies, _image).then((submission){
+                      submitImage(_subredditController.text, _titleController.text, _isNsfw, _sendReplies, _image).then((submission){
                         setState(() {
                           _sendingState = SendingState.Inactive;
                         });
@@ -216,22 +216,24 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                   SliverList(
                     delegate: SliverChildListDelegate([
                       TextField(
+                        style: Theme.of(context).textTheme.body1,
                         textInputAction: TextInputAction.send,
                         decoration: InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 5.0),
                           labelText: "Title",
                         ),
                         controller: _titleController,
                       ),
                       TextField(
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(horizontal: 5.0),
+                        style: Theme.of(context).textTheme.body1,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 5.0),
                           helperText: "Choose your subreddit",
                           hintText: 'r/'
                         ),
                         controller: _subredditController,
                       ),
-                      Divider(),
+                      const Divider(),
                       IntrinsicWidth( 
                         child: Container(
                           padding: EdgeInsets.all(5.0),
@@ -241,16 +243,18 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                             constraints: BoxConstraints.tightFor(height: 30),
                             borderRadius: BorderRadius.circular(10.0),
                             isSelected: [
-                              is_nsfw,
-                              send_replies,
-                              is_spoiler
+                              _isNsfw,
+                              _sendReplies,
+                              _isSpoiler
                             ],
-                            disabledColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54),
-                            selectedColor: (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
-                            fillColor: Theme.of(context).primaryColor,
+                            textStyle: Theme.of(context).textTheme.body1,
+                            disabledColor: Theme.of(context).textTheme.body2.color,
+                            selectedColor: Theme.of(context).textTheme.body1.color,
+                            color: Theme.of(context).textTheme.body2.color,
+                            fillColor: Colors.transparent,
                             children: <Widget>[
                               const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 3.5),
+                                padding: const EdgeInsets.symmetric(horizontal: 3.5),
                                 child: Text('NSFW')
                               ),
                               const Padding(
@@ -266,13 +270,13 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               setState(() {
                                 switch (i) {
                                   case 0:
-                                    is_nsfw = !is_nsfw;
+                                    _isNsfw = !_isNsfw;
                                     break;
                                   case 1:
-                                    send_replies = !send_replies;
+                                    _sendReplies = !_sendReplies;
                                     break;
                                   default:
-                                    is_spoiler = !is_spoiler;
+                                    _isSpoiler = !_isSpoiler;
                                     break;
                                 }
                               });
@@ -280,7 +284,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           )
                         )
                       ),
-                      Divider(),
+                      const Divider(),
                       Padding(
                         padding: const EdgeInsets.only(top: 10.0),
                         child: Align(
@@ -304,7 +308,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               //const Text('Video'),
                             ],
                             selectedColor: Theme.of(context).accentColor,
-                            fillColor: Theme.of(context).primaryColor.withOpacity(0.4),
+                            color: Theme.of(context).textTheme.body1.color,
                             onPressed: (i) {
                               if (_submitType != SubmitType.values[i]) setState(() {
                                 switch (i) {
@@ -335,7 +339,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         sizeFactor: _selfTextTabExpansionController,
                         child: Column(
                           children: [
-                            Divider(),
+                            const Divider(),
                             TabBar(
                               indicatorColor: Colors.transparent,
                               controller: _selfTextTabController,
@@ -404,9 +408,10 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
           focusNode: _selfTextFocusNode,
           maxLines: null,
           scrollController: _scrollController,
-          decoration: const InputDecoration(
+          style: Theme.of(context).textTheme.body1,
+          decoration: InputDecoration(
             hintText: "Your Text Here",
-            contentPadding: EdgeInsets.symmetric(horizontal: 5.0)
+            contentPadding: const EdgeInsets.symmetric(horizontal: 5.0)
           ),
           controller: _selfTextController,
         ),

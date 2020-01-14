@@ -4,6 +4,7 @@ import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/widgets/widgets.dart';
 
 /// Class for displaying the list of subreddits to which the current user has subscribed to. Also shows Frontpage and r/All
@@ -14,6 +15,7 @@ class SubredditsList extends State<ExpandingSheetContent> {
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).cardColor,
+      textStyle: Theme.of(context).textTheme.body1,
       child: CustomScrollView(
         controller: widget.innerController,
         slivers: <Widget>[
@@ -78,7 +80,8 @@ class SubredditsList extends State<ExpandingSheetContent> {
                   setState(() {
                   });
                 },
-                decoration: const InputDecoration(hintText: 'Search Subscriptions'),
+                style: Theme.of(context).textTheme.body1,
+                decoration: InputDecoration(hintText: 'Search Subscriptions'),
                 onEditingComplete: () {
                   widget.innerController.reset();
                   BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));

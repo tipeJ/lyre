@@ -656,7 +656,7 @@ class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSh
           decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(_lerp(0.38, 0.85)),
+                    color: Colors.black.withOpacity(_lerp(0.38, 0.85) * (1 - _visibilityAnimation.value)),
                     blurRadius: _lerp(12.0, 50.0),
                     spreadRadius: _lerp(5.0, 25.0),
                     offset: Offset(0.0, -2.5)

@@ -56,7 +56,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
         final target = event.target ?? state.target;
 
-        final source =  event.source ?? (target == FRONTPAGE_HOME_SUB ? ContentSource.Frontpage : state.contentSource);
+        final source =  target == FRONTPAGE_HOME_SUB ? ContentSource.Frontpage : event.source ?? state.contentSource;
         final userName = _repository.isLoggedIn() ? (await _repository.getLoggedInUser()).displayName.toLowerCase() : '';
         final preferences = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
         TypeFilter sortType;

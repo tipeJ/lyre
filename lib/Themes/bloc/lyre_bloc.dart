@@ -33,7 +33,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
 
         subscriptions: state.subscriptions,
 
-        currentTheme: settings.get(CURRENT_THEME, defaultValue: ""),
+        currentTheme: settings.get(CURRENT_THEME, defaultValue: state.currentTheme),
         homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
@@ -203,7 +203,7 @@ Future<LyreState> newLyreState([String displayName]) async {
 
       subscriptions: subscriptions,
 
-      currentTheme: settings.get(CURRENT_THEME, defaultValue: defaultLyreThemes.lightBlue),
+      currentTheme: settings.get(CURRENT_THEME, defaultValue: defaultLyreThemes.darkTeal),
       homeSubreddit: globals.homeSubreddit,
       home: home,
 

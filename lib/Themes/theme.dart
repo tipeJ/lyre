@@ -8,6 +8,7 @@ part "theme.g.dart";
 class LyreTheme {
 
   LyreTheme({
+    this.dark,
     this.name,
     Color primaryColor,
     Color accentColor,
@@ -18,7 +19,8 @@ class LyreTheme {
     Color canvasColor,
     Color contentBackgroundColor,
     this.borderRadius,
-    this.contentElevation
+    this.contentElevation,
+    this.cardMargin
   }) : 
     this.primaryColor = primaryColor.toHex(),
     this.accentColor = accentColor.toHex(),
@@ -28,6 +30,9 @@ class LyreTheme {
     this.pinnedTextColor = pinnedTextColor.toHex(),
     this.canvasColor = canvasColor.toHex(),
     this.contentBackgroundColor = contentBackgroundColor.toHex();
+
+  @HiveField(11)
+  final bool dark;
 
   @HiveField(0)
   final String name;
@@ -54,22 +59,54 @@ class LyreTheme {
   @HiveField(10)
   final double contentElevation;
 
+  @HiveField(12)
+  final double cardMargin;
+
   ThemeData get toThemeData => ThemeData(
-    // brightness: Brightness.light,
+    brightness: dark ? Brightness.dark : Brightness.light,
     primaryColor: HexColor.fromHex(primaryColor),
     cardColor: HexColor.fromHex(contentBackgroundColor),
     accentColor: HexColor.fromHex(accentColor),
     highlightColor: HexColor.fromHex(highLightColor),
-    textTheme: Typography.whiteMountainView..apply(
-      bodyColor: HexColor.fromHex(primaryTextColor),
-      displayColor: HexColor.fromHex(secondaryTextColor),
+    splashColor: Colors.grey,
+    textTheme: TextTheme(
+      body1: TextStyle(color: HexColor.fromHex(primaryTextColor)),
+      body2: TextStyle(
+        color: HexColor.fromHex(secondaryTextColor),
+        fontSize: 11.0,
+        fontWeight: FontWeight.normal
+      ),
+      display1: TextStyle(color: HexColor.fromHex(primaryTextColor)),
+      title: TextStyle(color: HexColor.fromHex(primaryTextColor))
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      hintStyle: _inputHelpText,
+      labelStyle: _inputHelpText,
+      helperStyle: _inputHelpText,
+      prefixStyle: _inputHelpText,
+      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: HexColor.fromHex(accentColor))),
+      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: HexColor.fromHex(secondaryTextColor))),
     ),
     buttonColor: HexColor.fromHex(accentColor),
     canvasColor: HexColor.fromHex(canvasColor),
     backgroundColor: HexColor.fromHex(contentBackgroundColor),
-    iconTheme: IconThemeData(color: HexColor.fromHex(primaryTextColor)),
-    cardTheme: CardTheme(elevation: contentElevation, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()))),
-    buttonTheme: ButtonThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()))),
-    bottomSheetTheme: BottomSheetThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble())))
+    iconTheme: IconThemeData(color: HexColor.fromHex(secondaryTextColor)),
+    cardTheme: CardTheme(
+      margin: EdgeInsets.all(cardMargin),
+      elevation: contentElevation, 
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble())),
+      clipBehavior: Clip.antiAlias
+    ),
+    buttonTheme: ButtonThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()), side: BorderSide(color: HexColor.fromHex(secondaryTextColor))),
+      buttonColor: HexColor.fromHex(accentColor),
+      textTheme: ButtonTextTheme.primary
+    ),
+    bottomSheetTheme: BottomSheetThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(borderRadius.toDouble()), topRight: Radius.circular(borderRadius.toDouble()))))
+  );
+  TextStyle get _inputHelpText => TextStyle(
+    color: HexColor.fromHex(secondaryTextColor),
+    fontSize: 14.0,
+    fontWeight: FontWeight.normal
   );
 }

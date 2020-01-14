@@ -61,8 +61,8 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _willPop,
-      child: Container(
-        color: Theme.of(context).cardColor,
+      child: Material(
+        textStyle: Theme.of(context).primaryTextTheme.body1,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

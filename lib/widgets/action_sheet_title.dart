@@ -22,7 +22,7 @@ class ActionSheetTitle extends StatelessWidget {
               maxLines: 1,
               softWrap: true,
               overflow: TextOverflow.ellipsis,
-              style: LyreTextStyles.bottomSheetTitle,
+              style: LyreTextStyles.bottomSheetTitle(context),
             )
           ),
           showAction

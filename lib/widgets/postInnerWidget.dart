@@ -414,6 +414,7 @@ class defaultColumn extends StatelessWidget {
               child: MarkdownBody(
                 data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
                 styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+                onTapLink: handleLinkClick,
                 fitContent: true,
               ),
               padding: const EdgeInsets.only(

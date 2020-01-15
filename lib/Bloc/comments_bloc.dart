@@ -53,7 +53,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         submission = userContent;
         comments = _retrieveCommentsFromForest(userContent.comments.comments);
       } else {
-        submission = event.submission as Submission;
+        submission = event.submission != null ? event.submission as Submission : state.submission;
         var forest = await submission.refreshComments(sort: event.commentSortType);
         comments = _retrieveCommentsFromForest(forest.comments);
       }

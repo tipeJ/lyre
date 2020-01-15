@@ -99,7 +99,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
         title: Row(children: <Widget>[
           Padding(
             padding: EdgeInsets.only(right: 5.0),
-            child: _getTypeIcon(types[index])
+            child: _getTypeIcon(context, types[index])
           ),
           Text(StringUtils.capitalize(types[index]))
         ]),
@@ -125,7 +125,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
         title: Row(children: <Widget>[
           Padding(
             padding: EdgeInsets.only(right: 5.0),
-            child: _getTypeIcon(sortTimes[index])
+            child: _getTypeIcon(context, sortTimes[index])
           ),
           Text(StringUtils.capitalize(sortTimes[index]))
         ]),
@@ -142,7 +142,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
   }
 }
 
-Widget _getTypeIcon(String type) {
+Widget _getTypeIcon(BuildContext context, String type) {
     switch (type) {
       // * Type sort icons:
       case 'new':
@@ -157,13 +157,13 @@ Widget _getTypeIcon(String type) {
       case 'hour':
         return Icon(MdiIcons.clock);
       case '24h':
-        return Text('24', style: LyreTextStyles.iconText);
+        return Text('24', style: LyreTextStyles.iconText.apply(color: Theme.of(context).iconTheme.color));
       case 'week':
         return Icon(MdiIcons.calendarWeek);
       case 'month':
         return Icon(MdiIcons.calendarMonth);
       case 'year':
-        return Text('365', style: LyreTextStyles.iconText.apply(fontSizeFactor: 2/3));
+        return Text('365', style: LyreTextStyles.iconText.apply(fontSizeFactor: 2/3, color: Theme.of(context).iconTheme.color));
       case 'all time':
         return Icon(MdiIcons.infinity);
       default:

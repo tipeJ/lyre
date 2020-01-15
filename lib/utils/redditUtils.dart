@@ -13,6 +13,7 @@ Color getScoreColor(VoteableMixin m, BuildContext context){
         return Theme.of(context).textTheme.body2.color;
     }
 }
+urlFromPermalink(String permalink) => "www.old.reddit.com$permalink";
 CommentSortType parseCommentSortType(String sortString){
   switch (sortString) {
     case "Best":

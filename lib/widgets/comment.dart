@@ -13,6 +13,12 @@ import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../utils/redditUtils.dart';
 
+class CommentOptionsNotification extends Notification {
+  final Comment comment;
+
+  const CommentOptionsNotification({@required this.comment});
+}
+
 Color getColor(int depth) {
     if (depth >= 0 && depth <= colorList.length - 1) {
       return colorList[depth];
@@ -122,9 +128,9 @@ class _CommentWidgetState extends State<CommentWidget> {
               }
             ),
             ActionItems(
-              icon: const Icon(Icons.menu,),
+              icon: const Icon(Icons.menu),
               onPress: (){
-
+                CommentOptionsNotification(comment: widget.comment)..dispatch(context);
               }
             ),
           ],

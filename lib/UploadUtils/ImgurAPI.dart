@@ -46,7 +46,7 @@ class ImgurAPI {
   }
 
   ///Function for retreiving imgur album pictures, and mapping them to a LyreImage object.
-  Future<List<LyreImage>> getAlbumPictures(String url) async {
+  Future<List<LyreImage>> getAlbumPictures(String url, {String qualityKey}) async {
     final String id = url.split("/").last;
     final response = await http.get(
       albumGetUrl + id,
@@ -56,7 +56,6 @@ class ImgurAPI {
     );
     final imagesJson = json.decode(response.body)['data']['images'];
     final List<LyreImage> images = [];
-    final String qualityKey = await Hive.box('settings').get(IMGUR_THUMBNAIL_QUALITY, defaultValue: imgurThumbnailsQuality.keys.first); //Default thumbnail quality is the lowest
     final qualityValue = imgurThumbnailsQuality[qualityKey];
     imagesJson.forEach((image){
       final imageUrl = image['link'];

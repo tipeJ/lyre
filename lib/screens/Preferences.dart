@@ -3,9 +3,9 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/CustomExpansionTile.dart';
 import '../UploadUtils/ImgurAPI.dart';
-import '../Themes/themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Resources/PreferenceValues.dart';
 
@@ -491,7 +491,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               child: const Text('Themes'),
             ),
             onTap: () {
-              Navigator.of(context).pushNamed('themes');
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ThemeView()));
             },
           )
         ]

@@ -11,6 +11,8 @@ Color _getC(int r, int g, int b){
 }
 
 class defaultLyreThemes {
+  static List<LyreTheme> get defaultThemes => [darkTeal, lightBlue];
+
   static LyreTheme darkTeal = LyreTheme(
     name: "Dark Teal",
     dark: true,

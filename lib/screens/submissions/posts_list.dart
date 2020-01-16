@@ -45,6 +45,7 @@ enum _SubmissionSelectionVisibility {
 enum _OptionsVisibility {
   Default,
   Search,
+  ViewMode
 }
 enum _QuickText {
   Reply,
@@ -728,6 +729,19 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Icon(MdiIcons.fire);
     }
   }
+  IconData _postViewIconData(PostView postView) {
+    switch (postView) {
+      case PostView.Compact:
+        return MdiIcons.viewCompact;
+      case PostView.ImagePreview:
+        return MdiIcons.imageOutline;
+      case PostView.IntendedPreview:
+        return MdiIcons.imageArea;
+      default:
+        // Default to NoPreview
+        return MdiIcons.imageOff;
+    }
+  }
 
   List<Widget> _sortTypeParamsUser(){
     return new List<Widget>.generate(sortTypesuser.length, (int index) {
@@ -789,6 +803,35 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               onTap: () => Navigator.of(context).popAndPushNamed("search_communities")
             ),
           ],
+        );
+      case _OptionsVisibility.ViewMode:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ActionSheetTitle(title: "View Mode", actionCallBack: (){
+              _switchOptionsVisibility(_OptionsVisibility.Default);
+            }),
+          ]..addAll(List<Widget>.generate(PostView.values.length, (index) =>
+            BlocBuilder<PostsBloc, PostsState>(
+              builder: (context, state) {
+                final equals = state.viewMode == PostView.values[index];
+                return ActionSheetInkwell(
+                  title: Row(children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 5.0),
+                      child: Icon(_postViewIconData(PostView.values[index]), color: equals ? Theme.of(context).textTheme.body1.color : Theme.of(context).iconTheme.color)
+                    ),
+                    Text(PostViewTitles[index], style: equals ? const TextStyle(fontWeight: FontWeight.bold) : null)
+                  ]),
+                  // Send a PostView Change event if the selected ViewMode is not currently active
+                  onTap: !equals ? () {
+                    Navigator.of(context).pop();
+                    BlocProvider.of<PostsBloc>(context).add(ViewModeChanged(viewMode: PostView.values[index]));
+                  } : null,
+                );
+              }
+            ),
+          )),
         );
       default:
         return Column(
@@ -891,7 +934,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         expand: false,
                       ))
                     )
-                  : null
+                  : null,
+                  InkWell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.5),
+                      child: Row(children: [
+                        const Icon(MdiIcons.viewModule),
+                        Text("View Mode", style: Theme.of(context).textTheme.body2),
+                      ],),
+                    ),
+                    onTap: () => _switchOptionsVisibility(_OptionsVisibility.ViewMode),
+                  ),
                   ].where((w) => notNull(w)).toList(),
             ),
             Padding(
@@ -1470,12 +1523,12 @@ class _submissionList extends StatelessWidget {
     );
   }
   Widget _buildList(PostsState postsState, BuildContext context) {
-    var posts = postsState.userContent;
+    final posts = postsState.userContent;
     return CustomScrollView(
       physics: AlwaysScrollableScrollPhysics(),
       slivers: <Widget>[
         SliverPadding(
-          padding: EdgeInsets.only(bottom: 5.0),
+          padding: const EdgeInsets.only(bottom: 5.0),
           sliver: SliverAppBar(
             expandedHeight: 125.0,
             floating: false,
@@ -1529,9 +1582,9 @@ class _submissionList extends StatelessWidget {
                           padding: const EdgeInsets.all(10.0),
                           child: Builder(
                             builder: (context) {
-                              if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.LoadingMore) {
+                              if (postsState.state == LoadingState.LoadingMore) {
                                 return Center(child: const CircularProgressIndicator());
-                              } else if (BlocProvider.of<PostsBloc>(context).state.state == LoadingState.Error) {
+                              } else if (postsState.state == LoadingState.Error) {
                                 return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
                               }
                               return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
@@ -1547,7 +1600,7 @@ class _submissionList extends StatelessWidget {
                       previewSource: PreviewSource.PostsList,
                       linkType: linkType,
                       fullSizePreviews: state.fullSizePreviews,
-                      postView: state.viewMode,
+                      postView: postsState.viewMode,
                       showCircle: state.showPreviewCircle,
                       blurLevel: state.blurLevel.toDouble(),
                       showNsfw: state.showNSFWPreviews,

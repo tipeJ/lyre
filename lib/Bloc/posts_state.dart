@@ -1,7 +1,6 @@
 import 'package:basic_utils/basic_utils.dart';
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
-import 'package:lyre/Models/User.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
 import 'package:lyre/Resources/globals.dart';
@@ -25,6 +24,8 @@ class PostsState extends Equatable {
   final WikiPage sideBar;
   final Subreddit subreddit;
 
+  ///Media Preview Type
+  final PostView viewMode;
 
   PostsState({
     @required this.state,
@@ -33,12 +34,13 @@ class PostsState extends Equatable {
     @required this.userContent,
     @required this.typeFilter,
     @required this.timeFilter,
+    @required this.viewMode,
     this.errorMessage,
     this.sideBar,
     this.subreddit,
   });
 
-  List<dynamic> get props => [state, userContent, target, errorMessage];
+  List<dynamic> get props => [state, userContent, target, errorMessage, viewMode];
 
   String getSourceString({@required bool prefix}){
     switch (contentSource) {

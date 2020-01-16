@@ -14,7 +14,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   PostsBloc({this.firstState});
 
   @override //Default: Empty list of UserContent
-  PostsState get initialState => firstState ?? PostsState(state: LoadingState.Inactive, userContent: const [], contentSource : ContentSource.Subreddit, target: homeSubreddit, typeFilter: TypeFilter.Best, timeFilter: 'all');
+  PostsState get initialState => firstState ?? PostsState(state: LoadingState.Inactive, viewMode: PostView.Compact, userContent: const [], contentSource : ContentSource.Subreddit, target: homeSubreddit, typeFilter: TypeFilter.Best, timeFilter: 'all');
 
   final _repository = PostsProvider();
 
@@ -35,6 +35,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         sideBar: state.sideBar,
         typeFilter: state.typeFilter,
         timeFilter: state.timeFilter,
+        viewMode: PostView.Compact
       );
     } else {
       /// When [ContentSource] has been Changed
@@ -45,7 +46,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: event.target,
           userContent: const [],
           typeFilter: state.typeFilter,
-          timeFilter: state.timeFilter
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
         );
         WikiPage sideBar;
         Subreddit subreddit;
@@ -61,10 +63,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         final preferences = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
         TypeFilter sortType;
         String sortTime;
-        if(preferences.get(SUBMISSION_RESET_SORTING) ?? true){ 
+        PostView viewMode = state.viewMode;
+
+        if (preferences.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT)){ 
           // Reset Current Sort Configuration if user has set it to reset
           sortType = parseTypeFilter(preferences.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: sortTypes[0]));
           sortTime = preferences.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: defaultSortTime);
+        }
+        if (preferences.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT)) {
+          viewMode = preferences.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT);
         }
 
         switch (source) {
@@ -101,7 +108,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           sideBar: sideBar,
           subreddit: subreddit,
           typeFilter: sortType,
-          timeFilter: sortTime
+          timeFilter: sortTime,
+          viewMode: viewMode
         );
         preferences.close();
       } else if (event is ParamsChanged){
@@ -111,7 +119,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           userContent: const [],
           typeFilter: state.typeFilter,
-          timeFilter: state.timeFilter
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
         );
         List<UserContent> userContent;
         LoadingState loadingState = LoadingState.Inactive;
@@ -133,7 +142,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           sideBar: state.sideBar,
           typeFilter: event.typeFilter,
-          timeFilter: event.timeFilter
+          timeFilter: event.timeFilter,
+          viewMode: state.viewMode
         );
       } else if (event is FetchMore){
         yield PostsState(
@@ -142,7 +152,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           userContent: state.userContent,
           typeFilter: state.typeFilter,
-          timeFilter: state.timeFilter
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
         );
 
         final last = state.userContent.last;
@@ -162,15 +173,22 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           sideBar: state.sideBar,
           typeFilter: state.typeFilter,
-          timeFilter: state.timeFilter
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
+        );
+      } else if (event is ViewModeChanged) {
+        yield PostsState(
+          state: state.state,
+          errorMessage: state.errorMessage,
+          userContent: state.userContent,
+          contentSource: state.contentSource,
+          target: state.target,
+          sideBar: state.sideBar,
+          typeFilter: state.typeFilter,
+          timeFilter: state.timeFilter,
+          viewMode: event.viewMode
         );
       }
     }
   }
-}
-enum LoadingState {
-  Inactive,
-  Error,
-  LoadingMore,
-  Refreshing,
 }

@@ -44,6 +44,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
         defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
         resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
+        resetViewmodeWhenRefreshingSubmissions: settings.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT),
         autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
 
         defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),
@@ -121,6 +122,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       defaultSortType: state.defaultSortType,
       defaultSortTime: state.defaultSortTime,
       resetWhenRefreshingSubmissions: state.resetWhenRefreshingSubmissions,
+      resetViewmodeWhenRefreshingSubmissions: state.resetViewmodeWhenRefreshingSubmissions,
       autoLoadSubmissions: state.autoLoadSubmissions,
 
       defaultCommentsSort: state.defaultCommentsSort,
@@ -214,6 +216,7 @@ Future<LyreState> newLyreState([String displayName]) async {
       defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
       defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
       resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
+      resetViewmodeWhenRefreshingSubmissions: settings.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT),
       autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
 
       defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),

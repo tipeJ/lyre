@@ -238,6 +238,17 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
               },)
           ),
           _SettingsTitleRow(
+            title: "Reset PostView When Refreshing Submission List",
+            description: "Will refreshing Submission list or entering a new Submission list reset PostView Setting to the default one)",
+            leading: Checkbox(
+              value: box.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT),
+              onChanged: (value){
+                setState(() {
+                  box.put(SUBMISSION_VIEWMODE_RESET, value);
+                });
+              },)
+          ),
+          _SettingsTitleRow(
             title: "Show Circle Around Preview Indicator",
             description: "When enabled, show a circle around the link indicator (video, image, etc..)",
             leading: Checkbox(

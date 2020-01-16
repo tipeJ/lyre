@@ -27,6 +27,8 @@ const SUBREDDIT_HOME_DEFAULT = "_";
 // * Submissions
 const SUBMISSION_VIEWMODE = "submissionViewMode";
 const SUBMISSION_VIEWMODE_DEFAULT = PostView.Compact;
+const SUBMISSION_VIEWMODE_RESET = "resetSubmissionViewMode";
+const SUBMISSION_VIEWMODE_RESET_DEFAULT = true;
 const SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
 const SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT = false;
 const SUBMISSION_DEFAULT_SORT_TYPE = "defaultSortType";

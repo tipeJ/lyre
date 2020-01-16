@@ -33,6 +33,7 @@ class LyreState extends Equatable {
   final String defaultSortType;
   final String defaultSortTime;
   final bool resetWhenRefreshingSubmissions;
+  final bool resetViewmodeWhenRefreshingSubmissions;
   final bool autoLoadSubmissions;
 
   final String defaultCommentsSort;
@@ -73,6 +74,7 @@ class LyreState extends Equatable {
       @required this.defaultSortType,
       @required this.defaultSortTime,
       @required this.resetWhenRefreshingSubmissions,
+      @required this.resetViewmodeWhenRefreshingSubmissions,
       @required this.autoLoadSubmissions,
 
       @required this.defaultCommentsSort,
@@ -112,6 +114,7 @@ class LyreState extends Equatable {
       defaultSortType,
       defaultSortTime,
       resetWhenRefreshingSubmissions,
+      resetViewmodeWhenRefreshingSubmissions,
       autoLoadSubmissions,
 
       defaultCommentsSort,

@@ -780,7 +780,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ActionSheetTitle(title: "Search", actionCallBack: (){
               _switchOptionsVisibility(_OptionsVisibility.Default);
             }),
-            const Divider(),
             ActionSheetInkwell(
               title: Text("Submissions", style: Theme.of(context).textTheme.body1),
               onTap: () => Navigator.of(context).popAndPushNamed("search_usercontent")
@@ -849,7 +848,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 ),
               )
             ),
-            const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
@@ -871,7 +869,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       Text("Open", style: Theme.of(context).textTheme.body2),
                     ],),
                   ),
-                  onTap: () => _switchOptionsVisibility(_OptionsVisibility.Search),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _prepareQuickTextInput(_QuickText.QuickAction);
+                  },
                 ),
                 BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
                   ? InkWell(
@@ -894,7 +895,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   ].where((w) => notNull(w)).toList(),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(children: [
                 Expanded(
                   child: Text("Night Mode", style: Theme.of(context).textTheme.body1),
@@ -1480,7 +1481,7 @@ class _submissionList extends StatelessWidget {
             floating: false,
             pinned: false,
             backgroundColor: Theme.of(context).canvasColor,
-            actions: const [],
+            actions: [Container()],
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: false,

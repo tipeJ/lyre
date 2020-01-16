@@ -22,20 +22,6 @@ enum _CommentSelectionVisibility {
   Copy,
 }
 
-class CommentsList extends StatelessWidget{
-  final Submission submission;
-
-  CommentsList(this.submission);
-
-  @override
-  Widget build(BuildContext context){
-    return BlocProvider(
-      create: (context) => CommentsBloc(this.submission),
-      child: CommentList(),
-    );
-  }
-}
-
 class CommentList extends StatefulWidget {
 
   CommentList();
@@ -49,21 +35,20 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   CommentListState();
 
-  CommentsBloc bloc;
-
   Comment _selectedComment;
   _CommentSelectionVisibility _commentSelectionVisibility;
   PersistentBottomSheetController _bottomSheetController;
   
   @override
   void dispose() { 
-    bloc.drain();
+    BlocProvider.of<CommentsBloc>(context).close();
+    BlocProvider.of<CommentsBloc>(context).close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    bloc = BlocProvider.of<CommentsBloc>(context);
+    final bloc = BlocProvider.of<CommentsBloc>(context);
     if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
       bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }

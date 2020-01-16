@@ -63,6 +63,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
       onWillPop: _willPop,
       child: Material(
         textStyle: Theme.of(context).primaryTextTheme.body1,
+        color: Colors.transparent,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

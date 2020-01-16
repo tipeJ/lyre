@@ -293,11 +293,11 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
   return [ 
     new Padding(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           Text("${comment.score} ",
             textAlign: TextAlign.left,
-            textScaleFactor: 0.65,
-            style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(comment, context), fontSizeFactor: 0.9),
+            style: Theme.of(context).textTheme.body2.apply(color: getScoreColor(comment, context)),
           ),
           Text(
             "● u/${comment.author}",
@@ -305,19 +305,19 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
           ),
           previewSource != PreviewSource.Comments
             ? Padding(
-                padding: EdgeInsets.only(left: 3.5),
+                padding: const EdgeInsets.only(left: 3.5),
                 child: Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(text: "in "),
-                      TextSpan(text: "${comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).accentColor))
+                      const TextSpan(text: "in "),
+                      TextSpan(text: "${comment.subreddit.displayName}", style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor))
                     ]
                   ),
                   style: Theme.of(context).textTheme.body2,
                 )
             )
             : null,
-          Spacer(),
+          const Spacer(),
           Text(
             getSubmissionAge(comment.createdUtc),
             style: Theme.of(context).textTheme.body2,

@@ -95,14 +95,17 @@ class LyreTheme {
       margin: EdgeInsets.all(cardMargin),
       elevation: contentElevation, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble())),
-      clipBehavior: Clip.antiAlias
+      clipBehavior: Clip.hardEdge
     ),
     buttonTheme: ButtonThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius.toDouble()), side: BorderSide(color: HexColor.fromHex(secondaryTextColor))),
       buttonColor: HexColor.fromHex(accentColor),
       textTheme: ButtonTextTheme.primary
     ),
-    bottomSheetTheme: BottomSheetThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(borderRadius.toDouble()), topRight: Radius.circular(borderRadius.toDouble()))))
+    bottomSheetTheme: BottomSheetThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(borderRadius.toDouble()), topRight: Radius.circular(borderRadius.toDouble()))),
+      backgroundColor: HexColor.fromHex(primaryColor)
+    )
   );
   TextStyle get _inputHelpText => TextStyle(
     color: HexColor.fromHex(secondaryTextColor),

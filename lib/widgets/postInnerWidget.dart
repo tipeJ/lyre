@@ -460,56 +460,24 @@ class defaultColumn extends StatelessWidget {
                   builder: (context, state) {
                     return prefix1.Visibility(
                       visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
-                      child: Padding(
-                        child: Text(
-                          "u/${submission.author}",
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.body2.color,
-                            fontSize: _defaultColumnTextSize,
-                          ),
-                          textAlign: TextAlign.left,),
-                        padding: _defaultColumnPadding),
+                      child: _authorText(context),
                     );
                   },
                 )
-                : Padding(
-                    child: Text(
-                      "u/${submission.author}",
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.body2.color,
-                        fontSize: _defaultColumnTextSize,
-                      ),
-                      textAlign: TextAlign.left,),
-                    padding: _defaultColumnPadding),
+                : _authorText(context),
               previewSource == PreviewSource.PostsList
                 ? BlocBuilder<PostsBloc, PostsState>(
                   builder: (context, state) {
                     return prefix1.Visibility(
                       visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
-                      child: Padding(
-                        child: Text(
-                          "r/${submission.subreddit.displayName}",
-                          style: TextStyle(
-                            fontSize: _defaultColumnTextSize,
-                            color: Theme.of(context).accentColor
-                          ),
-                          textAlign: TextAlign.left,),
-                        padding: _defaultColumnPadding)
+                      child: _subRedditText(context)
                     );
                   },
                 )
-                : Padding(
-                    child: Text(
-                      "r/${submission.subreddit.displayName}",
-                      style: TextStyle(
-                        color: Theme.of(context).accentColor,
-                        fontSize: _defaultColumnTextSize,
-                      ),
-                      textAlign: TextAlign.left,),
-                    padding: _defaultColumnPadding),
+                : _subRedditText(context),
               Padding(
                 child: Text(
-                  "${submission.numComments} comments",
+                  "● ${submission.numComments} comments",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
                     fontSize: _defaultColumnTextSize,
@@ -519,7 +487,7 @@ class defaultColumn extends StatelessWidget {
               ),
               Padding(
                 child: Text(
-                  getSubmissionAge(submission.createdUtc),
+                  "● ${getSubmissionAge(submission.createdUtc)}",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
                     fontSize: _defaultColumnTextSize,
@@ -530,14 +498,14 @@ class defaultColumn extends StatelessWidget {
               submission.isSelf ? null :
                 Padding(
                     child: Text(
-                        submission.domain,
+                        "● ${submission.domain}",
                         style: TextStyle(
                           color: Theme.of(context).textTheme.body2.color,
                           fontSize: _defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
                     padding: _defaultColumnPadding),
-                  submission.gold != null && submission.gold >= 1 ?
+              submission.gold != null && submission.gold >= 1 ?
                 Padding(
                   child: Container(
                       decoration: BoxDecoration(
@@ -549,30 +517,30 @@ class defaultColumn extends StatelessWidget {
                     ),
                   padding: _defaultColumnPadding,
                 ) : null,
-                submission.silver != null && submission.silver >= 1 ?
-                  Padding(
-                    child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 192, 192, 192),
-                        ),
-                        width: 8.0,
-                        height: 8.0
+              submission.silver != null && submission.silver >= 1 ?
+                Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 192, 192, 192),
                       ),
-                    padding: _defaultColumnPadding,
-                  ) : null,
-              submission.platinum != null && submission.platinum >= 1 ?
-              Padding(
-                child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color.fromARGB(255, 229, 228, 226),
+                      width: 8.0,
+                      height: 8.0
                     ),
-                    width: 8.0,
-                    height: 8.0
-                  ),
-                padding: _defaultColumnPadding,
-              ) : null,
+                  padding: _defaultColumnPadding,
+                ) : null,
+              submission.platinum != null && submission.platinum >= 1 ?
+                Padding(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color.fromARGB(255, 229, 228, 226),
+                      ),
+                      width: 8.0,
+                      height: 8.0
+                    ),
+                  padding: _defaultColumnPadding,
+                ) : null,
                 
           ].where(notNull).toList()
           ),
@@ -588,5 +556,41 @@ class defaultColumn extends StatelessWidget {
       },
       onLongPress: onLongPress,
     );
+  }
+  Widget _authorText(BuildContext context) {
+    return Padding(
+      child: Text.rich(
+        TextSpan(
+          style: Theme.of(context).textTheme.body2,
+          children: <TextSpan> [
+            const TextSpan(
+              text: "● ",
+            ),
+            TextSpan(
+              text: "u/${submission.author}",
+              style: Theme.of(context).textTheme.body2,
+            )
+          ]
+        ),
+        textAlign: TextAlign.left),
+      padding: _defaultColumnPadding);
+  }
+  Widget _subRedditText(BuildContext context) {
+    return Padding(
+      child: Text.rich(
+        TextSpan(
+          style: Theme.of(context).textTheme.body2,
+          children: <TextSpan> [
+            const TextSpan(
+              text: "● ",
+            ),
+            TextSpan(
+              text: "r/${submission.subreddit.displayName}",
+              style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor),
+            )
+          ]
+        ),
+        textAlign: TextAlign.left),
+      padding: _defaultColumnPadding);
   }
 }

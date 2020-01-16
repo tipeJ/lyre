@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'bloc.dart';
+import 'package:lyre/Resources/globals.dart';
 
 @immutable
 class CommentsState extends Equatable {

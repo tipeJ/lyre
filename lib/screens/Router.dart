@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/Bloc/bloc.dart';
 
@@ -34,7 +35,8 @@ class Router {
             contentSource: source,
             typeFilter: TypeFilter.Best,
             timeFilter: 'all',
-            target: target
+            target: target,
+            viewMode: BlocProvider.of<LyreBloc>(context).state.viewMode
           )),
           child: PostsList(),
         ));

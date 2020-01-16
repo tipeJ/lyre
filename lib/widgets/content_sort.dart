@@ -99,7 +99,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
       return ActionSheetInkwell(
         title: Row(children: <Widget>[
           Padding(
-            padding: EdgeInsets.only(right: 5.0),
+            padding: const EdgeInsets.only(right: 5.0),
             child: _getTypeIcon(context, types[index])
           ),
           Text(StringUtils.capitalize(types[index]))
@@ -125,7 +125,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
       return ActionSheetInkwell(
         title: Row(children: <Widget>[
           Padding(
-            padding: EdgeInsets.only(right: 5.0),
+            padding: const EdgeInsets.only(right: 5.0),
             child: _getTypeIcon(context, sortTimes[index])
           ),
           Text(StringUtils.capitalize(sortTimes[index]))

@@ -99,7 +99,6 @@ class SidebarView extends StatelessWidget {
       automaticallyImplyLeading: false,
       pinned: true,
       actions: [Container()],
-      backgroundColor: Theme.of(context).canvasColor,
       titleSpacing: 0.0,
     ),
     notNull(state.sideBar)

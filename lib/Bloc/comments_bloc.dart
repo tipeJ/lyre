@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
 import 'bloc.dart';
+import 'package:lyre/Resources/globals.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
   CommentsState _firstState;

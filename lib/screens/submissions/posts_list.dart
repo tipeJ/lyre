@@ -849,7 +849,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           child: Container(
                             width: 25,
                             height: 25,
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).accentColor,
                             child: state.currentUser != null
                               ? Image(
                                   image: AdvancedNetworkImage(
@@ -857,7 +857,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                     cacheRule: const CacheRule(maxAge: Duration(days: 31))
                                   ),
                                 )
-                              : const Center(child: Text("?", style: TextStyle(fontWeight: FontWeight.bold)))
+                              : const Center(child: Text('?', style: TextStyle(fontWeight: FontWeight.bold)))
                           )
                         )
                       ),

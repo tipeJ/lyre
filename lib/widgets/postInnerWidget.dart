@@ -178,7 +178,7 @@ class postInnerWidget extends StatelessWidget{
       ),
       
       onTap: () {
-        _handleClick(context);
+        _handleClick(linkType, submission, context);
       },
       onLongPress: (){
         _handlePress(context);
@@ -195,14 +195,6 @@ class postInnerWidget extends StatelessWidget{
       //The fixed height of the post image:
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
     );
-  }
-
-  void _handleClick(BuildContext context){
-    if (linkType == LinkType.RedditVideo) {
-      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
-    } else {
-      handleLinkClick(submission.url.toString(), linkType, context);
-    }
   }
 
   void _handlePress(BuildContext context){
@@ -280,6 +272,14 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 }
+
+void _handleClick(LinkType linkType, Submission submission, BuildContext context){
+    if (linkType == LinkType.RedditVideo) {
+      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
+    } else {
+      handleLinkClick(submission.url, linkType, context);
+    }
+  }
 
 ///Sliding style column for [Submission] Widgets
 class _SlideColumn extends StatefulWidget {
@@ -392,17 +392,7 @@ class _defaultColumn extends StatelessWidget {
                       : Theme.of(context).textTheme.body1.color),
                 ),
                 onTap: (){
-                  switch (linkType) {
-                    case LinkType.YouTube:
-                      playYouTube(submission.url.toString());
-                      break;
-                    case LinkType.Default:
-                      launchURL(context, submission);
-                      break;
-                    default:
-                      PreviewCall().callback.preview(submission.url.toString());
-                      break;
-                  }
+                  _handleClick(linkType, submission, context);
                 },
               ),
               padding:
@@ -415,7 +405,7 @@ class _defaultColumn extends StatelessWidget {
               child: MarkdownBody(
                 data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
                 styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
-                onTapLink: handleLinkClick,
+                onTapLink: (String s) => handleLinkClick(Uri.parse(s)),
                 fitContent: true,
               ),
               padding: const EdgeInsets.only(

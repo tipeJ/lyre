@@ -61,32 +61,36 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _willPop,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizeTransition(
-            sizeFactor: _typeExpansionController,
-            child: Column(
-              children: <Widget>[
-            const ActionSheetTitle(title: "Sort"),
-              ]..addAll(_sortTypeParams(widget.types)),
+      child: Material(
+        textStyle: Theme.of(context).primaryTextTheme.body1,
+        color: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizeTransition(
+              sizeFactor: _typeExpansionController,
+              child: Column(
+                children: <Widget>[
+              const ActionSheetTitle(title: "Sort"),
+                ]..addAll(_sortTypeParams(widget.types)),
+              ),
             ),
+            //const Divider(),
+          ]..add(
+            SizeTransition(
+              sizeFactor: _timeExpansionController,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ActionSheetTitle(
+                    title: _typeFilter.isNotEmpty ? StringUtils.capitalize(_typeFilter) : "",
+                    actionCallBack: _reverse,
+                  )
+                ]..addAll(_sortTimeParams()),
+              ),
+            )
           ),
-          //const Divider(),
-        ]..add(
-          SizeTransition(
-            sizeFactor: _timeExpansionController,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ActionSheetTitle(
-                  title: _typeFilter.isNotEmpty ? StringUtils.capitalize(_typeFilter) : "",
-                  actionCallBack: _reverse,
-                )
-              ]..addAll(_sortTimeParams()),
-            ),
-          )
-        ),
+        )
       )
     );
   }
@@ -95,8 +99,8 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
       return ActionSheetInkwell(
         title: Row(children: <Widget>[
           Padding(
-            padding: EdgeInsets.only(right: 5.0),
-            child: _getTypeIcon(types[index])
+            padding: const EdgeInsets.only(right: 5.0),
+            child: _getTypeIcon(context, types[index])
           ),
           Text(StringUtils.capitalize(types[index]))
         ]),
@@ -121,8 +125,8 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
       return ActionSheetInkwell(
         title: Row(children: <Widget>[
           Padding(
-            padding: EdgeInsets.only(right: 5.0),
-            child: _getTypeIcon(sortTimes[index])
+            padding: const EdgeInsets.only(right: 5.0),
+            child: _getTypeIcon(context, sortTimes[index])
           ),
           Text(StringUtils.capitalize(sortTimes[index]))
         ]),
@@ -139,7 +143,7 @@ class _ContentSortState extends State<ContentSort> with TickerProviderStateMixin
   }
 }
 
-Widget _getTypeIcon(String type) {
+Widget _getTypeIcon(BuildContext context, String type) {
     switch (type) {
       // * Type sort icons:
       case 'new':
@@ -154,13 +158,13 @@ Widget _getTypeIcon(String type) {
       case 'hour':
         return Icon(MdiIcons.clock);
       case '24h':
-        return Text('24', style: LyreTextStyles.iconText);
+        return Text('24', style: LyreTextStyles.iconText.apply(color: Theme.of(context).iconTheme.color));
       case 'week':
         return Icon(MdiIcons.calendarWeek);
       case 'month':
         return Icon(MdiIcons.calendarMonth);
       case 'year':
-        return Text('365', style: LyreTextStyles.iconText.apply(fontSizeFactor: 2/3));
+        return Text('365', style: LyreTextStyles.iconText.apply(fontSizeFactor: 2/3, color: Theme.of(context).iconTheme.color));
       case 'all time':
         return Icon(MdiIcons.infinity);
       default:

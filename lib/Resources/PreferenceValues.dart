@@ -9,6 +9,7 @@ const ASSET_FRONTPAGE_BANNER_NIGHT = "assets/banner_frontpage.png";
 // * Settings
 const BOX_SETTINGS_PREFIX = "settings_";
 const BOX_SUBSCRIPTIONS_PREFIX = "subscriptionsbox_";
+const BOX_THEMES = "themesbox";
 
 // * Themes
 const CURRENT_THEME = "currentTheme";
@@ -26,6 +27,8 @@ const SUBREDDIT_HOME_DEFAULT = "_";
 // * Submissions
 const SUBMISSION_VIEWMODE = "submissionViewMode";
 const SUBMISSION_VIEWMODE_DEFAULT = PostView.Compact;
+const SUBMISSION_VIEWMODE_RESET = "resetSubmissionViewMode";
+const SUBMISSION_VIEWMODE_RESET_DEFAULT = true;
 const SUBMISSION_PREVIEW_SHOWCIRCLE = "submissionShowCircle";
 const SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT = false;
 const SUBMISSION_DEFAULT_SORT_TYPE = "defaultSortType";

@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 @immutable
 class LyreState extends Equatable {
-  final ThemeData themeData;
+  final LyreTheme currentTheme;
   final bool readOnly;
   final List<String> userNames;
   final Redditor currentUser;
@@ -23,7 +23,6 @@ class LyreState extends Equatable {
 
   // * Preferences
 
-  final LyreTheme currentTheme;
   final String home;
   final String homeSubreddit;
 
@@ -34,6 +33,7 @@ class LyreState extends Equatable {
   final String defaultSortType;
   final String defaultSortTime;
   final bool resetWhenRefreshingSubmissions;
+  final bool resetViewmodeWhenRefreshingSubmissions;
   final bool autoLoadSubmissions;
 
   final String defaultCommentsSort;
@@ -57,7 +57,6 @@ class LyreState extends Equatable {
   final bool legacySorting;
 
   const LyreState({
-      @required this.themeData,
       @required this.userNames,
       @required this.currentUser,
       @required this.readOnly,
@@ -75,6 +74,7 @@ class LyreState extends Equatable {
       @required this.defaultSortType,
       @required this.defaultSortTime,
       @required this.resetWhenRefreshingSubmissions,
+      @required this.resetViewmodeWhenRefreshingSubmissions,
       @required this.autoLoadSubmissions,
 
       @required this.defaultCommentsSort,
@@ -98,7 +98,6 @@ class LyreState extends Equatable {
 
     @override
     List<dynamic> get props => [
-      themeData, 
       readOnly, 
       userNames, 
       currentUser, 
@@ -115,6 +114,7 @@ class LyreState extends Equatable {
       defaultSortType,
       defaultSortTime,
       resetWhenRefreshingSubmissions,
+      resetViewmodeWhenRefreshingSubmissions,
       autoLoadSubmissions,
 
       defaultCommentsSort,

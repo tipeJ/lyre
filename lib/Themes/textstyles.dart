@@ -12,7 +12,7 @@ class LyreTextStyles {
 
   static const dialogTitle = TextStyle(fontSize: 24.0);
 
-  static const bottomSheetTitle = TextStyle(fontSize: 16.0, color: Colors.grey, fontWeight: FontWeight.bold);
+  static bottomSheetTitle(BuildContext context) => TextStyle(fontSize: 16.0, color: Theme.of(context).primaryTextTheme.display1.color, fontWeight: FontWeight.bold);
 
   static const typeParams = TextStyle(fontSize: 26.0);
   static const timeParams = TextStyle(fontSize: 13.0);
@@ -22,6 +22,19 @@ class LyreTextStyles {
   static const submissionPreviewSelftext = TextStyle(fontSize: 13.0, fontWeight: FontWeight.normal);
 
   static MarkdownStyleSheet getMarkdownStyleSheet(BuildContext context) => MarkdownStyleSheet(
-    blockquoteDecoration: BoxDecoration(color: Theme.of(context).cardColor),
+    tableCellsDecoration: BoxDecoration(color: Theme.of(context).cardColor),
+    p: Theme.of(context).primaryTextTheme.body1,
+    a: TextStyle(color: Theme.of(context).accentColor),
+    h1: Theme.of(context).primaryTextTheme.body1,
+    h2: Theme.of(context).primaryTextTheme.body1,
+    h3: Theme.of(context).primaryTextTheme.body1,
+    h4: Theme.of(context).primaryTextTheme.body1,
+    h5: Theme.of(context).primaryTextTheme.body1,
+    h6: Theme.of(context).primaryTextTheme.body1,
+    tableHead: Theme.of(context).primaryTextTheme.display1,
+    tableBody: Theme.of(context).primaryTextTheme.body1,
+    blockquoteDecoration: BoxDecoration(
+      border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 3.5))
+    ),
   );
 }

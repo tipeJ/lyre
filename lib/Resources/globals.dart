@@ -22,7 +22,14 @@ const FRONTPAGE_HOME_SUB = "_";
 
 String homeSubreddit;
 
-@HiveType(adapterName: "PostViewAdapter")
+enum LoadingState {
+  Inactive,
+  Error,
+  LoadingMore,
+  Refreshing,
+}
+
+@HiveType(typeId: 0, adapterName: "PostsViewAdapter")
 enum PostView{
   @HiveField(0)
   ImagePreview,
@@ -33,6 +40,12 @@ enum PostView{
   @HiveField(3)
   NoPreview
 }
+const List<String> PostViewTitles = [
+  "Image Preview",
+  "Intended Image Preview",
+  "Compact",
+  "No Preview"
+];
 
 const List<String> sortTypes = [
   "hot",

@@ -1,11 +1,12 @@
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
 
 @immutable
 abstract class PostsEvent extends Equatable {
-  PostsEvent([List props = const <dynamic>[]]);
+  const PostsEvent([List props = const <dynamic>[]]);
 }
 
 class PostsSourceChanged extends PostsEvent {
@@ -16,7 +17,7 @@ class PostsSourceChanged extends PostsEvent {
 
   //Optional parameters:
 
-  PostsSourceChanged({
+  const PostsSourceChanged({
     this.typeFilter,
     this.timeFilter,
     this.source,
@@ -29,7 +30,7 @@ class ParamsChanged extends PostsEvent{
   final TypeFilter typeFilter;
   final String timeFilter;
 
-  ParamsChanged({
+  const ParamsChanged({
     @required this.typeFilter,
     @required this.timeFilter,
   }) : assert(typeFilter != null && timeFilter != null);
@@ -39,4 +40,13 @@ class ParamsChanged extends PostsEvent{
 
 class FetchMore extends PostsEvent {
   List<dynamic> get props => [];
+}
+
+class ViewModeChanged extends PostsEvent {
+  final PostView viewMode;
+
+  const ViewModeChanged({
+    this.viewMode
+  });
+  List<dynamic> get props => [viewMode];
 }

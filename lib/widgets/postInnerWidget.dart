@@ -3,12 +3,12 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as prefix1;
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix0;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'dart:ui';
@@ -28,7 +28,8 @@ class SubmissionOptionsNotification extends Notification {
 
   const SubmissionOptionsNotification({@required this.submission});
 }
-const _defaultColumnTextSize = 11.0;
+const __defaultColumnTextSize = 11.0;
+const __defaultColumnPadding = EdgeInsets.only(left: 5.0);
 
 class postInnerWidget extends StatelessWidget{
   const postInnerWidget({
@@ -58,7 +59,7 @@ class postInnerWidget extends StatelessWidget{
 
   final VoidCallback onOptionsClick;
 
-  Widget getWidget(BuildContext context){
+  Widget _getWidget(BuildContext context){
     if (submission.isSelf) {
       return getDefaultSlideColumn(context);
     }
@@ -71,25 +72,25 @@ class postInnerWidget extends StatelessWidget{
   Widget _getMediaWidget(BuildContext context) {
     switch (postView) {
       case PostView.IntendedPreview:
-        return intendedWidget(context);
+        return _intendedWidget(context);
       case PostView.ImagePreview:
-        return imagePreview(context);
+        return _imagePreview(context);
       case PostView.Compact:
-        return compactWidget(context);
+        return _compactWidget(context);
       default:
-        return defaultColumn(submission, previewSource, linkType, onOptionsClick);
+        return _defaultColumn(submission, previewSource, linkType, onOptionsClick);
     }
   }
 
-  Widget compactWidget(BuildContext context) {
+  Widget _compactWidget(BuildContext context) {
     return _SlideColumn(
-      child: new Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Row(
         children: <Widget>[
-          Container(
-            child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
-            width: MediaQuery.of(context).size.width * 0.9,
+          Expanded(
+            child: Container(
+              child: _defaultColumn(submission, previewSource, linkType, onOptionsClick),
+              width: MediaQuery.of(context).size.width * 0.9,
+            )
           ),
           getSquaredImage(context)
         ],
@@ -98,8 +99,8 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 
-  Column imagePreview(BuildContext context) {
-    return new Column(
+  Column _imagePreview(BuildContext context) {
+    return Column(
       children: <Widget>[
         _getExpandedImage(context),
         getDefaultSlideColumn(context)
@@ -107,7 +108,7 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 
-  Stack intendedWidget(BuildContext context) {
+  Stack _intendedWidget(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -124,13 +125,13 @@ class postInnerWidget extends StatelessWidget{
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    color: Colors.black,
+                    color: Theme.of(context).cardColor.withOpacity(0.6),
                     child: getDefaultSlideColumn(context),
                   ),
                 )
               : Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).cardColor.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
         ),
@@ -162,7 +163,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getImageWrapper(BuildContext context, BoxFit fit){
-    return new GestureDetector(
+    return GestureDetector(
       child: Image(
         color: Colors.black38,
         colorBlendMode: BlendMode.luminosity,
@@ -189,7 +190,7 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getSquaredImage(BuildContext context){
-    return new Container(
+    return Container(
       child: _getImageWidget(context, false),
       //The fixed height of the post image:
       constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
@@ -262,22 +263,20 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getDefaultSlideColumn(BuildContext context){
-    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
+    //return _defaultColumn(submission, previewSource, linkType, onOptionsClick);
+    return _SlideColumn(child: _defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
   }
 
 
   Widget build(BuildContext context) {
-    return ClipRRect(
-      child: Padding(
-        child: Container(
-          child: getWidget(context),
-          color: Theme.of(context).cardColor,
-        ),
-        padding: const EdgeInsets.only(
-          //The gap bewtween the widgets.
-          bottom: 5.0
-        ),
-      )
+    return Padding(
+      child: Card(
+        child: _getWidget(context),
+      ),
+      padding: const EdgeInsets.only(
+        //The gap bewtween the widgets.
+        bottom: 0.0
+      ),
     );
   }
 }
@@ -300,7 +299,7 @@ class _SlideColumn extends StatefulWidget {
 class __SlideColumnState extends State<_SlideColumn> {
   @override
   Widget build(BuildContext context) {
-    return new OnSlide(
+    return OnSlide(
       items: <ActionItems>[
         ActionItems(
           icon: Icon(
@@ -352,7 +351,7 @@ class __SlideColumnState extends State<_SlideColumn> {
         ),
         ActionItems(
           icon: const Icon(Icons.menu,color: Colors.grey,),
-          onPress: (){
+          onPress: () {
             SubmissionOptionsNotification(submission: this.widget.submission)..dispatch(context);
           }
         ),
@@ -363,8 +362,8 @@ class __SlideColumnState extends State<_SlideColumn> {
   }
 }
 
-class defaultColumn extends StatelessWidget {
-  defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
+class _defaultColumn extends StatelessWidget {
+  _defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
 
   final PreviewSource previewSource;
   final LinkType linkType;
@@ -377,168 +376,138 @@ class defaultColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Material(
-      color: Theme.of(context).cardColor,
-      child: InkWell(
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            new Padding(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  child: Text(
-                    submission.title,
-                    style: LyreTextStyles.submissionTitle.apply(
-                      color: (submission.stickied)
-                        ? Color.fromARGB(255, 0, 200, 53)
-                        : Colors.white),
-                  ),
-                  onTap: (){
-                    switch (linkType) {
-                      case LinkType.YouTube:
-                        playYouTube(submission.url.toString());
-                        break;
-                      case LinkType.Default:
-                        launchURL(context, submission);
-                        break;
-                      default:
-                        PreviewCall().callback.preview(submission.url.toString());
-                        break;
-                    }
+    return InkWell(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                child: Text(
+                  submission.title,
+                  style: LyreTextStyles.submissionTitle.apply(
+                    color: (submission.stickied)
+                      ? Color.fromARGB(255, 0, 200, 53)
+                      : Theme.of(context).textTheme.body1.color),
+                ),
+                onTap: (){
+                  switch (linkType) {
+                    case LinkType.YouTube:
+                      playYouTube(submission.url.toString());
+                      break;
+                    case LinkType.Default:
+                      launchURL(context, submission);
+                      break;
+                    default:
+                      PreviewCall().callback.preview(submission.url.toString());
+                      break;
+                  }
+                },
+              ),
+              padding:
+                  const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
+          (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
+            ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0)
+              ),
+              child: MarkdownBody(
+                data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
+                styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+                onTapLink: handleLinkClick,
+                fitContent: true,
+              ),
+              padding: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+              margin: const EdgeInsets.only(
+                left: 8.0,
+                right: 8.0,
+                top: 8.0,
+                bottom: 8.0
+              ),
+            )
+          : Container(height: 3.5),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: <Widget>[
+              Padding(
+                child: Text(
+                  "${submission.score}",
+                  textAlign: TextAlign.left,
+                  style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(submission, context), fontSizeFactor: 0.9)),
+                padding: __defaultColumnPadding),
+
+              submission.over18
+                ? Padding(
+                  padding: __defaultColumnPadding,
+                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                )
+                : null,
+
+              submission.spoiler
+                ? Padding(
+                  padding: __defaultColumnPadding,
+                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                )
+                : null,
+
+              previewSource == PreviewSource.PostsList
+              ? BlocBuilder<PostsBloc, PostsState>(
+                  builder: (context, state) {
+                    return prefix1.Visibility(
+                      visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
+                      child: _authorText(context),
+                    );
                   },
-                ),
-                padding:
-                    const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
-            (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
-              ? Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(10.0)
-                ),
-                child: MarkdownBody(
-                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
-                  fitContent: true,
-                ),
-                padding: const EdgeInsets.only(
-                  left: 8.0,
-                  right: 8.0,
-                  top: 8.0,
-                  bottom: 8.0
-                ),
-                margin: const EdgeInsets.only(
-                  left: 8.0,
-                  right: 8.0,
-                  top: 8.0,
-                  bottom: 8.0
-                ),
-              )
-            : Container(height: 3.5),
-            Wrap(
-              children: <Widget>[
-                submission.over18
-                  ? Padding(
-                    padding: const EdgeInsets.only(left: 6.0, right: 4.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(2.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3.5),
-                        color: Colors.red
-                      ),
-                      child: const Text('NSFW', style: prefix0.TextStyle(fontSize: 7.0),),
-                    )
-                  )
-                  : null,
-                
-                new Padding(
-                  child: new Text(
-                    "${submission.score}",
-                    textAlign: TextAlign.left,
-                    style: new TextStyle(
-                      fontSize: _defaultColumnTextSize,
-                      color: getScoreColor(submission, context))),
-                  padding:
-                      const EdgeInsets.only(left: 4.0, right: 4.0, top: 0.0)),
-                previewSource == PreviewSource.PostsList
+                )
+                : _authorText(context),
+              previewSource == PreviewSource.PostsList
                 ? BlocBuilder<PostsBloc, PostsState>(
-                    builder: (context, state) {
-                      return prefix1.Visibility(
-                        visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
-                        child: Padding(
-                          child: new Text(
-                            "u/${submission.author}",
-                            style: TextStyle(
-                              fontSize: _defaultColumnTextSize,
-                            ),
-                            textAlign: TextAlign.left,),
-                          padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                      );
-                    },
-                  )
-                  : Padding(
-                      child: new Text(
-                        "u/${submission.author}",
-                        style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                      padding:
-                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                previewSource == PreviewSource.PostsList
-                  ? BlocBuilder<PostsBloc, PostsState>(
-                    builder: (context, state) {
-                      return prefix1.Visibility(
-                        visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
-                        child: Padding(
-                          child: new Text(
-                            "r/${submission.subreddit.displayName}",
-                            style: TextStyle(
-                              fontSize: _defaultColumnTextSize,
-                              color: Theme.of(context).accentColor
-                            ),
-                            textAlign: TextAlign.left,),
-                          padding:
-                            const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0))
-                      );
-                    },
-                  )
-                  : Padding(
-                      child: new Text(
-                        "r/${submission.subreddit.displayName}",
-                        style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
-                        ),
-                        textAlign: TextAlign.left,),
-                      padding:
-                        const EdgeInsets.only(left: 0.0, right: 4.0, top: 0.0)),
-                new Text(
-                  "${submission.numComments} comments",
+                  builder: (context, state) {
+                    return prefix1.Visibility(
+                      visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
+                      child: _subRedditText(context)
+                    );
+                  },
+                )
+                : _subRedditText(context),
+              Padding(
+                child: Text(
+                  "● ${submission.numComments} comments",
                   style: TextStyle(
-                    fontSize: _defaultColumnTextSize,
+                    color: Theme.of(context).textTheme.body2.color,
+                    fontSize: __defaultColumnTextSize,
                   )
-                  ),
-                new Padding(
-                  child: new Text(
-                    getSubmissionAge(submission.createdUtc),
-                    style: TextStyle(
-                      fontSize: _defaultColumnTextSize,
-                    )
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 ),
-                submission.isSelf ? null :
-                new Padding(
-                    child: new Text(
-                        submission.domain,
+                padding: __defaultColumnPadding,
+              ),
+              Padding(
+                child: Text(
+                  "● ${getSubmissionAge(submission.createdUtc)}",
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.body2.color,
+                    fontSize: __defaultColumnTextSize,
+                  )
+                ),
+                padding: __defaultColumnPadding,
+              ),
+              submission.isSelf ? null :
+                Padding(
+                    child: Text(
+                        "● ${submission.domain}",
                         style: TextStyle(
-                          fontSize: _defaultColumnTextSize,
+                          color: Theme.of(context).textTheme.body2.color,
+                          fontSize: __defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
-                    padding:
-                        const EdgeInsets.only(left: 4.0)),
-                  submission.gold != null && submission.gold >= 1 ?
-                new Padding(
+                    padding: __defaultColumnPadding),
+              submission.gold != null && submission.gold >= 1 ?
+                Padding(
                   child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -547,10 +516,10 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                  padding: __defaultColumnPadding,
                 ) : null,
-                  submission.silver != null && submission.silver >= 1 ?
-                new Padding(
+              submission.silver != null && submission.silver >= 1 ?
+                Padding(
                   child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -559,10 +528,10 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                  padding: __defaultColumnPadding,
                 ) : null,
-                submission.platinum != null && submission.platinum >= 1 ?
-                new Padding(
+              submission.platinum != null && submission.platinum >= 1 ?
+                Padding(
                   child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -571,23 +540,58 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                  padding: __defaultColumnPadding,
                 ) : null,
-                  
-            ].where(notNull).toList()
-            ),
-            const SizedBox(
-              height: 3.5,
-            )
-          ]),
-        onTap: (){
-          if (previewSource != PreviewSource.Comments) {
-            currentPostId = submission.id;
-            showComments(context);
-          }
-        },
-        onLongPress: onLongPress,
-      )
+                
+          ].where(notNull).toList()
+          ),
+          const SizedBox(
+            height: 3.5,
+          )
+        ]),
+      onTap: (){
+        if (previewSource != PreviewSource.Comments) {
+          currentPostId = submission.id;
+          showComments(context);
+        }
+      },
+      onLongPress: onLongPress,
     );
+  }
+  Widget _authorText(BuildContext context) {
+    return Padding(
+      child: Text.rich(
+        TextSpan(
+          style: Theme.of(context).textTheme.body2,
+          children: <TextSpan> [
+            const TextSpan(
+              text: "● ",
+            ),
+            TextSpan(
+              text: "u/${submission.author}",
+              style: Theme.of(context).textTheme.body2,
+            )
+          ]
+        ),
+        textAlign: TextAlign.left),
+      padding: __defaultColumnPadding);
+  }
+  Widget _subRedditText(BuildContext context) {
+    return Padding(
+      child: Text.rich(
+        TextSpan(
+          style: Theme.of(context).textTheme.body2,
+          children: <TextSpan> [
+            const TextSpan(
+              text: "● ",
+            ),
+            TextSpan(
+              text: "r/${submission.subreddit.displayName}",
+              style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor),
+            )
+          ]
+        ),
+        textAlign: TextAlign.left),
+      padding: __defaultColumnPadding);
   }
 }

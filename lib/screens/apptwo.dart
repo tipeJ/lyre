@@ -11,7 +11,7 @@ class App extends StatelessWidget{
   Widget _buildWithTheme(BuildContext context, LyreState themeState){
     return MaterialApp(
       title: 'Lyre',
-      theme: themeState.themeData,
+      theme: themeState.currentTheme.toThemeData,
       home: LyreApp(),
     );
   }

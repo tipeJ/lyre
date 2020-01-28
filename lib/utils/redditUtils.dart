@@ -10,9 +10,10 @@ Color getScoreColor(VoteableMixin m, BuildContext context){
         return Colors.amberAccent;
 
       default:
-        return Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87;
+        return Theme.of(context).textTheme.body2.color;
     }
 }
+urlFromPermalink(String permalink) => "www.old.reddit.com$permalink";
 CommentSortType parseCommentSortType(String sortString){
   switch (sortString) {
     case "Best":

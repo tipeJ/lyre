@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Themes/content_sizes.dart';
 import 'package:lyre/utils/share_utils.dart';
+import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class InputOptions extends StatelessWidget {
@@ -250,38 +251,24 @@ class InputOptions extends StatelessWidget {
         expand: false,
         builder: (context, controller) => Material(
           color: Theme.of(context).primaryColor,
-          child: Container(
-            padding: EdgeInsets.all(10.0),
-            child: ListView(
-              controller: controller,
-              children: <Widget>[
-                Container(
-                  constraints: const BoxConstraints.tightFor(height: 30.0),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: Text('Markdown Preview')
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: (){
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  )
-                ),
-                const Divider(),
-                SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  controller: controller,
+          child: ListView(
+            controller: controller,
+            children: <Widget>[
+              ActionSheetTitle(
+                title: "Markdown Preview",
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                controller: controller,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: MarkdownBody(
                     data: _text,
                     styleSheet: LyreTextStyles.getMarkdownStyleSheet(context)
-                  ),
-                )
-              ],
-            )
+                  )
+                ),
+              )
+            ],
           )
         )
       );
@@ -351,13 +338,19 @@ class __LinkInputSheetState extends State<_LinkInputSheet> {
       children: <Widget>[
         Row(
           children: <Widget>[
-            const Text('Insert a link'),
+            Text(
+              'Insert a link',
+              style: LyreTextStyles.bottomSheetTitle(context),
+            ),
             const Spacer(),
-            OutlineButton(
-              child: const Text("Cancel"), 
-              onPressed: () {
-                Navigator.of(context).pop();
-              }
+            Padding(
+              padding: const EdgeInsets.only(right: 5.0),
+              child: OutlineButton(
+                child: const Text("Cancel"), 
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }
+              ),
             ),
             OutlineButton(
               child: const Text("OK"), 

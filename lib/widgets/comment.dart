@@ -13,6 +13,12 @@ import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../utils/redditUtils.dart';
 
+class CommentOptionsNotification extends Notification {
+  final Comment comment;
+
+  const CommentOptionsNotification({@required this.comment});
+}
+
 Color getColor(int depth) {
     if (depth >= 0 && depth <= colorList.length - 1) {
       return colorList[depth];
@@ -107,14 +113,13 @@ class _CommentWidgetState extends State<CommentWidget> {
             ),
             ActionItems(
               icon: Icon(
-                _replyVisible ? Icons.close : Icons.reply,
-                color: Colors.grey,),
+                _replyVisible ? Icons.close : Icons.reply,),
               onPress: (){
                 _handleReplyButtonToggle();
               },
             ),
             ActionItems(
-              icon: Icon(Icons.person, color: Colors.grey),
+              icon: const Icon(Icons.person),
               onPress: () {
                 Navigator.of(context).pushNamed('posts', arguments: {
                   'target'        : widget.comment.author,
@@ -123,9 +128,9 @@ class _CommentWidgetState extends State<CommentWidget> {
               }
             ),
             ActionItems(
-              icon: Icon(Icons.menu,color: Colors.grey,),
+              icon: const Icon(Icons.menu),
               onPress: (){
-
+                CommentOptionsNotification(comment: widget.comment)..dispatch(context);
               }
             ),
           ],
@@ -137,19 +142,17 @@ class _CommentWidgetState extends State<CommentWidget> {
                   children: <Widget>[
                     Text("${widget.comment.score} ",
                       textAlign: TextAlign.left,
-                      textScaleFactor: 0.65,
-                      style: new TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: getScoreColor(widget.comment, context))),
+                      style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(widget.comment, context), fontSizeFactor: 0.9)),
                     Text(
                       "● u/${widget.comment.author}",
-                      textScaleFactor: 0.7,
+                      style: Theme.of(context).textTheme.body2,
                     ),
                     widget.previewSource != PreviewSource.Comments
                       ? Padding(
                           padding: EdgeInsets.only(left: 3.5),
                           child: Text.rich(
                             TextSpan(
+                              style: Theme.of(context).textTheme.body2,
                               children: [
                                 TextSpan(text: "in "),
                                 TextSpan(text: "${widget.comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).accentColor))
@@ -162,14 +165,14 @@ class _CommentWidgetState extends State<CommentWidget> {
                     Spacer(),
                     Text(
                       getSubmissionAge(widget.comment.createdUtc),
-                      textScaleFactor: 0.7,
+                      style: Theme.of(context).textTheme.body2,
                     ),
                   ].where((w) => notNull(w)).toList(),
                 ),
                 padding: const EdgeInsets.only(
                     left: _contentEdgePadding, right: 16.0, top: 6.0)),
               new Padding(
-                child: Text(widget.comment.body),
+                child: Text(widget.comment.body, style: Theme.of(context).textTheme.body1),
                 padding: const EdgeInsets.only(
                     left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0)),
                     
@@ -290,42 +293,44 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
   return [ 
     new Padding(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           Text("${comment.score} ",
             textAlign: TextAlign.left,
-            textScaleFactor: 0.65,
-            style: new TextStyle(
-              fontWeight: FontWeight.bold,
-              color: getScoreColor(comment, context))),
+            style: Theme.of(context).textTheme.body2.apply(color: getScoreColor(comment, context)),
+          ),
           Text(
             "● u/${comment.author}",
-            textScaleFactor: 0.7,
+            style: Theme.of(context).textTheme.body2,
           ),
           previewSource != PreviewSource.Comments
             ? Padding(
-                padding: EdgeInsets.only(left: 3.5),
+                padding: const EdgeInsets.only(left: 3.5),
                 child: Text.rich(
                   TextSpan(
                     children: [
-                      TextSpan(text: "in "),
-                      TextSpan(text: "${comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).accentColor))
+                      const TextSpan(text: "in "),
+                      TextSpan(text: "${comment.subreddit.displayName}", style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor))
                     ]
                   ),
-                  textScaleFactor: 0.7,
+                  style: Theme.of(context).textTheme.body2,
                 )
             )
             : null,
-          Spacer(),
+          const Spacer(),
           Text(
             getSubmissionAge(comment.createdUtc),
-            textScaleFactor: 0.7,
+            style: Theme.of(context).textTheme.body2,
           ),
         ].where((w) => notNull(w)).toList(),
       ),
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0)),
     new Padding(
-      child: Text(comment.body),
+      child: Text(
+        comment.body,
+        style: Theme.of(context).textTheme.body1
+      ),
       padding: const EdgeInsets.only(
           left: _contentEdgePadding, right: 16.0, top: 6.0, bottom: 12.0))];
 }
@@ -410,7 +415,8 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
                       )
                     : Container(),
                   Text(
-                    "Load more comments (${widget.moreComments.count})"
+                    "Load more comments (${widget.moreComments.count})",
+                      style: Theme.of(context).textTheme.body2,
                   ),
                 ]
               ,),

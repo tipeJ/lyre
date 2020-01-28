@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:lyre/Resources/PreferenceValues.dart';
@@ -24,18 +23,17 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
     LyreEvent event,
   ) async* {
     if (event is ThemeChanged) {
-      yield _changeState(themeData: lyreThemeData[event.theme]);
+      yield _changeState(currentTheme: event.theme);
     } else if (event is SettingsChanged) {
       final Box settings = event.settings;
       yield LyreState(
-        themeData: state.themeData,
         userNames: state.userNames,
         currentUser: state.currentUser,
         readOnly: state.readOnly,
 
         subscriptions: state.subscriptions,
 
-        currentTheme: _getLyreTheme(settings.get(CURRENT_THEME, defaultValue: "")),
+        currentTheme: settings.get(CURRENT_THEME, defaultValue: state.currentTheme),
         homeSubreddit: settings.get(SUBREDDIT_HOME, defaultValue: SUBREDDIT_HOME_DEFAULT),
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
@@ -46,6 +44,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
         defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
         resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
+        resetViewmodeWhenRefreshingSubmissions: settings.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT),
         autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
 
         defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),
@@ -104,16 +103,15 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       }
     }
   }
-  LyreState _changeState({List<String> userNames, Redditor currentUser, ThemeData themeData, List<String> subs}) {
+  LyreState _changeState({List<String> userNames, Redditor currentUser, LyreTheme currentTheme, List<String> subs}) {
     return LyreState(
-      themeData: themeData ?? state.themeData,
       userNames: userNames ?? state.userNames,
       currentUser: currentUser ?? state.currentUser,
       readOnly: currentUser == null,
 
       subscriptions: subs ?? state.subscriptions,
 
-      currentTheme: state.currentTheme,
+      currentTheme: currentTheme ?? state.currentTheme,
       homeSubreddit: state.homeSubreddit,
       home: state.home,
 
@@ -124,6 +122,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       defaultSortType: state.defaultSortType,
       defaultSortTime: state.defaultSortTime,
       resetWhenRefreshingSubmissions: state.resetWhenRefreshingSubmissions,
+      resetViewmodeWhenRefreshingSubmissions: state.resetViewmodeWhenRefreshingSubmissions,
       autoLoadSubmissions: state.autoLoadSubmissions,
 
       defaultCommentsSort: state.defaultCommentsSort,
@@ -171,15 +170,6 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
 
   return subscriptions;
 }
-LyreTheme _getLyreTheme(String t) {
-  var _cTheme = LyreTheme.DarkTeal;
-  LyreTheme.values.forEach((theme){
-    if(theme.toString() == t){
-      _cTheme = theme;
-    }
-  });
-  return _cTheme;
-}
 
 Future<LyreState> newLyreState([String displayName]) async {
     final userNames = (await getAllUsers()).map<String>((redditUser) => redditUser.username.isEmpty ? "Guest" : redditUser.username).toList();
@@ -189,7 +179,6 @@ Future<LyreState> newLyreState([String displayName]) async {
     final userName = currentUser != null ? currentUser.displayName.toLowerCase() : '';
 
     final settings = await Hive.openBox(BOX_SETTINGS_PREFIX + userName);
-    final initialTheme = settings.get(CURRENT_THEME, defaultValue: "");
 
     final home = settings.get(HOME, defaultValue: HOME_DEFAULT);
     switch (home) {
@@ -207,19 +196,16 @@ Future<LyreState> newLyreState([String displayName]) async {
         globals.homeSubreddit = settings.get(SUBREDDIT_HOME, defaultValue: "all");
     }
 
-    final _cTheme = _getLyreTheme(initialTheme);
-
     final subscriptions = await _getUserSubscriptions(userName);
 
     final state = LyreState(
-      themeData: lyreThemeData[_cTheme],
       userNames: userNames..insert(0, 'Guest'),
       currentUser: currentUser,
       readOnly: currentUser == null,
 
       subscriptions: subscriptions,
 
-      currentTheme: _cTheme,
+      currentTheme: settings.get(CURRENT_THEME, defaultValue: defaultLyreThemes.darkTeal),
       homeSubreddit: globals.homeSubreddit,
       home: home,
 
@@ -230,6 +216,7 @@ Future<LyreState> newLyreState([String displayName]) async {
       defaultSortType: settings.get(SUBMISSION_DEFAULT_SORT_TYPE, defaultValue: SUBMISSION_DEFAULT_SORT_TYPE_DEFAULT),
       defaultSortTime: settings.get(SUBMISSION_DEFAULT_SORT_TIME, defaultValue: SUBMISSION_DEFAULT_SORT_TIME_DEFAULT),
       resetWhenRefreshingSubmissions: settings.get(SUBMISSION_RESET_SORTING, defaultValue: SUBMISSION_RESET_SORTING_DEFAULT),
+      resetViewmodeWhenRefreshingSubmissions: settings.get(SUBMISSION_VIEWMODE_RESET, defaultValue: SUBMISSION_VIEWMODE_RESET_DEFAULT),
       autoLoadSubmissions: settings.get(SUBMISSION_AUTO_LOAD, defaultValue: SUBMISSION_AUTO_LOAD_DEFAULT),
 
       defaultCommentsSort: settings.get(COMMENTS_DEFAULT_SORT, defaultValue: COMMENTS_DEFAULT_SORT_DEFAULT),

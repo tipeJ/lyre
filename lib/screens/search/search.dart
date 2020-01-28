@@ -167,7 +167,10 @@ class _SearchUserContentViewState extends State<SearchUserContentView> with Sing
                     }
                     final object = state.results[i];
                     if (object is Comment) {
-                      return CommentContent(object, PreviewSource.PostsList);
+                      return InkWell(
+                        onTap: () => Navigator.of(context).pushNamed('comments', arguments: object),
+                        child: CommentContent(object, PreviewSource.PostsList)
+                      );
                     } else if (object is Submission) {
                       return postInnerWidget(
                         submission: object,
@@ -273,66 +276,84 @@ class _expandingSearchParamsState extends State<_expandingSearchParams> with Tic
     )));
   }
 
+  Future<bool> _willPop() async {
+    if (_node.hasFocus) {
+      _node.unfocus();
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      clipBehavior: Clip.antiAlias,
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(15.0),
-        topRight: Radius.circular(15.0),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        color: Theme.of(context).canvasColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Material(
-              color: Theme.of(context).primaryColor,
-              child: Container(
-                height: kBottomNavigationBarHeight,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Row(
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(right: _node.hasFocus ? 0.0 : 5.0),
-                      child: prefix0.Visibility(
-                        visible: !_node.hasFocus,
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          onPressed: () {
-                            Navigator.of(context).maybePop();
-                          },
-                        )
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        focusNode: _node,
-                        decoration: InputDecoration.collapsed(
-                          hintText: 'Search Reddit',
-                        ),
-                        controller: _userContentController,
-                        onSubmitted: (s) {
-                          _dispatchNewParameters(context);
-                        },
-                      ),
-                    ),
-                    OutlineButton(
-                      child: Text("Filters"), 
-                      onPressed: () {
-                        _sheetController = Scaffold.of(context).showBottomSheet((context) => _filtersContent());
-                      }
-                    )
-                  ],
-                ),
-              )
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: _willPop,
+      child: ClipRRect(
+        clipBehavior: Clip.antiAlias,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15.0),
+          topRight: Radius.circular(15.0),
         ),
-      ),
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Material(
+                color: Theme.of(context).primaryColor,
+                child: Container(
+                  height: kBottomNavigationBarHeight,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(right: _node.hasFocus ? 0.0 : 5.0),
+                        child: prefix0.Visibility(
+                          visible: !_node.hasFocus,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () {
+                              Navigator.of(context).maybePop();
+                            },
+                          )
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          focusNode: _node,
+                          enabled: _sheetController == null,
+                          decoration: InputDecoration(
+                            hintText: 'Search Reddit',
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none
+                          ),
+                          controller: _userContentController,
+                          onSubmitted: (s) {
+                            _dispatchNewParameters(context);
+                          },
+                        ),
+                      ),
+                      OutlineButton(
+                        child: Text("Filters"), 
+                        onPressed: () async {
+                          _sheetController = Scaffold.of(context).showBottomSheet((context) => _filtersContent());
+                          await _sheetController.closed;
+                          setState(() {
+                            _sheetController = null;
+                          });
+                        }
+                      )
+                    ],
+                  ),
+                )
+              ),
+            ],
+          ),
+        ),
+      )
     );
   }
 

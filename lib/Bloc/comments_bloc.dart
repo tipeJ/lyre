@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:draw/draw.dart';
 import 'bloc.dart';
+import 'package:lyre/Resources/globals.dart';
 
 class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
   CommentsState _firstState;
@@ -53,7 +54,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         submission = userContent;
         comments = _retrieveCommentsFromForest(userContent.comments.comments);
       } else {
-        submission = event.submission as Submission;
+        submission = event.submission != null ? event.submission as Submission : state.submission;
         var forest = await submission.refreshComments(sort: event.commentSortType);
         comments = _retrieveCommentsFromForest(forest.comments);
       }

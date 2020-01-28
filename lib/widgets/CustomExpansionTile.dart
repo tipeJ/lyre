@@ -169,7 +169,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
                     widget.title,
                     style: TextStyle(
                       fontSize: widget.fontSize != null ? widget.fontSize : LyreTextStyles.title.fontSize, //25.0 Is the default font size for this type of widget
-                      color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                      color: _isExpanded ? Theme.of(context).accentColor : (Theme.of(context).primaryTextTheme.title.color)
                     ),
                   ),
                   onTap: _handleTap,

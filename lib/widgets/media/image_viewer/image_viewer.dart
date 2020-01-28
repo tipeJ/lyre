@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Models/image.dart';
-import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/lyre_bloc.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
@@ -52,7 +51,7 @@ class _ImageViewerState extends State<ImageViewer> {
     if (albumLinkTypes.contains(widget.linkType)){
       if (_albumController != null) return _buildAlbumStack();
       return FutureBuilder(
-        future: ImgurAPI().getAlbumPictures(widget.url),
+        future: ImgurAPI().getAlbumPictures(widget.url, qualityKey: BlocProvider.of<LyreBloc>(context).state.imgurThumbnailQuality),
         builder: (context, AsyncSnapshot<List<LyreImage>> snapshot){
           if (snapshot.hasData){
             _albumController = AlbumController(snapshot.data, widget.submission, widget.url);
@@ -248,8 +247,9 @@ class _AlbumViewerState extends State<AlbumViewer> {
         switch (getLinkType(image)) {
           case LinkType.DirectImage:
             return PhotoViewGalleryPageOptions(
-              minScale: 0.5,
-              maxScale: 5.0,
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered,
+              initialScale: PhotoViewComputedScale.contained,
               imageProvider: AdvancedNetworkImage(
                 image,
                 useDiskCache: true,
@@ -328,7 +328,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
         _expansionController.status == AnimationStatus.completed) return;
 
     final double flingVelocity = details.velocity.pixelsPerSecond.dy /
-        getExpandedBarHeight(); //<-- calculate the velocity of the gesture
+        getExpandedBarHeight; //<-- calculate the velocity of the gesture
     if (flingVelocity < 0.0) {
       if (_expansionController.value > 0.1) {
         _expansionController.animateTo(1.0, duration: Duration(milliseconds: getExpansionFlingDuration(true, flingVelocity)), curve: animationCurve);//<-- either continue it upwards
@@ -373,9 +373,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   }
   bool isExpanded() => _expansionController.value >= 0.1;
   bool fullyExpanded() => _expansionController.value == 1.0;
-  double getExpandedBarHeight(){
-    return min(_maxExpandedBarHeight * 0.1, 125);
-  }
+  double get getExpandedBarHeight => min(_maxExpandedBarHeight * 0.1, 125);
   double _maxExpandedBarHeight = 500.0; //Fallback value
 
   @override
@@ -417,7 +415,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     _albumController = AlbumController.of(context);
-    _maxExpandedBarHeight = MediaQuery.of(context).size.height - 50.0; //Screen height minus the height of image controls bar
+    _maxExpandedBarHeight = MediaQuery.of(context).size.height - 0; //Screen height minus the height of image controls bar
     _albumController.addListener((){
       if (_albumController.expanded != isExpanded() || _albumController.fullyExpanded != fullyExpanded()) {
         if (_albumController.fullyExpanded) {
@@ -464,7 +462,7 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                 if (url != null && getLinkType(url) == LinkType.DirectImage){
                   return StatefulBuilder(builder: (context, child){
                     return GestureDetector(
-                      child: new PreviewImage(url: url, index: i, size: Size(75.0, getExpandedBarHeight()),),                      
+                      child: PreviewImage(url: url, index: i, size: Size(75.0, getExpandedBarHeight)),                      
                       onTap: (){
                         setState(() {
                           _albumController.setCurrentIndex(i);                
@@ -495,10 +493,10 @@ class _AlbumControlsBarState extends State<AlbumControlsBar> with SingleTickerPr
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: EdgeInsets.only(top: 25.0),
+                      padding: const EdgeInsets.only(top: 25.0),
                       child: Opacity(
                         opacity: _popIndicatorOpacity,
-                        child: Icon(Icons.arrow_downward, size: 45.0,),
+                        child: const Icon(Icons.arrow_downward, size: 45.0,),
                       ),
                     ),
                   ),
@@ -623,8 +621,8 @@ class ImageControlsBar extends StatelessWidget {
   Widget _buildCopyButton(BuildContext context){
     return _albumController == null ?
       IconButton(
-        icon: Icon(Icons.content_copy),
-        color: Colors.white,
+        icon: const Icon(Icons.content_copy),
+        tooltip: "Copy Image URL",
         onPressed: (){
           copyToClipboard(url).then((result){
             final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
@@ -633,15 +631,16 @@ class ImageControlsBar extends StatelessWidget {
         },
       )
       : PopupMenuButton<String>(
-        child: Icon(Icons.content_copy),
+        child: const Icon(Icons.content_copy),
+        tooltip: "Copy Album or Image URL",
         itemBuilder: (context) => <PopupMenuEntry<String>>[
           const PopupMenuItem<String>(
             value: selection_album,
-            child: Text("Copy Album"),
+            child: Text("Copy Album URL"),
           ),
           const PopupMenuItem<String>(
             value: selection_image,
-            child: Text("Copy Image"),
+            child: Text("Copy Image URL"),
           )
         ],
         onSelected: (String value) {
@@ -663,8 +662,8 @@ class ImageControlsBar extends StatelessWidget {
   ///Button which opens the image/album in external browser
   Widget _buildOpenUrlButton(BuildContext context){
     return IconButton(
-      icon: Icon(Icons.open_in_browser),
-      color: Colors.white,
+      icon: const Icon(Icons.open_in_browser),
+      tooltip: "Open in Browser",
       onPressed: (){
         launchURL(context, url);
       },
@@ -673,8 +672,8 @@ class ImageControlsBar extends StatelessWidget {
   ///Button which opens comments for the image. Only appears when a submission has been assigned to the image_viewer
   Widget _buildCommentsButton(BuildContext context){
     return IconButton(
-      icon: Icon(Icons.comment),
-      color: Colors.white,
+      icon: const Icon(Icons.comment),
+      tooltip: "Open Comments",
       onPressed: (){
         Navigator.of(context).pushNamed('comments', arguments: submission);
       },
@@ -683,8 +682,8 @@ class ImageControlsBar extends StatelessWidget {
   ///Button which toggles the gallery expand state
   Widget _buildExpandButton(BuildContext context){
     return IconButton(
-      icon: Icon(Icons.grid_on),
-      color: Colors.white,
+      icon: const Icon(Icons.grid_on),
+      tooltip: "Open Album View",
       onPressed: (){
         _albumController.toggleExpand();
       },
@@ -694,22 +693,23 @@ class ImageControlsBar extends StatelessWidget {
   Widget _buildDownloadButton(BuildContext context){
     return _albumController == null ?
       IconButton(
-        icon: Icon(Icons.file_download),
-        color: Colors.white,
+        icon: const Icon(Icons.file_download),
+        tooltip: "Download Image",
         onPressed: (){
           // TODO: Implement
         },
       )
       : PopupMenuButton<String>(
-        child: Icon(Icons.file_download),
+        child: const Icon(Icons.file_download),
+        tooltip: "Download Album",
         itemBuilder: (context) => <PopupMenuEntry<String>>[
           const PopupMenuItem<String>(
             value: selection_album,
-            child: Text("Download Album"),
+            child: const Text("Download Album"),
           ),
           const PopupMenuItem<String>(
             value: selection_image,
-            child: Text("Download Image"),
+            child: const Text("Download Image"),
           )
         ],
         onSelected: (String value) {
@@ -725,14 +725,15 @@ class ImageControlsBar extends StatelessWidget {
   Widget _buildShareButton(BuildContext context){
     return _albumController == null ?
       IconButton(
-        icon: Icon(Icons.share),
-        color: Colors.white,
+        icon: const Icon(Icons.share),
+        tooltip: "Share Image",
         onPressed: (){
           shareString(url);
         },
       )
       : PopupMenuButton<String>(
-        child: Icon(Icons.share),
+        child: const Icon(Icons.share),
+        tooltip: "Share Album",
         itemBuilder: (context) => [
           const PopupMenuItem<String>(
             value: selection_album,

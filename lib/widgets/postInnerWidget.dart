@@ -28,8 +28,8 @@ class SubmissionOptionsNotification extends Notification {
 
   const SubmissionOptionsNotification({@required this.submission});
 }
-const _defaultColumnTextSize = 11.0;
-const _defaultColumnPadding = EdgeInsets.only(left: 5.0);
+const __defaultColumnTextSize = 11.0;
+const __defaultColumnPadding = EdgeInsets.only(left: 5.0);
 
 class postInnerWidget extends StatelessWidget{
   const postInnerWidget({
@@ -72,23 +72,23 @@ class postInnerWidget extends StatelessWidget{
   Widget _getMediaWidget(BuildContext context) {
     switch (postView) {
       case PostView.IntendedPreview:
-        return intendedWidget(context);
+        return _intendedWidget(context);
       case PostView.ImagePreview:
-        return imagePreview(context);
+        return _imagePreview(context);
       case PostView.Compact:
-        return compactWidget(context);
+        return _compactWidget(context);
       default:
-        return defaultColumn(submission, previewSource, linkType, onOptionsClick);
+        return _defaultColumn(submission, previewSource, linkType, onOptionsClick);
     }
   }
 
-  Widget compactWidget(BuildContext context) {
+  Widget _compactWidget(BuildContext context) {
     return _SlideColumn(
       child: Row(
         children: <Widget>[
           Expanded(
             child: Container(
-              child: defaultColumn(submission, previewSource, linkType, onOptionsClick),
+              child: _defaultColumn(submission, previewSource, linkType, onOptionsClick),
               width: MediaQuery.of(context).size.width * 0.9,
             )
           ),
@@ -99,7 +99,7 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 
-  Column imagePreview(BuildContext context) {
+  Column _imagePreview(BuildContext context) {
     return Column(
       children: <Widget>[
         _getExpandedImage(context),
@@ -108,7 +108,7 @@ class postInnerWidget extends StatelessWidget{
     );
   }
 
-  Stack intendedWidget(BuildContext context) {
+  Stack _intendedWidget(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -125,13 +125,13 @@ class postInnerWidget extends StatelessWidget{
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    color: Colors.black,
+                    color: Theme.of(context).cardColor.withOpacity(0.6),
                     child: getDefaultSlideColumn(context),
                   ),
                 )
               : Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).cardColor.withOpacity(0.6),
                   child: getDefaultSlideColumn(context),
                 ),
         ),
@@ -263,7 +263,8 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget getDefaultSlideColumn(BuildContext context){
-    return _SlideColumn(child: defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
+    //return _defaultColumn(submission, previewSource, linkType, onOptionsClick);
+    return _SlideColumn(child: _defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
   }
 
 
@@ -361,8 +362,8 @@ class __SlideColumnState extends State<_SlideColumn> {
   }
 }
 
-class defaultColumn extends StatelessWidget {
-  defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
+class _defaultColumn extends StatelessWidget {
+  _defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
 
   final PreviewSource previewSource;
   final LinkType linkType;
@@ -439,19 +440,19 @@ class defaultColumn extends StatelessWidget {
                   "${submission.score}",
                   textAlign: TextAlign.left,
                   style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(submission, context), fontSizeFactor: 0.9)),
-                padding: _defaultColumnPadding),
+                padding: __defaultColumnPadding),
 
               submission.over18
                 ? Padding(
-                  padding: _defaultColumnPadding,
-                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
+                  padding: __defaultColumnPadding,
+                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
                 )
                 : null,
 
               submission.spoiler
                 ? Padding(
-                  padding: _defaultColumnPadding,
-                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
+                  padding: __defaultColumnPadding,
+                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
                 )
                 : null,
 
@@ -480,20 +481,20 @@ class defaultColumn extends StatelessWidget {
                   "● ${submission.numComments} comments",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
-                    fontSize: _defaultColumnTextSize,
+                    fontSize: __defaultColumnTextSize,
                   )
                 ),
-                padding: _defaultColumnPadding,
+                padding: __defaultColumnPadding,
               ),
               Padding(
                 child: Text(
                   "● ${getSubmissionAge(submission.createdUtc)}",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
-                    fontSize: _defaultColumnTextSize,
+                    fontSize: __defaultColumnTextSize,
                   )
                 ),
-                padding: _defaultColumnPadding,
+                padding: __defaultColumnPadding,
               ),
               submission.isSelf ? null :
                 Padding(
@@ -501,10 +502,10 @@ class defaultColumn extends StatelessWidget {
                         "● ${submission.domain}",
                         style: TextStyle(
                           color: Theme.of(context).textTheme.body2.color,
-                          fontSize: _defaultColumnTextSize,
+                          fontSize: __defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
-                    padding: _defaultColumnPadding),
+                    padding: __defaultColumnPadding),
               submission.gold != null && submission.gold >= 1 ?
                 Padding(
                   child: Container(
@@ -515,7 +516,7 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: _defaultColumnPadding,
+                  padding: __defaultColumnPadding,
                 ) : null,
               submission.silver != null && submission.silver >= 1 ?
                 Padding(
@@ -527,7 +528,7 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: _defaultColumnPadding,
+                  padding: __defaultColumnPadding,
                 ) : null,
               submission.platinum != null && submission.platinum >= 1 ?
                 Padding(
@@ -539,7 +540,7 @@ class defaultColumn extends StatelessWidget {
                       width: 8.0,
                       height: 8.0
                     ),
-                  padding: _defaultColumnPadding,
+                  padding: __defaultColumnPadding,
                 ) : null,
                 
           ].where(notNull).toList()
@@ -573,7 +574,7 @@ class defaultColumn extends StatelessWidget {
           ]
         ),
         textAlign: TextAlign.left),
-      padding: _defaultColumnPadding);
+      padding: __defaultColumnPadding);
   }
   Widget _subRedditText(BuildContext context) {
     return Padding(
@@ -591,6 +592,6 @@ class defaultColumn extends StatelessWidget {
           ]
         ),
         textAlign: TextAlign.left),
-      padding: _defaultColumnPadding);
+      padding: __defaultColumnPadding);
   }
 }

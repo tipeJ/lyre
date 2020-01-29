@@ -183,6 +183,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           userContent: state.userContent,
           contentSource: state.contentSource,
           target: state.target,
+          subreddit: state.subreddit,
           sideBar: state.sideBar,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter,

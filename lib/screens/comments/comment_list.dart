@@ -42,7 +42,6 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   @override
   void dispose() { 
     BlocProvider.of<CommentsBloc>(context).close();
-    BlocProvider.of<CommentsBloc>(context).close();
     super.dispose();
   }
 
@@ -52,17 +51,17 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
     if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
       bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
-    return  Scaffold(
+    return Scaffold(
         endDrawer: Drawer(
           child: Container(
-            padding: EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(10.0),
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: (context, state) {
                 return ListView.builder(
                   itemCount: recentlyViewed.length+1,
                   itemBuilder: (context, i){
                     return i == 0
-                      ? Text(
+                      ? const Text(
                         "Recently Viewed",
                         style: TextStyle(
                           fontSize: 26.0,
@@ -77,9 +76,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                           blurLevel: state.blurLevel.toDouble(),
                           showNsfw: state.showNSFWPreviews,
                           showSpoiler: state.showSpoilerPreviews,
-                          onOptionsClick: () {
-                            
-                          },
+                          onOptionsClick: () {},
                         );
                   },
                 );
@@ -88,47 +85,52 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
           ),
         ),
         body: PersistentBottomAppbarWrapper(
-          body: StatefulBuilder(
-              builder: (BuildContext context, setState) {
-                return BlocBuilder<CommentsBloc, CommentsState>(
-                  builder: (context, state) {
-                    if (notNull(state) && state.submission is Submission && state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
-                      return NotificationListener<CommentOptionsNotification>(
-                        onNotification: (notification) {
-                          _initializeCommentOptions(notification.comment, context);
-                          return false;
-                        },
-                        child: CustomScrollView(
-                          slivers: <Widget>[
-                            SliverSafeArea(
-                              sliver: SliverToBoxAdapter(
-                                child:  Hero(
-                                  tag: 'post_hero ${(state.submission as Submission).id}',
-                                  child: postInnerWidget(
-                                    submission: state.submission,
-                                    previewSource: PreviewSource.Comments,
-                                    linkType: getLinkType((state.submission as Submission).url.toString()),
-                                    fullSizePreviews: false,
-                                    postView: PostView.IntendedPreview,
-                                    showCircle: false,
-                                    blurLevel: 0.0,
-                                    showNsfw: true,
-                                    showSpoiler: true,
-                                    onOptionsClick: () {},
-                                  )
-                                ),
-                              ),
-                            ),
-                            _getCommentWidgets(context, state.comments),
-                          ],
-                        )
-                      );
-                    } else {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                  },
-                );
+          body: NotificationListener<CommentOptionsNotification>(
+              onNotification: (notification) {
+                _initializeCommentOptions(notification.comment, context);
+                return false;
               },
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  BlocBuilder<CommentsBloc, CommentsState>(
+                    builder: (context, state) {
+                      return SliverSafeArea(
+                      sliver: SliverToBoxAdapter(
+                        child: notNull(state) && state.submission is Submission
+                          ? Hero(
+                              tag: 'post_hero ${(state.submission as Submission).id}',
+                              child: postInnerWidget(
+                                submission: state.submission,
+                                previewSource: PreviewSource.Comments,
+                                linkType: getLinkType((state.submission as Submission).url.toString()),
+                                fullSizePreviews: false,
+                                postView: PostView.IntendedPreview,
+                                showCircle: false,
+                                blurLevel: 0.0,
+                                showNsfw: true,
+                                showSpoiler: true,
+                                onOptionsClick: () {},
+                              )
+                            )
+                          : const SizedBox()
+                      ),
+                    );
+                    },
+                  ),
+                  BlocBuilder<CommentsBloc, CommentsState>(
+                    builder: (context, state) => state.comments.isNotEmpty && state.state != LoadingState.Refreshing
+                      ? _getCommentWidgets(context, state.comments)
+                      : const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Center(
+                            child: CircularProgressIndicator()
+                          )
+                        ),
+                      )
+                  ),
+                ],
+              )
             ),
             appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
               builder: (context, state) {

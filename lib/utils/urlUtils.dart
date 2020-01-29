@@ -80,20 +80,7 @@ String getGfyid(String url){
   return last;
 }
 
-bool isRedditUrl (String url) {
-  return url.contains(".reddit.com") ? true : false;
-}
-
-void launchURL(BuildContext context, dynamic source) async {
-  String url;
-  if (source is Submission){
-    url = source.url.toString();
-  } else {
-    url = source;
-  }
-  if (isRedditUrl(url)) {
-    // TODO: Implement general Reddit content parsing
-  }
+void launchURL(BuildContext context, String url) async {
   try{
     await launch(
         url,

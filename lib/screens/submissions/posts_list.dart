@@ -1206,7 +1206,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ActionSheetInkwell(
               title: const Text('Launch In Browser'),
               onTap: () {
-                launchURL(context, _selectedSubmission);
+                launchURL(context, _selectedSubmission.url.toString());
               },
             ),
             ActionSheetInkwell(

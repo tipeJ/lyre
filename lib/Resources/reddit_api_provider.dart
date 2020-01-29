@@ -432,7 +432,7 @@ class PostsProvider {
   }
 
   Future<dynamic> getWikiPage(String args, String subreddit) async {
-    try {    
+    try {
       final page = await reddit.subreddit(subreddit).wiki[args].populate();
       return page;
     } catch (e) {

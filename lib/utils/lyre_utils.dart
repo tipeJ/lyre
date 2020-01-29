@@ -112,7 +112,8 @@ Map<String, dynamic> _parseRedditUrl(String url) {
     final splitUrl = url.split("/");
     final subredditID = splitUrl[splitUrl.indexOf('r') + 1];
     if (url.contains("/wiki/")) {
-      final wikiPageName = splitUrl[splitUrl.indexOf('wiki') + 1];
+      var wikiPageName = splitUrl[splitUrl.indexOf('wiki') + 1];
+      if (wikiPageName.contains("#")) wikiPageName = wikiPageName.split("#").first;
       return {
         _redditParserTYPE : RedditLinkType.WikiPage,
         _redditParserID : subredditID,

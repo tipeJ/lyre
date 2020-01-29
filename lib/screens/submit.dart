@@ -256,7 +256,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           )
                         ]
                       ),
-                      const Divider(),
                       IntrinsicWidth( 
                         child: Container(
                           padding: EdgeInsets.all(5.0),
@@ -307,54 +306,50 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           )
                         )
                       ),
-                      const Divider(),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: ToggleButtons(
-                            renderBorder: false,
-                            constraints: BoxConstraints.expand(
-                              width: (MediaQuery.of(context).size.width - 36) / 3,
-                              height: 38.0
-                            ),
-                            isSelected: [
-                              _submitType == SubmitType.Selftext,
-                              _submitType == SubmitType.Link,
-                              _submitType == SubmitType.Image,
-                              //_submitType == SubmitType.Video,
-                            ],
-                            children: const <Widget>[
-                              Text('Text'),
-                              Text('Link'),
-                              Text('Image'),
-                              //const Text('Video'),
-                            ],
-                            selectedColor: Theme.of(context).accentColor,
-                            color: Theme.of(context).textTheme.body1.color,
-                            onPressed: (i) {
-                              if (_submitType != SubmitType.values[i]) setState(() {
-                                switch (i) {
-                                  case 0:
-                                    _submitType = SubmitType.Selftext;
-                                    _handleSubmitTypeChange(selfText: true);
-                                    break;
-                                  case 1:
-                                    _submitType = SubmitType.Link;
-                                    _handleSubmitTypeChange(selfText: false);
-                                    break;
-                                  case 2:
-                                    _submitType = SubmitType.Image;
-                                    _handleSubmitTypeChange(selfText: false);
-                                    break;
-                                  default:
-                                    //_submitType = SubmitType.Video;
-                                    _handleSubmitTypeChange(selfText: false);
-                                    break;
-                                }
-                              });
-                            },
-                          )
+                      Align(
+                        alignment: Alignment.center,
+                        child: ToggleButtons(
+                          renderBorder: false,
+                          constraints: BoxConstraints.expand(
+                            width: (MediaQuery.of(context).size.width - 36) / 3,
+                            height: 38.0
+                          ),
+                          isSelected: [
+                            _submitType == SubmitType.Selftext,
+                            _submitType == SubmitType.Link,
+                            _submitType == SubmitType.Image,
+                            //_submitType == SubmitType.Video,
+                          ],
+                          children: const <Widget>[
+                            Text('Text'),
+                            Text('Link'),
+                            Text('Image'),
+                            //const Text('Video'),
+                          ],
+                          selectedColor: Theme.of(context).accentColor,
+                          color: Theme.of(context).textTheme.body1.color,
+                          onPressed: (i) {
+                            if (_submitType != SubmitType.values[i]) setState(() {
+                              switch (i) {
+                                case 0:
+                                  _submitType = SubmitType.Selftext;
+                                  _handleSubmitTypeChange(selfText: true);
+                                  break;
+                                case 1:
+                                  _submitType = SubmitType.Link;
+                                  _handleSubmitTypeChange(selfText: false);
+                                  break;
+                                case 2:
+                                  _submitType = SubmitType.Image;
+                                  _handleSubmitTypeChange(selfText: false);
+                                  break;
+                                default:
+                                  //_submitType = SubmitType.Video;
+                                  _handleSubmitTypeChange(selfText: false);
+                                  break;
+                              }
+                            });
+                          },
                         )
                       ),
                       SizeTransition(
@@ -362,7 +357,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         sizeFactor: _selfTextTabExpansionController,
                         child: Column(
                           children: [
-                            const Divider(),
+                            const Divider(indent: 10.0, endIndent: 10.0),
                             TabBar(
                               indicatorColor: Colors.transparent,
                               controller: _selfTextTabController,

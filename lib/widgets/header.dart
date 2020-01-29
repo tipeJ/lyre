@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -62,7 +63,7 @@ class LyreHeader extends StatelessWidget {
                 )
               ],)
             )
-          ],),
+          ]),
           Positioned(
             top: _boxHeight - _avatarRadius,
             child: Container(
@@ -117,7 +118,45 @@ class LyreHeader extends StatelessWidget {
                       },
                     ),
                   ),
-                ] : const []
+                ] : [
+                  Container(
+                    width: _avatarRadius * 1.5,
+                    height: _avatarRadius * 1.5,
+                    child: RawMaterialButton(
+                      shape: const CircleBorder(),
+                      elevation: 5.0,
+                      fillColor: Theme.of(context).primaryColor,
+                      child: const Icon(Icons.trending_up),
+                      onPressed: () async {
+                        final trendingSubs = await PostsProvider().getTrendingSubreddits();
+                        Scaffold.of(context).showBottomSheet((context) => TrendingScreen(data: trendingSubs));
+                      },
+                    ),
+                  ),
+                  CircleAvatar(
+                    maxRadius: _avatarRadius,
+                    minRadius: _avatarRadius,
+                    backgroundColor: Theme.of(context).cardColor,
+                    backgroundImage: AdvancedNetworkImage(
+                      "https://moonshine.marketing/wp-content/uploads/2019/08/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png",
+                      useDiskCache: true,
+                      cacheRule: const CacheRule(maxAge: Duration(days: 27)),
+                    ),
+                  ),
+                  Container(
+                    width: _avatarRadius * 1.5,
+                    height: _avatarRadius * 1.5,
+                    child: RawMaterialButton(
+                      shape: const CircleBorder(),
+                      elevation: 5.0,
+                      fillColor: Theme.of(context).primaryColor,
+                      child: const Icon(MdiIcons.pageLayoutSidebarRight),
+                      onPressed: (){
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                    ),
+                  ),
+                ]
               )
             ),
           )

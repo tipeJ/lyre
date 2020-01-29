@@ -462,7 +462,7 @@ class PostsProvider {
     return result;
   }
 
-  Future<rModel.SubredditM> fetchSubReddits(String query) async{
+  Future<rModel.SubredditM> fetchSubReddits(String query) async {
     query.replaceAll(" ", "+");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
@@ -473,6 +473,11 @@ class PostsProvider {
     } else {
       throw Exception('Failed to load subreddits');
     }
+  }
+
+  Future<Map<String, dynamic>> getTrendingSubreddits() async {
+    final response = await client.get('https://www.reddit.com/api/trending_subreddits.json');
+    return json.decode(response.body);
   }
 
   // * Search
@@ -537,7 +542,7 @@ class PostsProvider {
     return values;
   }
 
-  //* Utilities: 
+  // * Utilities: 
   TimeFilter parseTimeFilter(String query){
     switch (query) {
       case "hour":

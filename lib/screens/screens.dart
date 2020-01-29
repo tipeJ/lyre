@@ -18,3 +18,4 @@ export 'Animations/OnSlide.dart';
 export 'Animations/transitions.dart';
 export 'themes_view.dart';
 export 'wiki_page.dart';
+export 'trending_subreddits.dart';

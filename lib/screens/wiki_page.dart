@@ -8,21 +8,25 @@ import 'package:lyre/utils/lyre_utils.dart';
 class WikiScreen extends StatelessWidget {
   final String pageName;
   final String subreddit;
+  final ScrollController controller;
+  final bool showAppbar;
 
-  const WikiScreen({@required this.pageName, @required this.subreddit, Key key}) : super(key: key);
+  const WikiScreen({@required this.pageName, @required this.subreddit, this.controller, this.showAppbar = true, Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: showAppbar ? AppBar(
         title: Text("$subreddit/wiki/$pageName"),
-      ),
+      ) : null,
+      backgroundColor: showAppbar ? Theme.of(context).canvasColor : Theme.of(context).primaryColor,
       body: FutureBuilder<dynamic>(
         future: PostsProvider().getWikiPage(pageName, subreddit),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
             if (snapshot.data is WikiPage) {
               return SingleChildScrollView(
+                controller: controller,
                 child: Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: MarkdownBody(

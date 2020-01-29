@@ -256,7 +256,7 @@ class postInnerWidget extends StatelessWidget{
 
   Widget getDefaultSlideColumn(BuildContext context){
     //return _defaultColumn(submission, previewSource, linkType, onOptionsClick);
-    return _SlideColumn(child: _defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission,);
+    return _SlideColumn(child: _defaultColumn(submission, previewSource, linkType, onOptionsClick), submission: submission);
   }
 
 

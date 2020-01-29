@@ -892,7 +892,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               )
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 InkWell(
                   child: Padding(

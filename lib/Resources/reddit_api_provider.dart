@@ -467,7 +467,7 @@ class PostsProvider {
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
-    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
+    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/$query&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
       return rModel.SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {

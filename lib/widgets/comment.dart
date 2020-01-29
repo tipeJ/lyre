@@ -67,9 +67,12 @@ class _CommentWidgetState extends State<CommentWidget> {
   }
   @override
   Widget build(BuildContext context) {
-    return widget.comment.isRoot
-      ? _commentContent(context)
-      : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context));
+    return Container(
+      color: Theme.of(context).cardColor,
+      child: widget.comment.isRoot
+        ? _commentContent(context)
+        : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context))
+    );
   }
 
   Column _commentContent(BuildContext context) {
@@ -192,7 +195,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   Widget _replyWidget() {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(15.0)
       ),
       margin: const EdgeInsets.all(15.0),
@@ -341,10 +344,13 @@ class CommentContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: _commentContentChildren(context, comment, previewSource),
+    return Container(
+      color: Theme.of(context).cardColor,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: _commentContentChildren(context, comment, previewSource),
+      )
     );
   }
 }
@@ -388,43 +394,46 @@ class _MoreCommentsWidgetState extends State<MoreCommentsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return dividersWrapper(
-      depth: widget.moreComments.data["depth"],
-      child: InkWell(
-        onTap: () {
-            if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
-              setState(() {
-                BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
-                BlocProvider.of<CommentsBloc>(context).add(FetchMoreComments(moreComments: widget.moreComments, location: widget.index));
-              });
-            }
-          },
-        child: Container(
-          padding: EdgeInsets.only(left: _contentEdgePadding),
-          child: Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
-                    ? Container(
-                        padding: const EdgeInsets.all(5.0),
-                        child: const CircularProgressIndicator(),
-                        constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
-                      )
-                    : Container(),
-                  Text(
-                    "Load more comments (${widget.moreComments.count})",
-                      style: Theme.of(context).textTheme.body2,
-                  ),
-                ]
-              ,),
-              Container(height: _dividerWidth, color: _dividerColor,)
-            ],
+    return Container(
+      color: Theme.of(context).cardColor,
+      child: dividersWrapper(
+        depth: widget.moreComments.data["depth"],
+        child: InkWell(
+          onTap: () {
+              if (widget.moreComments.id != BlocProvider.of<CommentsBloc>(context).loadingMoreId) {
+                setState(() {
+                  BlocProvider.of<CommentsBloc>(context).loadingMoreId = widget.moreComments.id;
+                  BlocProvider.of<CommentsBloc>(context).add(FetchMoreComments(moreComments: widget.moreComments, location: widget.index));
+                });
+              }
+            },
+          child: Container(
+            padding: EdgeInsets.only(left: _contentEdgePadding),
+            child: Column(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    (BlocProvider.of<CommentsBloc>(context).loadingMoreId == widget.moreComments.id)
+                      ? Container(
+                          padding: const EdgeInsets.all(5.0),
+                          child: const CircularProgressIndicator(),
+                          constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
+                        )
+                      : Container(),
+                    Text(
+                      "Load more comments (${widget.moreComments.count})",
+                        style: Theme.of(context).textTheme.body2,
+                    ),
+                  ]
+                ,),
+                Container(height: _dividerWidth, color: _dividerColor,)
+              ],
+            )
           )
-        )
-      ),
+        ),
+      )
     );
   }
 }

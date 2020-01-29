@@ -57,7 +57,6 @@ enum _QuickText {
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   //Needed for weird bug when switching between usercontentoptionspages. (Shows inkwell animation in next page if instantly switched)
   static const _userContentOptionsTransitionDelay = Duration(milliseconds: 200);
-  static const _appBarContentTransitionDuration = Duration(milliseconds: 250);
 
   PostsListState();
 
@@ -485,7 +484,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Reply container
             AnimatedContainer(
               height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
+              duration: appBarContentTransitionDuration,
               curve: Curves.ease,
               child: Material(
                 color: Theme.of(context).primaryColor,
@@ -498,7 +497,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Default appBar contents
             AnimatedContainer(
               height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
+              duration: appBarContentTransitionDuration,
               curve: Curves.ease,
               padding: EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
@@ -604,7 +603,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             builder: (context, state) {
               return AnimatedContainer(
                 height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
-                duration: _appBarContentTransitionDuration,
+                duration: appBarContentTransitionDuration,
                 curve: Curves.ease,
                 child: Material(
                   color: Theme.of(context).primaryColor,
@@ -616,7 +615,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           // * Time Params
           AnimatedContainer(
             height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
-            duration: _appBarContentTransitionDuration,
+            duration: appBarContentTransitionDuration,
             curve: Curves.ease,
             child: Material(
               color: Theme.of(context).primaryColor,
@@ -1254,7 +1253,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         enabled: _paramsVisibility == _ParamsVisibility.QuickText && _replySendingState == SendingState.Inactive,
                         autofocus: true,
                         controller: _quickTextController,
-                        decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                        decoration: const InputDecoration.collapsed(hintText: 'Reply'),
                     )
                   )
               ),

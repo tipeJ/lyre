@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:draw/draw.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/screens/rules.dart';
 import '../Resources/RedditHandler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -224,14 +225,36 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         ),
                         controller: _titleController,
                       ),
-                      TextField(
-                        style: Theme.of(context).textTheme.body1,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          helperText: "Choose your subreddit",
-                          hintText: 'r/'
-                        ),
-                        controller: _subredditController,
+                      Stack(
+                        children: [
+                          TextField(
+                            style: Theme.of(context).textTheme.body1,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.only(left: 5.0, right: 85.0),
+                              helperText: "Choose your subreddit",
+                              hintText: 'r/'
+                            ),
+                            controller: _subredditController,
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              width: 85.0,
+                              child: OutlineButton(
+                                child: Text("Rules", style: TextStyle(color: Theme.of(context).textTheme.body2.color)),
+                                onPressed: (){
+                                  showDialog(
+                                    context: context,
+                                    child: Padding(
+                                      child: RulesScreen(subreddit: _subredditController.text, parentContext: context,),
+                                      padding: const EdgeInsets.all(50.0)
+                                    )
+                                  );
+                                },
+                              )
+                            ),
+                          )
+                        ]
                       ),
                       const Divider(),
                       IntrinsicWidth( 

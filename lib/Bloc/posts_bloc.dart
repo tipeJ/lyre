@@ -78,7 +78,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           case ContentSource.Subreddit:
             userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
             subreddit = await _repository.getSubreddit(target);
-            sideBar = subreddit != null ? await _repository.getWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit) : null;
+            sideBar = subreddit != null ? await _repository.getWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit.displayName) : null;
             break;
           case ContentSource.Redditor:
             userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );

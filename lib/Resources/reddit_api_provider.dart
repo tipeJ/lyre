@@ -431,13 +431,23 @@ class PostsProvider {
     } //Fetch wiki page content for the sidebar
   }
 
-  Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
+  Future<dynamic> getWikiPage(String args, String subreddit) async {
     try {    
-      final page = await subreddit.wiki[args].populate();
+      final page = await reddit.subreddit(subreddit).wiki[args].populate();
       return page;
     } catch (e) {
-      return null;
+      return e.message;
     } //Fetch wiki page content for the sidebar
+  }
+
+  /// Get a List of rules in the given Subreddit
+  Future<dynamic> getSubredditRules(String subreddit) async {
+    try {    
+      final rules = await reddit.subreddit(subreddit).rules();
+      return rules;
+    } catch (e) {
+      return e.message;
+    } //Fetch rules for a given subreddit
   }
 
   List<dynamic> getData(List<dynamic> data){

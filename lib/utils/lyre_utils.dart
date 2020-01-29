@@ -8,10 +8,12 @@ enum RedditLinkType {
   Submission,
   Comments,
   Subreddit,
+  WikiPage,
   User
 }
 
 const _redditParserID = "redditParserId";
+const _redditParserWIkiPageName = "redditParserWikiPageName";
 const _redditParserTYPE = "redditParserType";
 
 /// Handles link clicks
@@ -61,6 +63,12 @@ void handleLinkClick(Uri uri, BuildContext context, [LinkType suppliedLinkType])
             'target' : id
           });
           break;
+        case RedditLinkType.WikiPage:
+          Navigator.of(context).pushNamed("wiki", arguments: {
+            'subreddit' : id,
+            'page_name' : parsedData[_redditParserWIkiPageName]
+          });
+          break;
         case RedditLinkType.User:
           Navigator.of(context).pushNamed("posts", arguments: {
             'content_source' : ContentSource.Redditor,
@@ -103,6 +111,14 @@ Map<String, dynamic> _parseRedditUrl(String url) {
   } else if (url.contains("r/")) {
     final splitUrl = url.split("/");
     final subredditID = splitUrl[splitUrl.indexOf('r') + 1];
+    if (url.contains("/wiki/")) {
+      final wikiPageName = splitUrl[splitUrl.indexOf('wiki') + 1];
+      return {
+        _redditParserTYPE : RedditLinkType.WikiPage,
+        _redditParserID : subredditID,
+        _redditParserWIkiPageName : wikiPageName
+      };
+    }
     return {
       _redditParserTYPE : RedditLinkType.Subreddit,
       _redditParserID : subredditID

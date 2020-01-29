@@ -17,3 +17,4 @@ export 'Animations/navroute.dart';
 export 'Animations/OnSlide.dart';
 export 'Animations/transitions.dart';
 export 'themes_view.dart';
+export 'wiki_page.dart';

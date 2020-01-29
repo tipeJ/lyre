@@ -561,8 +561,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           icon: const Icon(Icons.menu),
                           tooltip: "Menu",
                           onPressed: () {
-                            handleLinkClick(Uri.parse('https://old.reddit.com/r/starterpacks/comments/evc4cl/the_dry_conversation_starter_pack/ffuxwz8/'), context);
-                            return;
                             _optionsVisibility = _OptionsVisibility.Default;
                             _optionsController = Scaffold.of(context).showBottomSheet(
                               (context) => _optionsSheet(context)

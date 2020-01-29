@@ -13,6 +13,7 @@ import 'package:lyre/screens/screens.dart';
 import 'package:lyre/screens/subreddits_list.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -560,6 +561,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           icon: const Icon(Icons.menu),
                           tooltip: "Menu",
                           onPressed: () {
+                            handleLinkClick(Uri.parse('https://old.reddit.com/r/starterpacks/comments/evc4cl/the_dry_conversation_starter_pack/ffuxwz8/'), context);
+                            return;
                             _optionsVisibility = _OptionsVisibility.Default;
                             _optionsController = Scaffold.of(context).showBottomSheet(
                               (context) => _optionsSheet(context)

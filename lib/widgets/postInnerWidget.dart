@@ -275,9 +275,9 @@ class postInnerWidget extends StatelessWidget{
 
 void _handleClick(LinkType linkType, Submission submission, BuildContext context){
     if (linkType == LinkType.RedditVideo) {
-      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"]);
+      handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
     } else {
-      handleLinkClick(submission.url, linkType, context);
+      handleLinkClick(submission.url, context, linkType);
     }
   }
 
@@ -405,7 +405,7 @@ class _defaultColumn extends StatelessWidget {
               child: MarkdownBody(
                 data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
                 styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
-                onTapLink: (String s) => handleLinkClick(Uri.parse(s)),
+                onTapLink: (String s) => handleLinkClick(Uri.parse(s), context),
                 fitContent: true,
               ),
               padding: const EdgeInsets.only(

@@ -12,11 +12,11 @@ enum RedditLinkType {
 }
 
 const _redditParserID = "redditParserId";
-const _redditParserTYPE = "redditParserId";
+const _redditParserTYPE = "redditParserType";
 
 /// Handles link clicks
 /// Supply context if a direct launching web link
-void handleLinkClick(Uri uri, [LinkType suppliedLinkType, BuildContext context]) {
+void handleLinkClick(Uri uri, BuildContext context, [LinkType suppliedLinkType]) {
   final url = uri.toString();
   final domain = uri.authority;
   final LinkType linkType = suppliedLinkType ?? getLinkType(url);
@@ -41,8 +41,8 @@ void handleLinkClick(Uri uri, [LinkType suppliedLinkType, BuildContext context])
       if (parsedData.isEmpty) {
         // Couldn't parse link, open in external instead
         launchURL(context, url);
+        return;
       }
-
       final RedditLinkType redditLinkType = parsedData[_redditParserTYPE];
       final String id = parsedData[_redditParserID];
 
@@ -79,22 +79,27 @@ void handleLinkClick(Uri uri, [LinkType suppliedLinkType, BuildContext context])
 Map<String, dynamic> _parseRedditUrl(String url) {
   if (url.contains("comments")) {
     // Comment or Submission
-    final splitUrl = url.split("comments").last.split('/');
+    final splitUrl = url.split("comments/").last.split('/')..removeWhere((s) => s.isEmpty);
     if (splitUrl.length == 2) {
       // Submission
-      print("SUBMISSION ID: " + splitUrl.first);
       return {
         _redditParserTYPE : RedditLinkType.Submission,
         _redditParserID : splitUrl.first
       };
     } else {
       // Comment
-      print("COMMENT ID: " + splitUrl[2]);
       return {
         _redditParserTYPE : RedditLinkType.Comments,
         _redditParserID : splitUrl[2]
       };
     }
+  } else if (url.contains("user/")) {
+    final splitUrl = url.split("/");
+    final userID = splitUrl[splitUrl.indexOf('user') + 1];
+    return {
+      _redditParserTYPE : RedditLinkType.User,
+      _redditParserID : userID
+    };
   } else if (url.contains("r/")) {
     final splitUrl = url.split("/");
     final subredditID = splitUrl[splitUrl.indexOf('r') + 1];
@@ -102,14 +107,7 @@ Map<String, dynamic> _parseRedditUrl(String url) {
       _redditParserTYPE : RedditLinkType.Subreddit,
       _redditParserID : subredditID
     };
-  } else if (url.contains('user/')) {
-    final splitUrl = url.split("/");
-    final userID = splitUrl[splitUrl.indexOf('user') + 1];
-    return {
-      _redditParserTYPE : RedditLinkType.User,
-      _redditParserID : userID
-    };
-  }
+  } 
   // Failed to parse, return an empty map instead
   return const {};
 }

@@ -425,7 +425,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ),
           endDrawer: Drawer(
             child: BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state) => SidebarView(state: state,)
+              builder: (context, state) => Container(
+                color: Theme.of(context).primaryColor,
+                child: SidebarView(state: state)
+              )
             )
           ),
           body: Builder(
@@ -1530,43 +1533,7 @@ class _submissionList extends StatelessWidget {
       slivers: <Widget>[
         SliverPadding(
           padding: const EdgeInsets.only(bottom: 5.0),
-          sliver: SliverAppBar(
-            expandedHeight: 125.0,
-            floating: false,
-            pinned: false,
-            backgroundColor: Theme.of(context).canvasColor,
-            actions: [Container()],
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(
-                left: 10.0,
-                bottom: 5.0
-              ),
-              title: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
-                child: Text(
-                  // TODO: Fix this shit (can't add / without causing a new line automatically)
-                  postsState.getSourceString(prefix: false),
-                  softWrap: true,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              ),
-              collapseMode: CollapseMode.parallax,
-              background: postsState.subreddit != null && postsState.subreddit.mobileHeaderImage != null
-                ? FadeInImage(
-                    placeholder: MemoryImage(kTransparentImage),
-                    image: AdvancedNetworkImage(
-                      postsState.subreddit.headerImage.toString(),
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
-                    ),
-                    fit: BoxFit.cover
-                  )
-                : Container() // TODO: Placeholder image
-            ),
-          ),
+          sliver: LyreHeader(state: postsState)
         ),
         BlocBuilder<LyreBloc, LyreState>(
           builder: (context, state) {

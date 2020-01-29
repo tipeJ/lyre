@@ -101,6 +101,39 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         yield _changeState(subs: subList);
         await subscriptionsBox.close();
       }
+    } else if (event is ChangeSubscription) {
+      final index = state.subscriptions.indexOf(StringUtils.capitalize(event.subreddit));
+      //IF element is found, delete the entry from the subscription lists
+      if (index != -1) {
+        final subList = List<String>();
+        subList.addAll(state.subscriptions);
+        final subreddit = subList[index];
+
+        subList.removeAt(index);
+        yield _changeState(subs: subList);
+
+        final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
+        //Delete the subreddit from the subreddit box.
+        final subscriptionsBoxValue = subscriptionsBox.values.toList();
+        for (var i = 0; i < subscriptionsBoxValue.length; i++) {
+          if (subscriptionsBoxValue[i] == subreddit) {
+            subscriptionsBox.deleteAt(i);
+            break;
+          }
+        }
+      } else {
+        final subreddit = StringUtils.capitalize(event.subreddit).trim();
+        final subList = List<String>();
+        subList.addAll(state.subscriptions);
+        if (!subList.contains(subreddit)) {
+          final subscriptionsBox = await Hive.openBox(BOX_SUBSCRIPTIONS_PREFIX + state.currentUserName);
+          //Delete the subreddit from the subreddit box.
+          subList.add(subreddit);
+          subscriptionsBox.add(subreddit);
+          yield _changeState(subs: subList);
+          await subscriptionsBox.close();
+        }
+      }
     }
   }
   LyreState _changeState({List<String> userNames, Redditor currentUser, LyreTheme currentTheme, List<String> subs}) {

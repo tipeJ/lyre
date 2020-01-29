@@ -241,7 +241,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
     _bottomSheetController = Scaffold.of(context).showBottomSheet(
       (context) => Material(
         textStyle: Theme.of(context).textTheme.body1,
-        color: Colors.transparent,
+        color: Theme.of(context).cardColor,
         child: _commentOptionsSheet(context)
       )
     );

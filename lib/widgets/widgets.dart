@@ -10,3 +10,4 @@ export 'postInnerWidget.dart';
 export 'submission_widget.dart';
 export 'action_sheet_title.dart';
 export 'content_sort.dart';
+export 'header.dart';

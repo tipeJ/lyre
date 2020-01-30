@@ -71,6 +71,7 @@ class _RedditHelpScreenState extends State<RedditHelpScreen> {
                       final isCategory = i == topicChildren.length - 1;
                       return ListTile(
                         title: Text(listItem.text.trim()),
+                        trailing: isCategory ? const Icon(Icons.navigate_next) : null,
                         onTap: () {
                           Navigator.of(context).push(CupertinoPageRoute(builder: (_) => _RedditHelpTopic(
                             title: isCategory ? title.children.last.innerHtml.replaceAll("amp;", "") : listItem.text,

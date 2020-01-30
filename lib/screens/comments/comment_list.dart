@@ -71,7 +71,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                       : postInnerWidget(
                           submission: recentlyViewed[i-1], 
                           previewSource: PreviewSource.Comments,
-                          postView: PostView.Compact,
+                          postView: PostView.NoPreview,
                           fullSizePreviews: state.fullSizePreviews,
                           showCircle: state.showPreviewCircle,
                           blurLevel: state.blurLevel.toDouble(),

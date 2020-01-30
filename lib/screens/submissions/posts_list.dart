@@ -444,6 +444,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       _submissionOptionsController = Scaffold.of(context).showBottomSheet(
                         (context) => Material(
                           textStyle: Theme.of(context).textTheme.body1,
+                          color: Theme.of(context).primaryColor,
                           child: _submissionOptionsSheet(context)
                         )
                       );

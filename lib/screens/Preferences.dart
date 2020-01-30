@@ -61,7 +61,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                           },
                         )
                       ],
-                      title: Text('Settings', style: TextStyle(fontSize: 32.0)),
+                      title: Text('Settings'),
                     ),
                     SliverList(
                       delegate: SliverChildListDelegate([

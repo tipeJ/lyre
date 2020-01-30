@@ -8,9 +8,14 @@ import 'package:html/parser.dart';
 
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/utils/utils.dart';
+import 'package:lyre/widgets/easter.dart';
 
 const _redditHelpUrl = "https://www.reddithelp.com";
 
+
+///Screen for displaying content from www.reddithelp.com/en
+///Doesn't show search as of now, has a shortcut to the web
+///version of each page and category in the app bar.
 class RedditHelpScreen extends StatefulWidget {
   const RedditHelpScreen({Key key}) : super(key: key);
 
@@ -37,7 +42,7 @@ class _RedditHelpScreenState extends State<RedditHelpScreen> {
           IconButton(
             icon: const Icon(Icons.open_in_browser),
             tooltip: "Open in Browser",
-            onPressed: () => launchURL(context, "https://www.reddithelp.com/en"),
+            onPressed: () => launchURL(context, "$_redditHelpUrl/en"),
           )
         ],
       ),
@@ -69,9 +74,17 @@ class _RedditHelpScreenState extends State<RedditHelpScreen> {
                     children: List<ListTile>.generate(topicChildren.length, (i) {
                       final listItem = topicChildren[i];
                       final isCategory = i == topicChildren.length - 1;
+                      final itemTitle = listItem.text.trim();
                       return ListTile(
-                        title: Text(listItem.text.trim()),
+                        title: Text(itemTitle),
                         trailing: isCategory ? const Icon(Icons.navigate_next) : null,
+                        onLongPress: () {
+                          if (itemTitle == "Can anyone post on Reddit?") {
+                            Scaffold.of(context).showSnackBar(easter_redditorSnackBar);
+                          } else if (itemTitle == "How do I disable ads on the Native Apps?") {
+                            Scaffold.of(context).showSnackBar(easter_nativeadsSnackBar);
+                          }
+                        },
                         onTap: () {
                           Navigator.of(context).push(CupertinoPageRoute(builder: (_) => _RedditHelpTopic(
                             title: isCategory ? title.children.last.innerHtml.replaceAll("amp;", "") : listItem.text,
@@ -146,12 +159,36 @@ class _RedditHelpCategoryState extends State<_RedditHelpTopic> {
                 title: Text(title.text),
                 children: List<ListTile>.generate(children.length, (i) {
                   final topic = children[i];
+                  final text = topic.getElementsByTagName("span").first.text.trim();
                   return ListTile(
-                    title: Text(topic.getElementsByTagName("span").first.text),
+                    title: Text(text),
+                    onLongPress: () {
+                      SnackBar easterSnack;
+                      if (text == "How do I view NSFW subreddits on iOS?") {
+                        easterSnack = easter_iosSnackBar(context);
+                      } else if (text == "Where can I download the official Reddit App for Android?") {
+                        easterSnack = easter_androidSnackBar;
+                      } else if (text == "How do I get karma?") {
+                        easterSnack = easter_getkarmaSnackbar;
+                      } else if (text == "What is gold?") {
+                        easterSnack = easter_goldSnackbar;
+                      } else if (text == "How do I become a moderator?") {
+                        showDialog(
+                          context: context,
+                          child: Image(
+                            image: AdvancedNetworkImage(
+                              "https://i.imgur.com/loYDuVu.jpg",
+                            )
+                          )
+                        );
+                      }
+                      if (easterSnack == null) return;
+                      Scaffold.of(context).showSnackBar(easterSnack);
+                    },
                     onTap: () {
                       Navigator.of(context).push(CupertinoPageRoute(builder: (_) => _RedditHelpTopic(
                         url: "https://www.reddithelp.com${topic.attributes['href']}",
-                        title: topic.getElementsByTagName("span").first.text,
+                        title: text,
                         helpType: _RedditHelpPage.Topic,
                       )));
                     },

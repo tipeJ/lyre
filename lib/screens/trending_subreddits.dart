@@ -40,13 +40,12 @@ class TrendingScreen extends StatelessWidget {
                 maxChildSize: 1.0,
                 expand: false,
                 builder: (context, controller) {
-                  print('asdfas');
                   return WikiScreen(
-                  subreddit: subreddit,
-                  pageName: WIKI_SIDEBAR_ARGUMENTS,
-                  controller: controller,
-                  showAppbar: false,
-                );
+                    subreddit: subreddit,
+                    pageName: WIKI_SIDEBAR_ARGUMENTS,
+                    controller: controller,
+                    title: "r/$subreddit"
+                  );
                 },
               ));
             },

@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/widgets/bottom_appbar_expanding.dart' as prefix0;
 
 ///Class for wrapping a scaffold body for a custom bottom expanding appBar
@@ -68,6 +70,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
                 visible: visibilityListener,
                 maxChildSize: MediaQuery.of(context).size.height,
                 minChildSize: kBottomNavigationBarHeight,
+                borderRadius: BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble(),
                 initialChildSize: kBottomNavigationBarHeight,
                 builder: (context, scontrol) {
                   return ExpandingSheetContent(state: expandingSheetContent, innerController: scontrol, appBarContent: appBarContent);
@@ -102,6 +105,7 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble();
     return Stack(
       children: <Widget>[
         body,
@@ -110,8 +114,8 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
           child: ClipRRect(
             clipBehavior: Clip.antiAlias,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15.0),
-              topRight: Radius.circular(15.0),
+              topLeft: Radius.circular(borderRadius),
+              topRight: Radius.circular(borderRadius),
             ),
             child: Container(
               width: MediaQuery.of(context).size.width,

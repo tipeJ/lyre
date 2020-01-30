@@ -14,6 +14,7 @@ import 'globals.dart';
 import 'package:draw/draw.dart';
 import 'credential_loader.dart';
 
+/// Source for listing items (in posts_list)
 enum ContentSource{
   Subreddit,
   Frontpage,
@@ -22,6 +23,7 @@ enum ContentSource{
   Self
 }
 
+/// Source for self content types
 enum SelfContentType{
   Comments,
   Submitted,
@@ -30,7 +32,7 @@ enum SelfContentType{
   Hidden,
   Watching
 }
-
+/// Posts-List Filters
 enum TypeFilter{
   Best,
   Hot,

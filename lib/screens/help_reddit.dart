@@ -73,7 +73,7 @@ class _RedditHelpScreenState extends State<RedditHelpScreen> {
                         title: Text(listItem.text.trim()),
                         onTap: () {
                           Navigator.of(context).push(CupertinoPageRoute(builder: (_) => _RedditHelpTopic(
-                            title: isCategory ? title.children.last.innerHtml : listItem.text,
+                            title: isCategory ? title.children.last.innerHtml.replaceAll("amp;", "") : listItem.text,
                             url: "$_redditHelpUrl${listItem.firstChild.attributes["href"]}",
                             helpType: isCategory ? _RedditHelpPage.Category : _RedditHelpPage.Topic,
                           )));

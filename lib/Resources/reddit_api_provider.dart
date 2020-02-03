@@ -275,16 +275,6 @@ class PostsProvider {
     // Trim is needed because some Strings (especially those loaded from files) are not suitable for fetching data from the API without trimming.
     final target = contentTarget != null ? contentTarget.trim() : '';
 
-    print(reddit.readOnly);
-    final response = await client.get(
-      "https://www.reddit.com/api/filter/user/tr60n0/f/all",
-      headers: {
-        "User-Agent" : reddit.auth.userAgent,
-        "Authorization" : reddit.auth.credentials.accessToken,
-      }
-    );
-    print(response.body.toString());
-
     Stream<UserContent> contentStream;
     if(timeFilter == ""){
       switch (typeFilter){
@@ -349,9 +339,21 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      return contentStream.where((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target)).toList();
+      return contentStream.where((u) => !(u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target))).toList();
     }
     return contentStream.toList();
+  }
+
+  // * Filters
+
+  ///Method for fetching global reddit filters (The same that are used in r/all in the desktop browser)
+  Future<List<String>> getFilteredSubreddits() async {
+    final response = await reddit.auth.get(Uri.parse("https://oauth.reddit.com/api/filter/user/tr60n0/f/all"));
+    final List<dynamic> filteredSubreddits = response["data"]["subreddits"];
+    List<String> parsedFilters = [];
+
+    filteredSubreddits.forEach((f) => parsedFilters.add(f['name']));
+    return parsedFilters;
   }
 
   // * Profile data fetching:

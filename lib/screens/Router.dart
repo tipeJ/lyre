@@ -62,6 +62,8 @@ class Router {
         return CupertinoPageRoute(builder: (_) => PreferencesView());
       case 'filters':
         return CupertinoPageRoute(builder: (_) => FiltersView());
+      case 'filters_global':
+        return CupertinoPageRoute(builder: (_) => GlobalFilters());
       case 'themes':
         return CupertinoPageRoute(builder: (_) => ThemeView());
       case 'search_communities':

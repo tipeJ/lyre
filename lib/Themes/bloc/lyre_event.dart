@@ -50,3 +50,12 @@ class UnSubscribe extends LyreEvent {
 
   List<dynamic> get props => [subreddit];
 }
+class ChangeSubscription extends LyreEvent {
+  final String subreddit;
+
+  ChangeSubscription({
+    @required this.subreddit,
+  }) : assert(subreddit != null);
+
+  List<dynamic> get props => [subreddit];
+}

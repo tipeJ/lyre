@@ -38,7 +38,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     CommentsEvent event
   ) async* {
     if(event is SortChanged){
-      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission, comments: const [], sortType: event.commentSortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission ?? _firstState.submission, comments: const [], sortType: event.commentSortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
       Comment parentComment;
       Submission submission;
       final userContent = event.submission;

@@ -42,7 +42,7 @@ class PostsState extends Equatable {
 
   List<dynamic> get props => [state, userContent, target, errorMessage, viewMode];
 
-  String getSourceString({@required bool prefix}){
+  String getSourceString({bool prefix = true}){
     switch (contentSource) {
       case ContentSource.Subreddit:
         return '${prefix ? "r/" : ""}$target';

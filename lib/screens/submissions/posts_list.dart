@@ -13,6 +13,7 @@ import 'package:lyre/screens/screens.dart';
 import 'package:lyre/screens/subreddits_list.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -56,7 +57,6 @@ enum _QuickText {
 class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   //Needed for weird bug when switching between usercontentoptionspages. (Shows inkwell animation in next page if instantly switched)
   static const _userContentOptionsTransitionDelay = Duration(milliseconds: 200);
-  static const _appBarContentTransitionDuration = Duration(milliseconds: 250);
 
   PostsListState();
 
@@ -424,7 +424,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           ),
           endDrawer: Drawer(
             child: BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state) => SidebarView(state: state,)
+              builder: (context, state) => Container(
+                color: Theme.of(context).primaryColor,
+                child: SidebarView(state: state)
+              )
             )
           ),
           body: Builder(
@@ -481,7 +484,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Reply container
             AnimatedContainer(
               height: _paramsVisibility == _ParamsVisibility.QuickText ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
+              duration: appBarContentTransitionDuration,
               curve: Curves.ease,
               child: Material(
                 color: Theme.of(context).primaryColor,
@@ -494,7 +497,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             // * Default appBar contents
             AnimatedContainer(
               height: _paramsVisibility == _ParamsVisibility.None ? kBottomNavigationBarHeight : 0.0,
-              duration: _appBarContentTransitionDuration,
+              duration: appBarContentTransitionDuration,
               curve: Curves.ease,
               padding: EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
@@ -600,7 +603,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             builder: (context, state) {
               return AnimatedContainer(
                 height: _paramsVisibility == _ParamsVisibility.Type ? kBottomNavigationBarHeight : 0.0,
-                duration: _appBarContentTransitionDuration,
+                duration: appBarContentTransitionDuration,
                 curve: Curves.ease,
                 child: Material(
                   color: Theme.of(context).primaryColor,
@@ -612,7 +615,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
           // * Time Params
           AnimatedContainer(
             height: _paramsVisibility == _ParamsVisibility.Time ? kBottomNavigationBarHeight : 0.0,
-            duration: _appBarContentTransitionDuration,
+            duration: appBarContentTransitionDuration,
             curve: Curves.ease,
             child: Material(
               color: Theme.of(context).primaryColor,
@@ -892,7 +895,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
               )
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 InkWell(
                   child: Padding(
@@ -1206,7 +1209,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             ActionSheetInkwell(
               title: const Text('Launch In Browser'),
               onTap: () {
-                launchURL(context, _selectedSubmission);
+                launchURL(context, _selectedSubmission.url.toString());
               },
             ),
             ActionSheetInkwell(
@@ -1250,7 +1253,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         enabled: _paramsVisibility == _ParamsVisibility.QuickText && _replySendingState == SendingState.Inactive,
                         autofocus: true,
                         controller: _quickTextController,
-                        decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                        decoration: const InputDecoration.collapsed(hintText: 'Reply'),
                     )
                   )
               ),
@@ -1529,43 +1532,7 @@ class _submissionList extends StatelessWidget {
       slivers: <Widget>[
         SliverPadding(
           padding: const EdgeInsets.only(bottom: 5.0),
-          sliver: SliverAppBar(
-            expandedHeight: 125.0,
-            floating: false,
-            pinned: false,
-            backgroundColor: Theme.of(context).canvasColor,
-            actions: [Container()],
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(
-                left: 10.0,
-                bottom: 5.0
-              ),
-              title: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 1.5),
-                child: Text(
-                  // TODO: Fix this shit (can't add / without causing a new line automatically)
-                  postsState.getSourceString(prefix: false),
-                  softWrap: true,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              ),
-              collapseMode: CollapseMode.parallax,
-              background: postsState.subreddit != null && postsState.subreddit.mobileHeaderImage != null
-                ? FadeInImage(
-                    placeholder: MemoryImage(kTransparentImage),
-                    image: AdvancedNetworkImage(
-                      postsState.subreddit.headerImage.toString(),
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
-                    ),
-                    fit: BoxFit.cover
-                  )
-                : Container() // TODO: Placeholder image
-            ),
-          ),
+          sliver: LyreHeader(state: postsState)
         ),
         BlocBuilder<LyreBloc, LyreState>(
           builder: (context, state) {

@@ -6,6 +6,7 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
+import 'package:lyre/utils/lyre_utils.dart';
 import 'package:lyre/widgets/widgets.dart';
 
 /// Screen for showing SideBar content
@@ -199,6 +200,7 @@ class SidebarView extends StatelessWidget {
           child: MarkdownBody(
             data: state.sideBar.contentMarkdown,
             styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+            onTapLink: (str) => handleLinkClick(Uri.parse(str), context),
           )
         )
       )

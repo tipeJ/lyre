@@ -40,6 +40,14 @@ class Router {
           )),
           child: PostsList(),
         ));
+      case 'wiki':
+        final args = settings.arguments as Map<String, Object>;
+        final String pageName = args['page_name'];
+        final String subreddit = args['subreddit'];
+        return CupertinoPageRoute(builder: (_) => WikiScreen(
+          pageName: pageName,
+          subreddit: subreddit,
+        ));
       case 'comments':
         UserContent content = settings.arguments;
         if (content is Submission) {

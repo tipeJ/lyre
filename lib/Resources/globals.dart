@@ -20,6 +20,9 @@ const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
 const FRONTPAGE_HOME_SUB = "_";
 
+const appBarContentTransitionDuration = Duration(milliseconds: 250);
+
+
 String homeSubreddit;
 
 enum LoadingState {

@@ -431,13 +431,23 @@ class PostsProvider {
     } //Fetch wiki page content for the sidebar
   }
 
-  Future<WikiPage> getWikiPage(String args, Subreddit subreddit) async {
-    try {    
-      final page = await subreddit.wiki[args].populate();
+  Future<dynamic> getWikiPage(String args, String subreddit) async {
+    try {
+      final page = await reddit.subreddit(subreddit).wiki[args].populate();
       return page;
     } catch (e) {
-      return null;
+      return e.message;
     } //Fetch wiki page content for the sidebar
+  }
+
+  /// Get a List of rules in the given Subreddit
+  Future<dynamic> getSubredditRules(String subreddit) async {
+    try {    
+      final rules = await reddit.subreddit(subreddit).rules();
+      return rules;
+    } catch (e) {
+      return e.message;
+    } //Fetch rules for a given subreddit
   }
 
   List<dynamic> getData(List<dynamic> data){
@@ -452,17 +462,22 @@ class PostsProvider {
     return result;
   }
 
-  Future<rModel.SubredditM> fetchSubReddits(String query) async{
+  Future<rModel.SubredditM> fetchSubReddits(String query) async {
     query.replaceAll(" ", "+");
     Map<String, String> headers = new Map<String, String>();
     headers["User-Agent"] = "$appName $appVersion";
 
-    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/${query}&include_over_18=on", headers: headers);
+    var response = await client.get("${SUBREDDITS_BASE_URL}search.json?q=r/$query&include_over_18=on", headers: headers);
     if(response.statusCode == 200){
       return rModel.SubredditM.fromJson(json.decode(response.body)["data"]["children"]);
     } else {
       throw Exception('Failed to load subreddits');
     }
+  }
+
+  Future<Map<String, dynamic>> getTrendingSubreddits() async {
+    final response = await client.get('https://www.reddit.com/api/trending_subreddits.json');
+    return json.decode(response.body);
   }
 
   // * Search
@@ -527,7 +542,7 @@ class PostsProvider {
     return values;
   }
 
-  //* Utilities: 
+  // * Utilities: 
   TimeFilter parseTimeFilter(String query){
     switch (query) {
       case "hour":

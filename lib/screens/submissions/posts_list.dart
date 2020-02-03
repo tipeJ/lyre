@@ -865,31 +865,21 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           )
                         )
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1)
-                      ),
-                      state.showKarmaInMenuSheet && state.currentUser != null
-                        ? Column(
-                            children: <Widget>[
-                              Row(
+                      Column(
+                        children: [
+                          Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
+                           state.showKarmaInMenuSheet && state.currentUser != null
+                            ? Row(
                                 children: <Widget>[
-                                const Icon(Icons.comment, size: 12.0),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 3.5),
-                                  child: Text(state.currentUser.commentKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                )
-                              ],),
-                              Row(children: <Widget>[
-                                const Icon(Icons.link, size: 12.0),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 3.5),
-                                  child: Text(state.currentUser.linkKarma.toString(), style: const TextStyle(fontSize: 12.0))
-                                )
-                              ],)
-                            ],
-                          )
-                        : Container()
+                                  const Icon(MdiIcons.yinYang, size: 12.0),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 3.5),
+                                    child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
+                                  )
+                                ],)
+                            : Container()
+                        ]
+                      ),
                     ],
                   )
                 ),

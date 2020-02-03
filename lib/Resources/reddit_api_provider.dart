@@ -256,7 +256,7 @@ class PostsProvider {
   Future<List<UserContent>> fetchUserContent(TypeFilter typeFilter, String contentTarget, {String timeFilter, ContentSource source, String after}) async {
     reddit = await getRed();
 
-    Map<String, String> params = new Map<String, String>();
+    Map<String, String> params = Map<String, String>();
 
     if(after != null)params["after"]= after;
 
@@ -272,26 +272,36 @@ class PostsProvider {
       timeFilter = "";
       //This is to ensure that no unfitting timefilters get bundled with specific-time typefilters.
     }
-    // Trim is needed because some String (especially those loaded from files) are not suitable for fetching data from the API without trimming.
+    // Trim is needed because some Strings (especially those loaded from files) are not suitable for fetching data from the API without trimming.
     final target = contentTarget != null ? contentTarget.trim() : '';
 
-    List<UserContent> v = [];
+    print(reddit.readOnly);
+    final response = await client.get(
+      "https://www.reddit.com/api/filter/user/tr60n0/f/all",
+      headers: {
+        "User-Agent" : reddit.auth.userAgent,
+        "Authorization" : reddit.auth.credentials.accessToken,
+      }
+    );
+    print(response.body.toString());
+
+    Stream<UserContent> contentStream;
     if(timeFilter == ""){
       switch (typeFilter){
         case TypeFilter.New:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(target).newest(params: params).toList();
+            contentStream = reddit.subreddit(target).newest(params: params);
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(target).newest(params: params).toList();
+            contentStream = reddit.redditor(target).newest(params: params);
           } else if (source == ContentSource.Frontpage) {
-            v = await reddit.front.newest(params: params).toList();
+            contentStream = reddit.front.newest(params: params);
           }
           break;
         case TypeFilter.Rising:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(target).rising(params: params).toList();
+            contentStream = reddit.subreddit(target).rising(params: params);
           } else if (source == ContentSource.Frontpage) {
-            v = await reddit.front.rising(params: params).toList();
+            contentStream = reddit.front.rising(params: params);
           }
           break;
         case TypeFilter.Gilded:
@@ -304,11 +314,11 @@ class PostsProvider {
           break;
         default: //Default to hot.
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(target).hot(params: params).toList();
+            contentStream = reddit.subreddit(target).hot(params: params);
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(target).hot(params: params).toList();
+            contentStream = reddit.redditor(target).hot(params: params);
           } else if (source == ContentSource.Frontpage) {
-            v = await reddit.front.hot(params: params).toList();
+            contentStream = reddit.front.hot(params: params);
           }
           break;
       }
@@ -317,20 +327,20 @@ class PostsProvider {
       switch (typeFilter){
         case TypeFilter.Controversial:
           if (source == ContentSource.Subreddit){
-            v = await reddit.subreddit(target).controversial(timeFilter: filter, params: params).toList();
+            contentStream = reddit.subreddit(target).controversial(timeFilter: filter, params: params);
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(target).controversial(timeFilter: filter, params: params).toList();
+            contentStream = reddit.redditor(target).controversial(timeFilter: filter, params: params);
           } else if (source == ContentSource.Frontpage) {
-            v = await reddit.front.controversial(timeFilter: filter, params: params).toList();
+            contentStream = reddit.front.controversial(timeFilter: filter, params: params);
           }
           break;
         default: //Default to top
           if (source == ContentSource.Subreddit){
-              v = await reddit.subreddit(target).top(timeFilter: filter, params: params).toList();
+              contentStream = reddit.subreddit(target).top(timeFilter: filter, params: params);
           } else if(source == ContentSource.Redditor){
-            v = await reddit.redditor(target).top(timeFilter: filter, params: params).toList();
+            contentStream = reddit.redditor(target).top(timeFilter: filter, params: params);
           } else if (source == ContentSource.Frontpage) {
-            v = await reddit.front.top(timeFilter: filter, params: params).toList();
+            contentStream = reddit.front.top(timeFilter: filter, params: params);
           }
           break;
       }
@@ -339,9 +349,9 @@ class PostsProvider {
     if (source != ContentSource.Self) {
       await FilterManager().openFiltersDB();
       //Remove submissions using FilterManager
-      v.removeWhere((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target));
+      return contentStream.where((u) => u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target)).toList();
     }
-    return v;
+    return contentStream.toList();
   }
 
   // * Profile data fetching:

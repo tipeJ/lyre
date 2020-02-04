@@ -270,10 +270,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               _isSpoiler
                             ],
                             textStyle: Theme.of(context).textTheme.body1,
-                            disabledColor: Theme.of(context).textTheme.body2.color,
-                            selectedColor: Theme.of(context).textTheme.body1.color,
-                            color: Theme.of(context).textTheme.body2.color,
-                            fillColor: Colors.transparent,
                             children: <Widget>[
                               const Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 3.5),

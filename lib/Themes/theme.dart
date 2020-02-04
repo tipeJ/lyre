@@ -105,6 +105,9 @@ class LyreTheme {
     bottomSheetTheme: BottomSheetThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(borderRadius.toDouble()), topRight: Radius.circular(borderRadius.toDouble()))),
       backgroundColor: HexColor.fromHex(primaryColor)
+    ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      selectedColor: HexColor.fromHex(accentColor)
     )
   );
   TextStyle get _inputHelpText => TextStyle(

@@ -866,6 +866,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         )
                       ),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
                            state.showKarmaInMenuSheet && state.currentUser != null
@@ -875,7 +876,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   Padding(
                                     padding: const EdgeInsets.only(left: 3.5),
                                     child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
-                                  )
+                                  ),
                                 ],)
                             : Container()
                         ]
@@ -1518,73 +1519,78 @@ class _submissionList extends StatelessWidget {
   }
   Widget _buildList(PostsState postsState, BuildContext context) {
     final posts = postsState.userContent;
-    return CustomScrollView(
-      physics: AlwaysScrollableScrollPhysics(),
-      slivers: <Widget>[
-        SliverPadding(
-          padding: const EdgeInsets.only(bottom: 5.0),
-          sliver: LyreHeader(state: postsState)
-        ),
-        BlocBuilder<LyreBloc, LyreState>(
-          builder: (context, state) {
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  if (i == posts.length) {
-                    return Card(
-                      child: InkWell(
-                        onTap: () {
-                          BlocProvider.of<PostsBloc>(context).add(FetchMore());
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Builder(
-                            builder: (context) {
-                              if (postsState.state == LoadingState.LoadingMore) {
-                                return Center(child: const CircularProgressIndicator());
-                              } else if (postsState.state == LoadingState.Error) {
-                                return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
-                              }
-                              return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
-                            },
+    return RefreshIndicator(
+      onRefresh: () {
+        BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
+      },
+      child: CustomScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        slivers: <Widget>[
+          SliverPadding(
+            padding: const EdgeInsets.only(bottom: 5.0),
+            sliver: LyreHeader(state: postsState)
+          ),
+          BlocBuilder<LyreBloc, LyreState>(
+            builder: (context, state) {
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    if (i == posts.length) {
+                      return Card(
+                        child: InkWell(
+                          onTap: () {
+                            BlocProvider.of<PostsBloc>(context).add(FetchMore());
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Builder(
+                              builder: (context) {
+                                if (postsState.state == LoadingState.LoadingMore) {
+                                  return Center(child: const CircularProgressIndicator());
+                                } else if (postsState.state == LoadingState.Error) {
+                                  return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
+                                }
+                                return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
+                              },
+                            )
                           )
-                        )
-                    ));
-                  } else if (posts[i] is draw.Submission) {
-                    final submission = posts[i] as draw.Submission;
-                    final linkType = getLinkType(submission.url.toString());
-                    return postInnerWidget(
-                      submission: posts[i] as draw.Submission,
-                      previewSource: PreviewSource.PostsList,
-                      linkType: linkType,
-                      fullSizePreviews: state.fullSizePreviews,
-                      postView: postsState.viewMode,
-                      showCircle: state.showPreviewCircle,
-                      blurLevel: state.blurLevel.toDouble(),
-                      showNsfw: state.showNSFWPreviews,
-                      showSpoiler: state.showSpoilerPreviews,
-                      onOptionsClick: () {
-                        SubmissionOptionsNotification(submission: submission)..dispatch(context);
-                      },
-                    );
-                  } else {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 5.0),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                      ));
+                    } else if (posts[i] is draw.Submission) {
+                      final submission = posts[i] as draw.Submission;
+                      final linkType = getLinkType(submission.url.toString());
+                      return postInnerWidget(
+                        submission: posts[i] as draw.Submission,
+                        previewSource: PreviewSource.PostsList,
+                        linkType: linkType,
+                        fullSizePreviews: state.fullSizePreviews,
+                        postView: postsState.viewMode,
+                        showCircle: state.showPreviewCircle,
+                        blurLevel: state.blurLevel.toDouble(),
+                        showNsfw: state.showNSFWPreviews,
+                        showSpoiler: state.showSpoilerPreviews,
+                        onOptionsClick: () {
+                          SubmissionOptionsNotification(submission: submission)..dispatch(context);
                         },
-                        child: CommentContent(posts[i], PreviewSource.PostsList),
-                      )
-                    );
-                  }
-                },
-                childCount: posts.length+1,
-              )
-            );
-          },
-        )
-      ],
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 5.0),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                          },
+                          child: CommentContent(posts[i], PreviewSource.PostsList),
+                        )
+                      );
+                    }
+                  },
+                  childCount: posts.length+1,
+                )
+              );
+            },
+          )
+        ],
+      )
     );
   }
 }

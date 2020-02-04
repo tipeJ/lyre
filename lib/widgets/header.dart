@@ -113,7 +113,7 @@ class LyreHeader extends StatelessWidget {
                       shape: const CircleBorder(),
                       elevation: 5.0,
                       fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(MdiIcons.pageLayoutSidebarRight),
+                      child: const Icon(Icons.info),
                       onPressed: (){
                         Scaffold.of(context).openEndDrawer();
                       },

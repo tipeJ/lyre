@@ -112,6 +112,39 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           viewMode: viewMode
         );
         preferences.close();
+      } else if (event is RefreshPosts){
+        yield PostsState(
+          state: LoadingState.Refreshing,
+          contentSource: state.contentSource,
+          target: state.target,
+          userContent: const [],
+          typeFilter: state.typeFilter,
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
+        );
+        List<UserContent> userContent;
+        LoadingState loadingState = LoadingState.Inactive;
+        String errorMessage;
+        if (state.contentSource != ContentSource.Self) {
+          userContent = await _repository.fetchUserContent(state.typeFilter, state.target, source: state.contentSource, timeFilter: state.timeFilter);
+        } else {
+          userContent = await _repository.fetchSelfUserContent(state.target, typeFilter: state.typeFilter, timeFilter: state.timeFilter);
+        }
+        if (userContent.isEmpty) {
+          loadingState = LoadingState.Error;
+          errorMessage = "No Submissions Were Returned";
+        }
+        yield PostsState(
+          state: loadingState,
+          errorMessage: errorMessage,
+          userContent: userContent,
+          contentSource: state.contentSource,
+          target: state.target,
+          sideBar: state.sideBar,
+          typeFilter: state.typeFilter,
+          timeFilter: state.timeFilter,
+          viewMode: state.viewMode
+        );
       } else if (event is ParamsChanged){
         yield PostsState(
           state: LoadingState.Refreshing,

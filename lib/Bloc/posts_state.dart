@@ -23,6 +23,8 @@ class PostsState extends Equatable {
   final WikiPage sideBar;
   final Subreddit subreddit;
 
+  final Redditor redditor;
+
   ///Media Preview Type
   final PostView viewMode;
 
@@ -37,6 +39,7 @@ class PostsState extends Equatable {
     this.errorMessage,
     this.sideBar,
     this.subreddit,
+    this.redditor
   });
 
   List<dynamic> get props => [state, userContent, target, errorMessage, viewMode];
@@ -56,14 +59,14 @@ class PostsState extends Equatable {
   String getFilterString(){
     String filterString = "";
 
-    if(contentSource == ContentSource.Self){
+    if (contentSource == ContentSource.Self) {
       filterString = target.toString().split('.').last;
       filterString += " ● ";
     }
 
-    if(typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial){
+    if (typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial) {
       filterString += StringUtils.capitalize(_parseTypeFilter()) + " | " + StringUtils.capitalize(timeFilter);
-    }else{
+    } else {
       filterString += StringUtils.capitalize(_parseTypeFilter());
     }
     return filterString;

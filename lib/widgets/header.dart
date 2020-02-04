@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
+import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
@@ -49,18 +50,7 @@ class LyreHeader extends StatelessWidget {
                 const SizedBox(height: 5.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: state.contentSource == ContentSource.Subreddit && state.subreddit != null
-                    ? [
-                      Text(
-                        "${state.subreddit.data["subscribers"].toString()} Readers",
-                        style: Theme.of(context).textTheme.body2,
-                      ),
-                      Text(
-                        "${state.subreddit.data["accounts_active"].toString()} Online",
-                        style: Theme.of(context).textTheme.body2,
-                      )
-                    ]
-                    : const []
+                  children: _getTargetInfo(context)
                 )
               ],)
             )
@@ -164,6 +154,32 @@ class LyreHeader extends StatelessWidget {
         ],
       )
     );
+  }
+  List<Widget> _getTargetInfo(BuildContext context) {
+    if (state.contentSource == ContentSource.Subreddit && notNull(state.subreddit)) {
+      return [
+        Text(
+          "${state.subreddit.data["subscribers"].toString()} Readers",
+          style: Theme.of(context).textTheme.body2,
+        ),
+        Text(
+          "${state.subreddit.data["accounts_active"].toString()} Online",
+          style: Theme.of(context).textTheme.body2,
+        )
+      ];
+    } else if (state.contentSource == ContentSource.Redditor && notNull(state.redditor)) {
+      return [
+        Text(
+          "${state.redditor.commentKarma.toString()} Comment Karma",
+          style: Theme.of(context).textTheme.body2,
+        ),
+        Text(
+          "${state.redditor.linkKarma.toString()} Link Karma",
+          style: Theme.of(context).textTheme.body2,
+        )
+      ];
+    }
+    return const [];
   }
 }
 class LyreSliverAppBar extends StatelessWidget {

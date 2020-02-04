@@ -51,6 +51,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
         WikiPage sideBar;
         Subreddit subreddit;
+        Redditor redditor;
         List<UserContent> userContent;
 
         LoadingState loadingState = LoadingState.Inactive;
@@ -81,7 +82,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             sideBar = subreddit != null ? await _repository.getWikiPage(WIKI_SIDEBAR_ARGUMENTS, subreddit.displayName) : null;
             break;
           case ContentSource.Redditor:
-            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
+            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime);
+            redditor = await _repository.getRedditor(target);
             break;
           case ContentSource.Self:
             userContent = await _repository.fetchSelfUserContent(target, typeFilter: sortType, timeFilter: sortTime);
@@ -107,6 +109,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: target, 
           sideBar: sideBar,
           subreddit: subreddit,
+          redditor: redditor,
           typeFilter: sortType,
           timeFilter: sortTime,
           viewMode: viewMode
@@ -119,6 +122,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           errorMessage: state.errorMessage,
           subreddit: state.subreddit,
+          redditor: state.redditor,
           sideBar: state.sideBar,
           userContent: state.userContent,
           typeFilter: state.typeFilter,
@@ -142,6 +146,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           errorMessage: errorMessage,
           userContent: userContent,
           contentSource: state.contentSource,
+          redditor: state.redditor,
           subreddit: state.subreddit,
           target: state.target,
           sideBar: state.sideBar,
@@ -154,6 +159,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           state: LoadingState.Refreshing,
           contentSource: state.contentSource,
           target: state.target,
+          subreddit: state.subreddit,
+          sideBar: state.sideBar,
+          redditor: state.redditor,
           userContent: const [],
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter,
@@ -178,6 +186,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           contentSource: state.contentSource,
           target: state.target,
           sideBar: state.sideBar,
+          subreddit: state.subreddit,
+          redditor: state.redditor,
           typeFilter: event.typeFilter,
           timeFilter: event.timeFilter,
           viewMode: state.viewMode
@@ -188,6 +198,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           contentSource: state.contentSource,
           target: state.target,
           userContent: state.userContent,
+          sideBar: state.sideBar,
+          subreddit: state.subreddit,
+          redditor: state.redditor,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter,
           viewMode: state.viewMode
@@ -209,6 +222,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           contentSource: state.contentSource,
           target: state.target,
           sideBar: state.sideBar,
+          subreddit: state.subreddit,
+          redditor: state.redditor,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter,
           viewMode: state.viewMode
@@ -222,6 +237,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           target: state.target,
           subreddit: state.subreddit,
           sideBar: state.sideBar,
+          redditor: state.redditor,
           typeFilter: state.typeFilter,
           timeFilter: state.timeFilter,
           viewMode: event.viewMode

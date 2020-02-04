@@ -109,7 +109,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
 
   List<Widget> _getRegisteredUsernamesList(List<String> list, String currentUserName) {
-    print(currentUserName);
     List<Widget> widgets = [];
     for(int i = 0; i < list.length; i++){
       widgets.add(InkWell(

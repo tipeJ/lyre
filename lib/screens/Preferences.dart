@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/CustomExpansionTile.dart';
@@ -61,7 +62,7 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
                           },
                         )
                       ],
-                      title: Text('Settings', style: TextStyle(fontSize: 32.0)),
+                      title: Text('Settings'),
                     ),
                     SliverList(
                       delegate: SliverChildListDelegate([
@@ -382,20 +383,27 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
         ],
         isAdvanced: true
       ),
-      InkWell(
-        child: Container(
-          padding: EdgeInsets.only(
-            left: 5.0,
-            top: 10.0,
-            bottom: 10.0
-          ),
-          child: Text('Filter Blacklist'),
-        ),
+      ListTile(
+        title: const Text('Filter Blacklist'),
         onTap: () {
           Navigator.of(context).pushNamed('filters');
         },
-      )
-    ];
+        onLongPress: () => _showDescriptionDialog(context, "Filter Blacklist",
+          "Which subreddits, users or domains are automatically filtered from listings (In the app side, the data will still be downloaded)"
+        ),
+      ),
+      PostsProvider().isLoggedIn()
+        ? ListTile(
+          title: const Text('Global Community Filters'),
+          onTap: () {
+            Navigator.of(context).pushNamed('filters_global');
+          },
+          onLongPress: () => _showDescriptionDialog(context, "Global Community Filters",
+            "Which subreddits are filtered from r/all in the Reddit side (These filters will also apply in browsers or other Reddit apps"
+          ),
+        )
+        : null
+    ].where((w) => notNull(w)).toList();
   }
   List<Widget> _getMediaSettings(BuildContext context){
     return [
@@ -652,6 +660,15 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
   }
 }
 
+void _showDescriptionDialog(BuildContext context, String title, String description) => showDialog(
+  context: context,
+  builder: (context) => SimpleDialog(
+    title: Text(title),
+    titlePadding: const EdgeInsets.all(12.0),
+    children: <Widget>[Padding(padding: const EdgeInsets.symmetric(horizontal: 10.0), child: Text(description)
+  )],)
+);
+
 /// Widget for displaying Preferences Options. Will show a dialog with
 /// [description] text when the title Text is long-pressed. Leading 
 /// Widget will be shown last, while the title is always expanded.
@@ -667,6 +684,11 @@ class _SettingsTitleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      trailing: leading,
+      onLongPress: () => _showDescriptionDialog(context, title, description),
+    );
     return Row(
       children: <Widget>[
         Expanded(

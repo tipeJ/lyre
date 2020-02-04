@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,7 +113,7 @@ class LyreHeader extends StatelessWidget {
                       shape: const CircleBorder(),
                       elevation: 5.0,
                       fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(MdiIcons.pageLayoutSidebarRight),
+                      child: const Icon(Icons.info),
                       onPressed: (){
                         Scaffold.of(context).openEndDrawer();
                       },
@@ -150,9 +151,9 @@ class LyreHeader extends StatelessWidget {
                       shape: const CircleBorder(),
                       elevation: 5.0,
                       fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(MdiIcons.pageLayoutSidebarRight),
+                      child: const Icon(MdiIcons.help),
                       onPressed: (){
-                        Scaffold.of(context).openEndDrawer();
+                        Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen()));
                       },
                     ),
                   ),

@@ -38,6 +38,10 @@ class ParamsChanged extends PostsEvent{
   List<dynamic> get props => [typeFilter, timeFilter];
 }
 
+class RefreshPosts extends PostsEvent {
+  List<dynamic> get props => [];
+}
+
 class FetchMore extends PostsEvent {
   List<dynamic> get props => [];
 }

@@ -91,6 +91,7 @@ class LyreDraggableScrollableSheet extends StatefulWidget {
     this.initialChildSize = 0.5,
     this.minChildSize = 0.25,
     this.maxChildSize = 1.0,
+    this.borderRadius = 0.0,
     this.expand = true,
     this.visible,
     @required this.builder,
@@ -120,6 +121,9 @@ class LyreDraggableScrollableSheet extends StatefulWidget {
   ///
   /// The default value is `1.0`.
   final double maxChildSize;
+
+  /// Border Radius for the expanding bottom sheet
+  final double borderRadius;
 
   /// Whether the widget should expand to fill the available space in its parent
   /// or not.
@@ -648,8 +652,8 @@ class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSh
             height: _extent.currentExtent - ((1 - _visibilityAnimation.value) * _extent.minExtent),
             child: ClipRRect(
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(_lerp(15.0, 0.0)),
-              topRight: Radius.circular(_lerp(15.0, 0.0)),
+              topLeft: Radius.circular(_lerp(widget.borderRadius, 0.0)),
+              topRight: Radius.circular(_lerp(widget.borderRadius, 0.0)),
             ),
             child: widget.builder(context, _scrollController)
           ),

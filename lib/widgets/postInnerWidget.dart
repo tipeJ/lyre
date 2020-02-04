@@ -125,14 +125,18 @@ class postInnerWidget extends StatelessWidget{
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    color: Theme.of(context).cardColor.withOpacity(0.6),
-                    child: getDefaultSlideColumn(context),
+                    child: Material(
+                      color: Theme.of(context).cardColor.withOpacity(0.6),
+                      child: getDefaultSlideColumn(context)
+                    ),
                   ),
                 )
               : Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Theme.of(context).cardColor.withOpacity(0.6),
-                  child: getDefaultSlideColumn(context),
+                  child: Material(
+                    color: Theme.of(context).cardColor.withOpacity(0.6),
+                    child: getDefaultSlideColumn(context)
+                  ),
                 ),
         ),
         ((submission.over18 && !showNsfw || (submission.spoiler && !showSpoiler)) || videoLinkTypes.contains(linkType))

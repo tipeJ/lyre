@@ -4,7 +4,6 @@ import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
-import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/widgets/widgets.dart';
 
 /// Class for displaying the list of subreddits to which the current user has subscribed to. Also shows Frontpage and r/All

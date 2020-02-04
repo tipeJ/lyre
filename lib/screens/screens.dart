@@ -19,3 +19,5 @@ export 'Animations/transitions.dart';
 export 'themes_view.dart';
 export 'wiki_page.dart';
 export 'trending_subreddits.dart';
+export 'help_reddit.dart';
+export 'filters_global.dart';

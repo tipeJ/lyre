@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:meta/meta.dart';
 import 'package:lyre/Resources/globals.dart';
-import 'bloc.dart';
 
 @immutable
 class PostsState extends Equatable {

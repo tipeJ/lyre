@@ -346,14 +346,38 @@ class PostsProvider {
 
   // * Filters
 
-  ///Method for fetching global reddit filters (The same that are used in r/all in the desktop browser)
-  Future<List<String>> getFilteredSubreddits() async {
-    final response = await reddit.auth.get(Uri.parse("https://oauth.reddit.com/api/filter/user/tr60n0/f/all"));
+  ///Method for fetching global reddit filters (The same that are used in r/all in the desktop browser).
+  Future<dynamic> getFilteredSubreddits() async {
+    if (!isLoggedIn()) return "Log in to access global filters";
+    final self = await reddit.user.me();
+    final response = await reddit.auth.get(Uri.parse("https://oauth.reddit.com/api/filter/user/${self.displayName}/f/all"));
     final List<dynamic> filteredSubreddits = response["data"]["subreddits"];
     List<String> parsedFilters = [];
 
     filteredSubreddits.forEach((f) => parsedFilters.add(f['name']));
     return parsedFilters;
+  }
+
+  ///Method for pushing a new global filter to the reddit database; returns an error String if one is caught.
+  Future<dynamic> addGlobalFilter({@required String subreddit}) async {
+    if (!isLoggedIn()) return "Log in to access global filters";
+    try {
+      await reddit.subreddit('all').filters.add(subreddit);
+      return true;
+    } catch (e) {
+      return e.message;
+    }
+  }
+
+  ///Method for removing a global filter to the reddit database; returns an error String if one is caught.
+  Future<dynamic> removeGlobalFilter({@required String subreddit}) async {
+    if (!isLoggedIn()) return "Log in to remove global filters";
+    try {
+      await reddit.subreddit('all').filters.remove(subreddit);
+      return true;
+    } catch (e) {
+      return e.message;
+    }
   }
 
   // * Profile data fetching:

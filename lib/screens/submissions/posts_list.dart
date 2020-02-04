@@ -916,7 +916,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       child: Padding(
                         padding: const EdgeInsets.all(3.5),
                         child: Row(children: [
-                          const Icon(MdiIcons.pageLayoutSidebarRight),
+                          const Icon(Icons.info),
                           Text("Sidebar", style: Theme.of(context).textTheme.body2),
                         ],),
                       ),

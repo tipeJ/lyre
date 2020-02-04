@@ -451,6 +451,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
                         BlocProvider.of<PostsBloc>(context).add(FetchMore());
                       }
+                      // ! HIDE APPBAR
+                      return false;
                       if (notification.depth == 0 && notification is ScrollUpdateNotification) {
                         if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
                           _appBarVisibleNotifier.value = false;
@@ -520,14 +522,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           }
                         },
                         onTap: () {
-                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
-                            // ! Will be deprecated
-                            setState(() {
-                              _paramsVisibility = _ParamsVisibility.Type; 
-                            });
-                          } else {
-                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
-                          }
+                          _optionsVisibility = _OptionsVisibility.Default;
+                          _optionsController = Scaffold.of(context).showBottomSheet(
+                            (context) => _optionsSheet(context)
+                          );
                         },
                         child: BlocBuilder<PostsBloc, PostsState>(
                           builder: (context, state) {
@@ -560,13 +558,18 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     child: Row(
                       children: <Widget>[
                         IconButton(
-                          icon: const Icon(Icons.menu),
+                          icon: const Icon(Icons.sort),
                           tooltip: "Menu",
                           onPressed: () {
-                            _optionsVisibility = _OptionsVisibility.Default;
-                            _optionsController = Scaffold.of(context).showBottomSheet(
-                              (context) => _optionsSheet(context)
-                            );
+                            if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                              // ! Will be deprecated
+                              setState(() {
+                                _paramsVisibility = _ParamsVisibility.Type; 
+                              });
+                            } else {
+                              Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                            }
+                            
                           },
                         ),
                         BlocBuilder<PostsBloc, PostsState>(
@@ -1571,7 +1574,7 @@ class __submissionListState extends State<_submissionList> {
     return BlocBuilder<LyreBloc, LyreState>(
       builder: (context, state) {
         return ListView.builder(
-          padding: const EdgeInsets.only(top: 5.0),
+          padding: const EdgeInsets.only(top: 5.0, bottom: kBottomNavigationBarHeight),
           itemCount: posts.length+1,
           itemBuilder: (context, i) {
             if (i == posts.length) {
@@ -1581,7 +1584,7 @@ class __submissionListState extends State<_submissionList> {
                     BlocProvider.of<PostsBloc>(context).add(FetchMore());
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.symmetric(vertical:  10.0),
                     child: Builder(
                       builder: (context) {
                         if (postsState.state == LoadingState.LoadingMore) {

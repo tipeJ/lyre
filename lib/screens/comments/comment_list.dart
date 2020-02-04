@@ -20,6 +20,7 @@ import 'package:lyre/Bloc/bloc.dart';
 const selection_image = "Image";
 const selection_album = "Album";
 
+///Enum for selected comment options params
 enum _CommentSelectionVisibility {
   Default,
   Copy,
@@ -116,7 +117,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                                   previewSource: PreviewSource.Comments,
                                   linkType: getLinkType((state.submission as Submission).url.toString()),
                                   fullSizePreviews: false,
-                                  postView: PostView.IntendedPreview,
+                                  postView: PostView.ImagePreview,
                                   showCircle: false,
                                   blurLevel: 0.0,
                                   showNsfw: true,

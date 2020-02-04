@@ -37,6 +37,7 @@ class _GlobalFiltersState extends State<GlobalFilters> {
           if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
             if (snapshot.data is String) return Center(child: Text(snapshot.data));
             if (_filteredSubreddits == null) _filteredSubreddits = snapshot.data;
+            if (_filteredSubreddits.isEmpty) return Center(child: Text("Dankmemes not filtered (yet)", style: TextStyle(color: Theme.of(context).textTheme.body2.color)));
             return Builder(
               builder: (context) {
                 return RefreshIndicator(
@@ -60,7 +61,7 @@ class _GlobalFiltersState extends State<GlobalFilters> {
                               children: <Widget>[
                                 ListTile(
                                   leading: const Icon(MdiIcons.tag),
-                                  title: Text("r/"),
+                                  title: Text("r/$sub"),
                                   onTap: () {
                                     Navigator.of(context).pushNamed("posts", arguments: {
                                       'content_source' : ContentSource.Subreddit,
@@ -84,7 +85,7 @@ class _GlobalFiltersState extends State<GlobalFilters> {
                                           subreddit: sub,
                                           pageName: WIKI_SIDEBAR_ARGUMENTS,
                                           controller: controller,
-                                          title: "r/"
+                                          title: "r/$sub"
                                         );
                                       },
                                     ));
@@ -130,7 +131,7 @@ class _GlobalFiltersState extends State<GlobalFilters> {
             builder: (context) {
               return _AddFilterDialog();
             }
-          ) ?? false;
+          );
           if (subreddit != null) {
             _filteredSubreddits.add(subreddit);
             setState(() {});
@@ -202,8 +203,7 @@ class __AddFilterDialogState extends State<_AddFilterDialog> {
         OutlineButton(
           child: Text('Cancel'),
           onPressed: () {
-            _addFilterController.clear();
-            Navigator.of(context).pop(false);
+            Navigator.of(context).pop();
           },
         ),
         OutlineButton(

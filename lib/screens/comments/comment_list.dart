@@ -143,10 +143,8 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                         return _getCommentWidgets(context, state.comments);
                       } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
                         return const Center(child: CircularProgressIndicator());
-                      } else if (state.comments.isNotEmpty && state.state == LoadingState.Refreshing) {
-                        return _getCommentWidgets(context, state.comments);
                       }
-                      return const SizedBox();
+                      return _getCommentWidgets(context, state.comments);
                     }
                   ),
                 )

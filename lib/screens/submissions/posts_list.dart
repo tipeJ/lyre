@@ -63,7 +63,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   bool _autoLoad;
   PostsBloc bloc;
 
-  ScrollController scontrol = new ScrollController();
   ValueNotifier<bool> _appBarVisibleNotifier;
 
   _OptionsVisibility _optionsVisibility;
@@ -95,7 +94,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   void dispose() {
-    scontrol.dispose();
     bloc.drain();
     bloc.close();
     _appBarVisibleNotifier.dispose();
@@ -231,6 +229,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       }
     });
   }
+  
   _handleSuccessfulReply(BuildContext context, draw.Comment comment) {
     final successSnackBar = SnackBar(
       content: Text('Reply Sent'),
@@ -271,7 +270,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   builder: (context, LyreState state) {
                     final currentUser = state.readOnly ? "" : state.currentUserName;
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomScrollView(
                         slivers: <Widget>[
                           SliverSafeArea(
@@ -352,11 +351,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   state.currentUser.commentKarma.toString(),
                                   style: Theme.of(context).textTheme.display1,
                                 ),
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.only(bottom: 5.0),
-                                  child: const Text(
+                                  child: Text(
                                     'Comment karma',
-                                    style: const TextStyle(fontSize: 18.0, color: Colors.grey),
+                                    style: TextStyle(fontSize: 18.0, color: Colors.grey),
                                   ),
                                 ),
                                 Text(
@@ -1507,10 +1506,19 @@ class __submissionListState extends State<_submissionList> {
 
   Completer<void> _refreshCompleter;
 
+  ScrollController _scrollController;
+
   @override
   void initState() { 
     super.initState();
+    _scrollController = ScrollController();
     _refreshCompleter = Completer();
+  }
+
+  @override
+  void dispose() { 
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1523,6 +1531,7 @@ class __submissionListState extends State<_submissionList> {
             final state = snapshot.data;
             if(state.userContent != null && state.userContent.isNotEmpty){
               return NestedScrollView(
+                controller: _scrollController,
                 physics: AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, b) => [
                   LyreHeader(state: state)

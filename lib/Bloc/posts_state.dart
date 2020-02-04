@@ -21,9 +21,12 @@ class PostsState extends Equatable {
 
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   final WikiPage sideBar;
-  final Subreddit subreddit;
 
-  final Redditor redditor;
+  /// Either a DRAW Redditor or a Subreddit object
+  final dynamic targetDetails;
+
+  Subreddit get subreddit => targetDetails is Subreddit ? targetDetails as Subreddit : null;
+  Redditor get redditor => targetDetails is Redditor ? targetDetails as Redditor : null;
 
   ///Media Preview Type
   final PostView viewMode;
@@ -38,8 +41,7 @@ class PostsState extends Equatable {
     @required this.viewMode,
     this.errorMessage,
     this.sideBar,
-    this.subreddit,
-    this.redditor
+    this.targetDetails
   });
 
   List<dynamic> get props => [state, userContent, target, errorMessage, viewMode];

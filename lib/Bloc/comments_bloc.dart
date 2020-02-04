@@ -59,7 +59,27 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         comments = _retrieveCommentsFromForest(forest.comments);
       }
       yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
-    } else if(event is FetchMoreComments){
+    } else if (event is RefreshComments){
+      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission, comments: state.comments, sortType: state.sortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
+      Comment parentComment;
+      Submission submission;
+      final userContent = state.submission;
+      List<CommentM> comments;
+      //Only should occur when the submission is fetched from a comment permalink for the first time.
+      if (userContent is CommentRef || userContent is Comment) {
+        final Comment comment = userContent is CommentRef ? await userContent.populate() : userContent;
+        parentComment = comment.isRoot ? comment : await comment.parent();
+        comments = _retrieveCommentsFromForest([parentComment]);
+      } else if (state.parentComment != null && userContent is Submission) {
+        submission = userContent;
+        comments = _retrieveCommentsFromForest(userContent.comments.comments);
+      } else {
+        submission = userContent;
+        var forest = await submission.refreshComments(sort: state.sortType);
+        comments = _retrieveCommentsFromForest(forest.comments);
+      }
+      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: state.sortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.        
+    } else if (event is FetchMoreComments){
       yield CommentsState(state: LoadingState.LoadingMore, submission: state.submission, comments: _comments, sortType: state.sortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
       var more = event.moreComments;
       var currentList = _comments;

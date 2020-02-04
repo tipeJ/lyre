@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
@@ -40,11 +42,20 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   _CommentSelectionVisibility _commentSelectionVisibility;
   PersistentBottomSheetController _bottomSheetController;
   
+  Completer<void> _refreshCompleter;
+
+  @override
+  void initState() { 
+    super.initState();
+    _refreshCompleter = Completer<void>();
+  }
+
   @override
   void dispose() { 
     BlocProvider.of<CommentsBloc>(context).close();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,46 +102,54 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                 _initializeCommentOptions(notification.comment, context);
                 return false;
               },
-              child: CustomScrollView(
-                slivers: <Widget>[
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxScrolled) => [
                   BlocBuilder<CommentsBloc, CommentsState>(
                     builder: (context, state) {
                       return SliverSafeArea(
-                      sliver: SliverToBoxAdapter(
-                        child: notNull(state) && state.submission is Submission
-                          ? Hero(
-                              tag: 'post_hero ${(state.submission as Submission).id}',
-                              child: postInnerWidget(
-                                submission: state.submission,
-                                previewSource: PreviewSource.Comments,
-                                linkType: getLinkType((state.submission as Submission).url.toString()),
-                                fullSizePreviews: false,
-                                postView: PostView.IntendedPreview,
-                                showCircle: false,
-                                blurLevel: 0.0,
-                                showNsfw: true,
-                                showSpoiler: true,
-                                onOptionsClick: () {},
+                        sliver: SliverToBoxAdapter(
+                          child: notNull(state) && state.submission is Submission
+                            ? Hero(
+                                tag: 'post_hero ${(state.submission as Submission).id}',
+                                child: postInnerWidget(
+                                  submission: state.submission,
+                                  previewSource: PreviewSource.Comments,
+                                  linkType: getLinkType((state.submission as Submission).url.toString()),
+                                  fullSizePreviews: false,
+                                  postView: PostView.IntendedPreview,
+                                  showCircle: false,
+                                  blurLevel: 0.0,
+                                  showNsfw: true,
+                                  showSpoiler: true,
+                                  onOptionsClick: () {},
+                                )
                               )
-                            )
-                          : const SizedBox()
-                      ),
-                    );
-                    },
-                  ),
-                  BlocBuilder<CommentsBloc, CommentsState>(
-                    builder: (context, state) => state.comments.isNotEmpty && state.state != LoadingState.Refreshing
-                      ? _getCommentWidgets(context, state.comments)
-                      : const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Center(
-                            child: CircularProgressIndicator()
-                          )
+                            : const SizedBox()
                         ),
-                      )
-                  ),
+                      );
+                    },
+                  )
                 ],
+                body: RefreshIndicator(
+                  onRefresh: () {
+                    BlocProvider.of<CommentsBloc>(context).add(RefreshComments());
+                    return _refreshCompleter.future;
+                  },
+                  child: BlocBuilder<CommentsBloc, CommentsState>(
+                    builder: (context, state) {
+                      if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
+                        _refreshCompleter?.complete();
+                        _refreshCompleter = Completer<void>();
+                        return _getCommentWidgets(context, state.comments);
+                      } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state.comments.isNotEmpty && state.state == LoadingState.Refreshing) {
+                        return _getCommentWidgets(context, state.comments);
+                      }
+                      return const SizedBox();
+                    }
+                  ),
+                )
               )
             ),
             appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
@@ -141,8 +160,9 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   }
 
   Widget _getCommentWidgets(BuildContext context, List<dynamic> list){
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((BuildContext context, int i){
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 5.0),
+      itemBuilder: (context, i) {
           return BlocBuilder<CommentsBloc, CommentsState>(
             builder: (BuildContext context, state) {
               return prefix0.Visibility(
@@ -151,8 +171,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               );
             },
           );
-      }, childCount: list.length),
-    );
+      }, itemCount: list.length);
   }
 
   Widget _getCommentWidget(BuildContext context, dynamic comment, int i) {

@@ -15,6 +15,13 @@ class SortChanged extends CommentsEvent{
 
   List<dynamic> get props => [submission, commentSortType];
 }
+
+class RefreshComments extends CommentsEvent{
+  RefreshComments();
+
+  List<dynamic> get props => const [];
+}
+
 class FetchMoreComments extends CommentsEvent{
   final MoreComments moreComments;
   final int location;
@@ -26,6 +33,7 @@ class FetchMoreComments extends CommentsEvent{
 
   List<dynamic> get props => [moreComments, location];
 }
+
 class Collapse extends CommentsEvent{
   final int location;
   
@@ -34,6 +42,7 @@ class Collapse extends CommentsEvent{
   });
   List<dynamic> get props => [location];
 }
+
 class AddComment extends CommentsEvent{
   final int location;
   final Comment comment;

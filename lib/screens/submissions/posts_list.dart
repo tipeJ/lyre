@@ -1493,12 +1493,25 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 }
 
-class _submissionList extends StatelessWidget {
+class _submissionList extends StatefulWidget {
   const _submissionList({
     Key key,
   }) : super(key: key);
 
-  final bool _autoLoad = false;
+  @override
+  __submissionListState createState() => __submissionListState();
+}
+
+class __submissionListState extends State<_submissionList> {
+  bool _autoLoad;
+
+  Completer<void> _refreshCompleter;
+
+  @override
+  void initState() { 
+    super.initState();
+    _refreshCompleter = Completer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1508,15 +1521,20 @@ class _submissionList extends StatelessWidget {
         builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
           if (snapshot.hasData) {
             final state = snapshot.data;
-            if(state.userContent != null && state.userContent.isNotEmpty && state.state != LoadingState.Refreshing){
-              //_autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
-              if(state.contentSource == ContentSource.Redditor){
-                return state.target.isNotEmpty
-                  ? _buildList(state, context)
-                  : Center(child: CircularProgressIndicator());
-              } else {
-                return _buildList(state, context);
-              }
+            if(state.userContent != null && state.userContent.isNotEmpty){
+              return NestedScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, b) => [
+                  LyreHeader(state: state)
+                ],
+                body: RefreshIndicator(
+                  onRefresh: () {
+                    BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
+                    return _refreshCompleter.future;
+                  },
+                  child: _buildListWithHeader(state, context)
+                )
+              );
             } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
               // Return error message
               return Center(child: Text(state.errorMessage, style: LyreTextStyles.errorMessage,));
@@ -1531,80 +1549,75 @@ class _submissionList extends StatelessWidget {
       )
     );
   }
-  Widget _buildList(PostsState postsState, BuildContext context) {
-    final posts = postsState.userContent;
-    return RefreshIndicator(
-      onRefresh: () {
-        BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
-      },
-      child: CustomScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverPadding(
-            padding: const EdgeInsets.only(bottom: 5.0),
-            sliver: LyreHeader(state: postsState)
-          ),
-          BlocBuilder<LyreBloc, LyreState>(
-            builder: (context, state) {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    if (i == posts.length) {
-                      return Card(
-                        child: InkWell(
-                          onTap: () {
-                            BlocProvider.of<PostsBloc>(context).add(FetchMore());
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Builder(
-                              builder: (context) {
-                                if (postsState.state == LoadingState.LoadingMore) {
-                                  return Center(child: const CircularProgressIndicator());
-                                } else if (postsState.state == LoadingState.Error) {
-                                  return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
-                                }
-                                return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
-                              },
-                            )
-                          )
-                      ));
-                    } else if (posts[i] is draw.Submission) {
-                      final submission = posts[i] as draw.Submission;
-                      final linkType = getLinkType(submission.url.toString());
-                      return postInnerWidget(
-                        submission: posts[i] as draw.Submission,
-                        previewSource: PreviewSource.PostsList,
-                        linkType: linkType,
-                        fullSizePreviews: state.fullSizePreviews,
-                        postView: postsState.viewMode,
-                        showCircle: state.showPreviewCircle,
-                        blurLevel: state.blurLevel.toDouble(),
-                        showNsfw: state.showNSFWPreviews,
-                        showSpoiler: state.showSpoilerPreviews,
-                        onOptionsClick: () {
-                          SubmissionOptionsNotification(submission: submission)..dispatch(context);
-                        },
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 5.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('comments', arguments: posts[i]);
-                          },
-                          child: CommentContent(posts[i], PreviewSource.PostsList),
-                        )
-                      );
-                    }
+
+  Widget _buildListWithHeader(PostsState state, BuildContext context) {
+    _autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
+    final posts = state.userContent;
+    if (state.state != LoadingState.Refreshing) {
+      _refreshCompleter?.complete();
+      _refreshCompleter = Completer();
+      return _buildList(context, state, posts);
+    }
+    return _buildList(context, state, posts);
+  }
+  Widget _buildList(BuildContext context, PostsState postsState, List<draw.UserContent> posts) {
+    return BlocBuilder<LyreBloc, LyreState>(
+      builder: (context, state) {
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 5.0),
+          itemCount: posts.length+1,
+          itemBuilder: (context, i) {
+            if (i == posts.length) {
+              return Card(
+                child: InkWell(
+                  onTap: () {
+                    BlocProvider.of<PostsBloc>(context).add(FetchMore());
                   },
-                  childCount: posts.length+1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Builder(
+                      builder: (context) {
+                        if (postsState.state == LoadingState.LoadingMore) {
+                          return Center(child: const CircularProgressIndicator());
+                        } else if (postsState.state == LoadingState.Error) {
+                          return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
+                        }
+                        return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
+                      },
+                    )
+                  )
+              ));
+            } else if (posts[i] is draw.Submission) {
+              final submission = posts[i] as draw.Submission;
+              final linkType = getLinkType(submission.url.toString());
+              return postInnerWidget(
+                submission: posts[i] as draw.Submission,
+                previewSource: PreviewSource.PostsList,
+                linkType: linkType,
+                fullSizePreviews: state.fullSizePreviews,
+                postView: postsState.viewMode,
+                showCircle: state.showPreviewCircle,
+                blurLevel: state.blurLevel.toDouble(),
+                showNsfw: state.showNSFWPreviews,
+                showSpoiler: state.showSpoilerPreviews,
+                onOptionsClick: () {
+                  SubmissionOptionsNotification(submission: submission)..dispatch(context);
+                },
+              );
+            } else {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 5.0),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                  },
+                  child: CommentContent(posts[i], PreviewSource.PostsList),
                 )
               );
-            },
-          )
-        ],
-      )
+            }
+          },
+        );
+      },
     );
   }
 }

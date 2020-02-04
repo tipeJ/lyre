@@ -251,6 +251,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context) {
+    _autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
     bloc = BlocProvider.of<PostsBloc>(context);
     if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
@@ -1503,7 +1504,6 @@ class _submissionList extends StatefulWidget {
 }
 
 class __submissionListState extends State<_submissionList> {
-  bool _autoLoad;
 
   Completer<void> _refreshCompleter;
 
@@ -1551,7 +1551,6 @@ class __submissionListState extends State<_submissionList> {
   }
 
   Widget _buildListWithHeader(PostsState state, BuildContext context) {
-    _autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
     final posts = state.userContent;
     if (state.state != LoadingState.Refreshing) {
       _refreshCompleter?.complete();

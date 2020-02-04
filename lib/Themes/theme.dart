@@ -107,7 +107,8 @@ class LyreTheme {
       backgroundColor: HexColor.fromHex(primaryColor)
     ),
     toggleButtonsTheme: ToggleButtonsThemeData(
-      selectedColor: HexColor.fromHex(accentColor)
+      selectedColor: HexColor.fromHex(accentColor),
+      borderWidth: 0.0
     )
   );
   TextStyle get _inputHelpText => TextStyle(

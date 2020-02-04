@@ -261,8 +261,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           padding: EdgeInsets.all(5.0),
                           alignment: Alignment.centerLeft,
                           child: ToggleButtons(
-                            renderBorder: true,
-                            constraints: BoxConstraints.tightFor(height: 30),
+                            constraints: const BoxConstraints.tightFor(height: 30),
                             borderRadius: BorderRadius.circular(10.0),
                             isSelected: [
                               _isNsfw,

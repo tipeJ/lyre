@@ -18,7 +18,6 @@ import '../Resources/globals.dart';
 import '../utils/utils.dart';
 import 'package:draw/draw.dart';
 import '../screens/interfaces/previewCallback.dart';
-import '../Resources/MediaProvider.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
 import '../Resources/RedditHandler.dart';
 
@@ -174,7 +173,7 @@ class postInnerWidget extends StatelessWidget{
         width: double.infinity,
         height: double.infinity,
         image: AdvancedNetworkImage(
-          submission.preview.last.source.url.toString(),
+          postView == PostView.Compact ? submission.preview.first.resolutions.first.url.toString() : submission.preview.first.source.url.toString(),
           useDiskCache: true,
           cacheRule: const CacheRule(maxAge: const Duration(days: 7))
         ),
@@ -282,7 +281,7 @@ void _handleClick(LinkType linkType, Submission submission, BuildContext context
       Navigator.of(context).pushNamed("comments", arguments: submission);
     } else {
       if (linkType == LinkType.RedditVideo) {
-        handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
+        handleLinkClick(Uri.parse(submission.data["media"]["reddit_video"]["dash_url"]), context);
       } else {
         handleLinkClick(submission.url, context, linkType);
       }

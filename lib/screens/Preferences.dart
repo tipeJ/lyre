@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lyre/Resources/globals.dart';
+import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/CustomExpansionTile.dart';
@@ -391,16 +392,18 @@ class _PreferencesViewState extends State<PreferencesView> with SingleTickerProv
           "Which subreddits, users or domains are automatically filtered from listings (In the app side, the data will still be downloaded)"
         ),
       ),
-      ListTile(
-        title: const Text('Global Community Filters'),
-        onTap: () {
-          Navigator.of(context).pushNamed('filters_global');
-        },
-        onLongPress: () => _showDescriptionDialog(context, "Global Community Filters",
-          "Which subreddits are filtered from r/all in the Reddit side (These filters will also apply in browsers or other Reddit apps"
-        ),
-      )
-    ];
+      PostsProvider().isLoggedIn()
+        ? ListTile(
+          title: const Text('Global Community Filters'),
+          onTap: () {
+            Navigator.of(context).pushNamed('filters_global');
+          },
+          onLongPress: () => _showDescriptionDialog(context, "Global Community Filters",
+            "Which subreddits are filtered from r/all in the Reddit side (These filters will also apply in browsers or other Reddit apps"
+          ),
+        )
+        : null
+    ].where((w) => notNull(w)).toList();
   }
   List<Widget> _getMediaSettings(BuildContext context){
     return [

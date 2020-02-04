@@ -442,14 +442,21 @@ class _defaultColumn extends StatelessWidget {
               submission.over18
                 ? Padding(
                   padding: __defaultColumnPadding,
-                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                  child: const Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
                 )
                 : null,
 
               submission.spoiler
                 ? Padding(
                   padding: __defaultColumnPadding,
-                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                  child: const Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                )
+                : null,
+
+              submission.linkFlairText != null
+                ? Padding(
+                  padding: __defaultColumnPadding,
+                  child: Text(submission.linkFlairText, style: TextStyle(fontSize: __defaultColumnTextSize, color: Theme.of(context).accentColor))
                 )
                 : null,
 

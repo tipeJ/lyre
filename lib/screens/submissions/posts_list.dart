@@ -913,22 +913,36 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   },
                 ),
                 BlocProvider.of<PostsBloc>(context).state.contentSource == ContentSource.Subreddit
-                  ? InkWell(
-                      child: Padding(
-                        padding: const EdgeInsets.all(3.5),
-                        child: Row(children: [
-                          const Icon(Icons.info),
-                          Text("Sidebar", style: Theme.of(context).textTheme.body2),
-                        ],),
-                      ),
-                      onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
-                        builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
-                        initialChildSize: 0.45,
-                        minChildSize: 0.45,
-                        maxChildSize: 1.0,
-                        expand: false,
-                      ))
-                    )
+                  // Display filters shortcut when in r/all
+                  ? BlocProvider.of<PostsBloc>(context).state.target == "all"
+                    // Only Display filters button if user has logged in
+                    ? !BlocProvider.of<LyreBloc>(context).state.readOnly
+                      ? InkWell(
+                          child: Padding(
+                            padding: const EdgeInsets.all(3.5),
+                            child: Row(children: [
+                              const Icon(Icons.filter_list),
+                              Text("Filters", style: Theme.of(context).textTheme.body2),
+                            ],),
+                          ),
+                          onTap: () => Navigator.of(context).pushNamed("filters_global"))
+                      : null
+                    : InkWell(
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.5),
+                          child: Row(children: [
+                            const Icon(Icons.info),
+                            Text("Sidebar", style: Theme.of(context).textTheme.body2),
+                          ],),
+                        ),
+                        onTap: () => Scaffold.of(context).showBottomSheet((context) => DraggableScrollableSheet(
+                          builder: (context, scrollController) => SidebarView(scrollController: scrollController, state: BlocProvider.of<PostsBloc>(context).state),
+                          initialChildSize: 0.45,
+                          minChildSize: 0.45,
+                          maxChildSize: 1.0,
+                          expand: false,
+                        ))
+                      )
                   : null,
                   InkWell(
                     child: Padding(

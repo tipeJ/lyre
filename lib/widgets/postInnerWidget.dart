@@ -394,18 +394,35 @@ class _defaultColumn extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Padding(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                child: Text(
-                  submission.title,
-                  style: LyreTextStyles.submissionTitle.apply(
-                    color: (submission.stickied)
-                      ? const Color.fromARGB(255, 0, 200, 53)
-                      : Theme.of(context).textTheme.body1.color),
-                ),
-                onTap: (){
-                  _handleClick(linkType, submission, context);
-                },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      child: Text(
+                        submission.title,
+                        style: LyreTextStyles.submissionTitle.apply(
+                          color: (submission.stickied)
+                            ? const Color.fromARGB(255, 0, 200, 53)
+                            : Theme.of(context).textTheme.body1.color),
+                      ),
+                      onTap: (){
+                        _handleClick(linkType, submission, context);
+                      },
+                    )
+                  ),
+                  // Instant View Button
+                  mat.Visibility(
+                    visible: linkType == LinkType.Default,
+                    child: GestureDetector(
+                      child: const Icon(MdiIcons.flashCircle),
+                      onTap: () {
+                        instantLaunchUrl(context, submission.url);
+                      },
+                    )
+                  )
+                ]
               ),
               padding:
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),

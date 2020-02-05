@@ -76,7 +76,6 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   void preview(String url) {
     if (!isPreviewing) {
       previewUrl = url;
-      print(getLinkType(url).toString());
       showOverlay();
     }
   }

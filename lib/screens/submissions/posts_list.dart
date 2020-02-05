@@ -559,7 +559,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       children: <Widget>[
                         IconButton(
                           icon: const Icon(Icons.sort),
-                          tooltip: "Menu",
+                          tooltip: "Sort",
                           onPressed: () {
                             if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
                               // ! Will be deprecated
@@ -871,16 +871,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
-                           state.showKarmaInMenuSheet && state.currentUser != null
-                            ? Row(
-                                children: <Widget>[
-                                  const Icon(MdiIcons.yinYang, size: 12.0),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 3.5),
-                                    child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
-                                  ),
-                                ],)
-                            : Container()
+                          Visibility(
+                            visible: state.showKarmaInMenuSheet && state.currentUser != null,
+                            child: Row(
+                              children: <Widget>[
+                                const Icon(MdiIcons.yinYang, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
+                                ),
+                              ],)
+                          )
                         ]
                       ),
                     ],

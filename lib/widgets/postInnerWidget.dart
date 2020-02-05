@@ -27,9 +27,15 @@ class SubmissionOptionsNotification extends Notification {
 
   const SubmissionOptionsNotification({@required this.submission});
 }
+/// Max. Preview height (If fullSizePreviews not enabled)
 const _defaultPreviewHeight = 250.0;
+/// Max. Preview height for full size previews (needed for ultra-long infographics etc.)
+const _defaultMaxFullSizePreviewHeight = 1000.0;
+/// Default submission data text size
 const _defaultColumnTextSize = 11.0;
+/// Default padding between submission data wrap items
 const _defaultColumnPadding = EdgeInsets.only(left: 5.0);
+/// Default diameter for the award circle (gold, silver, platinum)
 const _defaulColumnAwardDiameter = 6.0;
 
 class postInnerWidget extends StatelessWidget{
@@ -147,10 +153,13 @@ class postInnerWidget extends StatelessWidget{
   }
 
   Widget _getExpandedImage(BuildContext context){
-    var x = MediaQuery.of(context).size.width;
-    var y = _defaultPreviewHeight; //Default preview height
     final preview = submission.preview.first;
-    if(preview.source.width >= x){
+    var x = MediaQuery.of(context).size.width; // Width of Image (Screen width)
+    var y = min(_defaultMaxFullSizePreviewHeight, preview.source.height.toDouble()); // Height of Image
+    if (y > _defaultPreviewHeight && !fullSizePreviews){
+      y = _defaultPreviewHeight;
+    }
+    if (fullSizePreviews && preview.source.width > x) {
       y = (x / preview.source.width) * preview.source.height;
     }
     return Container(
@@ -164,7 +173,7 @@ class postInnerWidget extends StatelessWidget{
     if (postView == PostView.Compact) {
       return getImageWrapper(context, BoxFit.cover);
     }
-    return getImageWrapper(context, fullSizePreviews ? BoxFit.contain : BoxFit.cover);
+    return getImageWrapper(context, fullSizePreviews ? BoxFit.cover : BoxFit.fitWidth);
   }
 
   Widget getImageWrapper(BuildContext context, BoxFit fit){

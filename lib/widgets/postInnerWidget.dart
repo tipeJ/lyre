@@ -27,6 +27,7 @@ class SubmissionOptionsNotification extends Notification {
 
   const SubmissionOptionsNotification({@required this.submission});
 }
+const _defaultPreviewHeight = 250.0;
 const _defaultColumnTextSize = 11.0;
 const _defaultColumnPadding = EdgeInsets.only(left: 5.0);
 const _defaulColumnAwardDiameter = 6.0;
@@ -147,7 +148,7 @@ class postInnerWidget extends StatelessWidget{
 
   Widget _getExpandedImage(BuildContext context){
     var x = MediaQuery.of(context).size.width;
-    var y = 250.0; //Default preview height
+    var y = _defaultPreviewHeight; //Default preview height
     final preview = submission.preview.first;
     if(preview.source.width >= x){
       y = (x / preview.source.width) * preview.source.height;
@@ -176,7 +177,7 @@ class postInnerWidget extends StatelessWidget{
         image: AdvancedNetworkImage(
           postView == PostView.Compact ? submission.preview.first.resolutions.first.url.toString() : submission.preview.first.source.url.toString(),
           useDiskCache: true,
-          cacheRule: const CacheRule(maxAge: const Duration(days: 7))
+          cacheRule: const CacheRule(maxAge: Duration(days: 7))
         ),
         fit: fit,
       ),
@@ -226,17 +227,17 @@ class postInnerWidget extends StatelessWidget{
     return IgnorePointer(
       child: showCircle
         ? Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white,
-              width: 2.0,
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white,
+                width: 2.0,
+              ),
             ),
-          ),
-          child: getIndicator(type),
-        )
+            child: getIndicator(type),
+          )
         : Container(
             width: 50,
             height: 50,
@@ -265,14 +266,8 @@ class postInnerWidget extends StatelessWidget{
 
 
   Widget build(BuildContext context) {
-    return Padding(
-      child: Card(
-        child: _getWidget(context),
-      ),
-      padding: const EdgeInsets.only(
-        //The gap bewtween the widgets.
-        bottom: 0.0
-      ),
+    return Card(
+      child: _getWidget(context),
     );
   }
 }
@@ -371,7 +366,7 @@ class __SlideColumnState extends State<_SlideColumn> {
 }
 
 class _defaultColumn extends StatelessWidget {
-  _defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
+  const _defaultColumn(this.submission, this.previewSource, this.linkType, this.onLongPress);
 
   final PreviewSource previewSource;
   final LinkType linkType;
@@ -396,7 +391,7 @@ class _defaultColumn extends StatelessWidget {
                   submission.title,
                   style: LyreTextStyles.submissionTitle.apply(
                     color: (submission.stickied)
-                      ? Color.fromARGB(255, 0, 200, 53)
+                      ? const Color.fromARGB(255, 0, 200, 53)
                       : Theme.of(context).textTheme.body1.color),
                 ),
                 onTap: (){
@@ -407,29 +402,29 @@ class _defaultColumn extends StatelessWidget {
                   const EdgeInsets.only(left: 6.0, right: 16.0, top: 6.0, bottom: 0.0)),
           (submission.isSelf && submission.selftext != null && submission.selftext.isNotEmpty)
             ? Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0)
-              ),
-              child: MarkdownBody(
-                data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
-                styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
-                onTapLink: (String s) => handleLinkClick(Uri.parse(s), context),
-                fitContent: true,
-              ),
-              padding: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 8.0,
-                bottom: 8.0
-              ),
-              margin: const EdgeInsets.only(
-                left: 8.0,
-                right: 8.0,
-                top: 8.0,
-                bottom: 8.0
-              ),
-            )
-          : Container(height: 3.5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0)
+                ),
+                child: MarkdownBody(
+                  data: previewSource == PreviewSource.Comments ? submission.selftext : submission.selftext.substring(0, min(submission.selftext.length-1, 100)) + ((submission.selftext.length >= 100) ? '...' : ''), 
+                  styleSheet: LyreTextStyles.getMarkdownStyleSheet(context),
+                  onTapLink: (String s) => handleLinkClick(Uri.parse(s), context),
+                  fitContent: true,
+                ),
+                padding: const EdgeInsets.only(
+                  left: 8.0,
+                  right: 8.0,
+                  top: 8.0,
+                  bottom: 8.0
+                ),
+                margin: const EdgeInsets.only(
+                  left: 8.0,
+                  right: 8.0,
+                  top: 8.0,
+                  bottom: 8.0
+                ),
+              )
+          : const SizedBox(height: 3.5),
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: <Widget>[
@@ -455,7 +450,7 @@ class _defaultColumn extends StatelessWidget {
                   child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
                 )
               ),
-              
+
               submission.linkFlairText != null
                 ? Padding(
                     padding: _defaultColumnPadding,

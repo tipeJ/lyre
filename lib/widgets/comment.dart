@@ -42,7 +42,10 @@ class CommentWidget extends StatefulWidget {
   final Comment comment;
   final int location;
   final PreviewSource previewSource;
-  CommentWidget(this.comment, this.location, this.previewSource);
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  const CommentWidget(this.comment, this.location, this.previewSource, {this.onTap, this.onLongPress});
 
   @override
   _CommentWidgetState createState() => _CommentWidgetState();
@@ -69,9 +72,16 @@ class _CommentWidgetState extends State<CommentWidget> {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).cardColor,
-      child: widget.comment.isRoot
-        ? _commentContent(context)
-        : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context))
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          child: widget.comment.isRoot
+            ? _commentContent(context)
+            : dividersWrapper(depth: widget.comment.depth, child: _commentContent(context))
+        )
+      )
     );
   }
 
@@ -158,7 +168,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                               style: Theme.of(context).textTheme.body2,
                               children: [
                                 TextSpan(text: "in "),
-                                TextSpan(text: "${widget.comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).accentColor))
+                                TextSpan(text: "${widget.comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).textTheme.body1.color))
                               ]
                             ),
                             textScaleFactor: 0.7,
@@ -278,7 +288,7 @@ class _CommentWidgetState extends State<CommentWidget> {
     reply(widget.comment, _replyController.text).then((value) {
       //Show Error
       if (value is String) {
-        final textSnackBar = SnackBar(content: Text("Error sending comment: $value"),);
+        final textSnackBar = SnackBar(content: Text("Error sending comment: $value"));
         Scaffold.of(context).showSnackBar(textSnackBar);
         setState(() {
          _replySendingState = SendingState.Inactive; 
@@ -311,9 +321,10 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
                 padding: const EdgeInsets.only(left: 3.5),
                 child: Text.rich(
                   TextSpan(
+                    style: Theme.of(context).textTheme.body2,
                     children: [
                       const TextSpan(text: "in "),
-                      TextSpan(text: "${comment.subreddit.displayName}", style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor))
+                      TextSpan(text: "${comment.subreddit.displayName}", style: TextStyle(color: Theme.of(context).textTheme.body1.color))
                     ]
                   ),
                   style: Theme.of(context).textTheme.body2,
@@ -344,13 +355,10 @@ class CommentContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).cardColor,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: _commentContentChildren(context, comment, previewSource),
-      )
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: _commentContentChildren(context, comment, previewSource),
     );
   }
 }

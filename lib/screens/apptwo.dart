@@ -52,13 +52,6 @@ class LyreSplashScreen extends StatelessWidget {
       ),),
       color: Colors.grey[900],
     );
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Container(
-        child: Material(child: Center(child: Text('Lyre', style: TextStyle(fontFamily: 'Roboto', fontSize: 32.0),),),),
-        color: Colors.black,
-      )
-    );
   }
 }
 class LyreApp extends StatefulWidget {

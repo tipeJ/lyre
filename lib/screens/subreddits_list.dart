@@ -227,21 +227,15 @@ class SubredditItem extends StatelessWidget {
                   return _subListOptions.map((s) {
                     return PopupMenuItem<String>(
                       value: s,
-                      child: Column(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              s == _subListOptions[0]
-                                ? Icon(Icons.remove_circle)
-                                : Icon(Icons.add_circle),
-                              VerticalDivider(),
-                              Text(s),
-                              
-                            ]
-                          ,),
-                          s != _subListOptions[_subListOptions.length-1] ? Divider() : null
-                        ].where((w) => notNull(w)).toList(),
+                          s == _subListOptions[0]
+                            ? Icon(Icons.remove_circle)
+                            : Icon(Icons.add_circle),
+                          VerticalDivider(),
+                          Text(s),
+                        ]
                       ),
                     );
                   }).toList();

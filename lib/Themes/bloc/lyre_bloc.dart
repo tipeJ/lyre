@@ -38,6 +38,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
         home: settings.get(HOME, defaultValue: HOME_DEFAULT),
 
         showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+        showScrollToTopInMenuSheet: settings.get(MENUSHEET_SHOW_SCROLL_TO_TOP, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
 
         viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
         showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),
@@ -136,6 +137,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       }
     }
   }
+  
   LyreState _changeState({List<String> userNames, Redditor currentUser, LyreTheme currentTheme, List<String> subs}) {
     return LyreState(
       userNames: userNames ?? state.userNames,
@@ -149,6 +151,7 @@ class LyreBloc extends Bloc<LyreEvent, LyreState> {
       home: state.home,
 
       showKarmaInMenuSheet: state.showKarmaInMenuSheet,
+      showScrollToTopInMenuSheet: state.showScrollToTopInMenuSheet,
 
       viewMode: state.viewMode,
       showPreviewCircle: state.showPreviewCircle,
@@ -243,6 +246,7 @@ Future<LyreState> newLyreState([String displayName]) async {
       home: home,
 
       showKarmaInMenuSheet: settings.get(MENUSHEET_SHOW_KARMA, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
+      showScrollToTopInMenuSheet: settings.get(MENUSHEET_SHOW_SCROLL_TO_TOP, defaultValue: MENUSHEET_SHOW_KARMA_DEFAULT),
       
       viewMode: settings.get(SUBMISSION_VIEWMODE, defaultValue: SUBMISSION_VIEWMODE_DEFAULT),
       showPreviewCircle: settings.get(SUBMISSION_PREVIEW_SHOWCIRCLE, defaultValue: SUBMISSION_PREVIEW_SHOWCIRCLE_DEFAULT),

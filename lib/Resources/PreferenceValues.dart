@@ -17,6 +17,8 @@ const CURRENT_THEME = "currentTheme";
 // * UI And Layout
 const MENUSHEET_SHOW_KARMA = "menuSheetShowKarma";
 const MENUSHEET_SHOW_KARMA_DEFAULT = false;
+const MENUSHEET_SHOW_SCROLL_TO_TOP = "menuSheetShowScrollToTop";
+const MENUSHEET_SHOW_SCROLL_TO_TOP_DEFAULT = false;
 
 // * Subreddits
 const HOME = "preferencesHome";

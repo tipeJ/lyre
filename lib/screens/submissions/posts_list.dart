@@ -63,7 +63,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   bool _autoLoad;
   PostsBloc bloc;
 
-  ScrollController scontrol = new ScrollController();
   ValueNotifier<bool> _appBarVisibleNotifier;
 
   _OptionsVisibility _optionsVisibility;
@@ -95,7 +94,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   void dispose() {
-    scontrol.dispose();
     bloc.drain();
     bloc.close();
     _appBarVisibleNotifier.dispose();
@@ -111,7 +109,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
 
   List<Widget> _getRegisteredUsernamesList(List<String> list, String currentUserName) {
-    print(currentUserName);
     List<Widget> widgets = [];
     for(int i = 0; i < list.length; i++){
       widgets.add(InkWell(
@@ -231,6 +228,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
       }
     });
   }
+  
   _handleSuccessfulReply(BuildContext context, draw.Comment comment) {
     final successSnackBar = SnackBar(
       content: Text('Reply Sent'),
@@ -251,6 +249,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context) {
+    _autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
     bloc = BlocProvider.of<PostsBloc>(context);
     if ((bloc.state.userContent == null || bloc.state.userContent.isEmpty) && bloc.state.state == LoadingState.Inactive) {
       bloc.add(PostsSourceChanged(source: bloc.state.contentSource, target: bloc.state.target));
@@ -270,7 +269,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   builder: (context, LyreState state) {
                     final currentUser = state.readOnly ? "" : state.currentUserName;
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: CustomScrollView(
                         slivers: <Widget>[
                           SliverSafeArea(
@@ -351,11 +350,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   state.currentUser.commentKarma.toString(),
                                   style: Theme.of(context).textTheme.display1,
                                 ),
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.only(bottom: 5.0),
-                                  child: const Text(
+                                  child: Text(
                                     'Comment karma',
-                                    style: const TextStyle(fontSize: 18.0, color: Colors.grey),
+                                    style: TextStyle(fontSize: 18.0, color: Colors.grey),
                                   ),
                                 ),
                                 Text(
@@ -452,6 +451,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                       if ((_autoLoad ?? false) && (notification.metrics.maxScrollExtent - notification.metrics.pixels) < MediaQuery.of(context).size.height * 1.5){
                         BlocProvider.of<PostsBloc>(context).add(FetchMore());
                       }
+                      // ! HIDE APPBAR
+                      return false;
                       if (notification.depth == 0 && notification is ScrollUpdateNotification) {
                         if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
                           _appBarVisibleNotifier.value = false;
@@ -521,14 +522,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           }
                         },
                         onTap: () {
-                          if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
-                            // ! Will be deprecated
-                            setState(() {
-                              _paramsVisibility = _ParamsVisibility.Type; 
-                            });
-                          } else {
-                            Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
-                          }
+                          _optionsVisibility = _OptionsVisibility.Default;
+                          _optionsController = Scaffold.of(context).showBottomSheet(
+                            (context) => _optionsSheet(context)
+                          );
                         },
                         child: BlocBuilder<PostsBloc, PostsState>(
                           builder: (context, state) {
@@ -561,13 +558,18 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     child: Row(
                       children: <Widget>[
                         IconButton(
-                          icon: const Icon(Icons.menu),
-                          tooltip: "Menu",
+                          icon: const Icon(Icons.sort),
+                          tooltip: "Sort",
                           onPressed: () {
-                            _optionsVisibility = _OptionsVisibility.Default;
-                            _optionsController = Scaffold.of(context).showBottomSheet(
-                              (context) => _optionsSheet(context)
-                            );
+                            if (BlocProvider.of<LyreBloc>(context).state.legacySorting) {
+                              // ! Will be deprecated
+                              setState(() {
+                                _paramsVisibility = _ParamsVisibility.Type; 
+                              });
+                            } else {
+                              Scaffold.of(context).showBottomSheet((builder) => ContentSort(types: sortTypes,));
+                            }
+                            
                           },
                         ),
                         BlocBuilder<PostsBloc, PostsState>(
@@ -853,7 +855,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           child: Container(
                             width: 25,
                             height: 25,
-                            color: Theme.of(context).accentColor,
+                            color: Theme.of(context).cardColor,
                             child: state.currentUser != null
                               ? Image(
                                   image: AdvancedNetworkImage(
@@ -869,16 +871,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
-                           state.showKarmaInMenuSheet && state.currentUser != null
-                            ? Row(
-                                children: <Widget>[
-                                  const Icon(MdiIcons.yinYang, size: 12.0),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 3.5),
-                                    child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
-                                  ),
-                                ],)
-                            : Container()
+                          Visibility(
+                            visible: state.showKarmaInMenuSheet && state.currentUser != null,
+                            child: Row(
+                              children: <Widget>[
+                                const Icon(MdiIcons.yinYang, size: 12.0),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 3.5),
+                                  child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
+                                ),
+                              ],)
+                          )
                         ]
                       ),
                     ],
@@ -1493,12 +1496,33 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   }
 }
 
-class _submissionList extends StatelessWidget {
+class _submissionList extends StatefulWidget {
   const _submissionList({
     Key key,
   }) : super(key: key);
 
-  final bool _autoLoad = false;
+  @override
+  __submissionListState createState() => __submissionListState();
+}
+
+class __submissionListState extends State<_submissionList> {
+
+  Completer<void> _refreshCompleter;
+
+  ScrollController _scrollController;
+
+  @override
+  void initState() { 
+    super.initState();
+    _scrollController = ScrollController();
+    _refreshCompleter = Completer();
+  }
+
+  @override
+  void dispose() { 
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1508,15 +1532,21 @@ class _submissionList extends StatelessWidget {
         builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
           if (snapshot.hasData) {
             final state = snapshot.data;
-            if(state.userContent != null && state.userContent.isNotEmpty && state.state != LoadingState.Refreshing){
-              //_autoLoad = BlocProvider.of<LyreBloc>(context).state.autoLoadSubmissions;
-              if(state.contentSource == ContentSource.Redditor){
-                return state.target.isNotEmpty
-                  ? _buildList(state, context)
-                  : Center(child: CircularProgressIndicator());
-              } else {
-                return _buildList(state, context);
-              }
+            if(state.userContent != null && state.userContent.isNotEmpty){
+              return NestedScrollView(
+                controller: _scrollController,
+                physics: AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, b) => [
+                  LyreHeader(state: state)
+                ],
+                body: RefreshIndicator(
+                  onRefresh: () {
+                    BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
+                    return _refreshCompleter.future;
+                  },
+                  child: _buildListWithHeader(state, context)
+                )
+              );
             } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
               // Return error message
               return Center(child: Text(state.errorMessage, style: LyreTextStyles.errorMessage,));
@@ -1531,80 +1561,80 @@ class _submissionList extends StatelessWidget {
       )
     );
   }
-  Widget _buildList(PostsState postsState, BuildContext context) {
-    final posts = postsState.userContent;
-    return RefreshIndicator(
-      onRefresh: () {
-        BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
-      },
-      child: CustomScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverPadding(
-            padding: const EdgeInsets.only(bottom: 5.0),
-            sliver: LyreHeader(state: postsState)
-          ),
-          BlocBuilder<LyreBloc, LyreState>(
-            builder: (context, state) {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    if (i == posts.length) {
-                      return Card(
-                        child: InkWell(
-                          onTap: () {
-                            BlocProvider.of<PostsBloc>(context).add(FetchMore());
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Builder(
-                              builder: (context) {
-                                if (postsState.state == LoadingState.LoadingMore) {
-                                  return Center(child: const CircularProgressIndicator());
-                                } else if (postsState.state == LoadingState.Error) {
-                                  return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
-                                }
-                                return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
-                              },
-                            )
-                          )
-                      ));
-                    } else if (posts[i] is draw.Submission) {
-                      final submission = posts[i] as draw.Submission;
-                      final linkType = getLinkType(submission.url.toString());
-                      return postInnerWidget(
-                        submission: posts[i] as draw.Submission,
-                        previewSource: PreviewSource.PostsList,
-                        linkType: linkType,
-                        fullSizePreviews: state.fullSizePreviews,
-                        postView: postsState.viewMode,
-                        showCircle: state.showPreviewCircle,
-                        blurLevel: state.blurLevel.toDouble(),
-                        showNsfw: state.showNSFWPreviews,
-                        showSpoiler: state.showSpoilerPreviews,
-                        onOptionsClick: () {
-                          SubmissionOptionsNotification(submission: submission)..dispatch(context);
-                        },
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 5.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('comments', arguments: posts[i]);
-                          },
-                          child: CommentContent(posts[i], PreviewSource.PostsList),
-                        )
-                      );
-                    }
+
+  Widget _buildListWithHeader(PostsState state, BuildContext context) {
+    final posts = state.userContent;
+    if (state.state != LoadingState.Refreshing) {
+      _refreshCompleter?.complete();
+      _refreshCompleter = Completer();
+      return _buildList(context, state, posts);
+    }
+    return _buildList(context, state, posts);
+  }
+  Widget _buildList(BuildContext context, PostsState postsState, List<draw.UserContent> posts) {
+    return BlocBuilder<LyreBloc, LyreState>(
+      builder: (context, state) {
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 5.0, bottom: kBottomNavigationBarHeight),
+          itemCount: posts.length+1,
+          itemBuilder: (context, i) {
+            if (i == posts.length) {
+              return Card(
+                child: InkWell(
+                  onTap: () {
+                    BlocProvider.of<PostsBloc>(context).add(FetchMore());
                   },
-                  childCount: posts.length+1,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: Builder(
+                      builder: (context) {
+                        if (postsState.state == LoadingState.LoadingMore) {
+                          return Center(child: const CircularProgressIndicator());
+                        } else if (postsState.state == LoadingState.Error) {
+                          return Center(child: const Text(noConnectionErrorMessage, style: LyreTextStyles.errorMessage));
+                        }
+                        return Center(child: Text("Load More", style: Theme.of(context).textTheme.body1));
+                      },
+                    )
+                  )
+              ));
+            } else if (posts[i] is draw.Submission) {
+              final submission = posts[i] as draw.Submission;
+              final linkType = getLinkType(submission.url.toString());
+              return postInnerWidget(
+                submission: posts[i] as draw.Submission,
+                previewSource: PreviewSource.PostsList,
+                linkType: linkType,
+                fullSizePreviews: state.fullSizePreviews,
+                postView: postsState.viewMode,
+                showCircle: state.showPreviewCircle,
+                blurLevel: state.blurLevel.toDouble(),
+                showNsfw: state.showNSFWPreviews,
+                showSpoiler: state.showSpoilerPreviews,
+                onOptionsClick: () {
+                  SubmissionOptionsNotification(submission: submission)..dispatch(context);
+                },
+              );
+            } else {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 5.0),
+                child: Container(
+                  color: Theme.of(context).cardColor,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                      },
+                      child: CommentContent(posts[i], PreviewSource.PostsList),
+                    )
+                  )
                 )
               );
-            },
-          )
-        ],
-      )
+            }
+          },
+        );
+      },
     );
   }
 }

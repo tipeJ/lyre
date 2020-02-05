@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
@@ -18,6 +20,7 @@ import 'package:lyre/Bloc/bloc.dart';
 const selection_image = "Image";
 const selection_album = "Album";
 
+///Enum for selected comment options params
 enum _CommentSelectionVisibility {
   Default,
   Copy,
@@ -36,21 +39,32 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   CommentListState();
 
+  CommentsBloc _bloc;
+
   Comment _selectedComment;
   _CommentSelectionVisibility _commentSelectionVisibility;
   PersistentBottomSheetController _bottomSheetController;
   
+  Completer<void> _refreshCompleter;
+
+  @override
+  void initState() { 
+    super.initState();
+    _refreshCompleter = Completer<void>();
+  }
+  
   @override
   void dispose() { 
-    BlocProvider.of<CommentsBloc>(context).close();
+    _bloc.close();
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CommentsBloc>(context);
-    if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
-      bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
+    _bloc = BlocProvider.of<CommentsBloc>(context);
+    if((_bloc.state == null || _bloc.state.comments.isEmpty) && _bloc.state.state == LoadingState.Inactive){
+      _bloc.add(SortChanged(submission: _bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
     return Scaffold(
         endDrawer: Drawer(
@@ -59,6 +73,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: (context, state) {
                 return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight, top: 10.0),
                   itemCount: recentlyViewed.length+1,
                   itemBuilder: (context, i){
                     return i == 0
@@ -91,46 +106,52 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
                 _initializeCommentOptions(notification.comment, context);
                 return false;
               },
-              child: CustomScrollView(
-                slivers: <Widget>[
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxScrolled) => [
                   BlocBuilder<CommentsBloc, CommentsState>(
                     builder: (context, state) {
                       return SliverSafeArea(
-                      sliver: SliverToBoxAdapter(
-                        child: notNull(state) && state.submission is Submission
-                          ? Hero(
-                              tag: 'post_hero ${(state.submission as Submission).id}',
-                              child: postInnerWidget(
-                                submission: state.submission,
-                                previewSource: PreviewSource.Comments,
-                                linkType: getLinkType((state.submission as Submission).url.toString()),
-                                fullSizePreviews: false,
-                                postView: PostView.IntendedPreview,
-                                showCircle: false,
-                                blurLevel: 0.0,
-                                showNsfw: true,
-                                showSpoiler: true,
-                                onOptionsClick: () {},
+                        sliver: SliverToBoxAdapter(
+                          child: notNull(state) && state.submission is Submission
+                            ? Hero(
+                                tag: 'post_hero ${(state.submission as Submission).id}',
+                                child: postInnerWidget(
+                                  submission: state.submission,
+                                  previewSource: PreviewSource.Comments,
+                                  linkType: getLinkType((state.submission as Submission).url.toString()),
+                                  fullSizePreviews: false,
+                                  postView: PostView.ImagePreview,
+                                  showCircle: false,
+                                  blurLevel: 0.0,
+                                  showNsfw: true,
+                                  showSpoiler: true,
+                                  onOptionsClick: () {},
+                                )
                               )
-                            )
-                          : const SizedBox()
-                      ),
-                    );
-                    },
-                  ),
-                  BlocBuilder<CommentsBloc, CommentsState>(
-                    builder: (context, state) => state.comments.isNotEmpty && state.state != LoadingState.Refreshing
-                      ? _getCommentWidgets(context, state.comments)
-                      : const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Center(
-                            child: CircularProgressIndicator()
-                          )
+                            : const SizedBox()
                         ),
-                      )
-                  ),
+                      );
+                    },
+                  )
                 ],
+                body: RefreshIndicator(
+                  onRefresh: () {
+                    BlocProvider.of<CommentsBloc>(context).add(RefreshComments());
+                    return _refreshCompleter.future;
+                  },
+                  child: BlocBuilder<CommentsBloc, CommentsState>(
+                    builder: (context, state) {
+                      if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
+                        _refreshCompleter?.complete();
+                        _refreshCompleter = Completer<void>();
+                        return _getCommentWidgets(context, state.comments);
+                      } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return _getCommentWidgets(context, state.comments);
+                    }
+                  ),
+                )
               )
             ),
             appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
@@ -141,8 +162,9 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   }
 
   Widget _getCommentWidgets(BuildContext context, List<dynamic> list){
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((BuildContext context, int i){
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 5.0),
+      itemBuilder: (context, i) {
           return BlocBuilder<CommentsBloc, CommentsState>(
             builder: (BuildContext context, state) {
               return prefix0.Visibility(
@@ -151,22 +173,22 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               );
             },
           );
-      }, childCount: list.length),
-    );
+      }, itemCount: list.length);
   }
 
   Widget _getCommentWidget(BuildContext context, dynamic comment, int i) {
     if (comment is Comment) {
-      return InkWell(
-        child: CommentWidget(comment, i, PreviewSource.Comments),
+      return CommentWidget(
+        comment, i, 
+        PreviewSource.Comments,
+        onTap: () {
+          setState(() {
+            BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 
+            });
+        },
         onLongPress: () {
           _initializeCommentOptions(comment, context);
-        },
-        onTap: (){
-          setState(() {
-           BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 
-          });
-        },
+        }
       );
     } else {
       return MoreCommentsWidget(comment, i);
@@ -321,8 +343,15 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                                 "${widget.state.comments.length} Comments",
                                 style: Theme.of(context).textTheme.title,
                               ),
-                              Text(
-                                widget.state.sortTypeString,
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(text: widget.state.sortTypeString),
+                                    TextSpan(text: widget.state.submission is Submission
+                                      ? " | ${(widget.state.submission as Submission).subreddit.displayName}"
+                                      : "")
+                                  ]
+                                ),
                                 style: LyreTextStyles.timeParams.apply(
                                   color: Theme.of(context).textTheme.display1.color
                                 ),
@@ -384,10 +413,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                               'reply_text'  : _replyController?.text
                             }).then((returnValue) {
                               if (returnValue is Comment) {
-                                setState(() {
-                                  //Successful return
-                                  //_handleSuccessfulReply(context, returnValue);
-                                });
+                                // Successful return
                               } else {
                                 setState(() {
                                   _replySendingState = SendingState.Inactive;

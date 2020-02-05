@@ -70,7 +70,9 @@ class LyreTheme {
     highlightColor: HexColor.fromHex(highLightColor),
     splashColor: Colors.grey,
     textTheme: TextTheme(
-      body1: TextStyle(color: HexColor.fromHex(primaryTextColor)),
+      body1: TextStyle(
+        color: HexColor.fromHex(primaryTextColor),
+      ),
       body2: TextStyle(
         color: HexColor.fromHex(secondaryTextColor),
         fontSize: 11.0,
@@ -105,6 +107,10 @@ class LyreTheme {
     bottomSheetTheme: BottomSheetThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(borderRadius.toDouble()), topRight: Radius.circular(borderRadius.toDouble()))),
       backgroundColor: HexColor.fromHex(primaryColor)
+    ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      selectedColor: HexColor.fromHex(accentColor),
+      borderWidth: 0.0
     )
   );
   TextStyle get _inputHelpText => TextStyle(

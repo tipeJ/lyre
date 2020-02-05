@@ -27,6 +27,7 @@ class LyreState extends Equatable {
   final String homeSubreddit;
 
   final bool showKarmaInMenuSheet;
+  final bool showScrollToTopInMenuSheet;
 
   final PostView viewMode;
   final bool showPreviewCircle;
@@ -68,6 +69,7 @@ class LyreState extends Equatable {
       @required this.homeSubreddit,
 
       @required this.showKarmaInMenuSheet,
+      @required this.showScrollToTopInMenuSheet,
 
       @required this.viewMode,
       @required this.showPreviewCircle,

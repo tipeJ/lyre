@@ -21,7 +21,12 @@ class PostsState extends Equatable {
 
   //SUBREDDIT STUFF (ONLY WHEN CONTENTSOURCE IS SUBREDDIT)
   final WikiPage sideBar;
-  final Subreddit subreddit;
+
+  /// Either a DRAW Redditor or a Subreddit object
+  final dynamic targetDetails;
+
+  Subreddit get subreddit => targetDetails is Subreddit ? targetDetails as Subreddit : null;
+  Redditor get redditor => targetDetails is Redditor ? targetDetails as Redditor : null;
 
   ///Media Preview Type
   final PostView viewMode;
@@ -36,7 +41,7 @@ class PostsState extends Equatable {
     @required this.viewMode,
     this.errorMessage,
     this.sideBar,
-    this.subreddit,
+    this.targetDetails
   });
 
   List<dynamic> get props => [state, userContent, target, errorMessage, viewMode];
@@ -56,14 +61,14 @@ class PostsState extends Equatable {
   String getFilterString(){
     String filterString = "";
 
-    if(contentSource == ContentSource.Self){
+    if (contentSource == ContentSource.Self) {
       filterString = target.toString().split('.').last;
       filterString += " ● ";
     }
 
-    if(typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial){
+    if (typeFilter == TypeFilter.Top || typeFilter == TypeFilter.Controversial) {
       filterString += StringUtils.capitalize(_parseTypeFilter()) + " | " + StringUtils.capitalize(timeFilter);
-    }else{
+    } else {
       filterString += StringUtils.capitalize(_parseTypeFilter());
     }
     return filterString;

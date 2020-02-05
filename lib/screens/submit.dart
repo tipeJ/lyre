@@ -261,8 +261,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                           padding: EdgeInsets.all(5.0),
                           alignment: Alignment.centerLeft,
                           child: ToggleButtons(
-                            renderBorder: true,
-                            constraints: BoxConstraints.tightFor(height: 30),
+                            constraints: const BoxConstraints.tightFor(height: 30),
                             borderRadius: BorderRadius.circular(10.0),
                             isSelected: [
                               _isNsfw,
@@ -270,10 +269,6 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                               _isSpoiler
                             ],
                             textStyle: Theme.of(context).textTheme.body1,
-                            disabledColor: Theme.of(context).textTheme.body2.color,
-                            selectedColor: Theme.of(context).textTheme.body1.color,
-                            color: Theme.of(context).textTheme.body2.color,
-                            fillColor: Colors.transparent,
                             children: <Widget>[
                               const Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 3.5),

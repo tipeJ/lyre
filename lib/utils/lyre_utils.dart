@@ -27,63 +27,59 @@ void handleLinkClick(Uri uri, BuildContext context, [LinkType suppliedLinkType])
   if(linkType == LinkType.YouTube){
     //TODO: Implement YT plugin?
     launchURL(context, url);
-  } else if (linkType == LinkType.Default){
+  } else if (linkType == LinkType.Internal){
     final isGoogleAmpLink = (domain.contains("google") && uri.path.startsWith("/amp/s/amp.reddit.com"));
-    if ( // Check if domain is a reddit hosted link, ie: parseable
-      domain.endsWith("reddit.com") ||
-      domain.endsWith("redd.it") ||
-      domain.contains("i.reddit.com") ||
-      // Reddit AMP links
-      isGoogleAmpLink
-    ) {
-      final Map<String, dynamic> parsedData = _parseRedditUrl(
-        isGoogleAmpLink
-          ? "https://" + url.substring(url.indexOf("/amp/s/") + "/amp/s/".length)
-          : url
-      );
+    final Map<String, dynamic> parsedData = _parseRedditUrl(
+    isGoogleAmpLink
+      ? "https://" + url.substring(url.indexOf("/amp/s/") + "/amp/s/".length)
+      : url
+    );
 
-      if (parsedData.isEmpty) {
-        // Couldn't parse link, open in external instead
-        launchURL(context, url);
-        return;
-      }
-      final RedditLinkType redditLinkType = parsedData[_redditParserTYPE];
-      final String id = parsedData[_redditParserID];
-
-      switch (redditLinkType) {
-        case RedditLinkType.Submission:
-          PostsProvider().reddit.submission(id: id).populate().then((fetchedSubmission) {
-            Navigator.of(context).pushNamed("comments", arguments: fetchedSubmission);
-          });
-          break;
-        case RedditLinkType.Comments:
-          Navigator.of(context).pushNamed("comments", arguments: PostsProvider().reddit.comment(id: id));
-          break;
-        case RedditLinkType.Subreddit:
-          Navigator.of(context).pushNamed("posts", arguments: {
-            'content_source' : ContentSource.Subreddit,
-            'target' : id
-          });
-          break;
-        case RedditLinkType.WikiPage:
-          Navigator.of(context).pushNamed("wiki", arguments: {
-            'subreddit' : id,
-            'page_name' : parsedData[_redditParserWIkiPageName]
-          });
-          break;
-        case RedditLinkType.User:
-          Navigator.of(context).pushNamed("posts", arguments: {
-            'content_source' : ContentSource.Redditor,
-            'target' : id
-          });
-          break;
-      }
-    } else {
+    if (parsedData.isEmpty) {
+      // Couldn't parse link, open in external instead
       launchURL(context, url);
+      return;
     }
+    final RedditLinkType redditLinkType = parsedData[_redditParserTYPE];
+    final String id = parsedData[_redditParserID];
+
+    switch (redditLinkType) {
+      case RedditLinkType.Submission:
+        PostsProvider().reddit.submission(id: id).populate().then((fetchedSubmission) {
+          Navigator.of(context).pushNamed("comments", arguments: fetchedSubmission);
+        });
+        break;
+      case RedditLinkType.Comments:
+        Navigator.of(context).pushNamed("comments", arguments: PostsProvider().reddit.comment(id: id));
+        break;
+      case RedditLinkType.Subreddit:
+        Navigator.of(context).pushNamed("posts", arguments: {
+          'content_source' : ContentSource.Subreddit,
+          'target' : id
+        });
+        break;
+      case RedditLinkType.WikiPage:
+        Navigator.of(context).pushNamed("wiki", arguments: {
+          'subreddit' : id,
+          'page_name' : parsedData[_redditParserWIkiPageName]
+        });
+        break;
+      case RedditLinkType.User:
+        Navigator.of(context).pushNamed("posts", arguments: {
+          'content_source' : ContentSource.Redditor,
+          'target' : id
+        });
+        break;
+    }
+  } else if (linkType == LinkType.Default) {
+    launchURL(context, url);
   } else {
     PreviewCall().callback.preview(url);
   }
+}
+
+void instantLaunchUrl(BuildContext context, Uri uri) {
+  Navigator.of(context).pushNamed("instant_view", arguments: uri);
 }
 
 Map<String, dynamic> _parseRedditUrl(String url) {

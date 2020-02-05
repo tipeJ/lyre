@@ -14,14 +14,12 @@ Future<String> getTwitchClipVideoLink(String url) async {
       "Accept" : 'application/vnd.twitchtv.v4+json'
     }
   );
-  debugPrint(response.body);
   final videoUrl = _computeTwitchResponse(response.body);
   return videoUrl;
 }
 
 String _computeTwitchResponse(String body) {
   final parsedJson = json.decode(body);
-  debugPrint(parsedJson.toString());
   final errorMessage = parsedJson['error'];
   return errorMessage ?? parsedJson['videoQualities'][0]['sourceURL'];
 }

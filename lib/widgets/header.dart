@@ -61,99 +61,147 @@ class LyreHeader extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: state.contentSource == ContentSource.Subreddit && state.subreddit != null ? [
-                  Container(
-                    width: _avatarRadius * 1.5,
-                    height: _avatarRadius * 1.5,
-                    child: RawMaterialButton(
-                      shape: const CircleBorder(),
-                      elevation: 5.0,
-                      fillColor: Theme.of(context).primaryColor,
-                      child: Container(
-                        child: BlocBuilder<LyreBloc, LyreState>(
-                          builder: (context, lyreState) {
-                            if (lyreState.isSubscribed(state.target)) {
-                              return Icon(Icons.favorite, color: Theme.of(context).accentColor);
-                            }
-                            return const Icon(Icons.favorite_border);
-                          },
-                        )
-                      ),
-                      onPressed: (){
-                        BlocProvider.of<LyreBloc>(context).add(ChangeSubscription(subreddit: state.target));
-                      },
-                    ),
-                  ),
-                  CircleAvatar(
-                    maxRadius: _avatarRadius,
-                    minRadius: _avatarRadius,
-                    backgroundColor: Theme.of(context).cardColor,
-                    backgroundImage: AdvancedNetworkImage(
-                      state.subreddit.iconImage != null
-                        ? state.subreddit.iconImage.toString()
-                        : "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png",
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 27)),
-                    ),
-                  ),
-                  Container(
-                    width: _avatarRadius * 1.5,
-                    height: _avatarRadius * 1.5,
-                    child: RawMaterialButton(
-                      shape: const CircleBorder(),
-                      elevation: 5.0,
-                      fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(Icons.info),
-                      onPressed: (){
-                        Scaffold.of(context).openEndDrawer();
-                      },
-                    ),
-                  ),
-                ] : [
-                  Container(
-                    width: _avatarRadius * 1.5,
-                    height: _avatarRadius * 1.5,
-                    child: RawMaterialButton(
-                      shape: const CircleBorder(),
-                      elevation: 5.0,
-                      fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(Icons.trending_up),
-                      onPressed: () async {
-                        final trendingSubs = await PostsProvider().getTrendingSubreddits();
-                        Scaffold.of(context).showBottomSheet((context) => TrendingScreen(data: trendingSubs));
-                      },
-                    ),
-                  ),
-                  CircleAvatar(
-                    maxRadius: _avatarRadius,
-                    minRadius: _avatarRadius,
-                    backgroundColor: Theme.of(context).cardColor,
-                    backgroundImage: AdvancedNetworkImage(
-                      "https://moonshine.marketing/wp-content/uploads/2019/08/iDdntscPf-nfWKqzHRGFmhVxZm4hZgaKe5oyFws-yzA.png",
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 27)),
-                    ),
-                  ),
-                  Container(
-                    width: _avatarRadius * 1.5,
-                    height: _avatarRadius * 1.5,
-                    child: RawMaterialButton(
-                      shape: const CircleBorder(),
-                      elevation: 5.0,
-                      fillColor: Theme.of(context).primaryColor,
-                      child: const Icon(MdiIcons.help),
-                      onPressed: (){
-                        Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen()));
-                      },
-                    ),
-                  ),
-                ]
+                children: _getAvatarRow(context) 
               )
             ),
           )
         ],
       )
     );
+  }
+  List<Widget> _getAvatarRow(BuildContext context) {
+    if (state.contentSource == ContentSource.Subreddit && state.subreddit != null) {
+      return [
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: Container(
+              child: BlocBuilder<LyreBloc, LyreState>(
+                builder: (context, lyreState) {
+                  if (lyreState.isSubscribed(state.target)) {
+                    return Icon(Icons.favorite, color: Theme.of(context).accentColor);
+                  }
+                  return const Icon(Icons.favorite_border);
+                },
+              )
+            ),
+            onPressed: (){
+              BlocProvider.of<LyreBloc>(context).add(ChangeSubscription(subreddit: state.target));
+            },
+          ),
+        ),
+        CircleAvatar(
+          maxRadius: _avatarRadius,
+          minRadius: _avatarRadius,
+          backgroundColor: Theme.of(context).cardColor,
+          backgroundImage: AdvancedNetworkImage(
+            state.subreddit.iconImage != null
+              ? state.subreddit.iconImage.toString()
+              : "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png",
+            useDiskCache: true,
+            cacheRule: const CacheRule(maxAge: Duration(days: 27)),
+          ),
+        ),
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.info),
+            onPressed: (){
+              Scaffold.of(context).openEndDrawer();
+            },
+          ),
+        ),
+      ];
+    } else if (state.contentSource == ContentSource.Redditor) {
+      return [
+        // TODO: Replace this with "Friend" - Button
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.trending_up),
+            onPressed: () async {
+              final trendingSubs = await PostsProvider().getTrendingSubreddits();
+              Scaffold.of(context).showBottomSheet((context) => TrendingScreen(data: trendingSubs));
+            },
+          ),
+        ),
+        CircleAvatar(
+          maxRadius: _avatarRadius,
+          minRadius: _avatarRadius,
+          backgroundColor: Theme.of(context).cardColor,
+          backgroundImage: AdvancedNetworkImage(
+            state.redditor.data["icon_img"],
+            useDiskCache: true,
+            cacheRule: const CacheRule(maxAge: Duration(days: 3)),
+          ),
+        ),
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: const Icon(MdiIcons.help),
+            onPressed: (){
+              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen()));
+            },
+          ),
+        ),
+      ];
+    } else {
+      return [
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.trending_up),
+            onPressed: () async {
+              final trendingSubs = await PostsProvider().getTrendingSubreddits();
+              Scaffold.of(context).showBottomSheet((context) => TrendingScreen(data: trendingSubs));
+            },
+          ),
+        ),
+        CircleAvatar(
+          maxRadius: _avatarRadius,
+          minRadius: _avatarRadius,
+          backgroundColor: Theme.of(context).cardColor,
+          backgroundImage: AdvancedNetworkImage(
+            "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png",
+            useDiskCache: true,
+            cacheRule: const CacheRule(maxAge: Duration(days: 27)),
+          ),
+        ),
+        Container(
+          width: _avatarRadius * 1.5,
+          height: _avatarRadius * 1.5,
+          child: RawMaterialButton(
+            shape: const CircleBorder(),
+            elevation: 5.0,
+            fillColor: Theme.of(context).primaryColor,
+            child: const Icon(MdiIcons.help),
+            onPressed: (){
+              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen()));
+            },
+          ),
+        ),
+      ];
+    }
   }
   List<Widget> _getTargetInfo(BuildContext context) {
     if (state.contentSource == ContentSource.Subreddit && notNull(state.subreddit)) {

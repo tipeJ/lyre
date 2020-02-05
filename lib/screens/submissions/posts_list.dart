@@ -855,7 +855,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                           child: Container(
                             width: 25,
                             height: 25,
-                            color: Theme.of(context).accentColor,
+                            color: Theme.of(context).cardColor,
                             child: state.currentUser != null
                               ? Image(
                                   image: AdvancedNetworkImage(

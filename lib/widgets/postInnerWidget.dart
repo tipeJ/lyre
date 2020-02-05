@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/cupertino.dart' as prefix1;
+import 'package:flutter/cupertino.dart' as mat;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
@@ -27,8 +27,9 @@ class SubmissionOptionsNotification extends Notification {
 
   const SubmissionOptionsNotification({@required this.submission});
 }
-const __defaultColumnTextSize = 11.0;
-const __defaultColumnPadding = EdgeInsets.only(left: 5.0);
+const _defaultColumnTextSize = 11.0;
+const _defaultColumnPadding = EdgeInsets.only(left: 5.0);
+const _defaulColumnAwardDiameter = 6.0;
 
 class postInnerWidget extends StatelessWidget{
   const postInnerWidget({
@@ -437,33 +438,35 @@ class _defaultColumn extends StatelessWidget {
                   "${submission.score}",
                   textAlign: TextAlign.left,
                   style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(submission, context), fontSizeFactor: 0.9)),
-                padding: __defaultColumnPadding),
-
-              submission.over18
-                ? Padding(
-                  padding: __defaultColumnPadding,
-                  child: const Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+                padding: _defaultColumnPadding),
+              
+              mat.Visibility(
+                visible: submission.over18,
+                child: const Padding(
+                  padding: _defaultColumnPadding,
+                  child: Text("NSFW", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
                 )
-                : null,
+              ),
 
-              submission.spoiler
-                ? Padding(
-                  padding: __defaultColumnPadding,
-                  child: const Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: __defaultColumnTextSize))
+              mat.Visibility(
+                visible: submission.spoiler,
+                child: const Padding(
+                  padding: _defaultColumnPadding,
+                  child: Text("SPOILER", style: TextStyle(color: LyreColors.unsubscribeColor, fontSize: _defaultColumnTextSize))
                 )
-                : null,
-
+              ),
+              
               submission.linkFlairText != null
                 ? Padding(
-                  padding: __defaultColumnPadding,
-                  child: Text(submission.linkFlairText, style: TextStyle(fontSize: __defaultColumnTextSize, color: Theme.of(context).accentColor))
-                )
+                    padding: _defaultColumnPadding,
+                    child: Text(submission.linkFlairText, style: TextStyle(fontSize: _defaultColumnTextSize))
+                  )
                 : null,
 
               previewSource == PreviewSource.PostsList
               ? BlocBuilder<PostsBloc, PostsState>(
                   builder: (context, state) {
-                    return prefix1.Visibility(
+                    return mat.Visibility(
                       visible: !(state.contentSource == ContentSource.Redditor && state.target == submission.author.toLowerCase()),
                       child: _authorText(context),
                     );
@@ -473,7 +476,7 @@ class _defaultColumn extends StatelessWidget {
               previewSource == PreviewSource.PostsList
                 ? BlocBuilder<PostsBloc, PostsState>(
                   builder: (context, state) {
-                    return prefix1.Visibility(
+                    return mat.Visibility(
                       visible: !(state.contentSource == ContentSource.Subreddit && state.target == submission.subreddit.displayName.toLowerCase()),
                       child: _subRedditText(context)
                     );
@@ -485,20 +488,20 @@ class _defaultColumn extends StatelessWidget {
                   "● ${submission.numComments} comments",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
-                    fontSize: __defaultColumnTextSize,
+                    fontSize: _defaultColumnTextSize,
                   )
                 ),
-                padding: __defaultColumnPadding,
+                padding: _defaultColumnPadding,
               ),
               Padding(
                 child: Text(
                   "● ${getSubmissionAge(submission.createdUtc)}",
                   style: TextStyle(
                     color: Theme.of(context).textTheme.body2.color,
-                    fontSize: __defaultColumnTextSize,
+                    fontSize: _defaultColumnTextSize,
                   )
                 ),
-                padding: __defaultColumnPadding,
+                padding: _defaultColumnPadding,
               ),
               submission.isSelf ? null :
                 Padding(
@@ -506,46 +509,52 @@ class _defaultColumn extends StatelessWidget {
                         "● ${submission.domain}",
                         style: TextStyle(
                           color: Theme.of(context).textTheme.body2.color,
-                          fontSize: __defaultColumnTextSize,
+                          fontSize: _defaultColumnTextSize,
                         ),
                         textAlign: TextAlign.left,),
-                    padding: __defaultColumnPadding),
-              submission.gold != null && submission.gold >= 1 ?
-                Padding(
-                  child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 255, 223, 0),
+                    padding: _defaultColumnPadding),
+              mat.Visibility(
+                visible: submission.gold != null,
+                child: Padding(
+                    child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 255, 223, 0),
+                        ),
+                        width: _defaulColumnAwardDiameter,
+                        height: _defaulColumnAwardDiameter
                       ),
-                      width: 8.0,
-                      height: 8.0
-                    ),
-                  padding: __defaultColumnPadding,
-                ) : null,
-              submission.silver != null && submission.silver >= 1 ?
-                Padding(
-                  child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 192, 192, 192),
+                    padding: _defaultColumnPadding,
+                  )
+              ),
+              mat.Visibility(
+                visible: submission.silver != null,
+                child: Padding(
+                    child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 192, 192, 192),
+                        ),
+                        width: _defaulColumnAwardDiameter,
+                        height: _defaulColumnAwardDiameter
                       ),
-                      width: 8.0,
-                      height: 8.0
-                    ),
-                  padding: __defaultColumnPadding,
-                ) : null,
-              submission.platinum != null && submission.platinum >= 1 ?
-                Padding(
-                  child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color.fromARGB(255, 229, 228, 226),
+                    padding: _defaultColumnPadding,
+                  )
+              ),
+              mat.Visibility(
+                visible: submission.platinum != null,
+                child: Padding(
+                    child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 229, 228, 226),
+                        ),
+                        width: _defaulColumnAwardDiameter,
+                        height: _defaulColumnAwardDiameter
                       ),
-                      width: 8.0,
-                      height: 8.0
-                    ),
-                  padding: __defaultColumnPadding,
-                ) : null,
+                    padding: _defaultColumnPadding,
+                  )
+              ),
                 
           ].where(notNull).toList()
           ),
@@ -578,7 +587,7 @@ class _defaultColumn extends StatelessWidget {
           ]
         ),
         textAlign: TextAlign.left),
-      padding: __defaultColumnPadding);
+      padding: _defaultColumnPadding);
   }
   Widget _subRedditText(BuildContext context) {
     return Padding(
@@ -591,11 +600,11 @@ class _defaultColumn extends StatelessWidget {
             ),
             TextSpan(
               text: "r/${submission.subreddit.displayName}",
-              style: Theme.of(context).textTheme.body2.apply(color: Theme.of(context).accentColor),
+              style: TextStyle(fontSize: _defaultColumnTextSize, color: Theme.of(context).textTheme.body1.color),
             )
           ]
         ),
         textAlign: TextAlign.left),
-      padding: __defaultColumnPadding);
+      padding: _defaultColumnPadding);
   }
 }

@@ -39,6 +39,8 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   CommentListState();
 
+  CommentsBloc _bloc;
+
   Comment _selectedComment;
   _CommentSelectionVisibility _commentSelectionVisibility;
   PersistentBottomSheetController _bottomSheetController;
@@ -50,19 +52,19 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
     super.initState();
     _refreshCompleter = Completer<void>();
   }
-
+  
   @override
   void dispose() { 
-    BlocProvider.of<CommentsBloc>(context).close();
+    _bloc.close();
     super.dispose();
   }
 
 
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<CommentsBloc>(context);
-    if((bloc.state == null || bloc.state.comments.isEmpty) && bloc.state.state == LoadingState.Inactive){
-      bloc.add(SortChanged(submission: bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
+    _bloc = BlocProvider.of<CommentsBloc>(context);
+    if((_bloc.state == null || _bloc.state.comments.isEmpty) && _bloc.state.state == LoadingState.Inactive){
+      _bloc.add(SortChanged(submission: _bloc.initialState.submission, commentSortType: parseCommentSortType(BlocProvider.of<LyreBloc>(context).state.defaultCommentsSort)));
     }
     return Scaffold(
         endDrawer: Drawer(

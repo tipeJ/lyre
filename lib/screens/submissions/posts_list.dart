@@ -1585,7 +1585,7 @@ class __submissionListState extends State<_submissionList> {
                     BlocProvider.of<PostsBloc>(context).add(FetchMore());
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical:  10.0),
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
                     child: Builder(
                       builder: (context) {
                         if (postsState.state == LoadingState.LoadingMore) {
@@ -1618,11 +1618,17 @@ class __submissionListState extends State<_submissionList> {
             } else {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 5.0),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).pushNamed('comments', arguments: posts[i]);
-                  },
-                  child: CommentContent(posts[i], PreviewSource.PostsList),
+                child: Container(
+                  color: Theme.of(context).cardColor,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('comments', arguments: posts[i]);
+                      },
+                      child: CommentContent(posts[i], PreviewSource.PostsList),
+                    )
+                  )
                 )
               );
             }

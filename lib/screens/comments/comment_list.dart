@@ -73,6 +73,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             child: BlocBuilder<LyreBloc, LyreState>(
               builder: (context, state) {
                 return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight, top: 10.0),
                   itemCount: recentlyViewed.length+1,
                   itemBuilder: (context, i){
                     return i == 0
@@ -177,16 +178,17 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   Widget _getCommentWidget(BuildContext context, dynamic comment, int i) {
     if (comment is Comment) {
-      return InkWell(
-        child: CommentWidget(comment, i, PreviewSource.Comments),
+      return CommentWidget(
+        comment, i, 
+        PreviewSource.Comments,
+        onTap: () {
+          setState(() {
+            BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 
+            });
+        },
         onLongPress: () {
           _initializeCommentOptions(comment, context);
-        },
-        onTap: (){
-          setState(() {
-           BlocProvider.of<CommentsBloc>(context).add(Collapse(location: i)); 
-          });
-        },
+        }
       );
     } else {
       return MoreCommentsWidget(comment, i);
@@ -341,8 +343,15 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                                 "${widget.state.comments.length} Comments",
                                 style: Theme.of(context).textTheme.title,
                               ),
-                              Text(
-                                widget.state.sortTypeString,
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(text: widget.state.sortTypeString),
+                                    TextSpan(text: widget.state.submission is Submission
+                                      ? " | ${(widget.state.submission as Submission).subreddit.displayName}"
+                                      : "")
+                                  ]
+                                ),
                                 style: LyreTextStyles.timeParams.apply(
                                   color: Theme.of(context).textTheme.display1.color
                                 ),
@@ -404,10 +413,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                               'reply_text'  : _replyController?.text
                             }).then((returnValue) {
                               if (returnValue is Comment) {
-                                setState(() {
-                                  //Successful return
-                                  //_handleSuccessfulReply(context, returnValue);
-                                });
+                                // Successful return
                               } else {
                                 setState(() {
                                   _replySendingState = SendingState.Inactive;

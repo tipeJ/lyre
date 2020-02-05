@@ -13,6 +13,7 @@ final supportedYoutubeUrls = [
 enum LinkType{
   Self, //Text post
   Default, //Fallback
+  Internal, //Reddit Links (That can be opened via pushing a new route)
   //Images
   DirectImage,
   ImgurAlbum,
@@ -54,18 +55,28 @@ LinkType getLinkType(String url){
 
   var divided = url.split(".");
 
+  final uri = Uri.parse(url);
+  final domain = uri.authority;
+
   var last = divided.last;
   if (supportedFormats.contains(last)){
     return LinkType.DirectImage;
   } else if (url.contains("youtube.com") || url.contains("youtu.be")){
     return LinkType.YouTube;
-  } else if(url.contains("imgur.com/a/")) {
+  } else if (url.contains("imgur.com/a/")) {
     return LinkType.ImgurAlbum;
   } else if (url.contains("gfycat.com")){
     return LinkType.Gfycat;
-  } else if(url.contains("v.redd.it")){
+  } else if (url.contains("v.redd.it")){
     return LinkType.RedditVideo;
-  } 
+  } else if (
+    domain.endsWith("reddit.com") ||
+    domain.endsWith("redd.it") ||
+    domain.contains("i.reddit.com") ||
+    (domain.contains("google") && uri.path.startsWith("/amp/s/amp.reddit.com"))
+  ) {
+    return LinkType.Internal;
+  }
   // ! API BLOCKED, NO LONGER (YET) SUPPORTED
   // else if(url.contains("clips.twitch.tv")){
   //   return LinkType.TwitchClip;

@@ -92,6 +92,9 @@ class Router {
         final comment = args['content'] as UserContent;
         final text = args['reply_text'] as String;
         return MaterialPageRoute(builder: (_) => replyWindow(comment, text));
+      case 'instant_view':
+        final uri = settings.arguments as Uri;
+        return CupertinoPageRoute(builder: (_) => InstantViewScreen(initialUri: uri));
       default:
         return MaterialPageRoute(builder: (_) {
           return Scaffold(

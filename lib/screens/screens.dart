@@ -21,3 +21,4 @@ export 'wiki_page.dart';
 export 'trending_subreddits.dart';
 export 'help_reddit.dart';
 export 'filters_global.dart';
+export 'instant_view.dart';

@@ -286,9 +286,9 @@ void _handleClick(LinkType linkType, Submission submission, BuildContext context
       Navigator.of(context).pushNamed("comments", arguments: submission);
     } else {
       if (linkType == LinkType.RedditVideo) {
-        handleLinkClick(Uri.parse(submission.data["media"]["reddit_video"]["dash_url"]), context);
+        handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
       } else {
-        handleLinkClick(submission.url, context, linkType);
+        handleLinkClick(submission, context, linkType);
       }
     }
   }

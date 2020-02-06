@@ -22,7 +22,7 @@ enum LinkType{
   Gfycat,
   Streamable, // ! Not yet supported
   TwitchClip,
-  RPAN,
+  RPAN
 }
 
 final videoLinkTypes = [
@@ -70,6 +70,8 @@ LinkType getLinkType(String url){
     return LinkType.Gfycat;
   } else if (url.contains("v.redd.it")){
     return LinkType.RedditVideo;
+  } else if (domain.endsWith("watch.redd.it")){
+    return LinkType.RPAN;
   } else if (
     domain.endsWith("reddit.com") ||
     domain.endsWith("redd.it") ||

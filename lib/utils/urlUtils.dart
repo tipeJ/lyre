@@ -1,4 +1,3 @@
-import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
@@ -23,13 +22,15 @@ enum LinkType{
   Gfycat,
   Streamable, // ! Not yet supported
   TwitchClip,
+  RPAN,
 }
 
 final videoLinkTypes = [
   LinkType.Gfycat,
   LinkType.RedditVideo,
   LinkType.Streamable,
-  LinkType.TwitchClip
+  LinkType.TwitchClip,
+  LinkType.RPAN
 ];
 
 final albumLinkTypes = [

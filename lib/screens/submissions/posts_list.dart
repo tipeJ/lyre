@@ -577,7 +577,10 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                             return IconButton(
                               icon: const Icon(Icons.create),
                               tooltip: "Create a Submission",
-                              onPressed: () {
+                              onPressed: () async {
+                                final s = await PostsProvider().reddit.submission(id: 'f1oe8g').populate();
+                                Navigator.of(context).pushNamed("livestream", arguments: s);
+                                return;
                                 setState(() {
                                   if (PostsProvider().isLoggedIn()) {
                                     Map<String, dynamic> args = Map();

@@ -2,6 +2,7 @@ import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
+import 'package:lyre/widgets/widgets.dart';
 import 'package:video_player/video_player.dart';
 
 class RedditLiveScreen extends StatefulWidget {
@@ -27,7 +28,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder(
-        future: _initializeVideo(widget.submission.url.toString()),
+        future: _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"]),
         builder: (context, snapshot){
           if (snapshot.connectionState == ConnectionState.done){
             if (snapshot.error == null) return LyreVideo(
@@ -43,7 +44,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
   }
   Future<void> _initializeVideo(String videoUrl) async {
     
-    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: VideoFormat.hls);
+    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: VideoFormat.dash);
     await _videoPlayerController.initialize();
     _lyreVideoController = LyreVideoController(
       showControls: true,
@@ -52,6 +53,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
       videoPlayerController: _videoPlayerController,
       looping: true,
       placeholder: CircularProgressIndicator(),
+      customControls: LyreMaterialVideoControls(),
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(

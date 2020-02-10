@@ -1,21 +1,22 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_progress_bar.dart';
 import 'package:screen/screen.dart';
 import 'package:video_player/video_player.dart';
-import 'package:volume/volume.dart';
 
 class LyreMaterialVideoControls extends StatefulWidget {
-  LyreMaterialVideoControls({Key key}) : super(key: key);
+  final Widget trailing;
+
+  LyreMaterialVideoControls({this.trailing = const SizedBox(), Key key}) : super(key: key);
 
   @override
   _LyreMaterialVideoControlsState createState() => _LyreMaterialVideoControlsState();
 }
 
 class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
+  static const int _skipAmount = 5;
+
   bool _controlsVisible = false;
 
   VideoPlayerValue _latestValue;
@@ -76,23 +77,20 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
     });
   }
 
-  void _handleVolumeDrag(double amount) async {
+  void _handleVolumeDrag(double amount) {
     final vol = controller.value.volume;
     final nextV = vol + amount;
     controller.setVolume(nextV);
   }
+
   void _handleBrightnessDrag(double amount) async {
     double brightness = await Screen.brightness;
     Screen.setBrightness(brightness + amount);
   }
 
-  void _cancelAndRestartTimer() {
-    _hideTimer?.cancel();
-    _startHideTimer();
-
-    setState(() {
-      _controlsVisible = true;
-    });
+  void _skip(int amount) {
+    Duration currentPosition = _latestValue.position;
+    controller.seekTo(Duration(seconds: currentPosition.inSeconds + amount));
   }
 
   void _playPause() {
@@ -146,7 +144,7 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                           const Icon(Icons.ac_unit),
                           const Icon(Icons.ac_unit),
                           const Spacer(),
-                          const Icon(Icons.ac_unit),
+                          widget.trailing
                         ],
                       )
                     ),
@@ -160,18 +158,35 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                     onPressed: () {
                     }
                   ),
+                  Positioned(
+                    bottom: 25.0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(_formatDuration(_latestValue.position)),
+                          Text(_formatDuration(_latestValue.duration)),
+                        ],
+                      )
+                    )
+                  ),
                   Row(
                     children: <Widget>[
                       Flexible(
                         flex: 5,
                         child: GestureDetector(
                           onDoubleTap: () {
-                            print("1: onDoubleTap");
+                            _skip(-_skipAmount);
                           },
                           onTap: () {
                             setState(() {
                               _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) _startHideTimer();
+                              if (_controlsVisible) {
+                                _hideTimer?.cancel();
+                                _startHideTimer();
+                              }
                             });
                           },
                           onVerticalDragUpdate: (details) {
@@ -187,7 +202,10 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                           onTap: () {
                             setState(() {
                               _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) _startHideTimer();
+                              if (_controlsVisible) {
+                                _hideTimer?.cancel();
+                                _startHideTimer();
+                              }
                             });
                           },
                         )
@@ -196,12 +214,15 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                         flex: 5,
                         child: GestureDetector(
                           onDoubleTap: () {
-                            print("3: onDoubleTap");
+                            _skip(_skipAmount);
                           },
                           onTap: () {
                             setState(() {
                               _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) _startHideTimer();
+                              if (_controlsVisible) {
+                                _hideTimer?.cancel();
+                                _startHideTimer();
+                              }
                             });
                           },
                           onVerticalDragUpdate: (details) {
@@ -222,5 +243,27 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
         )
       ],
     );
+  }
+  String _formatDuration(Duration position) {
+    final ms = position.inMilliseconds;
+
+    int seconds = ms ~/ 1000;
+    final int hours = seconds ~/ 3600;
+    seconds = seconds % 3600;
+    var minutes = seconds ~/ 60;
+    seconds = seconds % 60;
+
+    final hoursString = hours >= 10 ? '$hours' : hours == 0 ? '00' : '0$hours';
+
+    final minutesString =
+        minutes >= 10 ? '$minutes' : minutes == 0 ? '00' : '0$minutes';
+
+    final secondsString =
+        seconds >= 10 ? '$seconds' : seconds == 0 ? '00' : '0$seconds';
+
+    final formattedTime =
+        '${hoursString == '00' ? '' : hoursString + ':'}$minutesString:$secondsString';
+
+    return formattedTime;
   }
 }

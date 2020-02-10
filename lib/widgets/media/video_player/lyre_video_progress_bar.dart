@@ -135,7 +135,7 @@ class _ProgressBarPainter extends CustomPainter {
         Offset(0.0, size.height / 2),
         Offset(size.width, size.height / 2 + height),
       )),
-      Paint()..color = Colors.white30
+      Paint()..color = Colors.transparent
     );
     if (!value.initialized) {
       return;

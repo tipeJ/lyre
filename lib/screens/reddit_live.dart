@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 import 'package:lyre/widgets/widgets.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:video_player/video_player.dart';
 
 class RedditLiveScreen extends StatefulWidget {
@@ -53,7 +54,13 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
       videoPlayerController: _videoPlayerController,
       looping: true,
       placeholder: CircularProgressIndicator(),
-      customControls: LyreMaterialVideoControls(),
+      customControls: LyreMaterialVideoControls(
+        trailing: IconButton(
+          icon: const Icon(MdiIcons.arrowCollapseRight),
+          tooltip: "Show Chat",
+          onPressed: (){},
+        ),
+      ),
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(

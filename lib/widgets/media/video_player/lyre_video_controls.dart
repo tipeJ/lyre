@@ -149,15 +149,6 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                       )
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white,
-                      size: 46.0,
-                    ),
-                    onPressed: () {
-                    }
-                  ),
                   Positioned(
                     bottom: 25.0,
                     child: Container(
@@ -231,6 +222,18 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                         )
                       )
                     ],
+                  ),
+                  IgnorePointer(
+                    ignoring: !_controlsVisible,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      child: Icon(
+                        _latestValue.isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 46.0,
+                      ),
+                      onTap: _playPause
+                    )
                   ),
                 ],
               )

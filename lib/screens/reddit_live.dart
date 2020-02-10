@@ -14,9 +14,16 @@ class RedditLiveScreen extends StatefulWidget {
   _RedditLiveScreenState createState() => _RedditLiveScreenState();
 }
 
+const double _chatBoxWidth = 300.0;
+
 class _RedditLiveScreenState extends State<RedditLiveScreen> {
+
   VideoPlayerController _videoPlayerController;
   LyreVideoController _lyreVideoController;
+  Future<void> _videoInitializer;
+
+  bool _largeLayout = false;
+  bool _chatVisible = true;
 
   @override
   void dispose() { 
@@ -27,22 +34,43 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_videoInitializer == null) _videoInitializer = _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"]);
     return Scaffold(
-      body: FutureBuilder(
-        future: _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"]),
-        builder: (context, snapshot){
-          if (snapshot.connectionState == ConnectionState.done){
-            if (snapshot.error == null) return LyreVideo(
-              controller: _lyreVideoController,
-            );
-            return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      )
+      body: LayoutBuilder(builder: (context, constraints) {
+        double aspectRatio = constraints.maxWidth / constraints.maxHeight;
+        if (aspectRatio > 1.0 && constraints.maxWidth > 800.0) _largeLayout = true;
+        return _largeLayout ? _splitLayout : _videoPlayer;
+      })
     );
   }
+
+  Widget get _videoPlayer => FutureBuilder(
+    future: _videoInitializer,
+    builder: (context, snapshot){
+      if (snapshot.connectionState == ConnectionState.done){
+        if (snapshot.error == null) return LyreVideo(
+          controller: _lyreVideoController,
+        );
+        return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
+      } else {
+        return const Center(child: CircularProgressIndicator());
+      }
+    },
+  );
+  Row get _splitLayout => Row(children: <Widget>[
+    Expanded(
+      child: _videoPlayer,
+    ),
+    AnimatedContainer(
+      width: _chatVisible ? _chatBoxWidth : 0.0,
+      curve: Curves.ease,
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        color: Colors.red,
+      ),
+    )
+  ],);
+
   Future<void> _initializeVideo(String videoUrl) async {
     
     _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: VideoFormat.dash);
@@ -58,7 +86,11 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
         trailing: IconButton(
           icon: const Icon(MdiIcons.arrowCollapseRight),
           tooltip: "Show Chat",
-          onPressed: (){},
+          onPressed: (){
+            setState(() {
+              _chatVisible = !_chatVisible;
+            });
+          },
         ),
       ),
       errorBuilder: (context, errorMessage) {

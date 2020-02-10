@@ -217,7 +217,8 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                             });
                           },
                           onVerticalDragUpdate: (details) {
-                            print(details.delta);
+                            final value = -details.delta.dy / (_height / 4.5);
+                            _handleBrightnessDrag(value);
                           },
                         )
                       )

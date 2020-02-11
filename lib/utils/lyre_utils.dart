@@ -20,13 +20,25 @@ const _redditParserTYPE = "redditParserType";
 
 /// Handles link clicks
 /// Supply context if a direct launching web link
-void handleLinkClick(Uri uri, BuildContext context, [LinkType suppliedLinkType]) {
+void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLinkType]) {
+  Uri uri;
+  if (source is Submission) {
+    uri = source.url;
+  } else if (source is String) {
+    uri = Uri.parse(source);
+  } else {
+    uri = source as Uri;
+  }
   final url = uri.toString();
   final domain = uri.authority;
   final LinkType linkType = suppliedLinkType ?? getLinkType(url);
   if(linkType == LinkType.YouTube){
     //TODO: Implement YT plugin?
     launchURL(context, url);
+  } else if (linkType == LinkType.RPAN) {
+    // source MUST be submission
+    if (!(source is Submission)) return;
+    Navigator.of(context).pushNamed('livestream', arguments: source);
   } else if (linkType == LinkType.Internal){
     final isGoogleAmpLink = (domain.contains("google") && uri.path.startsWith("/amp/s/amp.reddit.com"));
     final Map<String, dynamic> parsedData = _parseRedditUrl(

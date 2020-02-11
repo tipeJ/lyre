@@ -577,20 +577,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                             return IconButton(
                               icon: const Icon(Icons.create),
                               tooltip: "Create a Submission",
-                              onPressed: () {
-                                setState(() {
-                                  if (PostsProvider().isLoggedIn()) {
-                                    Map<String, dynamic> args = Map();
-                                    args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
-                                    Navigator.of(context).pushNamed('submit', arguments: args);
-                                  } else {
-                                    final snackBar = SnackBar(
-                                      content: Text(
-                                          'Log in to post your submission'),
-                                    );
-                                    Scaffold.of(context).showSnackBar(snackBar);
-                                  }
-                                });
+                              onPressed: () async {
+                                if (PostsProvider().isLoggedIn()) {
+                                  Map<String, dynamic> args = Map();
+                                  args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
+                                  Navigator.of(context).pushNamed('submit', arguments: args);
+                                } else {
+                                  final snackBar = const SnackBar(content: Text(
+                                    'Log in to post your submission'),
+                                  );
+                                  Scaffold.of(context).showSnackBar(snackBar);
+                                }
                               },
                             );
                           },
@@ -738,7 +735,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   IconData _postViewIconData(PostView postView) {
     switch (postView) {
       case PostView.Compact:
-        return MdiIcons.viewCompact;
+        return Icons.view_list;
       case PostView.ImagePreview:
         return MdiIcons.imageOutline;
       case PostView.IntendedPreview:

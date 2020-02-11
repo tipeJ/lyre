@@ -386,7 +386,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
         '${hoursString == '00' ? '' : hoursString + ':'}$minutesString:$secondsString';
 
     return formattedTime;
-}
+  }
 
   void _cancelAndRestartTimer() {
     _hideTimer?.cancel();

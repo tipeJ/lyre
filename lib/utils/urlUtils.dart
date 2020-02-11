@@ -1,4 +1,3 @@
-import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
@@ -23,13 +22,15 @@ enum LinkType{
   Gfycat,
   Streamable, // ! Not yet supported
   TwitchClip,
+  RPAN
 }
 
 final videoLinkTypes = [
   LinkType.Gfycat,
   LinkType.RedditVideo,
   LinkType.Streamable,
-  LinkType.TwitchClip
+  LinkType.TwitchClip,
+  LinkType.RPAN
 ];
 
 final albumLinkTypes = [
@@ -69,6 +70,8 @@ LinkType getLinkType(String url){
     return LinkType.Gfycat;
   } else if (url.contains("v.redd.it")){
     return LinkType.RedditVideo;
+  } else if (domain.endsWith("watch.redd.it")){
+    return LinkType.RPAN;
   } else if (
     domain.endsWith("reddit.com") ||
     domain.endsWith("redd.it") ||

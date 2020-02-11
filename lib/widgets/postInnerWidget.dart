@@ -94,10 +94,7 @@ class postInnerWidget extends StatelessWidget{
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Container(
-              child: _defaultColumn(submission, previewSource, linkType, onOptionsClick),
-              width: MediaQuery.of(context).size.width * 0.9,
-            )
+            child: _defaultColumn(submission, previewSource, linkType, onOptionsClick)
           ),
           getSquaredImage(context)
         ],
@@ -207,7 +204,7 @@ class postInnerWidget extends StatelessWidget{
     return Container(
       child: _getImageWidget(context, false),
       //The fixed height of the post image:
-      constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
+      constraints: BoxConstraints.tight(const Size(50, 50)),
     );
   }
 
@@ -286,9 +283,9 @@ void _handleClick(LinkType linkType, Submission submission, BuildContext context
       Navigator.of(context).pushNamed("comments", arguments: submission);
     } else {
       if (linkType == LinkType.RedditVideo) {
-        handleLinkClick(Uri.parse(submission.data["media"]["reddit_video"]["dash_url"]), context);
+        handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
       } else {
-        handleLinkClick(submission.url, context, linkType);
+        handleLinkClick(submission, context, linkType);
       }
     }
   }
@@ -568,7 +565,7 @@ class _defaultColumn extends StatelessWidget {
                     child: Container(
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 229, 228, 226),
+                          color: Color.fromARGB(255, 100, 225, 255),
                         ),
                         width: _defaulColumnAwardDiameter,
                         height: _defaulColumnAwardDiameter

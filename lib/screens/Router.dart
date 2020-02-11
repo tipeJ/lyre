@@ -58,6 +58,9 @@ class Router {
           create: (context) => CommentsBloc(content),
           child: CommentList(),
         ));
+      case 'livestream':
+        Submission submission = settings.arguments as Submission;
+        return CupertinoPageRoute(builder: (_) => RedditLiveScreen(submission: submission));
       case 'settings':
         return CupertinoPageRoute(builder: (_) => PreferencesView());
       case 'filters':

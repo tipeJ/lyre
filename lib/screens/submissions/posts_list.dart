@@ -578,22 +578,16 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                               icon: const Icon(Icons.create),
                               tooltip: "Create a Submission",
                               onPressed: () async {
-                                final s = await PostsProvider().reddit.submission(id: 'f1oe8g').populate();
-                                Navigator.of(context).pushNamed("livestream", arguments: s);
-                                return;
-                                setState(() {
-                                  if (PostsProvider().isLoggedIn()) {
-                                    Map<String, dynamic> args = Map();
-                                    args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
-                                    Navigator.of(context).pushNamed('submit', arguments: args);
-                                  } else {
-                                    final snackBar = SnackBar(
-                                      content: Text(
-                                          'Log in to post your submission'),
-                                    );
-                                    Scaffold.of(context).showSnackBar(snackBar);
-                                  }
-                                });
+                                if (PostsProvider().isLoggedIn()) {
+                                  Map<String, dynamic> args = Map();
+                                  args['initialTargetSubreddit'] = state.contentSource == ContentSource.Subreddit ? state.target : '';
+                                  Navigator.of(context).pushNamed('submit', arguments: args);
+                                } else {
+                                  final snackBar = const SnackBar(content: Text(
+                                    'Log in to post your submission'),
+                                  );
+                                  Scaffold.of(context).showSnackBar(snackBar);
+                                }
                               },
                             );
                           },

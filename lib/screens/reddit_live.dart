@@ -6,7 +6,6 @@ import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 import 'package:lyre/widgets/widgets.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:video_player/video_player.dart';
 
 class RedditLiveScreen extends StatefulWidget {
@@ -17,7 +16,7 @@ class RedditLiveScreen extends StatefulWidget {
   _RedditLiveScreenState createState() => _RedditLiveScreenState();
 }
 
-const double _chatBoxWidth = 300.0;
+const double _chatBoxWidth = 400.0;
 
 class _RedditLiveScreenState extends State<RedditLiveScreen> {
 
@@ -46,7 +45,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_videoInitializer == null) _videoInitializer = _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+    if (_videoInitializer == null) _videoInitializer = _initializeVideo(widget.submission.url.toString());
     return Scaffold(
       body: LayoutBuilder(builder: (context, constraints) {
         double aspectRatio = constraints.maxWidth / constraints.maxHeight;
@@ -97,7 +96,10 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
               reverse: true,
               itemCount: widget.submission.comments.length,
               itemBuilder: (context, i) {
-                if (widget.submission.comments[i] is Comment) return CommentContent(widget.submission.comments[i], PreviewSource.Comments);
+                if (widget.submission.comments[i] is Comment) return Container(
+                  color: Theme.of(context).cardColor,
+                  child: CommentContent(widget.submission.comments[i], PreviewSource.Comments)
+                );
                 // Return empty if MoreComments
                 return const SizedBox();
               },
@@ -148,7 +150,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
 
   Future<void> _initializeVideo(String videoUrl) async {
     
-    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: VideoFormat.dash);
+    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: VideoFormat.hls);
     await _videoPlayerController.initialize();
     _lyreVideoController = LyreVideoController(
       showControls: true,
@@ -159,11 +161,11 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
       placeholder: CircularProgressIndicator(),
       customControls: LyreMaterialVideoControls(
         trailing: Material(
+          color: Colors.transparent,
           child: IconButton(
-            icon: const Icon(MdiIcons.chat),
+            icon: const Icon(Icons.chat_bubble),
             tooltip: "Show Chat",
             onPressed: (){
-              print("ME");
               setState(() {
                 _chatVisible = !_chatVisible;
               });

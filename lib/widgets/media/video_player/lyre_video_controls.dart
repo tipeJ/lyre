@@ -211,18 +211,26 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
                         )
                       ],
                     ),
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: SafeArea(
-                        child: Row(
-                          children: <Widget>[
-                            const Icon(Icons.ac_unit),
-                            const Icon(Icons.ac_unit),
-                            const Icon(Icons.ac_unit),
-                            const Spacer(),
-                            widget.trailing
-                          ],
-                        )
+                    IgnorePointer(
+                      ignoring: !_controlsVisible,
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: SafeArea(
+                          child: Row(
+                            children: <Widget>[
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back),
+                                onPressed: () => Navigator.of(context).maybePop(),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.settings),
+                                onPressed: () {},
+                              ),
+                              widget.trailing
+                            ],
+                          )
+                        ),
                       ),
                     ),
                     IgnorePointer(

@@ -16,7 +16,6 @@ import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../../Resources/globals.dart';
 import 'dart:async';
@@ -1523,39 +1522,37 @@ class __submissionListState extends State<_submissionList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: StreamBuilder(
-        stream: BlocProvider.of<PostsBloc>(context),
-        builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
-          if (snapshot.hasData) {
-            final state = snapshot.data;
-            if(state.userContent != null && state.userContent.isNotEmpty){
-              return NestedScrollView(
-                controller: _scrollController,
-                physics: AlwaysScrollableScrollPhysics(),
-                headerSliverBuilder: (context, b) => [
-                  LyreHeader(state: state)
-                ],
-                body: RefreshIndicator(
-                  onRefresh: () {
-                    BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
-                    return _refreshCompleter.future;
-                  },
-                  child: _buildListWithHeader(state, context)
-                )
-              );
-            } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
-              // Return error message
-              return Center(child: Text(state.errorMessage, style: LyreTextStyles.errorMessage,));
-            } else {
-              // Return loading indicator
-              return const Center(child: CircularProgressIndicator());
-            }
+    return StreamBuilder(
+      stream: BlocProvider.of<PostsBloc>(context),
+      builder: (BuildContext context, AsyncSnapshot<PostsState> snapshot){
+        if (snapshot.hasData) {
+          final state = snapshot.data;
+          if(state.userContent != null && state.userContent.isNotEmpty){
+            return NestedScrollView(
+              controller: _scrollController,
+              physics: AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, b) => [
+                LyreHeader(state: state)
+              ],
+              body: RefreshIndicator(
+                onRefresh: () {
+                  BlocProvider.of<PostsBloc>(context).add(RefreshPosts());
+                  return _refreshCompleter.future;
+                },
+                child: _buildListWithHeader(state, context)
+              )
+            );
+          } else if (state.state == LoadingState.Error && state.userContent.isEmpty) {
+            // Return error message
+            return Center(child: Text(state.errorMessage, style: LyreTextStyles.errorMessage,));
           } else {
+            // Return loading indicator
             return const Center(child: CircularProgressIndicator());
           }
-        },
-      )
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
     );
   }
 

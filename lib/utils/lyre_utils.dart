@@ -1,9 +1,11 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'utils.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:flutter/material.dart';
 
 enum RedditLinkType {
@@ -58,6 +60,8 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     switch (redditLinkType) {
       case RedditLinkType.Submission:
         PostsProvider().reddit.submission(id: id).populate().then((fetchedSubmission) {
+          Provider.of<PeekNotifier>(context).changePeek('comments', fetchedSubmission);
+          return;
           Navigator.of(context).pushNamed("comments", arguments: fetchedSubmission);
         });
         break;

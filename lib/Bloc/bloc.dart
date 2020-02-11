@@ -14,4 +14,6 @@ export 'search_usercontent_bloc.dart';
 export 'search_usercontent_event.dart';
 export 'search_usercontent_state.dart';
 
+export 'layout_bloc.dart';
+
 export 'subreddits_bloc.dart';

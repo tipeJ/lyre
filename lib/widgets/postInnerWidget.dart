@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:lyre/screens/screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as mat;
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../screens/Animations/OnSlide.dart';
 import 'ActionItems.dart';
@@ -280,6 +282,8 @@ class postInnerWidget extends StatelessWidget{
 
 void _handleClick(LinkType linkType, Submission submission, BuildContext context){
     if (submission.isSelf) {
+      Provider.of<PeekNotifier>(context).changePeek('comments', submission);
+      return;
       Navigator.of(context).pushNamed("comments", arguments: submission);
     } else {
       if (linkType == LinkType.RedditVideo) {

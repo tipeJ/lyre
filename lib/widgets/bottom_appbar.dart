@@ -109,20 +109,22 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
     return Stack(
       children: <Widget>[
         body,
-        Positioned(
-          bottom: 0.0,
-          child: ClipRRect(
-            clipBehavior: Clip.antiAlias,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(borderRadius),
-              topRight: Radius.circular(borderRadius),
-            ),
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              color: Theme.of(context).primaryColor,
-              height: kBottomNavigationBarHeight,
-              child: appBarContent,
-            ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: LayoutBuilder(
+            builder: (context, constraints) => ClipRRect(
+              clipBehavior: Clip.antiAlias,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(borderRadius),
+                topRight: Radius.circular(borderRadius),
+              ),
+              child: Container(
+                width: constraints.maxWidth,
+                color: Theme.of(context).primaryColor,
+                height: kBottomNavigationBarHeight,
+                child: appBarContent,
+              ),
+            )
           ),
         )
       ],

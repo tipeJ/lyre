@@ -31,7 +31,7 @@ class Router {
         return MaterialPageRoute(builder: (_) => BlocProvider(
           create: (context) => PostsBloc(firstState: PostsState(
             state: LoadingState.Inactive,
-            userContent: [],
+            userContent: const [],
             contentSource: source,
             typeFilter: TypeFilter.Best,
             timeFilter: 'all',

@@ -27,8 +27,8 @@ enum _CommentSelectionVisibility {
 }
 
 class CommentList extends StatefulWidget {
-
-  CommentList();
+  final bool showBackButton;
+  const CommentList({this.showBackButton = true});
 
   @override
   CommentListState createState() => CommentListState();

@@ -568,7 +568,7 @@ class _defaultColumn extends StatelessWidget {
                     child: Container(
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 229, 228, 226),
+                          color: Color.fromARGB(255, 100, 225, 255),
                         ),
                         width: _defaulColumnAwardDiameter,
                         height: _defaulColumnAwardDiameter

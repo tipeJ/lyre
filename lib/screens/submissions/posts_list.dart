@@ -735,7 +735,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   IconData _postViewIconData(PostView postView) {
     switch (postView) {
       case PostView.Compact:
-        return MdiIcons.viewCompact;
+        return Icons.view_list;
       case PostView.ImagePreview:
         return MdiIcons.imageOutline;
       case PostView.IntendedPreview:

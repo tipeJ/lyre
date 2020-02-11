@@ -94,10 +94,7 @@ class postInnerWidget extends StatelessWidget{
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Container(
-              child: _defaultColumn(submission, previewSource, linkType, onOptionsClick),
-              width: MediaQuery.of(context).size.width * 0.9,
-            )
+            child: _defaultColumn(submission, previewSource, linkType, onOptionsClick)
           ),
           getSquaredImage(context)
         ],
@@ -207,7 +204,7 @@ class postInnerWidget extends StatelessWidget{
     return Container(
       child: _getImageWidget(context, false),
       //The fixed height of the post image:
-      constraints: BoxConstraints.tight(Size(MediaQuery.of(context).size.width * 0.1, MediaQuery.of(context).size.width * 0.1)),
+      constraints: BoxConstraints.tight(const Size(50, 50)),
     );
   }
 

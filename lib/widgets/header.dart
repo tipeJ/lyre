@@ -172,7 +172,6 @@ class LyreHeader extends StatelessWidget {
             fillColor: Theme.of(context).primaryColor,
             child: const Icon(Icons.trending_up),
             onPressed: () async {
-              PreviewCall().callback.preview("https://watch.redd.it/hls/889e6fe7-14c7-4bec-a388-b9c60d45a3eb/index.m3u8");
               final trendingSubs = await PostsProvider().getTrendingSubreddits();
               Scaffold.of(context).showBottomSheet((context) => TrendingScreen(data: trendingSubs));
             },

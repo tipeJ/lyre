@@ -124,128 +124,130 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
   @override
   Widget build(BuildContext context) {
     final _height = MediaQuery.of(context).size.height;
-    return Stack(
-      alignment: Alignment.center,
-      children: <Widget>[
-        StatefulBuilder(
-          builder: (BuildContext context, setState) {
-            return AnimatedOpacity(
-              duration: const Duration(milliseconds: 250),
-              opacity: _controlsVisible ? 1.0 : 0.0,
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: SafeArea(
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(Icons.ac_unit),
-                          const Icon(Icons.ac_unit),
-                          const Icon(Icons.ac_unit),
-                          const Spacer(),
-                          widget.trailing
-                        ],
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          StatefulBuilder(
+            builder: (BuildContext context, setState) {
+              return AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: _controlsVisible ? 1.0 : 0.0,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    Positioned(
+                      bottom: 25.0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        width: constraints.maxWidth,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(_formatDuration(_latestValue.position)),
+                            Text(_formatDuration(_latestValue.duration)),
+                          ],
+                        )
                       )
                     ),
-                  ),
-                  Positioned(
-                    bottom: 25.0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text(_formatDuration(_latestValue.position)),
-                          Text(_formatDuration(_latestValue.duration)),
-                        ],
+                    Row(
+                      children: <Widget>[
+                        Flexible(
+                          flex: 5,
+                          child: GestureDetector(
+                            onDoubleTap: () {
+                              _skip(-_skipAmount);
+                            },
+                            onTap: () {
+                              setState(() {
+                                _controlsVisible = !_controlsVisible;
+                                if (_controlsVisible) {
+                                  _hideTimer?.cancel();
+                                  _startHideTimer();
+                                }
+                              });
+                            },
+                            onVerticalDragUpdate: (details) {
+                              final value = -details.delta.dy / (_height / 4.5);
+                              _handleVolumeDrag(value);
+                            },
+                          )
+                        ),
+                        Flexible(
+                          flex: 3,
+                          child: GestureDetector(
+                            onDoubleTap: _playPause,
+                            onTap: () {
+                              setState(() {
+                                _controlsVisible = !_controlsVisible;
+                                if (_controlsVisible) {
+                                  _hideTimer?.cancel();
+                                  _startHideTimer();
+                                }
+                              });
+                            },
+                          )
+                        ),
+                        Flexible(
+                          flex: 5,
+                          child: GestureDetector(
+                            onDoubleTap: () {
+                              _skip(_skipAmount);
+                            },
+                            onTap: () {
+                              setState(() {
+                                _controlsVisible = !_controlsVisible;
+                                if (_controlsVisible) {
+                                  _hideTimer?.cancel();
+                                  _startHideTimer();
+                                }
+                              });
+                            },
+                            onVerticalDragUpdate: (details) {
+                              final value = -details.delta.dy / (_height / 4.5);
+                              _handleBrightnessDrag(value);
+                            },
+                          )
+                        )
+                      ],
+                    ),
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: SafeArea(
+                        child: Row(
+                          children: <Widget>[
+                            const Icon(Icons.ac_unit),
+                            const Icon(Icons.ac_unit),
+                            const Icon(Icons.ac_unit),
+                            const Spacer(),
+                            widget.trailing
+                          ],
+                        )
+                      ),
+                    ),
+                    IgnorePointer(
+                      ignoring: !_controlsVisible,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        child: Icon(
+                          _latestValue.isPlaying ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 46.0,
+                        ),
+                        onTap: _playPause
                       )
-                    )
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Flexible(
-                        flex: 5,
-                        child: GestureDetector(
-                          onDoubleTap: () {
-                            _skip(-_skipAmount);
-                          },
-                          onTap: () {
-                            setState(() {
-                              _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) {
-                                _hideTimer?.cancel();
-                                _startHideTimer();
-                              }
-                            });
-                          },
-                          onVerticalDragUpdate: (details) {
-                            final value = -details.delta.dy / (_height / 4.5);
-                            _handleVolumeDrag(value);
-                          },
-                        )
-                      ),
-                      Flexible(
-                        flex: 3,
-                        child: GestureDetector(
-                          onDoubleTap: _playPause,
-                          onTap: () {
-                            setState(() {
-                              _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) {
-                                _hideTimer?.cancel();
-                                _startHideTimer();
-                              }
-                            });
-                          },
-                        )
-                      ),
-                      Flexible(
-                        flex: 5,
-                        child: GestureDetector(
-                          onDoubleTap: () {
-                            _skip(_skipAmount);
-                          },
-                          onTap: () {
-                            setState(() {
-                              _controlsVisible = !_controlsVisible;
-                              if (_controlsVisible) {
-                                _hideTimer?.cancel();
-                                _startHideTimer();
-                              }
-                            });
-                          },
-                          onVerticalDragUpdate: (details) {
-                            final value = -details.delta.dy / (_height / 4.5);
-                            _handleBrightnessDrag(value);
-                          },
-                        )
-                      )
-                    ],
-                  ),
-                  IgnorePointer(
-                    ignoring: !_controlsVisible,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Icon(
-                        _latestValue.isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                        size: 46.0,
-                      ),
-                      onTap: _playPause
-                    )
-                  ),
-                ],
-              )
-            );
-          },
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: LyreVideoProgressBar(controller)
-        )
-      ],
+                    ),
+                  ],
+                )
+              );
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: LyreVideoProgressBar(controller)
+          )
+        ],
+      )
     );
   }
   String _formatDuration(Duration position) {

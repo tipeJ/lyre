@@ -230,15 +230,7 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
     );
   }
   Widget _peekContent(PeekNotifier peekContent) {
-    draw.UserContent content = peekContent.args;
-    if (content is draw.Submission) {
-      if(recentlyViewed.contains(content)) recentlyViewed.remove(content); //removes the submission from the list (will be readded, to index 0)
-      recentlyViewed.add(content); //Adds the submission to the top of the recently viewed list
-    }
-    return BlocProvider(
-      create: (context) => CommentsBloc(content),
-      child: CommentList(),
-    );
+    return Router.generateWidget(peekContent.route, peekContent.args);
   }
 }
 

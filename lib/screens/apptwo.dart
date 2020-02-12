@@ -165,11 +165,16 @@ class LyreAdaptiveLayoutBuilder extends StatefulWidget {
 
 class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
 
+  /// The width of the separator between the main window and the peek window.
   static const double _peekDividerWidth = 3.5;
 
+  /// If this limit is crossed, the peek window will be dismissed.
+  static const double _peekWindowMinWidth = 200;
+  /// The default peek window width. Will be reverted to this after every dismiss.
   static const double _peekWindowDefaultWidth = 400;
   double _peekWindowWidth = _peekWindowDefaultWidth;
 
+  /// The default vertical position for the handle.
   double _peekHandleVerticalPosition = 500.0;
 
   @override
@@ -227,7 +232,7 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
                   onHorizontalDragUpdate: (dx){
                     setState(() {
                       double newHorizontalPosition = _peekWindowWidth+-dx;
-                      if (newHorizontalPosition < 200) {
+                      if (newHorizontalPosition < _peekWindowMinWidth) {
                         Provider.of<PeekNotifier>(context).disable();
                       } else if (newHorizontalPosition < MediaQuery.of(context).size.width * 0.8) {
                         _peekWindowWidth = newHorizontalPosition;
@@ -290,20 +295,18 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
           _focused = true;
         });
       },
-      onTapUp: (details) {
-        setState(() {
-          _focused = false;
-        });
-      },
-      onHorizontalDragEnd: (details) {
-        setState(() {
-          _focused = false;
-        });
-      },
+      onTapUp: (details) => _dismiss(),
+      onHorizontalDragEnd: (details)  => _dismiss(),
+      onVerticalDragEnd: (details)  => _dismiss(),
       onHorizontalDragUpdate: (details) => widget.onHorizontalDragUpdate(details.delta.dx),
       onVerticalDragUpdate: (details) => widget.onVerticalDragUpdate(details.delta.dy),
       onDoubleTap: () => Provider.of<PeekNotifier>(context).disable(),
     );
+  }
+  void _dismiss() {
+    setState((){
+      _focused = false;
+    });
   }
 }
 class PeekNotifier with ChangeNotifier {

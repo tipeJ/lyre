@@ -171,9 +171,6 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
   double _peekWindowWidth = _peekWindowDefaultWidth;
   bool _peekVisible = false;
 
-  static const double _peekHandleWidth = 35.0;
-  static const double _peekHandleHeight = 50.0;
-
   @override
   void dispose() { 
     super.dispose();
@@ -245,6 +242,9 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
   }
 }
 
+const double _peekHandleWidth = 35.0;
+const double _peekHandleHeight = 50.0;
+
 class _PeekResizeSlider extends StatefulWidget {
   final Function(double dx) onDragUpdate;
   const _PeekResizeSlider({this.onDragUpdate, Key key}) : super(key: key);
@@ -263,8 +263,8 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
       child: AnimatedContainer(
         curve: Curves.ease,
         duration: const Duration(milliseconds: 200),
-        width: 35.0,
-        height: 50.0,
+        width: _peekHandleWidth,
+        height: _peekHandleHeight,
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor,
           border: Border.all(color: Theme.of(context).canvasColor, width: 2.5),
@@ -272,9 +272,14 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
         ),
         child: const Icon(MdiIcons.dotsVertical),
       ),
-      onHorizontalDragStart: (details) {
+      onTapDown: (details) {
         setState(() {
           _focused = true;
+        });
+      },
+      onTapUp: (details) {
+        setState(() {
+          _focused = false;
         });
       },
       onHorizontalDragEnd: (details) {

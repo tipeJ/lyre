@@ -25,7 +25,7 @@ class OnSlide extends StatefulWidget{
 }
 
 class _OnSlideState extends State<OnSlide>{
-  ScrollController controller = new ScrollController();
+  ScrollController controller;
   bool isOpen = false;
 
   Size childSize;
@@ -33,8 +33,16 @@ class _OnSlideState extends State<OnSlide>{
   @override
   void initState(){
     super.initState();
+    controller = ScrollController();
     controller.addListener(_scrollListener);
   }
+
+  @override
+  void dispose() { 
+    controller.dispose();
+    super.dispose();
+  }
+
   double _opacity = 0.0;
 
   bool _handleScrollNotification(dynamic notification){
@@ -65,7 +73,7 @@ class _OnSlideState extends State<OnSlide>{
   @override
   Widget build(BuildContext context){
     if(childSize == null){
-      return new NotificationListener(
+      return new NotificationListener<LayoutSizeChangeNotification>(
         child: new LayoutSizeChangeNotifier(
           child: widget.child,
         ),
@@ -74,6 +82,7 @@ class _OnSlideState extends State<OnSlide>{
           scheduleMicrotask((){
             setState((){});
           });
+          return false;
         },
       );
     }

@@ -20,52 +20,54 @@ class LyreHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
-      child: Stack(
-        children: <Widget>[
-          Column(children: <Widget>[
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: _boxHeight,
-              child: state.subreddit != null && state.subreddit.mobileHeaderImage != null
-                ? FadeInImage(
-                    placeholder: MemoryImage(kTransparentImage),
-                    image: AdvancedNetworkImage(
-                      state.subreddit.mobileHeaderImage.toString(),
-                      useDiskCache: true,
-                      cacheRule: const CacheRule(maxAge: Duration(days: 3)),
-                    ),
-                    fit: BoxFit.cover
+      child: LayoutBuilder(
+        builder: (_, constraints) => Stack(
+          children: <Widget>[
+            Column(children: <Widget>[
+              Container(
+                width: constraints.maxWidth,
+                height: _boxHeight,
+                child: state.subreddit != null && state.subreddit.mobileHeaderImage != null
+                  ? FadeInImage(
+                      placeholder: MemoryImage(kTransparentImage),
+                      image: AdvancedNetworkImage(
+                        state.subreddit.mobileHeaderImage.toString(),
+                        useDiskCache: true,
+                        cacheRule: const CacheRule(maxAge: Duration(days: 3)),
+                      ),
+                      fit: BoxFit.cover
+                    )
+                  : Container() // TODO: Placeholder image,
+              ),
+              Container(
+                width: constraints.maxWidth,
+                height: _boxHeight,
+                color: Theme.of(context).cardColor,
+                child: Column(children: <Widget>[
+                  Container(
+                    height: _avatarRadius + 5.0,
+                  ),
+                  Text(state.getSourceString()),
+                  const SizedBox(height: 5.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: _getTargetInfo(context)
                   )
-                : Container() // TODO: Placeholder image,
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: _boxHeight,
-              color: Theme.of(context).cardColor,
-              child: Column(children: <Widget>[
-                Container(
-                  height: _avatarRadius + 5.0,
-                ),
-                Text(state.getSourceString()),
-                const SizedBox(height: 5.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: _getTargetInfo(context)
-                )
-              ],)
-            )
-          ]),
-          Positioned(
-            top: _boxHeight - _avatarRadius,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: _getAvatarRow(context) 
+                ],)
               )
-            ),
-          )
-        ],
+            ]),
+            Positioned(
+              top: _boxHeight - _avatarRadius,
+              child: Container(
+                width: constraints.maxWidth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: _getAvatarRow(context) 
+                )
+              ),
+            )
+          ],
+        )
       )
     );
   }

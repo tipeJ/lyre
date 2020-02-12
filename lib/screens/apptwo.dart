@@ -170,6 +170,8 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
   static const double _peekWindowDefaultWidth = 400;
   double _peekWindowWidth = _peekWindowDefaultWidth;
 
+  double _peekHandleVerticalPosition = 500.0;
+
   @override
   void dispose() { 
     super.dispose();
@@ -218,11 +220,18 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
           builder: (context, peekContent, child) => peekContent.route == null
             ? const SizedBox()
             : Positioned(
-                top: MediaQuery.of(context).size.height / 2 - _peekHandleHeight / 2,
+                top: _peekHandleVerticalPosition - _peekHandleHeight / 2,
                 right: (_peekWindowWidth - _peekHandleWidth / 2) + _peekDividerWidth / 2,
-                child: _PeekResizeSlider(onDragUpdate: (dx){
+                child: _PeekResizeSlider(onDragUpdate: (dx, dy){
                   setState(() {
-                    _peekWindowWidth+=-dx;
+                    double newHorizontalPosition = _peekWindowWidth+-dx;
+                    if (newHorizontalPosition < MediaQuery.of(context).size.width * 0.8) {
+                      _peekWindowWidth = newHorizontalPosition;
+                    }
+                    double newVerticalPosition = _peekHandleVerticalPosition + dy;
+                    if (newVerticalPosition < MediaQuery.of(context).size.height * 0.8 && newVerticalPosition > MediaQuery.of(context).size.height * 0.2) {
+                      _peekHandleVerticalPosition = newVerticalPosition;
+                    }
                   });
                 })
               )
@@ -240,7 +249,7 @@ const double _peekHandleWidth = 35.0;
 const double _peekHandleHeight = 50.0;
 
 class _PeekResizeSlider extends StatefulWidget {
-  final Function(double dx) onDragUpdate;
+  final Function(double dx, double dy) onDragUpdate;
   const _PeekResizeSlider({this.onDragUpdate, Key key}) : super(key: key);
 
   @override
@@ -281,7 +290,8 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
           _focused = false;
         });
       },
-      onHorizontalDragUpdate: (details) => widget.onDragUpdate(details.delta.dx),
+      onHorizontalDragUpdate: (details) => widget.onDragUpdate(details.delta.dx, details.delta.dy),
+      onVerticalDragUpdate: (details) => widget.onDragUpdate(details.delta.dx, details.delta.dy),
       onDoubleTap: () => Provider.of<PeekNotifier>(context).disable(),
     );
   }

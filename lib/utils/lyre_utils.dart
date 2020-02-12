@@ -112,8 +112,14 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
   }
 }
 
-void instantLaunchUrl(BuildContext context, Uri uri) {
-  Navigator.of(context).pushNamed("instant_view", arguments: uri);
+void instantLaunchUrl(BuildContext context, Uri uri, [bool longPress = false]) {
+  if (longPress) {
+    // Peek the route
+    Provider.of<PeekNotifier>(context).changePeek("instant_view", uri);
+  } else {
+    // Navigate to the route
+    Navigator.of(context).pushNamed("instant_view", arguments: uri);
+  }
 }
 
 Map<String, dynamic> _parseRedditUrl(String url) {

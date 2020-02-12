@@ -415,9 +415,8 @@ class _defaultColumn extends StatelessWidget {
                     visible: linkType == LinkType.Default,
                     child: GestureDetector(
                       child: const Icon(MdiIcons.flashCircle),
-                      onTap: () {
-                        instantLaunchUrl(context, submission.url);
-                      },
+                      onTap: () => instantLaunchUrl(context, submission.url),
+                      onLongPress: () => instantLaunchUrl(context, submission.url, true),
                     )
                   )
                 ]

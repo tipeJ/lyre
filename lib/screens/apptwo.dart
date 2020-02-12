@@ -169,7 +169,6 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
 
   static const double _peekWindowDefaultWidth = 400;
   double _peekWindowWidth = _peekWindowDefaultWidth;
-  bool _peekVisible = false;
 
   @override
   void dispose() { 
@@ -189,29 +188,31 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
                 key: PreviewCall().navigatorKey,
                 initialRoute: 'posts',
                 onGenerateRoute: Router.generateRoute,
-              ),
+              )
             ),
             Consumer<PeekNotifier>(
-              builder: (context, peekContent, child) => peekContent.route == null
-                ? const SizedBox()
-                : Row(
-                    children: [
-                      Container(
-                        child: Container(
-                          width: _peekDividerWidth,
-                          height: MediaQuery.of(context).size.height,
-                          color: Theme.of(context).canvasColor
+              builder: (context, peekContent, child) {
+                return peekContent.route == null
+                  ? const SizedBox()
+                  : Row(
+                      children: [
+                        Container(
+                          child: Container(
+                            width: _peekDividerWidth,
+                            height: MediaQuery.of(context).size.height,
+                            color: Theme.of(context).canvasColor
+                          )
+                        ),
+                        Container(
+                          width: _peekWindowWidth,
+                          color: Theme.of(context).canvasColor,
+                          child: _peekContent(peekContent)
                         )
-                      ),
-                      Container(
-                        width: _peekWindowWidth,
-                        color: Theme.of(context).canvasColor,
-                        child: _peekContent(peekContent)
-                      )
-                    ]
-                  )
-            ),
-          ],
+                      ]
+              );
+            }
+            )
+          ]
         ),
         Consumer<PeekNotifier>(
           builder: (context, peekContent, child) => peekContent.route == null
@@ -223,14 +224,15 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
                   setState(() {
                     _peekWindowWidth+=-dx;
                   });
-                }),
-              ),
+                })
+              )
         )
       ]
     );
   }
-  Widget _peekContent(PeekNotifier peekContent) {
-    return Router.generateWidget(peekContent.route, peekContent.args);
+
+  static Widget _peekContent(PeekNotifier peekContent) {
+    return Router.generateWidget(peekContent.route, peekContent.args, peekContent.key.toString());
   }
 }
 
@@ -259,7 +261,7 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
         height: _peekHandleHeight,
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor,
-          border: Border.all(color: Theme.of(context).canvasColor, width: 2.5),
+          border: Border.all(color: _focused ? Theme.of(context).highlightColor : Theme.of(context).canvasColor, width: 2.5),
           borderRadius: BorderRadius.circular(_focused ? 10.0 : 20.0)
         ),
         child: const Icon(MdiIcons.dotsVertical),
@@ -284,12 +286,14 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
     );
   }
 }
-
 class PeekNotifier with ChangeNotifier {
+  // TODO: Fix this purkka fix
+  int key = 0;
   String route;
   dynamic args;
 
   void changePeek(String route, dynamic args) {
+    key = key == 0 ? 1 : 0;
     this.route = route;
     this.args = args;
     notifyListeners();

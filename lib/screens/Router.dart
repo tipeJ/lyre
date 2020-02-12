@@ -9,7 +9,7 @@ import 'package:lyre/screens/screens.dart';
 import 'package:lyre/Bloc/bloc.dart';
 
 class Router {
-  static Widget generateWidget(String route, dynamic args) {
+  static Widget generateWidget(String route, dynamic args, [String key]) {
     switch (route) {
       case 'posts':
         dynamic target;
@@ -28,6 +28,7 @@ class Router {
         }
 
         return BlocProvider(
+          key: Key(key),
           create: (context) => PostsBloc(firstState: PostsState(
             state: LoadingState.Inactive,
             userContent: const [],
@@ -53,6 +54,7 @@ class Router {
           recentlyViewed.add(content); //Adds the submission to the top of the recently viewed list
         }
         return BlocProvider(
+          key: Key(key),
           create: (context) => CommentsBloc(content),
           child: CommentList(),
         );
@@ -71,6 +73,7 @@ class Router {
         return MultiBlocProvider(
           providers: [
             BlocProvider<SearchCommunitiesBloc>(
+              key: Key(key),
               create: (BuildContext context) => SearchCommunitiesBloc()
             ),
           ],
@@ -80,6 +83,7 @@ class Router {
         return MultiBlocProvider(
           providers: [
             BlocProvider<SearchUsercontentBloc>(
+              key: Key(key),
               create: (BuildContext context) => SearchUsercontentBloc()
             ),
           ],

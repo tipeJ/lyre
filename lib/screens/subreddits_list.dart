@@ -5,6 +5,8 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/widgets/widgets.dart';
+import 'package:provider/provider.dart';
+import 'screens.dart';
 
 /// Class for displaying the list of subreddits to which the current user has subscribed to. Also shows Frontpage and r/All
 class SubredditsList extends State<ExpandingSheetContent> {
@@ -116,6 +118,12 @@ class SubredditsList extends State<ExpandingSheetContent> {
         return InkWell(
           onTap: (){
             _openSub(subreddits[i]);
+          },
+          onLongPress: () {
+            Provider.of<PeekNotifier>(context).changePeek("posts", {
+              'content_source' : ContentSource.Subreddit,
+              'target' : subreddits[i]
+            });
           },
           child: SubredditItem(
             last: i == subreddits.length-1,

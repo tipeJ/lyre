@@ -194,6 +194,7 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
             ),
             Consumer<PeekNotifier>(
               builder: (context, peekContent, child) {
+                if (peekContent.route == null) _peekWindowWidth = _peekWindowDefaultWidth;
                 return peekContent.route == null
                   ? const SizedBox()
                   : Row(
@@ -222,18 +223,26 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
             : Positioned(
                 top: _peekHandleVerticalPosition - _peekHandleHeight / 2,
                 right: (_peekWindowWidth - _peekHandleWidth / 2) + _peekDividerWidth / 2,
-                child: _PeekResizeSlider(onDragUpdate: (dx, dy){
-                  setState(() {
-                    double newHorizontalPosition = _peekWindowWidth+-dx;
-                    if (newHorizontalPosition < MediaQuery.of(context).size.width * 0.8) {
-                      _peekWindowWidth = newHorizontalPosition;
-                    }
-                    double newVerticalPosition = _peekHandleVerticalPosition + dy;
-                    if (newVerticalPosition < MediaQuery.of(context).size.height * 0.8 && newVerticalPosition > MediaQuery.of(context).size.height * 0.2) {
-                      _peekHandleVerticalPosition = newVerticalPosition;
-                    }
-                  });
-                })
+                child: _PeekResizeSlider(
+                  onHorizontalDragUpdate: (dx){
+                    setState(() {
+                      double newHorizontalPosition = _peekWindowWidth+-dx;
+                      if (newHorizontalPosition < 200) {
+                        Provider.of<PeekNotifier>(context).disable();
+                      } else if (newHorizontalPosition < MediaQuery.of(context).size.width * 0.8) {
+                        _peekWindowWidth = newHorizontalPosition;
+                      } 
+                    });
+                  },
+                  onVerticalDragUpdate: (dy){
+                    setState(() {
+                      double newVerticalPosition = _peekHandleVerticalPosition + dy;
+                      if (newVerticalPosition < MediaQuery.of(context).size.height * 0.8 && newVerticalPosition > MediaQuery.of(context).size.height * 0.2) {
+                        _peekHandleVerticalPosition = newVerticalPosition;
+                      }
+                    });
+                  },
+                )
               )
         )
       ]
@@ -249,8 +258,9 @@ const double _peekHandleWidth = 35.0;
 const double _peekHandleHeight = 50.0;
 
 class _PeekResizeSlider extends StatefulWidget {
-  final Function(double dx, double dy) onDragUpdate;
-  const _PeekResizeSlider({this.onDragUpdate, Key key}) : super(key: key);
+  final Function(double dx) onHorizontalDragUpdate;
+  final Function(double dy) onVerticalDragUpdate;
+  const _PeekResizeSlider({this.onHorizontalDragUpdate, this.onVerticalDragUpdate, Key key}) : super(key: key);
 
   @override
   __PeekResizeSliderState createState() => __PeekResizeSliderState();
@@ -290,8 +300,8 @@ class __PeekResizeSliderState extends State<_PeekResizeSlider> {
           _focused = false;
         });
       },
-      onHorizontalDragUpdate: (details) => widget.onDragUpdate(details.delta.dx, details.delta.dy),
-      onVerticalDragUpdate: (details) => widget.onDragUpdate(details.delta.dx, details.delta.dy),
+      onHorizontalDragUpdate: (details) => widget.onHorizontalDragUpdate(details.delta.dx),
+      onVerticalDragUpdate: (details) => widget.onVerticalDragUpdate(details.delta.dy),
       onDoubleTap: () => Provider.of<PeekNotifier>(context).disable(),
     );
   }

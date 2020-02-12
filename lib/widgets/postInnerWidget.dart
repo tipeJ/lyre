@@ -280,19 +280,13 @@ class postInnerWidget extends StatelessWidget{
   }
 }
 
-void _handleClick(LinkType linkType, Submission submission, BuildContext context){
-    if (submission.isSelf) {
-      Provider.of<PeekNotifier>(context).changePeek('comments', submission);
-      return;
-      Navigator.of(context).pushNamed("comments", arguments: submission);
-    } else {
-      if (linkType == LinkType.RedditVideo) {
-        handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
-      } else {
-        handleLinkClick(submission, context, linkType);
-      }
-    }
+void _handleClick(LinkType linkType, Submission submission, BuildContext context, [bool longPress = false]){
+  if (linkType == LinkType.RedditVideo) {
+    handleLinkClick(submission.data["media"]["reddit_video"]["dash_url"], context);
+  } else {
+    handleLinkClick(submission, context, linkType, longPress);
   }
+}
 
 ///Sliding style column for [Submission] Widgets
 class _SlideColumn extends StatefulWidget {
@@ -410,6 +404,9 @@ class _defaultColumn extends StatelessWidget {
                       ),
                       onTap: (){
                         _handleClick(linkType, submission, context);
+                      },
+                      onLongPress: (){
+                        _handleClick(linkType, submission, context, true);
                       },
                     )
                   ),

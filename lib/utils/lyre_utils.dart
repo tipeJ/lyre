@@ -22,7 +22,7 @@ const _redditParserTYPE = "redditParserType";
 
 /// Handles link clicks
 /// Supply context if a direct launching web link
-void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLinkType]) {
+void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLinkType, bool longPress = false]) {
   Uri uri;
   if (source is Submission) {
     uri = source.url;
@@ -57,35 +57,53 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     final RedditLinkType redditLinkType = parsedData[_redditParserTYPE];
     final String id = parsedData[_redditParserID];
 
+    String route;
+    dynamic args;
+
     switch (redditLinkType) {
       case RedditLinkType.Submission:
+        route = "comments";
+        if (source is Submission) {
+          args = source;
+          break;
+        }
         PostsProvider().reddit.submission(id: id).populate().then((fetchedSubmission) {
-          Provider.of<PeekNotifier>(context).changePeek('comments', fetchedSubmission);
-          return;
-          Navigator.of(context).pushNamed("comments", arguments: fetchedSubmission);
+          route = "comments";
+          args = fetchedSubmission;
         });
         break;
       case RedditLinkType.Comments:
-        Navigator.of(context).pushNamed("comments", arguments: PostsProvider().reddit.comment(id: id));
+        route = "comments";
+        args = PostsProvider().reddit.comment(id: id);
         break;
       case RedditLinkType.Subreddit:
-        Navigator.of(context).pushNamed("posts", arguments: {
+        route = "posts";
+        args = {
           'content_source' : ContentSource.Subreddit,
           'target' : id
-        });
+        };
         break;
       case RedditLinkType.WikiPage:
-        Navigator.of(context).pushNamed("wiki", arguments: {
+        route = "wiki";
+        args = {
           'subreddit' : id,
           'page_name' : parsedData[_redditParserWIkiPageName]
-        });
+        };
         break;
       case RedditLinkType.User:
-        Navigator.of(context).pushNamed("posts", arguments: {
+        route = "posts";
+        args = {
           'content_source' : ContentSource.Redditor,
           'target' : id
-        });
+        };
         break;
+    }
+    if (longPress) {
+      // Relay the info to the peek notifier provider
+      Provider.of<PeekNotifier>(context).changePeek(route, args);
+    } else {
+      // Push a new route to the main navigator
+      Navigator.of(context).pushNamed(route, arguments: args);
     }
   } else if (linkType == LinkType.Default) {
     launchURL(context, url);

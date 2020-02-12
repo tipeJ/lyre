@@ -1517,6 +1517,7 @@ class __submissionListState extends State<_submissionList> {
   @override
   void dispose() { 
     _scrollController.dispose();
+    _refreshCompleter = null;
     super.dispose();
   }
 

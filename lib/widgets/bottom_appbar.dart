@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,7 +69,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
               child: prefix0.LyreDraggableScrollableSheet(
                 expand: true,
                 visible: visibilityListener,
-                maxChildSize: MediaQuery.of(context).size.height,
+                maxChildSize: min(MediaQuery.of(context).size.height, MediaQuery.of(context).size.width),
                 minChildSize: kBottomNavigationBarHeight,
                 borderRadius: BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble(),
                 initialChildSize: kBottomNavigationBarHeight,

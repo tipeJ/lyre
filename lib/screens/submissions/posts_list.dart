@@ -1534,7 +1534,8 @@ class __submissionListState extends State<_submissionList> {
                 controller: _scrollController,
                 physics: AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, b) => [
-                  LyreHeader(state: state)
+                  const SliverToBoxAdapter()
+                  //LyreHeader(state: state)
                 ],
                 body: RefreshIndicator(
                   onRefresh: () {

@@ -8,6 +8,7 @@ import 'package:lyre/screens/Router.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:lyre/screens/screens.dart';
+import 'package:lyre/utils/lyre_utils.dart';
 import 'package:lyre/widgets/media/media_viewer.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -130,44 +131,37 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-    builder: (context, constraints) {
-      return WillPopScope(
-        onWillPop: canPop,
-        child: Stack(children: <Widget>[
-          IgnorePointer(
-            ignoring: isPreviewing,
-            child: ChangeNotifierProvider(
-              create: (_) => PeekNotifier(),
-              child: LyreAdaptiveLayoutBuilder(),
-            )
-          ),
-          Visibility(
-            visible: isPreviewing,
-            child: Container(
-              color: Colors.black.withOpacity(0.8),
-              child: MediaViewer(url: previewUrl,),
-            ),
+    return WillPopScope(
+      onWillPop: canPop,
+      child: Stack(children: <Widget>[
+        IgnorePointer(
+          ignoring: isPreviewing,
+          child: ChangeNotifierProvider(
+            create: (_) => PeekNotifier(),
+            child: LyreSplitScreen(),
           )
-        ],)
-      );
-    },
+        ),
+        Visibility(
+          visible: isPreviewing,
+          child: Container(
+            color: Colors.black.withOpacity(0.8),
+            child: MediaViewer(url: previewUrl,),
+          ),
+        )
+      ],)
     );
   }
 }
 
-class LyreAdaptiveLayoutBuilder extends StatefulWidget {
-  LyreAdaptiveLayoutBuilder({Key key}) : super(key: key);
+class LyreSplitScreen extends StatefulWidget {
+
+  LyreSplitScreen({Key key}) : super(key: key);
 
   @override
-  LyreAdaptiveLayoutBuilderState createState() => LyreAdaptiveLayoutBuilderState();
+  LyreSplitScreenState createState() => LyreSplitScreenState();
 }
 
-class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
-
-  /// The width of the separator between the main window and the peek window.
-  static const double _peekDividerWidth = 3.5;
-
+class LyreSplitScreenState extends State<LyreSplitScreen> {
   /// If this limit is crossed, the peek window will be dismissed.
   static const double _peekWindowMinWidth = 200;
   /// The default peek window width. Will be reverted to this after every dismiss.
@@ -184,19 +178,14 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
   
   @override
   Widget build(BuildContext context) {
+    if (!wideLayout(size: MediaQuery.of(context).size)) return _mainNavigator;
     return Stack(
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            Expanded(
-              child: Navigator(
-                key: PreviewCall().navigatorKey,
-                initialRoute: 'posts',
-                onGenerateRoute: Router.generateRoute,
-              )
-            ),
+            Expanded(child: _mainNavigator),
             Consumer<PeekNotifier>(
               builder: (context, peekContent, child) {
                 if (peekContent.route == null) _peekWindowWidth = _peekWindowDefaultWidth;
@@ -206,7 +195,7 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
                       children: [
                         Container(
                           child: Container(
-                            width: _peekDividerWidth,
+                            width: screenSplitterWidth,
                             height: MediaQuery.of(context).size.height,
                             color: Theme.of(context).canvasColor
                           )
@@ -227,7 +216,7 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
             ? const SizedBox()
             : Positioned(
                 top: _peekHandleVerticalPosition - _peekHandleHeight / 2,
-                right: (_peekWindowWidth - _peekHandleWidth / 2) + _peekDividerWidth / 2,
+                right: (_peekWindowWidth - _peekHandleWidth / 2) + screenSplitterWidth / 2,
                 child: _PeekResizeSlider(
                   onHorizontalDragUpdate: (dx){
                     setState(() {
@@ -253,6 +242,12 @@ class LyreAdaptiveLayoutBuilderState extends State<LyreAdaptiveLayoutBuilder> {
       ]
     );
   }
+
+  static Widget  get _mainNavigator => Navigator(
+    key: PreviewCall().navigatorKey,
+    initialRoute: 'posts',
+    onGenerateRoute: Router.generateRoute,
+  );
 
   static Widget _peekContent(PeekNotifier peekContent) {
     return Router.generateWidget(peekContent.route, peekContent.args, peekContent.key.toString());

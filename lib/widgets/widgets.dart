@@ -12,3 +12,5 @@ export 'action_sheet_title.dart';
 export 'content_sort.dart';
 export 'header.dart';
 export 'media/video_player/lyre_video_controls.dart';
+export 'expanded_selftext.dart';
+export 'submission_detailsbar.dart';

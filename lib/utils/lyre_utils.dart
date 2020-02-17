@@ -166,3 +166,13 @@ Map<String, dynamic> _parseRedditUrl(String url) {
   // Failed to parse, return an empty map instead
   return const {};
 }
+
+bool wideLayout ({Size size, BoxConstraints constraints}) {
+  Size s;
+  if (size != null) {
+    s = size;
+  } else {
+    s = Size(constraints.maxWidth, constraints.maxHeight);
+  }
+  return s.aspectRatio > 1.0 && s.width > 1200.0;
+}

@@ -22,6 +22,10 @@ const FRONTPAGE_HOME_SUB = "_";
 
 const appBarContentTransitionDuration = Duration(milliseconds: 250);
 
+/// The width of the separator between the main window and the details window.
+/// Used in Peek's and dual layout (for example, tablet layout for comments_list)
+const screenSplitterWidth = 3.5;
+
 
 String homeSubreddit;
 

@@ -141,11 +141,11 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
               if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
                 _refreshCompleter?.complete();
                 _refreshCompleter = Completer<void>();
-                return _getCommentWidgets(context, state.comments);
+                return _getCommentWidgetsWithOptionsHeader(context, state.comments);
               } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
                 return const Center(child: CircularProgressIndicator());
               }
-              return _getCommentWidgets(context, state.comments);
+              return _getCommentWidgetsWithOptionsHeader(context, state.comments);
             }
           ),
         )
@@ -210,6 +210,31 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             },
           );
       }, itemCount: list.length);
+  }
+
+  Widget _getCommentWidgetsWithOptionsHeader(BuildContext context, List<dynamic> list){
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          automaticallyImplyLeading: false,
+          floating: true,
+          title: SubmissionDetailsAppBar(submission: _bloc.state.submission),
+          actions: const [],
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => BlocBuilder<CommentsBloc, CommentsState>(
+              builder: (BuildContext context, state) {
+                return prefix0.Visibility(
+                  child: _getCommentWidget(context, state.comments[i].c, i,),
+                  visible: state.comments[i].visible,
+                );
+              },
+            )
+          ),
+        )
+      ],
+    );
   }
 
   Widget _getCommentWidget(BuildContext context, dynamic comment, int i) {

@@ -8,6 +8,7 @@ import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/utils/utils.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 const _defaultColumnTextSize = 11.0;
 /// Default padding between submission data wrap items
@@ -184,5 +185,79 @@ class SubmissionDetailsBar extends StatelessWidget {
         ),
         textAlign: TextAlign.left),
       padding: _defaultColumnPadding);
+  }
+}
+class SubmissionDetailsAppBar extends StatefulWidget {
+  final Submission submission;
+  const SubmissionDetailsAppBar({@required this.submission, Key key}) : super(key: key);
+
+  @override
+  _SubmissionDetailsAppBarState createState() => _SubmissionDetailsAppBarState();
+}
+
+class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
+  VoteState _voteState;
+  bool _saved;
+
+  @override
+  void initState() {
+    _voteState = widget.submission.vote;
+    _saved = widget.submission.saved;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments),
+        Row(children: <Widget>[
+          IconButton(
+            icon: Icon(
+              MdiIcons.arrowUpBold,
+              color: _voteState == VoteState.upvoted ? Colors.amber : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _voteState = _voteState == VoteState.upvoted ? VoteState.none : VoteState.upvoted;
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              MdiIcons.arrowDownBold,
+              color: _voteState == VoteState.downvoted ? Colors.purple : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _voteState = _voteState == VoteState.downvoted ? VoteState.none : VoteState.downvoted;
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              _saved ? Icons.bookmark : Icons.bookmark_border,
+              color: _saved ? Colors.amber : Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _saved = !_saved;
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_drop_up),
+            onPressed: () {
+              
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_drop_up),
+            onPressed: () {},
+          )
+        ])
+      ]
+    );
   }
 }

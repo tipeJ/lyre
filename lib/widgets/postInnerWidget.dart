@@ -332,7 +332,7 @@ class __SlideColumnState extends State<_SlideColumn> {
         ActionItems(
           icon: Icon(
             Icons.bookmark,
-            color: widget.submission.saved ? Colors.yellow : Colors.grey,),
+            color: widget.submission.saved ? Colors.amber : Colors.grey,),
           onPress: () async {
             final response = await changeSubmissionSave(widget.submission);
             setState(() {

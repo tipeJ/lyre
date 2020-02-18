@@ -106,9 +106,14 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             return false;
           },
           child: BlocBuilder<CommentsBloc, CommentsState>(
-            builder: (_, state) => LayoutBuilder(builder: (context, constraints) => wideLayout(constraints: constraints) && _bloc.state.submission is Submission && (_bloc.state.submission as Submission).isSelf && (_bloc.state.submission as Submission).selftext.isNotEmpty
-              ? _getLandscapeLayout(context, state)
-              : _getPortraitLayout(context, state)
+            builder: (_, state) => LayoutBuilder(builder: (context, constraints) {
+              if (wideLayout(constraints: constraints) && _bloc.state.submission is Submission) {
+                final sub = _bloc.state.submission as Submission;
+                if (sub.isSelf && sub.selftext.isEmpty) return _getPortraitLayout(context, state);
+                return _getLandscapeLayout(context, state);
+              }
+              return _getPortraitLayout(context, state);
+            }
             )
           )
         )
@@ -127,7 +132,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
     children: <Widget>[
       Flexible(
         flex: 2,
-        child: ExpandedSelftextPostWidget(submission: _bloc.state.submission)
+        child: ExpandedPostWidget(submission: state.submission)
       ),
       Flexible(
         flex: 5,

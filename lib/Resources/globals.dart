@@ -20,6 +20,8 @@ const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0
 
 const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
+const GOOGLE_IMAGE_SEARCH_BASE_URL = "https://images.google.com/searchbyimage?image_url=";
+
 const FRONTPAGE_HOME_SUB = "_";
 
 const appBarContentTransitionDuration = Duration(milliseconds: 250);

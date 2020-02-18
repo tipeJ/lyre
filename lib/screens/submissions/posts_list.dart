@@ -388,7 +388,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
                       color: Theme.of(context).canvasColor,
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 25.0,
@@ -406,9 +406,9 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     textStyle: Theme.of(context).textTheme.body1,
                     child: Row(
                       children: <Widget>[
-                        Text(appName + ' v.' + appVersion),
+                        const Text(appName + ' v.' + appVersion),
                         IconButton(
-                          icon: Icon(Icons.settings),
+                          icon: const Icon(Icons.settings),
                           onPressed: (){
                             Navigator.of(context).pushNamed('settings');
                           },

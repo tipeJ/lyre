@@ -1,6 +1,7 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_networkimage/provider.dart';
+import 'package:flutter_inappbrowser/flutter_inappbrowser.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/screens/screens.dart';
@@ -14,19 +15,19 @@ class ExpandedPostWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (submission.isSelf && submission.selftext.isNotEmpty) {
-      return _ExpandedSelftextPostWidget(submission: submission);
+      return _ExpandedSelftextPostWidget(submission);
     }
     final linkType = getLinkType(submission.url.toString());
     if (linkType == LinkType.DirectImage) {
-      return _ExpandedImagePostWidget(submission: submission);
+      return _ExpandedImagePostWidget(submission);
     }
-    return const Text("ERROR: Expanded PostView");
+    return _ExpandedWebviewPostWidget(submission);
   }
 }
 
 class _ExpandedSelftextPostWidget extends StatelessWidget {
   final Submission submission;
-  const _ExpandedSelftextPostWidget({this.submission, Key key}) : super(key: key);
+  const _ExpandedSelftextPostWidget(this.submission, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,15 +54,17 @@ class _ExpandedSelftextPostWidget extends StatelessWidget {
 }
 class _ExpandedImagePostWidget extends StatelessWidget {
   final Submission submission;
-  const _ExpandedImagePostWidget({this.submission, Key key}) : super(key: key);
+  const _ExpandedImagePostWidget(this.submission, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
-      Text(submission.title, style: LyreTextStyles.submissionTitle.apply(
-        color: (submission.stickied)
-          ? const Color.fromARGB(255, 0, 200, 53)
-          : Theme.of(context).textTheme.body1.color)),
+      SafeArea(
+        child: Text(submission.title, style: LyreTextStyles.submissionTitle.apply(
+          color: (submission.stickied)
+            ? const Color.fromARGB(255, 0, 200, 53)
+            : Theme.of(context).textTheme.body1.color))
+      ),
       Expanded(
         child: GestureDetector(
           child: Image(
@@ -73,6 +76,32 @@ class _ExpandedImagePostWidget extends StatelessWidget {
         )
       ),
       SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
+    ]);
+  }
+}
+class _ExpandedWebviewPostWidget extends StatelessWidget {
+  final Submission submission;
+  const _ExpandedWebviewPostWidget(this.submission, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: <Widget>[
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Text(submission.title, style: LyreTextStyles.submissionTitle.apply(
+            color: (submission.stickied)
+              ? const Color.fromARGB(255, 0, 200, 53)
+              : Theme.of(context).textTheme.body1.color))
+        ),
+      ),
+      Expanded(
+        child: InAppWebView(initialUrl: submission.url.toString())
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
+      )
     ]);
   }
 }

@@ -132,7 +132,19 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
       videoPlayerController: _videoPlayerController,
       looping: true,
       placeholder: const SizedBox(),
-      customControls: const LyreMaterialVideoControls(),
+      customControls: LyreMaterialVideoControls(
+        trailing:  Material(
+          color: Colors.transparent,
+          child: IconButton(
+            icon: const Icon(Icons.fullscreen),
+            tooltip: "Show Chat",
+            onPressed: () {
+              _lyreVideoController.pause();
+              PreviewCall().callback.preview(widget.linkType == LinkType.RedditVideo ? widget.submission.data["media"]["reddit_video"]["dash_url"] : widget.submission.url.toString());
+            }
+          )
+        ),
+      ),
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(

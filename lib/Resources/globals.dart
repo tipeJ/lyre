@@ -1,6 +1,8 @@
 library lyre.globals;
 import 'package:draw/draw.dart';
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'reddit_api_provider.dart';
 part 'globals.g.dart';
 
@@ -21,6 +23,10 @@ const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const FRONTPAGE_HOME_SUB = "_";
 
 const appBarContentTransitionDuration = Duration(milliseconds: 250);
+
+/// The width of the separator between the main window and the details window.
+/// Used in Peek's and dual layout (for example, tablet layout for comments_list)
+const screenSplitterWidth = 3.5;
 
 
 String homeSubreddit;
@@ -82,6 +88,39 @@ const List<String> commentSortTypes = [
   "Top",
   "Blank"
 ];
+const List<IconData> commentsSortIcons = [
+  MdiIcons.medal,
+  MdiIcons.handOkay,
+  MdiIcons.swordCross,
+  MdiIcons.newBox,
+  MdiIcons.clock,
+  MdiIcons.accountQuestion,
+  MdiIcons.commentQuestion,
+  MdiIcons.trophy,
+  MdiIcons.timerSandEmpty
+];
+IconData getCommentsSortIcon(String type) {
+  switch (type) {
+    // * Type sort icons:
+    case 'Confidence':
+      return MdiIcons.handOkay;
+    case 'Top':
+      return MdiIcons.trophy;
+    case 'New':
+      return MdiIcons.newBox;
+    case 'Controversial':
+      return MdiIcons.swordCross;
+    case 'Old':
+      return MdiIcons.clock;
+    case 'Random':
+      return MdiIcons.commentQuestion;
+    case 'Q/A':
+      return MdiIcons.accountQuestion;
+    default:
+      //Defaults to best
+      return MdiIcons.medal;
+  }
+}
 
 enum SendingState {
   Sending,

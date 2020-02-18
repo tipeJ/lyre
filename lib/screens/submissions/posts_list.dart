@@ -16,7 +16,6 @@ import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:transparent_image/transparent_image.dart';
 import 'dart:ui';
 import '../../Resources/globals.dart';
 import 'dart:async';
@@ -1518,6 +1517,7 @@ class __submissionListState extends State<_submissionList> {
   @override
   void dispose() { 
     _scrollController.dispose();
+    _refreshCompleter = null;
     super.dispose();
   }
 
@@ -1534,7 +1534,8 @@ class __submissionListState extends State<_submissionList> {
                 controller: _scrollController,
                 physics: AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, b) => [
-                  LyreHeader(state: state)
+                  const SliverToBoxAdapter()
+                  //LyreHeader(state: state)
                 ],
                 body: RefreshIndicator(
                   onRefresh: () {

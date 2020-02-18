@@ -38,7 +38,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     CommentsEvent event
   ) async* {
     if(event is SortChanged){
-      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission ?? _firstState.submission, comments: const [], sortType: event.commentSortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission ?? _firstState.submission, comments: const [], sortType: event.commentSortType, parentComment: state.parentComment, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.      
       Comment parentComment;
       Submission submission;
       final userContent = event.submission;
@@ -58,9 +58,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         var forest = await submission.refreshComments(sort: event.commentSortType);
         comments = _retrieveCommentsFromForest(forest.comments);
       }
-      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: event.commentSortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: event.commentSortType, parentComment: parentComment, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.      
     } else if (event is RefreshComments){
-      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission, comments: state.comments, sortType: state.sortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Refreshing, submission: state.submission, comments: state.comments, sortType: state.sortType, parentComment: state.parentComment, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.      
       Comment parentComment;
       Submission submission;
       final userContent = state.submission;
@@ -78,9 +78,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         var forest = await submission.refreshComments(sort: state.sortType);
         comments = _retrieveCommentsFromForest(forest.comments);
       }
-      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: state.sortType, parentComment: parentComment); //Return the updated list of dynamic comment objects.        
+      yield CommentsState(state: LoadingState.Inactive, submission: submission, comments: comments, sortType: state.sortType, parentComment: parentComment, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.        
     } else if (event is FetchMoreComments){
-      yield CommentsState(state: LoadingState.LoadingMore, submission: state.submission, comments: _comments, sortType: state.sortType, parentComment: state.parentComment); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.LoadingMore, submission: state.submission, comments: _comments, sortType: state.sortType, parentComment: state.parentComment, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.      
       var more = event.moreComments;
       var currentList = _comments;
       if(more.children != null && more.children.isNotEmpty){
@@ -89,15 +89,17 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         currentList.removeAt(event.location); //Removes the used MoreComments object
         currentList.insertAll(event.location, _retrieveCommentsFromForest(results)); //Inserts the received objects into the comment list
       }
-      yield CommentsState(state: LoadingState.Inactive, submission: state.submission, comments: currentList, sortType: state.sortType); //Return the updated list of dynamic comment objects.      
+      yield CommentsState(state: LoadingState.Inactive, submission: state.submission, comments: currentList, sortType: state.sortType, showSubmission: state.showSubmission); //Return the updated list of dynamic comment objects.      
     } else if (event is Collapse){
       _collapse(event.location);
-      yield CommentsState(state: state.state, submission: state.submission, comments: _comments, sortType: state.sortType);
+      yield CommentsState(state: state.state, submission: state.submission, comments: _comments, sortType: state.sortType, showSubmission: state.showSubmission);
     } else if (event is AddComment){
       final c = event.comment;
       c.data['depth'] = state.comments[event.location].c.data['depth'] + 1;
       state.comments.insert(event.location+1, CommentM.from(c));
-      yield CommentsState(state: state.state, submission: state.submission, comments: state.comments, sortType: state.sortType);
+      yield CommentsState(state: state.state, submission: state.submission, comments: state.comments, sortType: state.sortType, showSubmission: state.showSubmission);
+    } else if (event is ToggleSubmissionView) {
+      yield CommentsState(state: state.state, submission: state.submission, comments: state.comments, sortType: state.sortType, showSubmission: !state.showSubmission);
     }
     loadingMoreId = ""; //Resets the loadingMoreId value.
     }

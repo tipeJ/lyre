@@ -53,3 +53,8 @@ class AddComment extends CommentsEvent{
   });
   List<dynamic> get props => [location, comment];
 }
+class ToggleSubmissionView extends CommentsEvent{
+  ToggleSubmissionView();
+
+  List<dynamic> get props => const [];
+}

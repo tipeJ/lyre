@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix0;
+import 'package:flutter/material.dart' as mat;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
@@ -13,7 +13,6 @@ import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
 import 'package:lyre/widgets/widgets.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../../Resources/globals.dart';
 import 'package:lyre/Bloc/bloc.dart';
 
@@ -27,8 +26,8 @@ enum _CommentSelectionVisibility {
 }
 
 class CommentList extends StatefulWidget {
-
-  CommentList();
+  final VoidCallback backButtonCallback;
+  const CommentList({this.backButtonCallback});
 
   @override
   CommentListState createState() => CommentListState();
@@ -100,80 +99,146 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             ),
           ),
         ),
-        body: PersistentBottomAppbarWrapper(
-          body: NotificationListener<CommentOptionsNotification>(
-              onNotification: (notification) {
-                _initializeCommentOptions(notification.comment, context);
-                return false;
-              },
-              child: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxScrolled) => [
-                  BlocBuilder<CommentsBloc, CommentsState>(
-                    builder: (context, state) {
-                      return SliverSafeArea(
-                        sliver: SliverToBoxAdapter(
-                          child: notNull(state) && state.submission is Submission
-                            ? Hero(
-                                tag: 'post_hero ${(state.submission as Submission).id}',
-                                child: postInnerWidget(
-                                  submission: state.submission,
-                                  previewSource: PreviewSource.Comments,
-                                  linkType: getLinkType((state.submission as Submission).url.toString()),
-                                  fullSizePreviews: false,
-                                  postView: PostView.ImagePreview,
-                                  showCircle: false,
-                                  blurLevel: 0.0,
-                                  showNsfw: true,
-                                  showSpoiler: true,
-                                  onOptionsClick: () {},
-                                )
-                              )
-                            : const SizedBox()
-                        ),
-                      );
-                    },
-                  )
-                ],
-                body: RefreshIndicator(
-                  onRefresh: () {
-                    BlocProvider.of<CommentsBloc>(context).add(RefreshComments());
-                    return _refreshCompleter.future;
-                  },
-                  child: BlocBuilder<CommentsBloc, CommentsState>(
-                    builder: (context, state) {
-                      if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
-                        _refreshCompleter?.complete();
-                        _refreshCompleter = Completer<void>();
-                        return _getCommentWidgets(context, state.comments);
-                      } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return _getCommentWidgets(context, state.comments);
-                    }
-                  ),
+        body: NotificationListener<CommentOptionsNotification>(
+          onNotification: (notification) {
+            _initializeCommentOptions(notification.comment, context);
+            return false;
+          },
+          child: BlocBuilder<CommentsBloc, CommentsState>(
+            builder: (_, state) => LayoutBuilder(builder: (context, constraints) {
+              if (wideLayout(constraints: constraints) && _bloc.state.submission is Submission) {
+                final sub = _bloc.state.submission as Submission;
+                if (sub.isSelf && sub.selftext.isEmpty) return _getPortraitLayout(context, state);
+                return _getLandscapeLayout(context, state);
+              }
+              return _getPortraitLayout(context, state);
+            }
+            )
+          )
+        )
+      );
+  }
+
+  Widget _getPortraitLayout (BuildContext context, CommentsState state) => PersistentBottomAppbarWrapper(
+    body: _commentsList(context, state),
+    appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
+      builder: (context, state) => _CommentsBottomBar(state: state)
+    ),
+  );
+
+  Widget _getLandscapeLayout (BuildContext context, CommentsState state) => Row(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[
+      mat.Visibility(
+        visible: state.showSubmission,
+        child: Flexible(
+          flex: 2,
+          child: ExpandedPostWidget(submission: state.submission)
+        )
+      ),
+      Flexible(
+        flex: 5,
+        child: RefreshIndicator(
+          onRefresh: () {
+            BlocProvider.of<CommentsBloc>(context).add(RefreshComments());
+            return _refreshCompleter.future;
+          },
+          child: Builder(
+            builder: (context) {
+              if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
+                _refreshCompleter?.complete();
+                _refreshCompleter = Completer<void>();
+                return _getCommentWidgetsWithOptionsHeader(context, state.comments);
+              } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return _getCommentWidgetsWithOptionsHeader(context, state.comments);
+            }
+          ),
+        )
+      )
+    ]
+  );
+
+  Widget _commentsList(BuildContext context, CommentsState state) => NestedScrollView(
+    headerSliverBuilder: (context, innerBoxScrolled) => [
+      SliverSafeArea(
+        sliver: SliverToBoxAdapter(
+          child: notNull(state) && state.submission is Submission
+            ? Hero(
+                tag: 'post_hero ${(state.submission as Submission).id}',
+                child: postInnerWidget(
+                  submission: state.submission,
+                  previewSource: PreviewSource.Comments,
+                  linkType: getLinkType((state.submission as Submission).url.toString()),
+                  fullSizePreviews: false,
+                  postView: PostView.ImagePreview,
+                  showCircle: false,
+                  blurLevel: 0.0,
+                  showNsfw: true,
+                  showSpoiler: true,
+                  onOptionsClick: () {},
                 )
               )
-            ),
-            appBarContent: BlocBuilder<CommentsBloc, CommentsState> (
-              builder: (context, state) => _CommentsBottomBar(state: state)
-            ),
-          )
-        );
-  }
+            : const SizedBox()
+        ),
+      )
+    ],
+    body: RefreshIndicator(
+      onRefresh: () {
+        BlocProvider.of<CommentsBloc>(context).add(RefreshComments());
+        return _refreshCompleter.future;
+      },
+      child: Builder(
+        builder: (context) {
+          if (state.comments.isNotEmpty && state.state != LoadingState.Refreshing) {
+            _refreshCompleter?.complete();
+            _refreshCompleter = Completer<void>();
+            return _getCommentWidgets(context, state.comments);
+          } else if (state.comments.isEmpty && state.state == LoadingState.Refreshing) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return _getCommentWidgets(context, state.comments);
+        }
+      ),
+    )
+  );
 
   Widget _getCommentWidgets(BuildContext context, List<dynamic> list){
     return ListView.builder(
-      padding: const EdgeInsets.only(top: 5.0),
+      padding: const EdgeInsets.only(top: 5.0, bottom: kBottomNavigationBarHeight),
       itemBuilder: (context, i) {
           return BlocBuilder<CommentsBloc, CommentsState>(
             builder: (BuildContext context, state) {
-              return prefix0.Visibility(
+              return mat.Visibility(
                 child: _getCommentWidget(context, state.comments[i].c, i,),
                 visible: state.comments[i].visible,
               );
             },
           );
       }, itemCount: list.length);
+  }
+
+  Widget _getCommentWidgetsWithOptionsHeader(BuildContext context, List<dynamic> list){
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          automaticallyImplyLeading: false,
+          floating: true,
+          title: SubmissionDetailsAppBar(submission: _bloc.state.submission),
+          actions: const [],
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => mat.Visibility(
+              child: _getCommentWidget(context, list[i].c, i,),
+              visible: list[i].visible,
+            ),
+            childCount: list.length
+          ),
+        )
+      ],
+    );
   }
 
   Widget _getCommentWidget(BuildContext context, dynamic comment, int i) {
@@ -346,7 +411,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                               Text.rich(
                                 TextSpan(
                                   children: [
-                                    TextSpan(text: widget.state.sortTypeString),
+                                    TextSpan(text: widget.state.sortTypeString()),
                                     TextSpan(text: widget.state.submission is Submission
                                       ? " | ${(widget.state.submission as Submission).subreddit.displayName}"
                                       : "")
@@ -382,11 +447,11 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Expanded(
-                        child: prefix0.Visibility(
+                        child: mat.Visibility(
                           visible: _barVisibility == _CommentsBottomBarVisibility.QuickReply,
                           child: _replySendingState == SendingState.Error
                             ? Text(_replyErrorMessage ?? "Error Sending Reply")
-                            : prefix0.Visibility(
+                            : mat.Visibility(
                               visible: _replySendingState != SendingState.Error,
                                 child: TextField(
                                   enabled: _barVisibility == _CommentsBottomBarVisibility.QuickReply && _replySendingState == SendingState.Inactive,
@@ -522,7 +587,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
             title: Row(children: <Widget>[
               Padding(
                 padding: EdgeInsets.only(right: 5.0),
-                child: Icon(_getTypeIcon(commentSortTypes[index-1]))
+                child: Icon(getCommentsSortIcon(commentSortTypes[index-1]))
               ),
               Text(commentSortTypes[index-1])
             ]),
@@ -534,25 +599,3 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
     ),
   );
 }
-IconData _getTypeIcon(String type) {
-    switch (type) {
-      // * Type sort icons:
-      case 'Confidence':
-        return MdiIcons.handOkay;
-      case 'Top':
-        return MdiIcons.trophy;
-      case 'New':
-        return MdiIcons.newBox;
-      case 'Controversial':
-        return MdiIcons.swordCross;
-      case 'Old':
-        return MdiIcons.clock;
-      case 'Random':
-        return MdiIcons.commentQuestion;
-      case 'Q/A':
-        return MdiIcons.accountQuestion;
-      default:
-        //Defaults to best
-        return MdiIcons.medal;
-    }
-  }

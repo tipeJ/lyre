@@ -44,6 +44,7 @@ CommentSortType parseCommentSortType(String sortString){
       return CommentSortType.blank; //Default to blank
   }
 }
+
 String getSubmissionAge(DateTime submittedAt){
   // ? Probably inaccurate at times due to excessive rounding? Implement a better method later (never)
   var difference = DateTime.now().difference(submittedAt);

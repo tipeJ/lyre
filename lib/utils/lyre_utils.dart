@@ -1,9 +1,11 @@
 import 'package:draw/draw.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'utils.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:flutter/material.dart';
 
 enum RedditLinkType {
@@ -20,7 +22,7 @@ const _redditParserTYPE = "redditParserType";
 
 /// Handles link clicks
 /// Supply context if a direct launching web link
-void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLinkType]) {
+void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLinkType, bool longPress = false]) {
   Uri uri;
   if (source is Submission) {
     uri = source.url;
@@ -55,43 +57,72 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     final RedditLinkType redditLinkType = parsedData[_redditParserTYPE];
     final String id = parsedData[_redditParserID];
 
+    String route;
+    dynamic args;
+
     switch (redditLinkType) {
       case RedditLinkType.Submission:
+        route = "comments";
+        if (source is Submission) {
+          args = source;
+          break;
+        }
         PostsProvider().reddit.submission(id: id).populate().then((fetchedSubmission) {
-          Navigator.of(context).pushNamed("comments", arguments: fetchedSubmission);
+          route = "comments";
+          args = fetchedSubmission;
         });
         break;
       case RedditLinkType.Comments:
-        Navigator.of(context).pushNamed("comments", arguments: PostsProvider().reddit.comment(id: id));
+        route = "comments";
+        args = PostsProvider().reddit.comment(id: id);
         break;
       case RedditLinkType.Subreddit:
-        Navigator.of(context).pushNamed("posts", arguments: {
+        route = "posts";
+        args = {
           'content_source' : ContentSource.Subreddit,
           'target' : id
-        });
+        };
         break;
       case RedditLinkType.WikiPage:
-        Navigator.of(context).pushNamed("wiki", arguments: {
+        route = "wiki";
+        args = {
           'subreddit' : id,
           'page_name' : parsedData[_redditParserWIkiPageName]
-        });
+        };
         break;
       case RedditLinkType.User:
-        Navigator.of(context).pushNamed("posts", arguments: {
+        route = "posts";
+        args = {
           'content_source' : ContentSource.Redditor,
           'target' : id
-        });
+        };
         break;
+    }
+    if (longPress) {
+      // Relay the info to the peek notifier provider
+      Provider.of<PeekNotifier>(context).changePeek(route, args);
+    } else {
+      // Push a new route to the main navigator
+      Navigator.of(context).pushNamed(route, arguments: args);
     }
   } else if (linkType == LinkType.Default) {
     launchURL(context, url);
+  } else if (longPress && source is Submission) {
+    // Show comments
+    Provider.of<PeekNotifier>(context).changePeek("comments", source);
   } else {
     PreviewCall().callback.preview(url);
   }
 }
 
-void instantLaunchUrl(BuildContext context, Uri uri) {
-  Navigator.of(context).pushNamed("instant_view", arguments: uri);
+void instantLaunchUrl(BuildContext context, Uri uri, [bool longPress = false]) {
+  if (longPress) {
+    // Peek the route
+    Provider.of<PeekNotifier>(context).changePeek("instant_view", uri);
+  } else {
+    // Navigate to the route
+    Navigator.of(context).pushNamed("instant_view", arguments: uri);
+  }
 }
 
 Map<String, dynamic> _parseRedditUrl(String url) {
@@ -137,4 +168,14 @@ Map<String, dynamic> _parseRedditUrl(String url) {
   } 
   // Failed to parse, return an empty map instead
   return const {};
+}
+
+bool wideLayout ({Size size, BoxConstraints constraints}) {
+  Size s;
+  if (size != null) {
+    s = size;
+  } else {
+    s = Size(constraints.maxWidth, constraints.maxHeight);
+  }
+  return s.aspectRatio > 1.0 && s.width > 1200.0;
 }

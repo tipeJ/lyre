@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,7 +69,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
               child: prefix0.LyreDraggableScrollableSheet(
                 expand: true,
                 visible: visibilityListener,
-                maxChildSize: MediaQuery.of(context).size.height,
+                maxChildSize: min(MediaQuery.of(context).size.height, MediaQuery.of(context).size.width),
                 minChildSize: kBottomNavigationBarHeight,
                 borderRadius: BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble(),
                 initialChildSize: kBottomNavigationBarHeight,
@@ -109,20 +110,22 @@ class _PersistentBottomAppWrapperWithoutExpansion extends StatelessWidget {
     return Stack(
       children: <Widget>[
         body,
-        Positioned(
-          bottom: 0.0,
-          child: ClipRRect(
-            clipBehavior: Clip.antiAlias,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(borderRadius),
-              topRight: Radius.circular(borderRadius),
-            ),
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              color: Theme.of(context).primaryColor,
-              height: kBottomNavigationBarHeight,
-              child: appBarContent,
-            ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: LayoutBuilder(
+            builder: (context, constraints) => ClipRRect(
+              clipBehavior: Clip.antiAlias,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(borderRadius),
+                topRight: Radius.circular(borderRadius),
+              ),
+              child: Container(
+                width: constraints.maxWidth,
+                color: Theme.of(context).primaryColor,
+                height: kBottomNavigationBarHeight,
+                child: appBarContent,
+              ),
+            )
           ),
         )
       ],

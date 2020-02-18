@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix0;
+import 'package:flutter/material.dart' as mat;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/RedditHandler.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
@@ -13,7 +13,6 @@ import 'package:lyre/widgets/bottom_appbar.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/widgets/postInnerWidget.dart';
 import 'package:lyre/widgets/widgets.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../../Resources/globals.dart';
 import 'package:lyre/Bloc/bloc.dart';
 
@@ -130,9 +129,12 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
   Widget _getLandscapeLayout (BuildContext context, CommentsState state) => Row(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: <Widget>[
-      Flexible(
-        flex: 2,
-        child: ExpandedPostWidget(submission: state.submission)
+      mat.Visibility(
+        visible: state.showSubmission,
+        child: Flexible(
+          flex: 2,
+          child: ExpandedPostWidget(submission: state.submission)
+        )
       ),
       Flexible(
         flex: 5,
@@ -204,11 +206,11 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
 
   Widget _getCommentWidgets(BuildContext context, List<dynamic> list){
     return ListView.builder(
-      padding: const EdgeInsets.only(top: 5.0),
+      padding: const EdgeInsets.only(top: 5.0, bottom: kBottomNavigationBarHeight),
       itemBuilder: (context, i) {
           return BlocBuilder<CommentsBloc, CommentsState>(
             builder: (BuildContext context, state) {
-              return prefix0.Visibility(
+              return mat.Visibility(
                 child: _getCommentWidget(context, state.comments[i].c, i,),
                 visible: state.comments[i].visible,
               );
@@ -228,7 +230,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-            (context, i) => prefix0.Visibility(
+            (context, i) => mat.Visibility(
               child: _getCommentWidget(context, list[i].c, i,),
               visible: list[i].visible,
             ),
@@ -445,11 +447,11 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Expanded(
-                        child: prefix0.Visibility(
+                        child: mat.Visibility(
                           visible: _barVisibility == _CommentsBottomBarVisibility.QuickReply,
                           child: _replySendingState == SendingState.Error
                             ? Text(_replyErrorMessage ?? "Error Sending Reply")
-                            : prefix0.Visibility(
+                            : mat.Visibility(
                               visible: _replySendingState != SendingState.Error,
                                 child: TextField(
                                   enabled: _barVisibility == _CommentsBottomBarVisibility.QuickReply && _replySendingState == SendingState.Inactive,

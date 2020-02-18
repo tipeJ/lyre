@@ -1,4 +1,3 @@
-import 'package:basic_utils/basic_utils.dart';
 import 'package:draw/draw.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +9,13 @@ import 'package:lyre/Resources/globals.dart';
 class CommentsState extends Equatable {
   final LoadingState state;
   final UserContent submission;
-  Comment parentComment;
+  final Comment parentComment;
   final List<CommentM> comments;
   final CommentSortType sortType;
+
+  /// If disabled, the submission view next to the comments list is hidden.
+  /// Only available in landscape expanded mode.
+   bool showSubmission;
 
   String sortTypeString() {
     switch (sortType) {
@@ -45,12 +48,13 @@ class CommentsState extends Equatable {
     }
   }
 
-  CommentsState({
+   CommentsState({
       @required this.state,
       @required this.submission,
       @required this.comments,
       @required this.sortType,
+      this.showSubmission = true,
       this.parentComment
     });
-    List<dynamic> get props => [state, comments, sortType, submission];
+  List<dynamic> get props => [state, comments, sortType, submission, showSubmission];
 }

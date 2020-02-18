@@ -209,9 +209,18 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
+        BlocBuilder<CommentsBloc, CommentsState>(
+          builder: (_, state) => IconButton(
+            icon: Icon(state.showSubmission ? MdiIcons.arrowCollapseLeft : MdiIcons.arrowCollapseRight, color: Colors.grey),
+            tooltip: state.showSubmission ? "Hide Submission" : "Show Submission",
+            onPressed: () {
+              BlocProvider.of<CommentsBloc>(context).add(ToggleSubmissionView());
+            }
+          )),
         SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments),
+        const Spacer(),
         Row(children: <Widget>[
           IconButton(
             icon: Icon(
@@ -252,11 +261,7 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               items: List<DropdownMenuItem<String>>.generate(commentSortTypes.length - 1, (int i) => 
                 DropdownMenuItem<String>(
                   value: commentSortTypes[i],
-                  child: Row(children: [
-                    Icon(commentsSortIcons[i], color: Colors.grey),
-                    const SizedBox(width: 5.0),
-                    Text(commentSortTypes[i], style: const TextStyle(color: Colors.grey))
-                  ]),
+                  child: Text(commentSortTypes[i], style: const TextStyle(color: Colors.grey)),
                 ),
               ),
               underline: const SizedBox(),

@@ -223,14 +223,11 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-            (context, i) => BlocBuilder<CommentsBloc, CommentsState>(
-              builder: (BuildContext context, state) {
-                return prefix0.Visibility(
-                  child: _getCommentWidget(context, state.comments[i].c, i,),
-                  visible: state.comments[i].visible,
-                );
-              },
-            )
+            (context, i) => prefix0.Visibility(
+              child: _getCommentWidget(context, list[i].c, i,),
+              visible: list[i].visible,
+            ),
+            childCount: list.length
           ),
         )
       ],
@@ -407,7 +404,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                               Text.rich(
                                 TextSpan(
                                   children: [
-                                    TextSpan(text: widget.state.sortTypeString),
+                                    TextSpan(text: widget.state.sortTypeString()),
                                     TextSpan(text: widget.state.submission is Submission
                                       ? " | ${(widget.state.submission as Submission).subreddit.displayName}"
                                       : "")
@@ -583,7 +580,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
             title: Row(children: <Widget>[
               Padding(
                 padding: EdgeInsets.only(right: 5.0),
-                child: Icon(_getTypeIcon(commentSortTypes[index-1]))
+                child: Icon(getCommentsSortIcon(commentSortTypes[index-1]))
               ),
               Text(commentSortTypes[index-1])
             ]),
@@ -595,25 +592,3 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
     ),
   );
 }
-IconData _getTypeIcon(String type) {
-    switch (type) {
-      // * Type sort icons:
-      case 'Confidence':
-        return MdiIcons.handOkay;
-      case 'Top':
-        return MdiIcons.trophy;
-      case 'New':
-        return MdiIcons.newBox;
-      case 'Controversial':
-        return MdiIcons.swordCross;
-      case 'Old':
-        return MdiIcons.clock;
-      case 'Random':
-        return MdiIcons.commentQuestion;
-      case 'Q/A':
-        return MdiIcons.accountQuestion;
-      default:
-        //Defaults to best
-        return MdiIcons.medal;
-    }
-  }

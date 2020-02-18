@@ -107,6 +107,9 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     }
   } else if (linkType == LinkType.Default) {
     launchURL(context, url);
+  } else if (longPress && source is Submission) {
+    // Show comments
+    Provider.of<PeekNotifier>(context).changePeek("comments", source);
   } else {
     PreviewCall().callback.preview(url);
   }

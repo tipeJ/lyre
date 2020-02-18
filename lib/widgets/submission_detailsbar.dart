@@ -246,15 +246,22 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               });
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.arrow_drop_up),
-            onPressed: () {
-              
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.arrow_drop_up),
-            onPressed: () {},
+          BlocBuilder<CommentsBloc, CommentsState>(
+            builder: (context, state) => DropdownButton(
+              value: state.sortTypeString(),
+              items: List<DropdownMenuItem<String>>.generate(commentSortTypes.length - 1, (int i) => 
+                DropdownMenuItem<String>(
+                  value: commentSortTypes[i],
+                  child: Row(children: [
+                    Icon(commentsSortIcons[i], color: Colors.grey),
+                    const SizedBox(width: 5.0),
+                    Text(commentSortTypes[i], style: const TextStyle(color: Colors.grey))
+                  ]),
+                ),
+              ),
+              underline: const SizedBox(),
+              onChanged: (str) => BlocProvider.of<CommentsBloc>(context).add(SortChanged(commentSortType: parseCommentSortType(str))),
+            ),
           )
         ])
       ]

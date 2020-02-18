@@ -14,7 +14,36 @@ class CommentsState extends Equatable {
   final List<CommentM> comments;
   final CommentSortType sortType;
 
-  String get sortTypeString => StringUtils.capitalize(sortType.toString().split('.').last);
+  String sortTypeString() {
+    switch (sortType) {
+      case CommentSortType.best:
+        return "Best";
+
+      case CommentSortType.confidence:
+        return "Confidence";
+        
+      case CommentSortType.controversial:
+        return "Controversial";
+        
+      case CommentSortType.newest:
+        return "New";
+        
+      case CommentSortType.old:
+        return "Old";
+        
+      case CommentSortType.qa:
+        return "Q/A";
+        
+      case CommentSortType.random:
+        return "Random";
+        
+      case CommentSortType.top:
+        return "Top";
+        
+      default:
+        return ""; //Default to blank
+    }
+  }
 
   CommentsState({
       @required this.state,

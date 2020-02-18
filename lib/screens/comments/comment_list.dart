@@ -106,7 +106,7 @@ class CommentListState extends State<CommentList> with SingleTickerProviderState
             return false;
           },
           child: BlocBuilder<CommentsBloc, CommentsState>(
-            builder: (_, state) => LayoutBuilder(builder: (context, constraints) => wideLayout(constraints: constraints) && _bloc.state.submission is Submission && (_bloc.state.submission as Submission).isSelf
+            builder: (_, state) => LayoutBuilder(builder: (context, constraints) => wideLayout(constraints: constraints) && _bloc.state.submission is Submission && (_bloc.state.submission as Submission).isSelf && (_bloc.state.submission as Submission).selftext.isNotEmpty
               ? _getLandscapeLayout(context, state)
               : _getPortraitLayout(context, state)
             )

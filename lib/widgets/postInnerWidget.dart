@@ -453,7 +453,6 @@ class _defaultColumn extends StatelessWidget {
         ]),
       onTap: (){
         if (previewSource != PreviewSource.Comments) {
-          currentPostId = submission.id;
           showComments(context);
         }
       },

@@ -155,18 +155,14 @@ TypeFilter parseTypeFilter(String typeFilter){
   }
 }
 
-String currentPostId = "";
 bool notNull(Object o) => o != null;
 
-String appName = "Lyre";
-String appVersion = "0.1";
+const String appName = "Lyre";
+const String appVersion = "0.2";
 
-String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
+const String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
 
-int perPage = 25;
-int currentCount = 0;
-
-bool preCollapsed = false;
+const int perPage = 25;
 
 List<Submission> recentlyViewed = [];
 

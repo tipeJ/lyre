@@ -219,8 +219,9 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               BlocProvider.of<CommentsBloc>(context).add(ToggleSubmissionView());
             }
           )),
-        SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments),
-        const Spacer(),
+        Expanded(
+          child: SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments)
+        ),
         Row(children: <Widget>[
           IconButton(
             icon: Icon(

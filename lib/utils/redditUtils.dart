@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:draw/draw.dart';
 
-Color getScoreColor(VoteableMixin m, BuildContext context){
-  switch (m.vote) {
+Color getScoreColor(VoteState vote, BuildContext context){
+  switch (vote) {
       case VoteState.downvoted:
         return Colors.purple;
 

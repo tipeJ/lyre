@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as mat;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Bloc/bloc.dart';
-import 'package:lyre/Resources/globals.dart';
-import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Resources/resources.dart';
 import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/utils/utils.dart';
@@ -19,7 +18,8 @@ const _defaulColumnAwardDiameter = 6.0;
 class SubmissionDetailsBar extends StatelessWidget {
   final PreviewSource previewSource;
   final Submission submission;
-  const SubmissionDetailsBar({this.previewSource, this.submission, Key key}) : super(key: key);
+  final VoteState vote;
+  const SubmissionDetailsBar({@required this.previewSource, @required this.submission, this.vote, Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class SubmissionDetailsBar extends StatelessWidget {
         Text(
           "${submission.score}",
           textAlign: TextAlign.left,
-          style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(submission, context), fontSizeFactor: 0.9)),
+          style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(vote ?? submission.vote, context), fontSizeFactor: 0.9)),
         
         mat.Visibility(
           visible: submission.over18,
@@ -220,7 +220,7 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
             }
           )),
         Expanded(
-          child: SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments)
+          child: SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments, vote: _voteState)
         ),
         Row(children: <Widget>[
           IconButton(
@@ -232,6 +232,7 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               setState(() {
                 _voteState = _voteState == VoteState.upvoted ? VoteState.none : VoteState.upvoted;
               });
+              changeVoteState(VoteState.upvoted, widget.submission);
             },
           ),
           IconButton(
@@ -243,6 +244,7 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               setState(() {
                 _voteState = _voteState == VoteState.downvoted ? VoteState.none : VoteState.downvoted;
               });
+              changeVoteState(VoteState.downvoted, widget.submission);
             },
           ),
           IconButton(
@@ -254,6 +256,7 @@ class _SubmissionDetailsAppBarState extends State<SubmissionDetailsAppBar> {
               setState(() {
                 _saved = !_saved;
               });
+              changeSubmissionSave(widget.submission);
             },
           ),
           BlocBuilder<CommentsBloc, CommentsState>(

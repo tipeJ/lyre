@@ -27,36 +27,22 @@ Future<void> changeCommentSave(Comment c) async {
   }
 }
 
-///Up- or Downvote a [Submission]
-Future<dynamic> changeSubmissionVoteState(VoteState state, Submission s) async {
+///Up- or Downvote a [Submission] or a [Comment]
+Future<dynamic> changeVoteState(VoteState state, VoteableMixin v) async {
   if(state == VoteState.none) return null; //For efficiency, to prevent unnecessary calls to the API
   try {
-    if (state == s.vote) {
-      return s.clearVote();
+    if (state == v.vote) {
+      return v.clearVote();
     } else if (state == VoteState.downvoted) {
-      return s.downvote();
+      return v.downvote();
     } else {
-      return s.upvote();
+      return v.upvote();
     }
   } catch (e) {
-    return e.toString();
+    return e.message;
   }
 }
-///Up- or Downvote a [Comment]
-Future<void> changeCommentVoteState(VoteState state, Comment c) async {
-  try {
-    if(state == VoteState.none) return null; //Prevent unnecessary calls to the API (shouldn't even happen, ever)
-    if(state == c.vote){
-      return c.clearVote();
-    }else if(state == VoteState.downvoted){
-      return c.downvote();
-    }else{
-      return c.upvote();
-    }
-  } catch (e) {
-    return null;
-  }
-}
+
 // * Submitting
 ///Submit a String Selftext [Submission] to a given [Subreddit]
 Future<dynamic> submitSelf(String sub, String title, String text, bool isNsfw, bool sendReplies) async {

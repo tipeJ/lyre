@@ -12,6 +12,8 @@ const FRONTPAGE_TARGET = "_";
 const SUBREDDITS_BASE_URL = "https://www.reddit.com/subreddits/";
 const SEARCH_BASE_URL = "https://www.reddit.com/search.json";
 
+const REDDIT_ICON_DEFAULT = "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png";
+
 // * Client IDs
 
 const GFYCAT_GET_URL = "https://api.gfycat.com/v1/gfycats/";

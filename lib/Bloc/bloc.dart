@@ -17,3 +17,5 @@ export 'search_usercontent_state.dart';
 export 'layout_bloc.dart';
 
 export 'subreddits_bloc.dart';
+
+export 'top_community_bloc.dart';

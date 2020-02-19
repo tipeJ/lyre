@@ -245,7 +245,7 @@ class LyreSplitScreenState extends State<LyreSplitScreen> {
 
   static Widget  get _mainNavigator => Navigator(
     key: PreviewCall().navigatorKey,
-    initialRoute: 'posts',
+    initialRoute: 'top_growing',
     onGenerateRoute: Router.generateRoute,
   );
 

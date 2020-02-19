@@ -105,7 +105,7 @@ class LyreHeader extends StatelessWidget {
           backgroundImage: AdvancedNetworkImage(
             state.subreddit.iconImage != null
               ? state.subreddit.iconImage.toString()
-              : "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png",
+              : REDDIT_ICON_DEFAULT,
             useDiskCache: true,
             cacheRule: const CacheRule(maxAge: Duration(days: 27)),
           ),
@@ -186,7 +186,7 @@ class LyreHeader extends StatelessWidget {
           minRadius: _avatarRadius,
           backgroundColor: Theme.of(context).cardColor,
           backgroundImage: AdvancedNetworkImage(
-            "https://icons-for-free.com/iconfiles/png/512/reddit+website+icon-1320168605279647340.png",
+            REDDIT_ICON_DEFAULT,
             useDiskCache: true,
             cacheRule: const CacheRule(maxAge: Duration(days: 27)),
           ),
@@ -198,10 +198,8 @@ class LyreHeader extends StatelessWidget {
             shape: const CircleBorder(),
             elevation: 5.0,
             fillColor: Theme.of(context).primaryColor,
-            child: const Icon(MdiIcons.help),
-            onPressed: (){
-              Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen()));
-            },
+            child: const Icon(MdiIcons.trophyAward),
+            onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TopGrowingCommunitiesScreen())),
           ),
         ),
       ];

@@ -1,0 +1,17 @@
+const Map<String, String> redditTopCommunitiesCategories = 
+  {"All Communities" : "c1021",
+  "Up-And-Coming" : "c1021",
+  "Sports" : "c1021",
+  "Gaming" : "c1021",
+  "News" : "c1021",
+  "Tv" : "c1021",
+  "All Communities2" : "c1021",
+  "All Communitie" : "c1021",
+  "All Communiti" : "c1021",
+  "All Communit" : "c1021",
+  "All Communi" : "c1021",
+  "All Commun" : "c1021",
+  "All Commu" : "c1021",
+  "All Comm" : "c1021",
+  "All Com" : "c1021",
+};

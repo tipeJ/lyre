@@ -406,6 +406,11 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                     textStyle: Theme.of(context).textTheme.body1,
                     child: Row(
                       children: <Widget>[
+                        IconButton(
+                          icon: const Icon(Icons.help),
+                          onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen())),
+                        ),
+                        const Spacer(),
                         const Text(appName + ' v.' + appVersion),
                         IconButton(
                           icon: const Icon(Icons.settings),
@@ -477,7 +482,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     builder: (context) => Container(
       child: Container(
         width: MediaQuery.of(context).size.width,
-        height: 56.0,
+        height: kBottomNavigationBarHeight,
         color: Theme.of(context).primaryColor,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -1534,8 +1539,8 @@ class __submissionListState extends State<_submissionList> {
                 controller: _scrollController,
                 physics: AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, b) => [
-                  const SliverToBoxAdapter()
-                  // LyreHeader(state: state)
+                  // const SliverToBoxAdapter()
+                  LyreHeader(state: state)
                 ],
                 body: RefreshIndicator(
                   onRefresh: () {

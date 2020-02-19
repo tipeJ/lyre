@@ -7,6 +7,8 @@ import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/widgets.dart';
+import 'package:video_player/video_player.dart';
+import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 
 class ExpandedPostWidget extends StatelessWidget {
   final Submission submission;
@@ -20,6 +22,8 @@ class ExpandedPostWidget extends StatelessWidget {
     final linkType = getLinkType(submission.url.toString());
     if (linkType == LinkType.DirectImage) {
       return _ExpandedImagePostWidget(submission);
+    } else if (videoLinkTypes.contains(linkType)) {
+      return _ExpandedVideoWidget(submission, linkType);
     }
     return _ExpandedWebviewPostWidget(submission);
   }
@@ -76,6 +80,113 @@ class _ExpandedImagePostWidget extends StatelessWidget {
         )
       ),
       SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
+    ]);
+  }
+}
+class _ExpandedVideoWidget extends StatefulWidget {
+  final Submission submission;
+  final LinkType linkType;
+  const _ExpandedVideoWidget(this.submission, this.linkType, {Key key}) : super(key: key);
+
+  @override
+  __ExpandedVideoWidgetState createState() => __ExpandedVideoWidgetState();
+}
+
+class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
+  VideoPlayerController _videoPlayerController;
+  LyreVideoController _lyreVideoController;
+  Future<void> _videoInitializer;
+
+  @override
+  void dispose() { 
+    _lyreVideoController?.dispose();
+    _videoPlayerController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> handleVideoLink(String url) async {
+    if (widget.linkType == LinkType.Gfycat) {
+      final videoUrl = await getGfyVideoUrl(url);
+      _videoInitializer = _initializeVideo(videoUrl);
+    } else if (widget.linkType == LinkType.RedditVideo) {
+      print(widget.submission.data["media"]["reddit_video"]["dash_url"]);
+      _videoInitializer = _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"], VideoFormat.dash);
+    } else if (widget.linkType == LinkType.TwitchClip) {
+      final clipVideoUrl = await getTwitchClipVideoLink(url);
+      if (clipVideoUrl.contains('http')) {
+        _videoInitializer = _initializeVideo(clipVideoUrl);
+      } else {
+        _videoInitializer = Future.error(clipVideoUrl);
+      }
+    }
+    return _videoInitializer;
+  }
+  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
+    
+    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: format);
+    await _videoPlayerController.initialize();
+    _lyreVideoController = LyreVideoController(
+      showControls: true,
+      aspectRatio: _videoPlayerController.value.aspectRatio,
+      autoPlay: true,
+      videoPlayerController: _videoPlayerController,
+      looping: true,
+      placeholder: const SizedBox(),
+      customControls: LyreMaterialVideoControls(
+        trailing:  Material(
+          color: Colors.transparent,
+          child: IconButton(
+            icon: const Icon(Icons.fullscreen),
+            tooltip: "Show Chat",
+            onPressed: () {
+              _lyreVideoController.pause();
+              PreviewCall().callback.preview(widget.linkType == LinkType.RedditVideo ? widget.submission.data["media"]["reddit_video"]["dash_url"] : widget.submission.url.toString());
+            }
+          )
+        ),
+      ),
+      errorBuilder: (context, errorMessage) {
+        return Center(
+          child: Text(
+            errorMessage,
+            style: LyreTextStyles.errorMessage
+          ),
+        );
+      }
+    );
+  }
+
+  Widget get _videoPlayer => FutureBuilder(
+    future: _videoInitializer,
+    builder: (context, snapshot){
+      if (snapshot.connectionState == ConnectionState.done){
+        if (snapshot.error == null) return LyreVideo(
+          controller: _lyreVideoController,
+        );
+        return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
+      } else {
+        return const Center(child: CircularProgressIndicator());
+      }
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    if (_videoInitializer == null) _videoInitializer = handleVideoLink(widget.submission.url.toString());
+    return Column(children: <Widget>[
+      SafeArea(
+        child: Text(widget.submission.title, style: LyreTextStyles.submissionTitle.apply(
+          color: (widget.submission.stickied)
+            ? const Color.fromARGB(255, 0, 200, 53)
+            : Theme.of(context).textTheme.body1.color))
+      ),
+      Expanded(
+        child: _videoPlayer
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        child: SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments)
+      )
     ]);
   }
 }

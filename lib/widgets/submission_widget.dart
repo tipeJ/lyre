@@ -284,7 +284,6 @@ class SubmissionWidget extends StatelessWidget {
           ]),
         onTap: (){
           if (previewSource != PreviewSource.Comments) {
-            currentPostId = submission.id;
             showComments(context);
           }
         },

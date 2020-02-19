@@ -22,7 +22,7 @@ class LyreVideoProgressBar extends StatefulWidget {
 }
 
 const _barHeight = 10.0;
-const _touchPadding = 100.0;
+const _touchPadding = 50.0;
 
 class _VideoProgressBarState extends State<LyreVideoProgressBar> {
   

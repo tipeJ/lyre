@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/Themes/themes.dart';
-import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:video_player/video_player.dart';
@@ -91,20 +90,21 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
               )
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: widget.submission.comments.length,
-              itemBuilder: (context, i) {
-                if (widget.submission.comments[i] is Comment) return Container(
-                  color: Theme.of(context).cardColor,
-                  child: CommentContent(widget.submission.comments[i], PreviewSource.Comments)
-                );
-                // Return empty if MoreComments
-                return const SizedBox();
-              },
-            ),
-          ),
+          // Expanded(
+          //   child: ListView.builder(
+          //     reverse: true,
+          //     itemCount: widget.submission.comments.length,
+          //     itemBuilder: (context, i) {
+          //       if (widget.submission.comments[i] is Comment) return Container(
+          //         color: Theme.of(context).cardColor,
+          //         child: CommentContent(widget.submission.comments[i], PreviewSource.Comments)
+          //       );
+          //       // Return empty if MoreComments
+          //       return const SizedBox();
+          //     },
+          //   ),
+          // ),
+          Expanded(child: const Center(child: Text("Live comments disabled until further notice"))),
           Material(
               color: Theme.of(context).cardColor,
             child: Container(

@@ -308,7 +308,7 @@ class __SlideColumnState extends State<_SlideColumn> {
             MdiIcons.arrowUpBold,
             color: widget.submission.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
           onPress: () async {
-            final response = await changeSubmissionVoteState(VoteState.upvoted, widget.submission);
+            final response = await changeVoteState(VoteState.upvoted, widget.submission);
             setState(() {
               if (response is String) {
                 Scaffold.of(context).showSnackBar(SnackBar(content: Text(response),));
@@ -321,7 +321,7 @@ class __SlideColumnState extends State<_SlideColumn> {
             MdiIcons.arrowDownBold,
             color: widget.submission.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
           onPress: () async {
-            final response = await changeSubmissionVoteState(VoteState.downvoted, widget.submission);
+            final response = await changeVoteState(VoteState.downvoted, widget.submission);
             setState(() {
               if (response is String) {
                 Scaffold.of(context).showSnackBar(SnackBar(content: Text(response),));
@@ -453,7 +453,6 @@ class _defaultColumn extends StatelessWidget {
         ]),
       onTap: (){
         if (previewSource != PreviewSource.Comments) {
-          currentPostId = submission.id;
           showComments(context);
         }
       },

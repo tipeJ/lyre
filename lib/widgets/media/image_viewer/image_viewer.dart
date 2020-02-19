@@ -11,6 +11,7 @@ import 'package:lyre/Themes/bloc/lyre_bloc.dart';
 import 'package:lyre/UploadUtils/ImgurAPI.dart';
 import 'package:lyre/utils/share_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -611,6 +612,7 @@ class ImageControlsBar extends StatelessWidget {
             _buildOpenUrlButton(context),
             submission != null ? _buildCommentsButton(context) : null, //Only show comment button if the parent usercontent is a submission (Because otherwise there wouldn't be any comments to show)
             _buildDownloadButton(context),
+            _buildImageSearchButton(context),
             _buildShareButton(context),
             _albumController != null ? _buildExpandButton(context) : null, //Only show expand button if the picture is a part of an album
           ].where((w) => notNull(w)).toList(),
@@ -625,7 +627,7 @@ class ImageControlsBar extends StatelessWidget {
         tooltip: "Copy Image URL",
         onPressed: (){
           copyToClipboard(url).then((result){
-            final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"),);
+            final snackBar = SnackBar(content: Text( result ? 'Copied Image Url to Clipboard' : "Failed to Copy Image Url to Clipboard"));
             Scaffold.of(context).showSnackBar(snackBar);
           });
         },
@@ -720,6 +722,15 @@ class ImageControlsBar extends StatelessWidget {
           }
         },
       );
+  }
+
+  ///Google image search for similar images to the one selected
+  IconButton _buildImageSearchButton(BuildContext context){
+    return IconButton(
+      icon: const Icon(MdiIcons.imageSearch),
+      tooltip: "Search for similar images",
+      onPressed: () => launchURL(context, GOOGLE_IMAGE_SEARCH_BASE_URL + url),
+    );
   }
   ///Button which is used to share the image/album
   Widget _buildShareButton(BuildContext context){

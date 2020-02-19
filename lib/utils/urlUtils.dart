@@ -64,7 +64,7 @@ LinkType getLinkType(String url){
     return LinkType.DirectImage;
   } else if (url.contains("youtube.com") || url.contains("youtu.be")){
     return LinkType.YouTube;
-  } else if (url.contains("imgur.com/a/")) {
+  } else if (url.contains("imgur.com/a/")){
     return LinkType.ImgurAlbum;
   } else if (url.contains("gfycat.com")){
     return LinkType.Gfycat;
@@ -79,11 +79,9 @@ LinkType getLinkType(String url){
     (domain.contains("google") && uri.path.startsWith("/amp/s/amp.reddit.com"))
   ) {
     return LinkType.Internal;
+  } else if (url.contains("clips.twitch.tv")){
+    return LinkType.TwitchClip;
   }
-  // ! API BLOCKED, NO LONGER (YET) SUPPORTED
-  // else if(url.contains("clips.twitch.tv")){
-  //   return LinkType.TwitchClip;
-  // }
 
   return LinkType.Default;
 }

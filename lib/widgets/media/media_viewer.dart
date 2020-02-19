@@ -34,12 +34,12 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
             );
             return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
           } else {
-            return const Center(child: const CircularProgressIndicator(),);
+            return const Center(child: CircularProgressIndicator());
           }
         },
       );
     } 
-    return  Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage,),));
+    return Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage)));
   }
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
@@ -68,15 +68,15 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       autoPlay: true,
       videoPlayerController: _videoController,
       looping: true,
-      placeholder: CircularProgressIndicator(),
+      placeholder: const CircularProgressIndicator(),
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(
             errorMessage,
-            style: LyreTextStyles.errorMessage,
+            style: LyreTextStyles.errorMessage
           ),
         );
-      },
+      }
     );
   }
 

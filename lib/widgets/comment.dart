@@ -100,7 +100,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                 MdiIcons.arrowUpBold,
                 color: widget.comment.vote == VoteState.upvoted ? Colors.amber : Colors.grey,),
               onPress: () async {
-                await changeCommentVoteState(VoteState.upvoted, widget.comment);
+                await changeVoteState(VoteState.upvoted, widget.comment);
                 setState((){});
               }
             ),
@@ -109,7 +109,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                 MdiIcons.arrowDownBold,
                 color: widget.comment.vote == VoteState.downvoted ? Colors.purple : Colors.grey,),
               onPress: () async {
-                await changeCommentVoteState(VoteState.downvoted, widget.comment);
+                await changeVoteState(VoteState.downvoted, widget.comment);
                 setState((){});
               }
             ),
@@ -155,7 +155,7 @@ class _CommentWidgetState extends State<CommentWidget> {
                   children: <Widget>[
                     Text("${widget.comment.score} ",
                       textAlign: TextAlign.left,
-                      style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(widget.comment, context), fontSizeFactor: 0.9)),
+                      style: Theme.of(context).textTheme.body1.apply(color: getScoreColor(widget.comment.vote, context), fontSizeFactor: 0.9)),
                     Text(
                       "● u/${widget.comment.author}",
                       style: Theme.of(context).textTheme.body2,
@@ -310,7 +310,7 @@ List<Widget> _commentContentChildren(BuildContext context, Comment comment, Prev
         children: <Widget>[
           Text("${comment.score} ",
             textAlign: TextAlign.left,
-            style: Theme.of(context).textTheme.body2.apply(color: getScoreColor(comment, context)),
+            style: Theme.of(context).textTheme.body2.apply(color: getScoreColor(comment.vote, context)),
           ),
           Text(
             "● u/${comment.author}",

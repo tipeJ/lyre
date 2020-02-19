@@ -8,7 +8,7 @@ import 'package:video_player/video_player.dart';
 class LyreMaterialVideoControls extends StatefulWidget {
   final Widget trailing;
 
-  LyreMaterialVideoControls({this.trailing = const SizedBox(), Key key}) : super(key: key);
+  const LyreMaterialVideoControls({this.trailing = const SizedBox(), Key key}) : super(key: key);
 
   @override
   _LyreMaterialVideoControlsState createState() => _LyreMaterialVideoControlsState();

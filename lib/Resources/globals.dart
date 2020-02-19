@@ -20,6 +20,8 @@ const GFYCAT_CLIENT_SECRET = "waadJXMtWmfHC45OeMvE9lDrKkhQ9XCR0xLMbaFTuINQPjd4s0
 
 const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 
+const GOOGLE_IMAGE_SEARCH_BASE_URL = "https://images.google.com/searchbyimage?image_url=";
+
 const FRONTPAGE_HOME_SUB = "_";
 
 const appBarContentTransitionDuration = Duration(milliseconds: 250);
@@ -155,18 +157,14 @@ TypeFilter parseTypeFilter(String typeFilter){
   }
 }
 
-String currentPostId = "";
 bool notNull(Object o) => o != null;
 
-String appName = "Lyre";
-String appVersion = "0.1";
+const String appName = "Lyre";
+const String appVersion = "0.2";
 
-String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
+const String youtubeApiKey = "ENTER_YT_API_KEY_HERE";
 
-int perPage = 25;
-int currentCount = 0;
-
-bool preCollapsed = false;
+const int perPage = 25;
 
 List<Submission> recentlyViewed = [];
 

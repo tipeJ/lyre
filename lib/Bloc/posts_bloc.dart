@@ -88,7 +88,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             userContent = await _repository.fetchSelfUserContent(target, typeFilter: sortType, timeFilter: sortTime);
             break;
           case ContentSource.Frontpage:
-            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime, );
+            userContent = await _repository.fetchUserContent(sortType, target, source: source, timeFilter: sortTime);
             break;
           default:
             // TODO: Implement domains

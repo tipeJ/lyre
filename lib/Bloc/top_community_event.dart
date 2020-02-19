@@ -5,7 +5,6 @@ abstract class TopCommunityEvent {}
 
 class ChangeCategory extends TopCommunityEvent {
   final String category;
-  final String id;
 
-  ChangeCategory({this.category, this.id});
+  ChangeCategory({this.category});
 }

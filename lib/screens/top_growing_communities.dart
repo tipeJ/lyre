@@ -55,6 +55,10 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
               ));
             },
           ),
+          onTap: () => Navigator.of(context).pushNamed("posts", arguments: {
+            'content_source' : ContentSource.Subreddit,
+            'target' : subreddit.name
+          }),
         );
       },
       itemCount: state.communities.length,
@@ -65,17 +69,19 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
 
   Widget _portraitLayout(BuildContext context) => PersistentBottomAppbarWrapper(
     body: _subredditsList(context),
-    appBarContent: Container(
-      height: kBottomNavigationBarHeight,
+    appBarContent: Material(
       color: Theme.of(context).primaryColor,
-      width: MediaQuery.of(context).size.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          const Text("Top Growing Communities"),
-          BlocBuilder<TopCommunityBloc, TopCommunityState>(builder: (_, state) => Text(state.category))
-        ]
+      child: Container(
+        height: kBottomNavigationBarHeight,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Text("Top Growing Communities"),
+            BlocBuilder<TopCommunityBloc, TopCommunityState>(builder: (_, state) => Text(state.category))
+          ]
+        )
       )
     ),
     listener: ValueNotifier(true),
@@ -97,7 +103,7 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (BlocProvider.of<TopCommunityBloc>(context).state.communities.isEmpty) BlocProvider.of<TopCommunityBloc>(context).add((ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(0), id: redditTopCommunitiesCategories.values.elementAt(0))));
+    if (BlocProvider.of<TopCommunityBloc>(context).state.communities.isEmpty) BlocProvider.of<TopCommunityBloc>(context).add((ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(0))));
     return Scaffold(
       body: LayoutBuilder(builder: (context, constraints) => 
         constraints.maxWidth > constraints.maxHeight
@@ -112,6 +118,7 @@ Widget _categoriesList(BuildContext context, [ScrollController controller]) => L
     itemCount: redditTopCommunitiesCategories.length,
     itemBuilder: (_, i) => ListTile(
       title: Text(redditTopCommunitiesCategories.keys.elementAt(i)),
+      onTap: () => BlocProvider.of<TopCommunityBloc>(context).add(ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(i))),
     ),
   );
 

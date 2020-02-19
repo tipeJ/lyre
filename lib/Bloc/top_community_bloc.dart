@@ -32,7 +32,7 @@ class TopCommunityBloc extends Bloc<TopCommunityEvent, TopCommunityState> {
         body: json.encode({
           'id' : "9e9ef4c82a00",
           'variables' : {
-            'categoryId' : "${event.id}",
+            'categoryId' : "${redditTopCommunitiesCategories[event.category]}",
             'isOnlyModIncluded' : false,
             'first' : 5
           }

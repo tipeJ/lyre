@@ -404,33 +404,35 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   right: 0.0,
                   child: Material(
                     textStyle: Theme.of(context).textTheme.body1,
-                    child: Row(
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.help),
-                          onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen())),
-                        ),
-                        const Spacer(),
-                        const Text(appName + ' v.' + appVersion),
-                        IconButton(
-                          icon: const Icon(Icons.settings),
-                          onPressed: (){
-                            Navigator.of(context).pushNamed('settings');
-                          },
-                        )
-                      ],
+                    child: Container(
+                      height: 50.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          const Text(appName + ' v.' + appVersion),
+                          IconButton(
+                            icon: const Icon(Icons.settings),
+                            onPressed: (){
+                              Navigator.of(context).pushNamed('settings');
+                            },
+                          )
+                        ],
+                      )
+                    )
+                  ),
+                ),
+                Positioned(
+                  bottom: 0.0,
+                  left: 0.0,
+                  child: Material(
+                    child: IconButton(
+                      icon: const Icon(Icons.help),
+                      onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => RedditHelpScreen())),
                     )
                   ),
                 )
               ],
-            )
-          ),
-          endDrawer: Drawer(
-            child: BlocBuilder<PostsBloc, PostsState>(
-              builder: (context, state) => Container(
-                color: Theme.of(context).primaryColor,
-                child: SidebarView(state: state)
-              )
             )
           ),
           body: Builder(

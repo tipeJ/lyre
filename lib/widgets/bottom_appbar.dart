@@ -59,6 +59,7 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
+    final maxHeight = min(MediaQuery.of(context).size.height, MediaQuery.of(context).size.width);
     return Container(
       child: Stack(
         children: <Widget>[
@@ -69,12 +70,12 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
               child: prefix0.LyreDraggableScrollableSheet(
                 expand: true,
                 visible: visibilityListener,
-                maxChildSize: min(MediaQuery.of(context).size.height, MediaQuery.of(context).size.width),
+                maxChildSize: maxHeight,
                 minChildSize: kBottomNavigationBarHeight,
                 borderRadius: BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble(),
                 initialChildSize: kBottomNavigationBarHeight,
                 builder: (context, scontrol) {
-                  return ExpandingSheetContent(state: expandingSheetContent, innerController: scontrol, appBarContent: appBarContent);
+                  return ExpandingSheetContent(state: expandingSheetContent, innerController: scontrol, appBarContent: appBarContent, maxHeight: maxHeight);
                 },
             )
           )
@@ -85,11 +86,12 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
 }
 class ExpandingSheetContent extends StatefulWidget {
   final State<ExpandingSheetContent> state;
+  final double maxHeight;
   final Widget appBarContent;
   final prefix0.LyreDraggableScrollableSheetScrollController innerController;
   final ValueNotifier<bool> visible = ValueNotifier(true);
 
-  ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent});
+  ExpandingSheetContent({@required this.state, @required this.innerController, @required this.appBarContent, @required this.maxHeight});
   @override
   State<ExpandingSheetContent> createState() => state;
 }

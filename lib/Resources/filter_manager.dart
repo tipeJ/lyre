@@ -14,7 +14,7 @@ enum FilterType {
 }
 
 class FilterManager {
-  static final FilterManager _instance = new FilterManager._internal();
+  static final FilterManager _instance = FilterManager._internal();
   FilterManager._internal();
 
   factory FilterManager(){
@@ -32,6 +32,9 @@ class FilterManager {
     _filteredUsersBox = await Hive.openBox(FILTER_USERS_BOX);
     _filteredDomainsBox = await Hive.openBox(FILTER_DOMAINS_BOX);
   }
+
+  /// Assumes that every box in in the same state
+  bool get isOpen => _filteredSubredditsBox.isOpen;
   
   closeFiltersDB() async {
     _filteredSubredditsBox?.close();
@@ -57,14 +60,23 @@ class FilterManager {
   bool isFiltered({ContentSource source, Submission submission, String target}) {
     bool equalsTarget = false;
 
-    //TODO: Figure this out.
-    equalsTarget = submission.subreddit.displayName.toLowerCase() == target.toLowerCase();
-    equalsTarget = submission.author.toLowerCase() == target.toLowerCase();
-    equalsTarget = submission.url.authority == target.toLowerCase();
+    if (source == ContentSource.Subreddit) {
+      equalsTarget = submission.subreddit.displayName.toLowerCase() == target.toLowerCase();
+    } else if (source == ContentSource.Redditor) {
+      equalsTarget = submission.author.toLowerCase() == target.toLowerCase();    
+    } else if (source == ContentSource.Domain) {  
+      equalsTarget = submission.url.authority == target.toLowerCase();
+    }
 
     //Return false if target is the same as the possibly filtered content (Filters do not go into effect if, for example, user visits a filtered subreddit)
-    if (equalsTarget) return false;
-    if (_filteredSubredditsBox.values.contains(submission.subreddit.displayName.toLowerCase()) || _filteredUsersBox.values.contains(submission.author.toLowerCase()) || _filteredDomainsBox.values.contains(submission.url.authority)) return true;
+    if (equalsTarget || source == ContentSource.Self) return false;
+
+    final subreddit = submission.subreddit.displayName.toLowerCase();
+    final author = submission.author.toLowerCase();
+    final domain = submission.url.host.replaceAll("www.", "").toLowerCase();
+
+    if (_filteredSubredditsBox.values.contains(subreddit) || _filteredUsersBox.values.contains(author) || _filteredDomainsBox.values.contains(domain)) return true;
+    
     return false;
   }
 }

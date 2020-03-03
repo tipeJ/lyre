@@ -23,3 +23,4 @@ export 'help_reddit.dart';
 export 'filters_global.dart';
 export 'instant_view.dart';
 export 'reddit_live.dart';
+export 'top_growing_communities.dart';

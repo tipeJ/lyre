@@ -49,8 +49,6 @@ class _ExpandedSelftextPostWidget extends StatelessWidget {
           ),
           const SizedBox(height: 10.0),
           Text(submission.selftext),
-          const SizedBox(height: 10.0),
-          SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
         ]
       )
     );
@@ -79,7 +77,6 @@ class _ExpandedImagePostWidget extends StatelessWidget {
           onLongPressEnd: (details) => PreviewCall().callback.previewEnd(),
         )
       ),
-      SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
     ]);
   }
 }
@@ -182,10 +179,6 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
       ),
       Expanded(
         child: _videoPlayer
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: SubmissionDetailsBar(submission: widget.submission, previewSource: PreviewSource.Comments)
       )
     ]);
   }
@@ -208,10 +201,6 @@ class _ExpandedWebviewPostWidget extends StatelessWidget {
       ),
       Expanded(
         child: InAppWebView(initialUrl: submission.url.toString())
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: SubmissionDetailsBar(submission: submission, previewSource: PreviewSource.Comments)
       )
     ]);
   }

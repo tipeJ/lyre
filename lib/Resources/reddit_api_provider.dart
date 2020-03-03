@@ -335,10 +335,10 @@ class PostsProvider {
           break;
       }
     }
-    //Filter nothing if the contentsource is Self
+    // Filter nothing if the contentsource is Self
     if (source != ContentSource.Self) {
-      await FilterManager().openFiltersDB();
-      //Remove submissions using FilterManager
+      if (!FilterManager().isOpen) FilterManager().openFiltersDB();
+      // Remove submissions using FilterManager
       return contentStream.where((u) => !(u is Submission && FilterManager().isFiltered(source: source, submission: u, target: target))).toList();
     }
     return contentStream.toList();
@@ -346,7 +346,7 @@ class PostsProvider {
 
   // * Filters
 
-  ///Method for fetching global reddit filters (The same that are used in r/all in the desktop browser).
+  /// Method for fetching global reddit filters (The same that are used in r/all in the desktop browser).
   Future<dynamic> getFilteredSubreddits() async {
     if (!isLoggedIn()) return "Log in to access global filters";
     final self = await reddit.user.me();
@@ -358,7 +358,7 @@ class PostsProvider {
     return parsedFilters;
   }
 
-  ///Method for pushing a new global filter to the reddit database; returns an error String if one is caught.
+  /// Method for pushing a new global filter to the reddit database; returns an error String if one is caught.
   Future<dynamic> addGlobalFilter({@required String subreddit}) async {
     if (!isLoggedIn()) return "Log in to access global filters";
     try {
@@ -369,7 +369,7 @@ class PostsProvider {
     }
   }
 
-  ///Method for removing a global filter to the reddit database; returns an error String if one is caught.
+  /// Method for removing a global filter to the reddit database; returns an error String if one is caught.
   Future<dynamic> removeGlobalFilter({@required String subreddit}) async {
     if (!isLoggedIn()) return "Log in to remove global filters";
     try {
@@ -382,6 +382,7 @@ class PostsProvider {
 
   // * Profile data fetching:
 
+  /// Method for fetching self user content
   Future<List<UserContent>> fetchSelfUserContent(SelfContentType contentType, {TypeFilter typeFilter, String timeFilter = "", String after}) async {
     Map<String, String> params = new Map<String, String>();
 
@@ -470,7 +471,6 @@ class PostsProvider {
   }
 
   Future<dynamic> getWikiPage(String args, String subreddit) async {
-    return null;
     try {
       final page = await reddit.subreddit(subreddit).wiki[args].populate();
       return page;

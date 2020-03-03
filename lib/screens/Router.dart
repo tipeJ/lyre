@@ -98,6 +98,12 @@ class Router {
       case 'instant_view':
         final uri = args as Uri;
         return InstantViewScreen(initialUri: uri);
+      case 'top_growing':
+        return BlocProvider(
+          key: Key(key),
+          create: (context) => TopCommunityBloc(),
+          child: TopGrowingCommunitiesScreen(),
+        );
       default:
         return Scaffold(
           body: Center(

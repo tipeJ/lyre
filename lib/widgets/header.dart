@@ -199,7 +199,7 @@ class LyreHeader extends StatelessWidget {
             elevation: 5.0,
             fillColor: Theme.of(context).primaryColor,
             child: const Icon(MdiIcons.trophyAward),
-            onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => TopGrowingCommunitiesScreen())),
+            onPressed: () => Navigator.of(context).pushNamed("top_growing"),
           ),
         ),
       ];

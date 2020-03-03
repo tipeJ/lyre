@@ -1,7 +1,5 @@
-import 'package:draw/draw.dart' as draw;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/Router.dart';
@@ -245,7 +243,7 @@ class LyreSplitScreenState extends State<LyreSplitScreen> {
 
   static Widget  get _mainNavigator => Navigator(
     key: PreviewCall().navigatorKey,
-    initialRoute: 'top_growing',
+    initialRoute: 'posts',
     onGenerateRoute: Router.generateRoute,
   );
 

@@ -69,23 +69,9 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
 
   Widget _portraitLayout(BuildContext context) => PersistentBottomAppbarWrapper(
     body: _subredditsList(context),
-    appBarContent: Material(
-      color: Theme.of(context).primaryColor,
-      child: Container(
-        height: kBottomNavigationBarHeight,
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text("Top Growing Communities"),
-            BlocBuilder<TopCommunityBloc, TopCommunityState>(builder: (_, state) => Text(state.category))
-          ]
-        )
-      )
-    ),
     listener: ValueNotifier(true),
     expandingSheetContent: _PortraitLayoutExpandingSheetContent(),
+    appBarContent: const SizedBox(),
   );
 
   Widget _landscapeLayout(BuildContext context) => Row(
@@ -103,7 +89,7 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (BlocProvider.of<TopCommunityBloc>(context).state.communities.isEmpty) BlocProvider.of<TopCommunityBloc>(context).add((ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(0))));
+    if (BlocProvider.of<TopCommunityBloc>(context).state.communities.isEmpty) _changeCategory(context, 0);
     return Scaffold(
       body: LayoutBuilder(builder: (context, constraints) => 
         constraints.maxWidth > constraints.maxHeight
@@ -113,21 +99,75 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
   }
 }
 
+void _changeCategory(BuildContext context, int i) => BlocProvider.of<TopCommunityBloc>(context).add(ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(i)));
+
 Widget _categoriesList(BuildContext context, [ScrollController controller]) => ListView.builder(
     controller: controller,
     itemCount: redditTopCommunitiesCategories.length,
-    itemBuilder: (_, i) => ListTile(
-      title: Text(redditTopCommunitiesCategories.keys.elementAt(i)),
-      onTap: () => BlocProvider.of<TopCommunityBloc>(context).add(ChangeCategory(category: redditTopCommunitiesCategories.keys.elementAt(i))),
-    ),
+    itemBuilder: (_, i) => _categoryItem(context, i, () => _changeCategory(context, 0)),
   );
+
+Widget _categoryItem(BuildContext context, int i, VoidCallback onClick) => ListTile(
+  contentPadding: const EdgeInsets.all(0.0),
+  title: BlocBuilder<TopCommunityBloc, TopCommunityState>(
+    builder: (_, state) => Row(
+      children: [
+        Container(
+          height: 50.0,
+          width: state.category == redditTopCommunitiesCategories.keys.elementAt(i)
+            ? 3.5
+            : 0.0,
+          color: Theme.of(context).accentColor,
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: state.category == redditTopCommunitiesCategories.keys.elementAt(i)
+            ? 8.0 - 3.5
+            : 8.0),
+          child: Text(redditTopCommunitiesCategories.keys.elementAt(i))
+        )
+      ]
+    )
+  ),
+  onTap: onClick,
+);
 
 class _PortraitLayoutExpandingSheetContent extends State<ExpandingSheetContent> {
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: _categoriesList(context, widget.innerController)
+      color: Theme.of(context).canvasColor,
+      child: CustomScrollView(
+        controller: widget.innerController,
+        slivers: [
+          SliverToBoxAdapter(
+            child: InkWell(
+              onTap: () => widget.innerController.extent.addPixelDelta(widget.maxHeight, context),
+              child: Container(
+                height: kBottomNavigationBarHeight,
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text("Top Growing Subreddits", style: Theme.of(context).textTheme.title),
+                    BlocBuilder<TopCommunityBloc, TopCommunityState>(builder: (_, state) => Text(state.category))
+                  ]
+                )
+              )
+            )
+          ),
+          SliverList(delegate: SliverChildBuilderDelegate((_, i) => _categoryItem(
+            context, i,
+            () {
+              _changeCategory(context, i);
+              widget.innerController.jumpTo(0.0);
+              widget.innerController.extent.setCurrentExtent(0.0, context);
+            }
+          ), childCount: redditTopCommunitiesCategories.length))
+        ]
+      )
     );
   }
 }

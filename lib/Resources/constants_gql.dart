@@ -1,4 +1,5 @@
 const Map<String, String> redditTopCommunitiesCategories = {
+  "All Subreddits" : "_",
   "Tv" : "c1021",
   "Health & Fitness" : "c1006",
   "Art & Design" : "c1001",

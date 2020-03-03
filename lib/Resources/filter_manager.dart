@@ -34,7 +34,7 @@ class FilterManager {
   }
 
   /// Assumes that every box in in the same state
-  bool get isOpen => _filteredSubredditsBox.isOpen;
+  bool get isOpen => _filteredSubredditsBox != null ? _filteredSubredditsBox.isOpen : false;
   
   closeFiltersDB() async {
     _filteredSubredditsBox?.close();

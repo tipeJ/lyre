@@ -55,6 +55,9 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       } else {
         _videoInitialized = Future.error(clipVideoUrl);
       }
+    } else if (linkType == LinkType.Streamable) {
+      final videoUrl = await getStreamableVideoUrl(url);
+      _videoInitialized = _initializeVideo(videoUrl);
     }
     return _videoInitialized;
   }

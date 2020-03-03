@@ -7,5 +7,5 @@ class LyreImage {
   ///The Url for low-res thumbnail, to be used in gallery views.
   final String thumbnailUrl;
 
-  LyreImage({this.url, this.description, this.thumbnailUrl});
+  const LyreImage({this.url, this.description, this.thumbnailUrl});
 }

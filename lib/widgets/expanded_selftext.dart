@@ -115,6 +115,9 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
       } else {
         _videoInitializer = Future.error(clipVideoUrl);
       }
+    } else if (widget.linkType == LinkType.Streamable) {
+      final videoUrl = await getStreamableVideoUrl(url);
+      _videoInitializer = _initializeVideo(videoUrl);
     }
     return _videoInitializer;
   }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:lyre/Models/models.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
@@ -42,6 +43,39 @@ String _computeTwitchResponse(String body) {
 }
 
 Future<String> getGfyVideoUrl(String url) {
-  final id = getGfyid(url);
+  final id = getGfyId(url);
   return gfycatProvider().getGfyWebmUrl(id);
+}
+
+Future<String> getStreamableVideoUrl(String url) async {
+  final streamableId = getStreamableId(url);
+  final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
+  final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
+  print(formats[0].url);
+  return formats[0].url;
+}
+
+/// Return a list of video formats from a streamable url
+List<LyreVideoFormat> _computeStreamableResponse(String body) {
+  // decode Json
+  final j = json.decode(body);
+  final status = j['status'];
+  if (status != 2) {
+    throw Exception("This video is currently unavailable. It may still be uploading or processing.");
+  }
+  List<LyreVideoFormat> formats = [];
+  j['files'].forEach((formatId, format) {
+    print(format.toString());
+    if (format['url'] == null) return;
+    formats.add(LyreVideoFormat(
+      formatId: formatId,
+      url: "https:${format['url']}",
+      width: format['width'],
+      height: format['height'],
+      filesize: format['size'],
+      framerate: format['framerate'].toDouble(),
+      bitrate: format['bitrate'] ?? 1000,
+    ));
+  });
+  return formats;
 }

@@ -4,7 +4,7 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 import 'imageUtils.dart';
 
-final supportedYoutubeUrls = [
+const supportedYoutubeUrls = [
     "youtube.com",
     "youtu.be"
 ];
@@ -20,12 +20,12 @@ enum LinkType{
   YouTube,
   RedditVideo,
   Gfycat,
-  Streamable, // ! Not yet supported
+  Streamable,
   TwitchClip,
   RPAN
 }
 
-final videoLinkTypes = [
+const videoLinkTypes = [
   LinkType.Gfycat,
   LinkType.RedditVideo,
   LinkType.Streamable,
@@ -33,22 +33,9 @@ final videoLinkTypes = [
   LinkType.RPAN
 ];
 
-final albumLinkTypes = [
+const albumLinkTypes = [
   LinkType.ImgurAlbum
 ];
-
-String getYoutubeIdFromUrl(String url){
-  if (url.contains("youtu.be")){
-    var strings = url.split("/");
-    return strings.last;
-  }
-  var video_id = url.split("v=")[1];
-  var ampersandPosition = video_id.indexOf("&");
-  if (ampersandPosition != -1){
-    video_id = video_id.substring(0,ampersandPosition);
-  }
-  return video_id;
-}
 
 LinkType getLinkType(String url){
 
@@ -70,6 +57,8 @@ LinkType getLinkType(String url){
     return LinkType.Gfycat;
   } else if (url.contains("v.redd.it")){
     return LinkType.RedditVideo;
+  } else if (url.contains("streamable.com")){
+    return LinkType.Streamable;
   } else if (domain.endsWith("watch.redd.it")){
     return LinkType.RPAN;
   } else if (
@@ -86,10 +75,27 @@ LinkType getLinkType(String url){
   return LinkType.Default;
 }
 
-String getGfyid(String url){
-  var divided = url.split("/");
-  var last = divided.last;
-  return last;
+String getYoutubeIdFromUrl(String url){
+  if (url.contains("youtu.be")){
+    final strings = url.split("/");
+    return strings.last;
+  }
+  var videoId = url.split("v=")[1];
+  final ampersandPosition = videoId.indexOf("&");
+  if (ampersandPosition != -1){
+    videoId = videoId.substring(0,ampersandPosition);
+  }
+  return videoId;
+}
+
+String getGfyId(String url){
+  final divided = url.split("/");
+  return divided.last;
+}
+
+String getStreamableId(String url){
+  final divided = url.split("/");
+  return divided.last;
 }
 
 void launchURL(BuildContext context, String url) async {

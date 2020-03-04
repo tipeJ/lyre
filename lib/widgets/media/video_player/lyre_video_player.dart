@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lyre/Models/models.dart';
 import 'video_controls.dart';
 import 'package:flutter/widgets.dart';
 import 'video_player.dart';
@@ -47,7 +48,7 @@ class LyreVideoState extends State<LyreVideo> {
 
   @override
   void dispose() {
-    widget.controller.removeListener(listener);
+    // ! widget.controller?.removeListener(listener);
     super.dispose();
   }
 
@@ -148,9 +149,11 @@ class LyreVideoState extends State<LyreVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return _LyreVideoControllerProvider(
-      controller: widget.controller,
-      child: LyreVideoPlayer(),
+    return Scaffold(
+      body: _LyreVideoControllerProvider(
+        controller: widget.controller,
+        child: LyreVideoPlayer(),
+      )
     );
   }
 }
@@ -167,7 +170,7 @@ class LyreVideoState extends State<LyreVideo> {
 /// `VideoPlayerController`.
 class LyreVideoController extends ChangeNotifier {
   LyreVideoController({
-    this.videoPlayerController,
+    // this.videoPlayerController,
     this.aspectRatio,
     this.autoInitialize = false,
     this.autoPlay = false,
@@ -184,6 +187,8 @@ class LyreVideoController extends ChangeNotifier {
     this.isLive = false,
     this.allowFullScreen = true,
     this.allowMuting = true,
+    this.formats,
+    this.formatHint,
     this.systemOverlaysAfterFullScreen = SystemUiOverlay.values,
     this.deviceOrientationsAfterFullScreen = const [
       DeviceOrientation.portraitUp,
@@ -191,9 +196,9 @@ class LyreVideoController extends ChangeNotifier {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ],
-    this.routePageBuilder = null,
-  }) : assert(videoPlayerController != null,
-            'You must provide a controller to play a video') {
+    this.routePageBuilder,
+  }) : assert(formats != null && formats.isNotEmpty,
+            'You must provide a format to play a video') {
     _initialize();
   }
 
@@ -258,7 +263,15 @@ class LyreVideoController extends ChangeNotifier {
   final List<SystemUiOverlay> systemOverlaysAfterFullScreen;
 
   /// The controller for the video you want to play
-  final VideoPlayerController videoPlayerController;
+  VideoPlayerController videoPlayerController;
+
+  final List<LyreVideoFormat> formats;
+
+  int _currentFormat = 1;
+
+  LyreVideoFormat get currentFormat => _currentFormat == -1 ? null : formats[_currentFormat];
+
+  final VideoFormat formatHint;
 
   bool _isFullScreen = false;
 
@@ -277,6 +290,8 @@ class LyreVideoController extends ChangeNotifier {
   bool get isFullScreen => _isFullScreen;
 
   Future _initialize() async {
+    videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
+    await videoPlayerController.initialize();
     await videoPlayerController.setLooping(looping);
 
     if ((autoInitialize || autoPlay) &&
@@ -299,6 +314,28 @@ class LyreVideoController extends ChangeNotifier {
     if (fullScreenByDefault) {
       videoPlayerController.addListener(_fullScreenListener);
     }
+  }
+
+  void changeFormat(int i) async {
+    final playing = videoPlayerController.value.isPlaying;
+    final position = videoPlayerController.value.position;
+
+    if (playing) await pause();
+    _currentFormat = i;
+
+    // Initialize
+    videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
+    await videoPlayerController.initialize();
+    await videoPlayerController.setLooping(looping);
+
+    await videoPlayerController.seekTo(position);
+    if (playing) await videoPlayerController.play();
+
+    if (fullScreenByDefault) {
+      videoPlayerController.addListener(_fullScreenListener);
+    }
+
+    notifyListeners();
   }
 
   void _fullScreenListener() async {
@@ -349,6 +386,12 @@ class LyreVideoController extends ChangeNotifier {
   Future<void> setVolume(double volume) async {
     await videoPlayerController.setVolume(volume);
   }
+
+  @override
+  void dispose() {
+    // ! videoPlayerController.dispose();
+    super.dispose();
+  }
 }
 
 class _LyreVideoControllerProvider extends InheritedWidget {
@@ -363,6 +406,9 @@ class _LyreVideoControllerProvider extends InheritedWidget {
   final LyreVideoController controller;
 
   @override
-  bool updateShouldNotify(_LyreVideoControllerProvider old) =>
-      controller != old.controller;
+  bool updateShouldNotify(_LyreVideoControllerProvider old) {
+    print("ASDASDASD");
+    print((controller != old.controller || controller.currentFormat != old.controller.currentFormat));
+    return controller != old.controller || controller.currentFormat != old.controller.currentFormat;
+  }
 }

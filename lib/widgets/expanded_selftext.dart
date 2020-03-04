@@ -129,11 +129,11 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
       showControls: true,
       aspectRatio: _videoPlayerController.value.aspectRatio,
       autoPlay: true,
-      videoPlayerController: _videoPlayerController,
+      // videoPlayerController: _videoPlayerController,
       looping: true,
       placeholder: const SizedBox(),
       customControls: LyreMaterialVideoControls(
-        trailing:  Material(
+        trailing: Material(
           color: Colors.transparent,
           child: IconButton(
             icon: const Icon(Icons.fullscreen),

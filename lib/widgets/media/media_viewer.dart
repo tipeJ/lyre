@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyre/Models/models.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:lyre/screens/interfaces/previewCallback.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
@@ -12,7 +13,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
   final String url;
 
   Future<void> _videoInitialized;
-  VideoPlayerController _videoController;
+  // VideoPlayerController _videoController;
   LyreVideoController _vController;
   
   MediaViewer({@required this.url, }) {
@@ -44,34 +45,36 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
     if (linkType == LinkType.Gfycat) {
-      final videoUrl = await getGfyVideoUrl(url);
-      _videoInitialized = _initializeVideo(videoUrl);
+      // final videoUrl = await getGfyVideoUrl(url);
+      // _videoInitialized = _initializeVideo(videoUrl);
     } else if (linkType == LinkType.RedditVideo) {
-      _videoInitialized = _initializeVideo(url, VideoFormat.dash);
+      // _videoInitialized = _initializeVideo(url, VideoFormat.dash);
     } else if (linkType == LinkType.TwitchClip) {
-      final clipVideoUrl = await getTwitchClipVideoLink(url);
-      if (clipVideoUrl.contains('http')) {
-        _videoInitialized = _initializeVideo(clipVideoUrl);
-      } else {
-        _videoInitialized = Future.error(clipVideoUrl);
-      }
+      // final clipVideoUrl = await getTwitchClipVideoLink(url);
+      // if (clipVideoUrl.contains('http')) {
+      //   _videoInitialized = _initializeVideo(clipVideoUrl);
+      // } else {
+      //   _videoInitialized = Future.error(clipVideoUrl);
+      // }
     } else if (linkType == LinkType.Streamable) {
-      final videoUrl = await getStreamableVideoUrl(url);
+      final videoUrl = await getStreamableVideoFormats(url);
       _videoInitialized = _initializeVideo(videoUrl);
     }
     return _videoInitialized;
   }
-  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
-    
-    _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
-    await _videoController.initialize();
+
+  Future<void> _initializeVideo(List<LyreVideoFormat> formats, [VideoFormat format]) async {
+    // _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
+    // await _videoController.initialize();
     _vController = LyreVideoController(
       showControls: true,
-      aspectRatio: _videoController.value.aspectRatio,
+      aspectRatio: formats[0].width / formats[0].height,
       autoPlay: true,
-      videoPlayerController: _videoController,
+      // videoPlayerController: _videoController,
       looping: true,
       placeholder: const CircularProgressIndicator(),
+      formatHint: format,
+      formats: formats,
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(
@@ -93,7 +96,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       //_videoController?.dispose();
       _vController?.dispose();
       _vController = null;
-      _videoController = null;
+      // _videoController = null;
     }
     return true;
   }

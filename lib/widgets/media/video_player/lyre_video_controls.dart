@@ -21,7 +21,6 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
 
   VideoPlayerValue _latestValue;
   Timer _hideTimer;
-  Timer _initTimer;
 
   VideoPlayerController controller;
   LyreVideoController lyreVideoController;
@@ -42,9 +41,7 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
   
   void _dispose() {
     controller.removeListener(_updateState);
-    // _hideTimer?.cancel();
-    // _initTimer?.cancel();
-    // _showAfterExpandCollapseTimer?.cancel();
+    _hideTimer?.cancel();
   }
 
   Future<Null> _initialize() async {
@@ -55,11 +52,6 @@ class _LyreMaterialVideoControlsState extends State<LyreMaterialVideoControls> {
     if ((controller.value != null && controller.value.isPlaying) ||
         lyreVideoController.autoPlay) {
       _startHideTimer();
-    }
-
-    if (lyreVideoController.showControlsOnInitialize) {
-      _initTimer = Timer(Duration(milliseconds: 200), () {
-      });
     }
   }
 

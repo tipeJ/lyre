@@ -54,7 +54,12 @@ Future<String> getStreamableVideoUrl(String url) async {
   print(formats[0].url);
   return formats[0].url;
 }
-
+Future<List<LyreVideoFormat>> getStreamableVideoFormats(String url) async {
+  final streamableId = getStreamableId(url);
+  final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
+  final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
+  return formats;
+}
 /// Return a list of video formats from a streamable url
 List<LyreVideoFormat> _computeStreamableResponse(String body) {
   // decode Json

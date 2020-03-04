@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:lyre/Models/models.dart';
 import 'progress_bar.dart';
 import 'package:video_player/video_player.dart';
 import 'lyre_video_player.dart';
@@ -25,11 +26,11 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   bool _dragging = false;
   bool _displayTapped = false;
 
-  final buttonPadding = 20.0;
+  static const buttonPadding = 20.0;
 
   AnimationController _expansionController;
   bool isExpanded = false;
-  final expandedBarHeight = 48.0;
+  static const expandedBarHeight = 48.0;
   
 
     double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
@@ -68,8 +69,8 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
               : 2.0); //<-- or just continue to whichever edge is closer
   }
 
-  final barHeight = 48.0;
-  final marginSize = 5.0;
+  static const barHeight = 48.0;
+  static const marginSize = 5.0;
 
   VideoPlayerController controller;
   LyreVideoController lyreVideoController;
@@ -104,8 +105,8 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
                         _latestValue.duration == null ||
                     _latestValue.isBuffering
                 ? const Expanded(
-                    child: const Center(
-                      child: const CircularProgressIndicator(),
+                    child: Center(
+                      child: CircularProgressIndicator(),
                     ),
                   )
                 : _buildHitArea(),
@@ -141,7 +142,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     _expansionController = AnimationController(
       //<-- initialize a controller
       vsync: this,
-      duration: Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 600),
     )..addListener((){
       setState(() { 
       });
@@ -151,6 +152,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
 
   @override
   void didChangeDependencies() {
+    print('change');
     final _oldController = lyreVideoController;
     lyreVideoController = LyreVideoController.of(context);
     controller = lyreVideoController.videoPlayerController;
@@ -202,7 +204,18 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Icon(Icons.settings), //TODO: IMPLEMENT
+            PopupMenuButton<LyreVideoFormat>(
+              icon: const Icon(Icons.settings),
+              initialValue: lyreVideoController.currentFormat,
+              itemBuilder: (_) => List<PopupMenuItem<LyreVideoFormat>>.generate(
+                lyreVideoController.formats.length, 
+                (i) => PopupMenuItem<LyreVideoFormat>(
+                  value: lyreVideoController.formats[i],
+                  child: Text(lyreVideoController.formats[i].height.toString()),
+                )
+              ),
+              onSelected: (format) => lyreVideoController.changeFormat(lyreVideoController.formats.indexOf(format)),
+            ),
             Row(children: <Widget>[
               _buildSlowerButton(),
               _buildPlayBackSpeedIndicator(),
@@ -446,7 +459,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
           });
         } else {
           if (isFinished) {
-            controller.seekTo(Duration(seconds: 0));
+            controller.seekTo(const Duration(seconds: 0));
           }
           controller.play();
         }
@@ -468,7 +481,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   Widget _buildProgressBar() {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.only(right: 20.0),
+        padding: const EdgeInsets.only(right: 20.0),
         child: LyreVideoProgressBar(
           controller,
           onDragStart: () {

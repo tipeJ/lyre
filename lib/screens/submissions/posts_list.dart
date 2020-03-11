@@ -872,9 +872,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
-                          Visibility(
-                            visible: state.showKarmaInMenuSheet && state.currentUser != null,
-                            child: Row(
+                          state.showKarmaInMenuSheet && state.currentUser != null && !state.readOnly 
+                            ? Row(
                               children: <Widget>[
                                 const Icon(MdiIcons.yinYang, size: 12.0),
                                 Padding(
@@ -882,8 +881,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
                                 ),
                               ],)
-                          )
-                        ]
+                            : null
+                        ].nonNulls()
                       ),
                     ],
                   )

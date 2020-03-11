@@ -1,10 +1,64 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:lyre/Models/models.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:lyre/Resources/gfycat_provider.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:flutter/foundation.dart';
+import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
+import 'package:video_player/video_player.dart';
+
+/// Prepare a video URL for playback via a [LyreVideoController]
+Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async {
+    if (linkType == LinkType.Gfycat) {
+      final videoUrl = await getGfyVideoUrl(url);
+      return _initializeVideo(url: videoUrl);
+    } else if (linkType == LinkType.RedditVideo) {
+      return _initializeVideo(url: url, formatHint: VideoFormat.dash);
+    } else if (linkType == LinkType.TwitchClip) {
+      final clipVideoUrl = await getTwitchClipVideoLink(url);
+      if (clipVideoUrl.contains('http')) {
+        return _initializeVideo(url: clipVideoUrl);
+      } else {
+        return Future.error(clipVideoUrl);
+      }
+    } else if (linkType == LinkType.Streamable) {
+      final formats = await getStreamableVideoFormats(url);
+      return _initializeVideo(formats: formats);
+    }
+    return Future.error("MEDIA NOT SUPPORTED");
+  }
+
+  /// Initialize the video source. Use a string url for single-source videos and a 
+  /// list of [LyreVideoFormat]s for videos with multiple formats/qualities
+  Future<LyreVideoController> _initializeVideo({List<LyreVideoFormat> formats, String url, VideoFormat formatHint}) async {
+    VideoPlayerController videoController;
+    if (url != null) {
+      videoController = VideoPlayerController.network(url, formatHint: formatHint);
+      await videoController.initialize();
+    }
+    return LyreVideoController(
+      sourceUrl: url,
+      showControls: true,
+      aspectRatio: videoController != null ? videoController.value.aspectRatio : formats[0].width / formats[0].height,
+      autoPlay: true,
+      looping: true,
+      placeholder: const CircularProgressIndicator(),
+      formatHint: formatHint,
+      formats: formats,
+      videoPlayerController: videoController,
+      errorBuilder: (context, errorMessage) {
+        return Center(
+          child: Text(
+            errorMessage,
+            style: LyreTextStyles.errorMessage
+          ),
+        );
+      }
+    );
+  }
 
 Future<String> getTwitchClipVideoLink(String url) async {
   final slug = url.split('/').last;

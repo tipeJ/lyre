@@ -228,7 +228,7 @@ class LyreVideoController extends ChangeNotifier {
 
   /// Defines customised controls. Check [MaterialControls] or
   /// [CupertinoControls] for reference.
-  final Widget customControls;
+  Widget customControls;
 
   /// Defines the set of allowed device orientations after exiting fullscreen
   final List<DeviceOrientation> deviceOrientationsAfterFullScreen;
@@ -247,7 +247,7 @@ class LyreVideoController extends ChangeNotifier {
 
   /// The placeholder is displayed underneath the Video before it is initialized
   /// or played.
-  final Widget placeholder;
+  Widget placeholder;
 
   /// Defines a custom RoutePageBuilder for the fullscreen
   final LyreVideoRoutePageBuilder routePageBuilder;

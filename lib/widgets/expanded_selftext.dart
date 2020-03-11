@@ -92,8 +92,7 @@ class _ExpandedVideoWidget extends StatefulWidget {
 class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
   VideoPlayerController _videoPlayerController;
   LyreVideoController _lyreVideoController;
-  Future<void> _videoInitializer;
-
+  Future<LyreVideoController> _videoInitializer;
   @override
   void dispose() { 
     _lyreVideoController?.dispose();
@@ -101,68 +100,26 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
     super.dispose();
   }
 
-  Future<void> handleVideoLink(String url) async {
-    if (widget.linkType == LinkType.Gfycat) {
-      final videoUrl = await getGfyVideoUrl(url);
-      _videoInitializer = _initializeVideo(videoUrl);
-    } else if (widget.linkType == LinkType.RedditVideo) {
-      print(widget.submission.data["media"]["reddit_video"]["dash_url"]);
-      _videoInitializer = _initializeVideo(widget.submission.data["media"]["reddit_video"]["dash_url"], VideoFormat.dash);
-    } else if (widget.linkType == LinkType.TwitchClip) {
-      final clipVideoUrl = await getTwitchClipVideoLink(url);
-      if (clipVideoUrl.contains('http')) {
-        _videoInitializer = _initializeVideo(clipVideoUrl);
-      } else {
-        _videoInitializer = Future.error(clipVideoUrl);
-      }
-    } else if (widget.linkType == LinkType.Streamable) {
-      final videoUrl = await getStreamableVideoUrl(url);
-      _videoInitializer = _initializeVideo(videoUrl);
-    }
-    return _videoInitializer;
-  }
-  Future<void> _initializeVideo(String videoUrl, [VideoFormat format]) async {
-    
-    _videoPlayerController = VideoPlayerController.network(videoUrl, formatHint: format);
-    await _videoPlayerController.initialize();
-    _lyreVideoController = LyreVideoController(
-      showControls: true,
-      aspectRatio: _videoPlayerController.value.aspectRatio,
-      autoPlay: true,
-      // videoPlayerController: _videoPlayerController,
-      looping: true,
-      placeholder: const SizedBox(),
-      customControls: LyreMaterialVideoControls(
-        trailing: Material(
-          color: Colors.transparent,
-          child: IconButton(
-            icon: const Icon(Icons.fullscreen),
-            tooltip: "Show Chat",
-            onPressed: () {
-              _lyreVideoController.pause();
-              PreviewCall().callback.preview(widget.linkType == LinkType.RedditVideo ? widget.submission.data["media"]["reddit_video"]["dash_url"] : widget.submission.url.toString());
-            }
-          )
-        ),
-      ),
-      errorBuilder: (context, errorMessage) {
-        return Center(
-          child: Text(
-            errorMessage,
-            style: LyreTextStyles.errorMessage
-          ),
-        );
-      }
-    );
-  }
-
-  Widget get _videoPlayer => FutureBuilder(
+  Widget get _videoPlayer => FutureBuilder<LyreVideoController>(
     future: _videoInitializer,
     builder: (context, snapshot){
       if (snapshot.connectionState == ConnectionState.done){
-        if (snapshot.error == null) return LyreVideo(
-          controller: _lyreVideoController,
-        );
+        if (snapshot.error == null) {
+          _lyreVideoController = snapshot.data..customControls = LyreMaterialVideoControls(
+            trailing: widget.linkType == LinkType.RPAN ? Material(
+              color: Colors.transparent,
+              child: IconButton(
+                icon: const Icon(Icons.fullscreen),
+                tooltip: "Show Chat",
+                onPressed: () {
+                  _lyreVideoController.pause();
+                  PreviewCall().callback.preview(widget.linkType == LinkType.RedditVideo ? widget.submission.data["media"]["reddit_video"]["dash_url"] : widget.submission.url.toString());
+                }
+              )
+            ) : const SizedBox(),
+          )..placeholder = const SizedBox();
+          return LyreVideo(controller: _lyreVideoController);
+        };
         return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
       } else {
         return const Center(child: CircularProgressIndicator());
@@ -172,7 +129,7 @@ class __ExpandedVideoWidgetState extends State<_ExpandedVideoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_videoInitializer == null) _videoInitializer = handleVideoLink(widget.submission.url.toString());
+    if (_videoInitializer == null) _videoInitializer = handleVideoLink(widget.linkType, widget.submission.url.toString());
     return Column(children: <Widget>[
       SafeArea(
         child: Text(widget.submission.title, style: LyreTextStyles.submissionTitle.apply(

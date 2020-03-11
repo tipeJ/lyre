@@ -62,8 +62,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   bool _autoLoad;
   PostsBloc bloc;
 
-  ValueNotifier<bool> _appBarVisibleNotifier;
-
   _OptionsVisibility _optionsVisibility;
   PersistentBottomSheetController _optionsController;
 
@@ -95,7 +93,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   void dispose() {
     bloc.drain();
     bloc.close();
-    _appBarVisibleNotifier.dispose();
     _quickTextController?.dispose();
     super.dispose();
   }
@@ -103,7 +100,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
-     _appBarVisibleNotifier = ValueNotifier(true);
   }
 
 
@@ -439,7 +435,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             builder: (context) {
               return PersistentBottomAppbarWrapper(
                 fullSizeHeight: MediaQuery.of(context).size.height,
-                listener: _appBarVisibleNotifier,
                 body: NotificationListener<Notification>(
                   child: _submissionList(),
                   onNotification: (notification) {
@@ -458,14 +453,14 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         BlocProvider.of<PostsBloc>(context).add(FetchMore());
                       }
                       // ! HIDE APPBAR
-                      return false;
-                      if (notification.depth == 0 && notification is ScrollUpdateNotification) {
-                        if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
-                          _appBarVisibleNotifier.value = false;
-                        } else if (notification.scrollDelta <= -10.0){
-                          _appBarVisibleNotifier.value = true;
-                        }
-                      }
+                      // return false;
+                      // if (notification.depth == 0 && notification is ScrollUpdateNotification) {
+                      //   if (notification.scrollDelta >= 10.0 && _paramsVisibility != _ParamsVisibility.QuickText) {
+                      //     _appBarVisibleNotifier.value = false;
+                      //   } else if (notification.scrollDelta <= -10.0){
+                      //     _appBarVisibleNotifier.value = true;
+                      //   }
+                      // }
                     }
                     return false;
                   },
@@ -1520,7 +1515,6 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
 
   _prepareQuickTextInput(_QuickText selection) {
     setState(() {
-      _appBarVisibleNotifier.value = true;
       _quickTextController = TextEditingController();
       _quickTextSelection = selection;
       _paramsVisibility = _ParamsVisibility.QuickText;

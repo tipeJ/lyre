@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
+import 'package:lyre/screens/screens.dart';
 import 'package:lyre/widgets/bottom_appbar_expanding.dart' as prefix0;
 
 ///Class for wrapping a scaffold body for a custom bottom expanding appBar
@@ -19,9 +20,7 @@ class PersistentBottomAppbarWrapper extends StatelessWidget {
 
   final height = 56.0;
 
-  final ValueNotifier<bool> listener;
-
-  const PersistentBottomAppbarWrapper({Key key, @required this.body, this.appBarContent, this.expandingSheetContent, this.fullSizeHeight, this.listener}) : super(key: key);
+  const PersistentBottomAppbarWrapper({Key key, @required this.body, this.appBarContent, this.expandingSheetContent, this.fullSizeHeight}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +29,12 @@ class PersistentBottomAppbarWrapper extends StatelessWidget {
         body: body,
         appBarContent: appBarContent,
         expandingSheetContent: expandingSheetContent,
-        visibilityListener: listener,
       )
-      : _PersistentBottomAppWrapperWithoutExpansion(
-        body: body,
-        appBarContent: appBarContent,
-      );
+      : _ExpandingBottomAppWrapper(
+          body: body,
+          appBarContent: appBarContent,
+          expandingSheetContent: SubredditsList(),
+        );
   }
 }
 
@@ -44,18 +43,15 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
   final Widget body;
   final Widget appBarContent;
   final State<ExpandingSheetContent> expandingSheetContent;
-  final ValueNotifier<bool> visibilityListener;
 
   const _ExpandingBottomAppWrapper({
     @required this.body,
     @required this.expandingSheetContent,
     @required this.appBarContent,
-    @required this.visibilityListener
   }) : 
     assert(body != null),
     assert(appBarContent != null),
-    assert(expandingSheetContent != null),
-    assert(visibilityListener != null);
+    assert(expandingSheetContent != null);
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +65,6 @@ class _ExpandingBottomAppWrapper extends StatelessWidget{
               //Expandable appbar
               child: prefix0.LyreDraggableScrollableSheet(
                 expand: true,
-                visible: visibilityListener,
                 maxChildSize: maxHeight,
                 minChildSize: kBottomNavigationBarHeight,
                 borderRadius: BlocProvider.of<LyreBloc>(context).state.currentTheme.borderRadius.toDouble(),

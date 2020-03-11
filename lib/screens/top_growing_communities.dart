@@ -69,7 +69,6 @@ class TopGrowingCommunitiesScreen extends StatelessWidget {
 
   Widget _portraitLayout(BuildContext context) => PersistentBottomAppbarWrapper(
     body: _subredditsList(context),
-    listener: ValueNotifier(true),
     expandingSheetContent: _PortraitLayoutExpandingSheetContent(),
     appBarContent: const SizedBox(),
   );

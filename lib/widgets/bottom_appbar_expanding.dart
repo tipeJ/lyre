@@ -93,7 +93,6 @@ class LyreDraggableScrollableSheet extends StatefulWidget {
     this.maxChildSize = 1.0,
     this.borderRadius = 0.0,
     this.expand = true,
-    this.visible,
     @required this.builder,
   })  : assert(initialChildSize != null),
         assert(minChildSize != null),
@@ -139,8 +138,6 @@ class LyreDraggableScrollableSheet extends StatefulWidget {
   /// use the provided [ScrollController] to enable dragging and scrolling
   /// of the contents.
   final ScrollableWidgetBuilder builder;
-
-  final ValueNotifier<bool> visible;
 
   @override
   _LyreDraggableScrollableSheetState createState() => _LyreDraggableScrollableSheetState();
@@ -594,13 +591,15 @@ class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSh
     _visibilityAnimation.addListener(() {
       setState((){});
     });
-    widget.visible.addListener(() {
-      if (_visible) {
-        _visibilityAnimation.animateTo(1.0, curve: Curves.ease);
-      } else {
-        _visibilityAnimation.animateTo(0.0, curve: Curves.ease);
-      }
-    });
+
+    // TODO: Add an option for auto-hiding the bottom appbar
+    // widget.visible.addListener(() {
+    //   if (_visible) {
+    //     _visibilityAnimation.animateTo(1.0, curve: Curves.ease);
+    //   } else {
+    //     _visibilityAnimation.animateTo(0.0, curve: Curves.ease);
+    //   }
+    // });
     _scrollController = LyreDraggableScrollableSheetScrollController(extent: _extent);
   }
 
@@ -639,7 +638,7 @@ class _LyreDraggableScrollableSheetState extends State<LyreDraggableScrollableSh
     return Future.value(true);
   }
 
-  bool get _visible => widget.visible != null ? widget.visible.value : true;
+  // bool get _visible => widget.visible != null ? widget.visible.value : true;
 
   @override
   Widget build(BuildContext context) {

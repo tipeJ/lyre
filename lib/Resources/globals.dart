@@ -161,6 +161,13 @@ TypeFilter parseTypeFilter(String typeFilter){
 
 bool notNull(Object o) => o != null;
 
+extension nonNull on List {
+
+  List nonNulls() {
+    return this.where((w) => notNull(w)).toList();
+  }
+}
+
 const String appName = "Lyre";
 const String appVersion = "0.2";
 

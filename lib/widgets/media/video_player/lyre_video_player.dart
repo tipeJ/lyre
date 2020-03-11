@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lyre/Models/models.dart';
 import 'video_controls.dart';
 import 'package:flutter/widgets.dart';
 import 'video_player.dart';
@@ -14,10 +15,8 @@ typedef Widget LyreVideoRoutePageBuilder(
     Animation<double> secondaryAnimation,
     _LyreVideoControllerProvider controllerProvider);
 
-/// A Video Player with Material and Cupertino skins.
-///
 /// `video_player` is pretty low level. LyreVideo wraps it in a friendly skin to
-/// make it easy to use!
+/// make it easy to use! Taken from chewie
 class LyreVideo extends StatefulWidget {
   LyreVideo({
     Key key,
@@ -47,7 +46,7 @@ class LyreVideoState extends State<LyreVideo> {
 
   @override
   void dispose() {
-    widget.controller.removeListener(listener);
+    // ! widget.controller?.removeListener(listener);
     super.dispose();
   }
 
@@ -148,9 +147,11 @@ class LyreVideoState extends State<LyreVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return _LyreVideoControllerProvider(
-      controller: widget.controller,
-      child: LyreVideoPlayer(),
+    return Scaffold(
+      body: _LyreVideoControllerProvider(
+        controller: widget.controller,
+        child: LyreVideoPlayer(),
+      )
     );
   }
 }
@@ -163,11 +164,13 @@ class LyreVideoState extends State<LyreVideo> {
 /// In addition, you can listen to the LyreVideoController for presentational
 /// changes, such as entering and exiting full screen mode. To listen for
 /// changes to the playback, such as a change to the seek position of the
-/// player, please use the standard information provided by the
-/// `VideoPlayerController`.
+/// 
+/// Supports videos with multiple qualities/formats in addition to single url
+/// sources. Provide either a VideoPlayerController or a list of 
+/// [LyreVideoFormat]s
 class LyreVideoController extends ChangeNotifier {
   LyreVideoController({
-    this.videoPlayerController,
+    this.sourceUrl,
     this.aspectRatio,
     this.autoInitialize = false,
     this.autoPlay = false,
@@ -184,6 +187,9 @@ class LyreVideoController extends ChangeNotifier {
     this.isLive = false,
     this.allowFullScreen = true,
     this.allowMuting = true,
+    this.formats,
+    this.videoPlayerController,
+    this.formatHint,
     this.systemOverlaysAfterFullScreen = SystemUiOverlay.values,
     this.deviceOrientationsAfterFullScreen = const [
       DeviceOrientation.portraitUp,
@@ -191,11 +197,13 @@ class LyreVideoController extends ChangeNotifier {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ],
-    this.routePageBuilder = null,
-  }) : assert(videoPlayerController != null,
-            'You must provide a controller to play a video') {
+    this.routePageBuilder,
+  }) : assert((formats != null && formats.isNotEmpty) || videoPlayerController != null,
+            'You must provide a format to play a video') {
     _initialize();
   }
+  /// Source url of the network video file. Not necessarily the video link that is played
+  final String sourceUrl;
 
   /// Defines if the player will sleep in fullscreen or not
   final bool allowedScreenSleep;
@@ -220,7 +228,7 @@ class LyreVideoController extends ChangeNotifier {
 
   /// Defines customised controls. Check [MaterialControls] or
   /// [CupertinoControls] for reference.
-  final Widget customControls;
+  Widget customControls;
 
   /// Defines the set of allowed device orientations after exiting fullscreen
   final List<DeviceOrientation> deviceOrientationsAfterFullScreen;
@@ -239,7 +247,7 @@ class LyreVideoController extends ChangeNotifier {
 
   /// The placeholder is displayed underneath the Video before it is initialized
   /// or played.
-  final Widget placeholder;
+  Widget placeholder;
 
   /// Defines a custom RoutePageBuilder for the fullscreen
   final LyreVideoRoutePageBuilder routePageBuilder;
@@ -258,7 +266,18 @@ class LyreVideoController extends ChangeNotifier {
   final List<SystemUiOverlay> systemOverlaysAfterFullScreen;
 
   /// The controller for the video you want to play
-  final VideoPlayerController videoPlayerController;
+  VideoPlayerController videoPlayerController;
+
+  final List<LyreVideoFormat> formats;
+
+  bool get isSingleFormat => formats == null || formats.isEmpty;
+
+  // Index of the current video format
+  int _currentFormat = 0;
+
+  LyreVideoFormat get currentFormat => formats == null ? null : formats[_currentFormat];
+
+  final VideoFormat formatHint;
 
   bool _isFullScreen = false;
 
@@ -277,6 +296,11 @@ class LyreVideoController extends ChangeNotifier {
   bool get isFullScreen => _isFullScreen;
 
   Future _initialize() async {
+    // Initialize videoplayercontroller if formats are not given
+    if (videoPlayerController == null) {
+      videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
+      await videoPlayerController.initialize();
+    }
     await videoPlayerController.setLooping(looping);
 
     if ((autoInitialize || autoPlay) &&
@@ -299,6 +323,27 @@ class LyreVideoController extends ChangeNotifier {
     if (fullScreenByDefault) {
       videoPlayerController.addListener(_fullScreenListener);
     }
+  }
+
+  /// Change the current format of the file to the given index
+  Future<void> changeFormat(int i) async {
+    if (formats == null || formats.isEmpty) return;
+
+    final playing = videoPlayerController.value.isPlaying;
+    final position = videoPlayerController.value.position;
+
+    if (playing) await pause();
+    _currentFormat = i;
+
+    // Initialize
+    videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
+    await videoPlayerController.initialize();
+    await setLooping(looping);
+    await seekTo(position);
+    if (playing) await videoPlayerController.play();
+    if (fullScreenByDefault) videoPlayerController.addListener(_fullScreenListener);
+
+    notifyListeners();
   }
 
   void _fullScreenListener() async {
@@ -349,6 +394,12 @@ class LyreVideoController extends ChangeNotifier {
   Future<void> setVolume(double volume) async {
     await videoPlayerController.setVolume(volume);
   }
+
+  @override
+  Future<void> dispose() async {
+    await videoPlayerController?.dispose();
+    super.dispose();
+  }
 }
 
 class _LyreVideoControllerProvider extends InheritedWidget {
@@ -363,6 +414,7 @@ class _LyreVideoControllerProvider extends InheritedWidget {
   final LyreVideoController controller;
 
   @override
-  bool updateShouldNotify(_LyreVideoControllerProvider old) =>
-      controller != old.controller;
+  bool updateShouldNotify(_LyreVideoControllerProvider old) {
+    return controller != old.controller || controller.currentFormat != old.controller.currentFormat;
+  }
 }

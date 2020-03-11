@@ -1,11 +1,8 @@
 import 'dart:math';
-
 import 'package:lyre/screens/screens.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/cupertino.dart' as mat;
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/textstyles.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -13,7 +10,6 @@ import 'package:lyre/Themes/themes.dart';
 import 'package:lyre/screens/interfaces/previewc.dart';
 import 'package:lyre/widgets/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../screens/Animations/OnSlide.dart';
 import 'ActionItems.dart';

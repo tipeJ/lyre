@@ -156,7 +156,7 @@ class _RedditLiveScreenState extends State<RedditLiveScreen> {
       showControls: true,
       aspectRatio: _videoPlayerController.value.aspectRatio,
       autoPlay: true,
-      videoPlayerController: _videoPlayerController,
+      // videoPlayerController: _videoPlayerController,
       looping: true,
       placeholder: CircularProgressIndicator(),
       customControls: LyreMaterialVideoControls(

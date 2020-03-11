@@ -872,9 +872,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(state.currentUserName.isEmpty ? "Guest" : state.currentUserName, style: Theme.of(context).textTheme.body1),
-                          Visibility(
-                            visible: state.showKarmaInMenuSheet && state.currentUser != null,
-                            child: Row(
+                          state.showKarmaInMenuSheet && state.currentUser != null && !state.readOnly 
+                            ? Row(
                               children: <Widget>[
                                 const Icon(MdiIcons.yinYang, size: 12.0),
                                 Padding(
@@ -882,8 +881,8 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                                   child: Text((state.currentUser.commentKarma + state.currentUser.linkKarma).toString(), style: const TextStyle(fontSize: 12.0))
                                 ),
                               ],)
-                          )
-                        ]
+                            : null
+                        ].nonNulls()
                       ),
                     ],
                   )
@@ -979,7 +978,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
-  ///Returns the Submission options sheet.
+  /// Returns the Submission options sheet.
   Widget _submissionOptionsSheet(BuildContext context) {
     switch (_submissionSelectionVisibility) {
       case _SubmissionSelectionVisibility.Copy:
@@ -1153,9 +1152,41 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            ActionSheetTitle(
-              title: _selectedSubmission.title,
-            ),
+            _selectedSubmission.preview.isNotEmpty
+              ? ActionSheetTitle(
+                customTitle: Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 50.0,
+                        height: 50.0,
+                        child: Image(
+                          image: AdvancedNetworkImage(_selectedSubmission.preview.last.source.url.toString())
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedSubmission.title, 
+                              maxLines: 1,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              style: LyreTextStyles.bottomSheetTitle(context),
+                            ),
+                            Text(
+                              "${_selectedSubmission.upvotes} ${_selectedSubmission.upvoteRatio != null ? (_selectedSubmission.upvoteRatio * 100).toString() + '%Upvoted' : ''}",
+                            )
+                          ]
+                        )
+                      )
+                    ]
+                  )
+                )
+              )
+              : ActionSheetTitle(title: _selectedSubmission.title),
             !_selectedSubmission.archived
               ? InkWell(
                   child: Container(
@@ -1539,8 +1570,8 @@ class __submissionListState extends State<_submissionList> {
                 controller: _scrollController,
                 physics: AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, b) => [
-                  // const SliverToBoxAdapter()
-                  LyreHeader(state: state)
+                  const SliverToBoxAdapter()
+                  // LyreHeader(state: state)
                 ],
                 body: RefreshIndicator(
                   onRefresh: () {

@@ -7,6 +7,7 @@ import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/Bloc/bloc.dart';
+import 'package:lyre/widgets/media/media_viewer.dart';
 
 class Router {
   static Widget generateWidget(String route, dynamic args, [String key]) {
@@ -104,6 +105,10 @@ class Router {
           create: (context) => TopCommunityBloc(),
           child: TopGrowingCommunitiesScreen(),
         );
+      case 'media_viewer':
+        return Scaffold(
+          body: MediaViewer(url: args)
+        );
       default:
         return Scaffold(
           body: Center(
@@ -114,6 +119,6 @@ class Router {
   }
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final Widget widget = generateWidget(settings.name, settings.arguments);
-    return CupertinoPageRoute(builder: (_) => widget);
+    return MaterialPageRoute(builder: (_) => widget);
   }
 }

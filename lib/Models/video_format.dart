@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Class for storing info of network videos. Normal direct links do not need these, as the don't retrieve thumbnails
-class LyreVideoFormat {
+class LyreVideoFormat extends Equatable{
   
   /// Video format id (i.e mp4)
   final String formatId;
@@ -35,4 +37,6 @@ class LyreVideoFormat {
     this.bitrate,
     this.framerate
   });
+
+  List get props => [formatId, url, width, height, duration, filesize, bitrate, framerate];
 }

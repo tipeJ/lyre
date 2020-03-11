@@ -27,13 +27,13 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   bool _displayTapped = false;
 
   static const buttonPadding = 20.0;
+  static const expandedBarHeight = 48.0;
 
   AnimationController _expansionController;
   bool isExpanded = false;
-  static const expandedBarHeight = 48.0;
   
 
-    double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
+  double lerp(double min, double max) => lerpDouble(min, max, _expansionController.value);
 
   void _handleExpandedDragUpdate(DragUpdateDetails details) {
     _expansionController.value -= details.primaryDelta /
@@ -70,7 +70,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   }
 
   static const barHeight = 48.0;
-  static const marginSize = 5.0;
 
   VideoPlayerController controller;
   LyreVideoController lyreVideoController;
@@ -83,7 +82,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
               context,
               lyreVideoController.videoPlayerController.value.errorDescription,
             )
-          : Center(
+          : const Center(
               child: Icon(
                 Icons.error,
                 color: Colors.white,
@@ -152,7 +151,6 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
 
   @override
   void didChangeDependencies() {
-    print('change');
     final _oldController = lyreVideoController;
     lyreVideoController = LyreVideoController.of(context);
     controller = lyreVideoController.videoPlayerController;
@@ -173,7 +171,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     return Material(
       color: Colors.black54,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: buttonPadding),
+        padding: const EdgeInsets.symmetric(horizontal: buttonPadding),
         height: barHeight,
         child: Row(
           children: <Widget>[
@@ -198,7 +196,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     BuildContext context,
   ) {
     return Container(
-      height: lerp(0, 48.0),
+      height: lerp(0, barHeight),
       color: Colors.black.withOpacity(0.5),
       child: Padding(
         child: Row(
@@ -214,14 +212,29 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
                   child: Text(lyreVideoController.formats[i].height.toString()),
                 )
               ),
-              onSelected: (format) => lyreVideoController.changeFormat(lyreVideoController.formats.indexOf(format)),
+              onSelected: (format) {
+                LyreVideoController.of(context).changeFormat(lyreVideoController.formats.indexOf(format)).then((_){
+                  final _oldController = lyreVideoController;
+                  lyreVideoController = LyreVideoController.of(context);
+                  controller = lyreVideoController.videoPlayerController;
+
+                  if (true) {
+                    _dispose();
+                    _initialize().then((_){
+                    });
+                  }
+                  
+                });
+                
+              },
             ),
             Row(children: <Widget>[
               _buildSlowerButton(),
               _buildPlayBackSpeedIndicator(),
               _buildFasterButton()
             ],),
-            Icon(Icons.share) //TODO: IMPLEMENT
+            Text(lyreVideoController.currentFormat.height.toString()),
+            const Icon(Icons.share) //TODO: IMPLEMENT
           ],
         ),
         padding: EdgeInsets.symmetric(horizontal: buttonPadding),
@@ -229,10 +242,11 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     );
   }
 
+  /// Widget which shows current playback speed
   Container _buildPlayBackSpeedIndicator(){
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: buttonPadding),
-      child: Material(
+      margin: const EdgeInsets.symmetric(horizontal: buttonPadding),
+      child: const Material(
         child: Text(
           "1.0" // ? NOT YET SUPPORTED BY VIDEO_PLAYER
         ),
@@ -240,24 +254,26 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     );
   }
 
+  /// Button to slow playback speed
   GestureDetector _buildSlowerButton() {
     return GestureDetector(
       onTap: _playSlower,
       child: Container(
         height: barHeight,
-        child: Center(
+        child: const Center(
           child: Icon(Icons.fast_rewind)
         ),
       ),
     );
   }
 
+  /// Button to raising playback speed
   GestureDetector _buildFasterButton() {
     return GestureDetector(
       onTap: _playFaster,
       child: Container(
         height: barHeight,
-        child: Center(
+        child: const Center(
           child: Icon(Icons.fast_forward)
         ),
       ),
@@ -378,7 +394,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     );
   }
 
-  String formatDuration(Duration position) {
+  static String formatDuration(Duration position) {
     final ms = position.inMilliseconds;
 
     int seconds = ms ~/ 1000;
@@ -421,7 +437,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
     }
 
     if (lyreVideoController.showControlsOnInitialize) {
-      _initTimer = Timer(Duration(milliseconds: 200), () {
+      _initTimer = Timer(const Duration(milliseconds: 200), () {
       });
     }
   }
@@ -429,7 +445,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
   void _onExpandCollapse() {
     setState(() {
       lyreVideoController.toggleFullScreen();
-      _showAfterExpandCollapseTimer = Timer(Duration(milliseconds: 300), () {
+      _showAfterExpandCollapseTimer = Timer(const Duration(milliseconds: 300), () {
         setState(() {
           _cancelAndRestartTimer();
         });

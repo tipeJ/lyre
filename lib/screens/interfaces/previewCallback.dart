@@ -6,7 +6,7 @@ abstract class PreviewCallback{
 }
 
 abstract class MediaViewerCallback {
-  bool canPopMediaViewer();
+  Future<bool> canPopMediaViewer();
 }
 
 // Source view of preview. Needed for deciding whether to show every line of selftext

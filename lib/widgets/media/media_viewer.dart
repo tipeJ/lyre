@@ -9,25 +9,28 @@ import 'package:lyre/utils/media_utils.dart';
 import 'package:lyre/utils/urlUtils.dart';
 import 'package:video_player/video_player.dart';
 
-class MediaViewer extends StatelessWidget with MediaViewerCallback{
+class MediaViewer extends StatefulWidget {
   final String url;
 
+  MediaViewer({@required this.url});
+
+  @override
+  _MediaViewerState createState() => _MediaViewerState();
+}
+
+class _MediaViewerState extends State<MediaViewer>{
   Future<void> _videoInitialized;
-  // VideoPlayerController _videoController;
+
   LyreVideoController _vController;
-  
-  MediaViewer({@required this.url, }) {
-    PreviewCall().mediaViewerCallback = this; 
-  }
 
   @override
   Widget build(BuildContext context) {
-    final linkType = getLinkType(url);
+    final linkType = getLinkType(widget.url);
     if (linkType == LinkType.DirectImage || albumLinkTypes.contains(linkType)){ 
-      return ImageViewer(url);
+      return ImageViewer(widget.url);
     } else if (videoLinkTypes.contains(linkType)) {
       return FutureBuilder(
-        future: handleVideoLink(linkType, url),
+        future: handleVideoLink(linkType, widget.url),
         builder: (context, snapshot){
           if (snapshot.connectionState == ConnectionState.done){
             if (snapshot.error == null) return LyreVideo(
@@ -40,7 +43,7 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
         },
       );
     } 
-    return Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage)));
+    return const Center(child: Material(child: Text("Media type not supported", style: LyreTextStyles.errorMessage)));
   }
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
@@ -70,7 +73,6 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
       showControls: true,
       aspectRatio: formats[0].width / formats[0].height,
       autoPlay: true,
-      // videoPlayerController: _videoController,
       looping: true,
       placeholder: const CircularProgressIndicator(),
       formatHint: format,
@@ -87,17 +89,15 @@ class MediaViewer extends StatelessWidget with MediaViewerCallback{
   }
 
   @override
-  bool canPopMediaViewer() {
+  void dispose() {
     if (_vController != null && _vController.isFullScreen){
       _vController.exitFullScreen();
-      return false;
     } else if (_vController != null) {
-      _vController?.pause();
-      //_videoController?.dispose();
-      _vController?.dispose();
-      _vController = null;
-      // _videoController = null;
+      _vController.pause().then((_){
+        _vController.dispose();
+        _vController = null;
+      });
     }
-    return true;
+    super.dispose();
   }
 }

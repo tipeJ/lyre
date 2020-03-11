@@ -38,7 +38,7 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     //TODO: Implement YT plugin?
     launchURL(context, url);
   } else if (linkType == LinkType.RPAN) {
-    // source MUST be submission
+    // source MUST be a submission
     if (!(source is Submission)) return;
     Navigator.of(context).pushNamed('livestream', arguments: source);
   } else if (linkType == LinkType.Internal){
@@ -111,7 +111,8 @@ void handleLinkClick(dynamic source, BuildContext context, [LinkType suppliedLin
     // Show comments
     Provider.of<PeekNotifier>(context).changePeek("comments", source);
   } else {
-    PreviewCall().callback.preview(url);
+    Navigator.of(context).pushNamed('media_viewer', arguments: url);
+    // PreviewCall().callback.preview(url);
   }
 }
 

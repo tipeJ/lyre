@@ -54,8 +54,10 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
         } else if (expanded == false){
           animationController.animateTo(0.0, duration: _animationDuration);
         }
-      } else if (lyreVideoController.currentFormat != _currentFormat) setState(() {
-        print("SETTET STATE");
+        return;
+      }
+      setState(() {
+        
       });
     });
     zoomController.addIgnorableListener((){
@@ -104,7 +106,6 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
     BuildContext context,
     LyreVideoController lyreVideoController,
   ) {
-    print('rebuild');
     return lyreVideoController.showControls
         ? lyreVideoController.customControls != null
             ? lyreVideoController.customControls

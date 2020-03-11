@@ -52,7 +52,7 @@ class LyreSplashScreen extends StatelessWidget {
       height: MediaQuery.of(context).size.height,
       child: Center(child: Material(
         color: Colors.grey[900],
-        child: Text('Lyre', style: TextStyle(fontFamily: 'Roboto', fontSize: 32.0, color: Colors.white70, letterSpacing: 3.5,),)
+        child: const Text('Lyre', style: TextStyle(fontFamily: 'Roboto', fontSize: 32.0, color: Colors.white70, letterSpacing: 3.5))
       ),),
       color: Colors.grey[900],
     );
@@ -85,8 +85,8 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   }
 
   @override
-  void previewEnd() {
-    if (isPreviewing && PreviewCall().canPop()) {
+  void previewEnd() async {
+    if (isPreviewing && await PreviewCall().canPop()) {
       previewUrl = "";
       hideOverlay();
     }
@@ -118,7 +118,7 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
   @override
   Future<bool> canPop() async {
     if(isPreviewing){
-      if (PreviewCall().canPop()){
+      if (await PreviewCall().canPop()){
         previewUrl = "";
         hideOverlay();
       }
@@ -136,17 +136,17 @@ class _LyreAppState extends State<LyreApp> with PreviewCallback{
           ignoring: isPreviewing,
           child: ChangeNotifierProvider(
             create: (_) => PeekNotifier(),
-            child: LyreSplitScreen(),
+            child: LyreSplitScreen()
           )
         ),
         Visibility(
           visible: isPreviewing,
           child: Container(
             color: Colors.black.withOpacity(0.8),
-            child: MediaViewer(url: previewUrl,),
-          ),
+            child: MediaViewer(url: previewUrl)
+          )
         )
-      ],)
+      ])
     );
   }
 }

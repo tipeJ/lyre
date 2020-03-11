@@ -15,10 +15,8 @@ typedef Widget LyreVideoRoutePageBuilder(
     Animation<double> secondaryAnimation,
     _LyreVideoControllerProvider controllerProvider);
 
-/// A Video Player with Material and Cupertino skins.
-///
 /// `video_player` is pretty low level. LyreVideo wraps it in a friendly skin to
-/// make it easy to use!
+/// make it easy to use! Taken from chewie
 class LyreVideo extends StatefulWidget {
   LyreVideo({
     Key key,
@@ -267,7 +265,8 @@ class LyreVideoController extends ChangeNotifier {
 
   final List<LyreVideoFormat> formats;
 
-  int _currentFormat = 1;
+  // Index of the current video format
+  int _currentFormat = 0;
 
   LyreVideoFormat get currentFormat => _currentFormat == -1 ? null : formats[_currentFormat];
 
@@ -316,7 +315,8 @@ class LyreVideoController extends ChangeNotifier {
     }
   }
 
-  void changeFormat(int i) async {
+  /// Change the current format of the file to the given index
+  Future<void> changeFormat(int i) async {
     final playing = videoPlayerController.value.isPlaying;
     final position = videoPlayerController.value.position;
 
@@ -326,14 +326,10 @@ class LyreVideoController extends ChangeNotifier {
     // Initialize
     videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
     await videoPlayerController.initialize();
-    await videoPlayerController.setLooping(looping);
-
-    await videoPlayerController.seekTo(position);
+    await setLooping(looping);
+    await seekTo(position);
     if (playing) await videoPlayerController.play();
-
-    if (fullScreenByDefault) {
-      videoPlayerController.addListener(_fullScreenListener);
-    }
+    if (fullScreenByDefault) videoPlayerController.addListener(_fullScreenListener);
 
     notifyListeners();
   }
@@ -388,8 +384,8 @@ class LyreVideoController extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
-    // ! videoPlayerController.dispose();
+  Future<void> dispose() async {
+    await videoPlayerController?.dispose();
     super.dispose();
   }
 }
@@ -407,8 +403,6 @@ class _LyreVideoControllerProvider extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_LyreVideoControllerProvider old) {
-    print("ASDASDASD");
-    print((controller != old.controller || controller.currentFormat != old.controller.currentFormat));
     return controller != old.controller || controller.currentFormat != old.controller.currentFormat;
   }
 }

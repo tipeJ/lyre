@@ -14,8 +14,8 @@ class PreviewCall {
 
   PreviewCallback callback;
 
-  bool canPop() {
-    return mediaViewerCallback != null ? mediaViewerCallback.canPopMediaViewer() : true;
+  Future<bool> canPop() async {
+    return mediaViewerCallback != null ? mediaViewerCallback.canPopMediaViewer() : Future.value(true);
   }
 
   MediaViewerCallback mediaViewerCallback;

@@ -978,7 +978,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
     }
   }
 
-  ///Returns the Submission options sheet.
+  /// Returns the Submission options sheet.
   Widget _submissionOptionsSheet(BuildContext context) {
     switch (_submissionSelectionVisibility) {
       case _SubmissionSelectionVisibility.Copy:
@@ -1152,9 +1152,41 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            ActionSheetTitle(
-              title: _selectedSubmission.title,
-            ),
+            _selectedSubmission.preview.isNotEmpty
+              ? ActionSheetTitle(
+                customTitle: Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 50.0,
+                        height: 50.0,
+                        child: Image(
+                          image: AdvancedNetworkImage(_selectedSubmission.preview.last.source.url.toString())
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedSubmission.title, 
+                              maxLines: 1,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              style: LyreTextStyles.bottomSheetTitle(context),
+                            ),
+                            Text(
+                              "${_selectedSubmission.upvotes} ${_selectedSubmission.upvoteRatio != null ? (_selectedSubmission.upvoteRatio * 100).toString() + '%Upvoted' : ''}",
+                            )
+                          ]
+                        )
+                      )
+                    ]
+                  )
+                )
+              )
+              : ActionSheetTitle(title: _selectedSubmission.title),
             !_selectedSubmission.archived
               ? InkWell(
                   child: Container(

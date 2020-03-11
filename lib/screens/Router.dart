@@ -20,8 +20,10 @@ class Router {
           source = args['content_source'] as ContentSource;
           if (source == ContentSource.Redditor || source == ContentSource.Subreddit) {
             target = args['target'];
-          } else {
+          } else if (source == ContentSource.Self) {
             target = SelfContentType.Comments;
+          } else if (source == ContentSource.Frontpage) {
+            target = FRONTPAGE_TARGET;
           }
         } else {
           target = homeSubreddit;

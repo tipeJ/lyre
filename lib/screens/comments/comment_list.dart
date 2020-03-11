@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:draw/draw.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as mat;
@@ -387,7 +386,6 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                 height: _barVisibility == _CommentsBottomBarVisibility.Default ? kBottomNavigationBarHeight : 0.0,
                 curve: Curves.ease,
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     Material(
                       color: Colors.transparent,
@@ -405,15 +403,15 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Text(
-                                "${widget.state.comments.length} Comments",
+                                "${(widget.state.submission as Submission).subreddit.displayName}",
                                 style: Theme.of(context).textTheme.title,
                               ),
                               Text.rich(
                                 TextSpan(
                                   children: [
-                                    TextSpan(text: widget.state.sortTypeString()),
+                                    TextSpan(text: "${widget.state.comments.length} Comments"),
                                     TextSpan(text: widget.state.submission is Submission
-                                      ? " | ${(widget.state.submission as Submission).subreddit.displayName}"
+                                      ? " | ${widget.state.sortTypeString()}"
                                       : "")
                                   ]
                                 ),
@@ -443,127 +441,126 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                 curve: Curves.ease,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Expanded(
-                        child: mat.Visibility(
-                          visible: _barVisibility == _CommentsBottomBarVisibility.QuickReply,
-                          child: _replySendingState == SendingState.Error
-                            ? Text(_replyErrorMessage ?? "Error Sending Reply")
-                            : mat.Visibility(
-                              visible: _replySendingState != SendingState.Error,
-                                child: TextField(
-                                  enabled: _barVisibility == _CommentsBottomBarVisibility.QuickReply && _replySendingState == SendingState.Inactive,
-                                  autofocus: true,
-                                  controller: _replyController,
-                                  decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                  child: Material(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: mat.Visibility(
+                            visible: _barVisibility == _CommentsBottomBarVisibility.QuickReply,
+                            child: _replySendingState == SendingState.Error
+                              ? Text(_replyErrorMessage ?? "Error Sending Reply")
+                              : mat.Visibility(
+                                visible: _replySendingState != SendingState.Error,
+                                  child: TextField(
+                                    enabled: _barVisibility == _CommentsBottomBarVisibility.QuickReply && _replySendingState == SendingState.Inactive,
+                                    autofocus: true,
+                                    controller: _replyController,
+                                    decoration: InputDecoration.collapsed(hintText: 'Reply'),
+                                )
                               )
-                            )
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: _replySendingState == SendingState.Error
-                          ? Icon(Icons.refresh)
-                          : Icon(Icons.fullscreen),
-                        onPressed: () {
-                          if (_replySendingState == SendingState.Error) {
-                            setState(() {
-                              _replySendingState = SendingState.Inactive;
-                            });
-                          } else if (_replySendingState == SendingState.Inactive) {
-                            // Expand quickreply to a full Reply window
-                            Navigator.pushNamed(context, 'reply', arguments: {
-                              'content'        : BlocProvider.of<CommentsBloc>(context).state.submission,
-                              'reply_text'  : _replyController?.text
-                            }).then((returnValue) {
-                              if (returnValue is Comment) {
-                                // Successful return
-                              } else {
-                                setState(() {
-                                  _replySendingState = SendingState.Inactive;
-                                  _barVisibility = _CommentsBottomBarVisibility.Default;
-                                });
-                              }
-                            }); 
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: _replyTrailingAction(),
-                        onPressed: () {
-                          if (_replySendingState == SendingState.Inactive) {
-                            if (_replyController?.text.isEmpty) {
-                              final emptyTextSnackBar = const SnackBar(
-                                content: Text("Cannot Send an Empty Reply"),
-                                duration: Duration(seconds: 1),
-                              );
-                              Scaffold.of(context).showSnackBar(emptyTextSnackBar);
-                              return;
-                            }
-
-                            setState(() {
-                              _replySendingState = SendingState.Sending;
-                            });
-
-                            reply(BlocProvider.of<CommentsBloc>(context).state.submission, _replyController.text).then((returnValue) {
-                              // Show error message if return value is a string (an error), or dismiss QuickReply window.
-                              if (returnValue is String) {
-                                // Error
-                                setState(() {
-                                  _replySendingState = SendingState.Error;
-                                  _replyErrorMessage = returnValue;
-                                });
-                              } else {
-                                // Success
-                                setState(() {
-                                  _barVisibility = _CommentsBottomBarVisibility.Default;
+                        IconButton(
+                          icon: _replySendingState == SendingState.Error
+                            ? Icon(Icons.refresh)
+                            : Icon(Icons.fullscreen),
+                          onPressed: () {
+                            if (_replySendingState == SendingState.Error) {
+                              setState(() {
+                                _replySendingState = SendingState.Inactive;
+                              });
+                            } else if (_replySendingState == SendingState.Inactive) {
+                              // Expand quickreply to a full Reply window
+                              Navigator.pushNamed(context, 'reply', arguments: {
+                                'content'    : BlocProvider.of<CommentsBloc>(context).state.submission,
+                                'reply_text' : _replyController?.text
+                              }).then((returnValue) {
+                                if (returnValue is Comment) {
+                                  // Successful return
+                                } else {
+                                  setState(() {
                                     _replySendingState = SendingState.Inactive;
-                                });
+                                    _barVisibility = _CommentsBottomBarVisibility.Default;
+                                  });
+                                }
+                              }); 
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: _replyTrailingAction(),
+                          onPressed: () {
+                            if (_replySendingState == SendingState.Inactive) {
+                              if (_replyController?.text.isEmpty) {
+                                final emptyTextSnackBar = const SnackBar(
+                                  content: Text("Cannot Send an Empty Reply"),
+                                  duration: Duration(seconds: 1),
+                                );
+                                Scaffold.of(context).showSnackBar(emptyTextSnackBar);
+                                return;
                               }
-                            });
-                          } else if (_replySendingState == SendingState.Error) {
-                            setState(() {
-                             _barVisibility = _CommentsBottomBarVisibility.Default;
-                              _replySendingState = SendingState.Inactive;
-                            });
-                          }
-                        },
-                      )
-                    ],
+                                setState(() {
+                                _replySendingState = SendingState.Sending;
+                              });
+                                reply(BlocProvider.of<CommentsBloc>(context).state.submission, _replyController.text).then((returnValue) {
+                                // Show error message if return value is a string (an error), or dismiss QuickReply window.
+                                if (returnValue is String) {
+                                  // Error
+                                  setState(() {
+                                    _replySendingState = SendingState.Error;
+                                    _replyErrorMessage = returnValue;
+                                  });
+                                } else {
+                                  // Success
+                                  setState(() {
+                                    _barVisibility = _CommentsBottomBarVisibility.Default;
+                                      _replySendingState = SendingState.Inactive;
+                                  });
+                                }
+                              });
+                            } else if (_replySendingState == SendingState.Error) {
+                              setState(() {
+                               _barVisibility = _CommentsBottomBarVisibility.Default;
+                                _replySendingState = SendingState.Inactive;
+                              });
+                            }
+                          },
+                        )
+                      ],
+                    )
                   )
                 )
               )
             ]
           )
         : Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Flexible(
-                  child: Text(
-                    "You are viewing a single comment",
-                    maxLines: 1,
-                    style: Theme.of(context).primaryTextTheme.body1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 5.0),
-                  child: FlatButton(
-                    textColor: Theme.of(context).primaryTextTheme.body1.color,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Flexible(
                     child: Text(
-                      "View All Comments",
-                    ),
-                    onPressed: (){
-                      BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: widget.state.submission, commentSortType: CommentSortType.top));
-                    },
+                      "You are viewing a single comment",
+                      maxLines: 1,
+                      style: Theme.of(context).primaryTextTheme.body1,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: FlatButton(
+                      textColor: Theme.of(context).primaryTextTheme.body1.color,
+                      child: Text(
+                        "View All Comments",
+                      ),
+                      onPressed: (){
+                        BlocProvider.of<CommentsBloc>(context).add(SortChanged(submission: widget.state.submission, commentSortType: CommentSortType.top));
+                      },
+                    )
                   )
-                )
-              ],
+                ],
+              )
             )
-          )
     );
               
   }
@@ -586,7 +583,7 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
         : ActionSheetInkwell(
             title: Row(children: <Widget>[
               Padding(
-                padding: EdgeInsets.only(right: 5.0),
+                padding: const EdgeInsets.only(right: 5.0),
                 child: Icon(getCommentsSortIcon(commentSortTypes[index-1]))
               ),
               Text(commentSortTypes[index-1])

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/Resources/globals.dart';
 import 'package:lyre/Resources/reddit_api_provider.dart';
 import 'package:lyre/Themes/bloc/bloc.dart';
@@ -26,7 +25,9 @@ class SubredditsList extends State<ExpandingSheetContent> {
               InkWell(
                 onTap: () {
                   widget.innerController.reset();
-                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Frontpage));
+                  Navigator.of(context).pushNamed("posts", arguments: {
+                    'content_source' : ContentSource.Frontpage
+                  });
                 },
                 child: Container(
                   alignment: Alignment.centerLeft,
@@ -85,7 +86,10 @@ class SubredditsList extends State<ExpandingSheetContent> {
                 decoration: InputDecoration(hintText: 'Search Subscriptions'),
                 onEditingComplete: () {
                   widget.innerController.reset();
-                  BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: searchQuery));
+                  Navigator.of(context).pushNamed("posts", arguments: {
+                    'content_source' : ContentSource.Subreddit,
+                    'target' : searchQuery
+                  });
                 },
               ),
             ),
@@ -108,7 +112,10 @@ class SubredditsList extends State<ExpandingSheetContent> {
   /// Open a subreddit from the list
   _openSub(String s) {
     widget.innerController.reset();
-    BlocProvider.of<PostsBloc>(context).add(PostsSourceChanged(source: ContentSource.Subreddit, target: s));
+    Navigator.of(context).pushNamed("posts", arguments: {
+      'content_source' : ContentSource.Subreddit,
+      'target' : s
+    });
   }
 
   /// Returns the list of subscriptions

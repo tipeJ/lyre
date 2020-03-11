@@ -48,35 +48,42 @@ class _MediaViewerState extends State<MediaViewer>{
 
   Future<void> handleVideoLink(LinkType linkType, String url) async {
     if (linkType == LinkType.Gfycat) {
-      // final videoUrl = await getGfyVideoUrl(url);
-      // _videoInitialized = _initializeVideo(videoUrl);
+      final videoUrl = await getGfyVideoUrl(url);
+      _videoInitialized = _initializeVideo(url: videoUrl);
     } else if (linkType == LinkType.RedditVideo) {
-      // _videoInitialized = _initializeVideo(url, VideoFormat.dash);
+      _videoInitialized = _initializeVideo(url: url, formatHint: VideoFormat.dash);
     } else if (linkType == LinkType.TwitchClip) {
-      // final clipVideoUrl = await getTwitchClipVideoLink(url);
-      // if (clipVideoUrl.contains('http')) {
-      //   _videoInitialized = _initializeVideo(clipVideoUrl);
-      // } else {
-      //   _videoInitialized = Future.error(clipVideoUrl);
-      // }
+      final clipVideoUrl = await getTwitchClipVideoLink(url);
+      if (clipVideoUrl.contains('http')) {
+        _videoInitialized = _initializeVideo(url: clipVideoUrl);
+      } else {
+        _videoInitialized = Future.error(clipVideoUrl);
+      }
     } else if (linkType == LinkType.Streamable) {
-      final videoUrl = await getStreamableVideoFormats(url);
-      _videoInitialized = _initializeVideo(videoUrl);
+      final formats = await getStreamableVideoFormats(url);
+      _videoInitialized = _initializeVideo(formats: formats);
     }
     return _videoInitialized;
   }
 
-  Future<void> _initializeVideo(List<LyreVideoFormat> formats, [VideoFormat format]) async {
-    // _videoController = VideoPlayerController.network(videoUrl, formatHint: format);
-    // await _videoController.initialize();
+  /// Initialize the video source. Use a string url for single-source videos and a 
+  /// list of [LyreVideoFormat]s for videos with multiple formats/qualities
+  Future<void> _initializeVideo({List<LyreVideoFormat> formats, String url, VideoFormat formatHint}) async {
+    VideoPlayerController videoController;
+    if (url != null) {
+      videoController = VideoPlayerController.network(url, formatHint: formatHint);
+      await videoController.initialize();
+    }
     _vController = LyreVideoController(
+      sourceUrl: url,
       showControls: true,
-      aspectRatio: formats[0].width / formats[0].height,
+      aspectRatio: videoController != null ? videoController.value.aspectRatio : formats[0].width / formats[0].height,
       autoPlay: true,
       looping: true,
       placeholder: const CircularProgressIndicator(),
-      formatHint: format,
+      formatHint: formatHint,
       formats: formats,
+      videoPlayerController: videoController,
       errorBuilder: (context, errorMessage) {
         return Center(
           child: Text(

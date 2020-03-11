@@ -4,6 +4,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:lyre/Models/models.dart';
+import 'package:lyre/Resources/resources.dart';
+import 'package:lyre/utils/utils.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'progress_bar.dart';
 import 'package:video_player/video_player.dart';
 import 'lyre_video_player.dart';
@@ -177,7 +180,7 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
           children: <Widget>[
             _buildPlayPause(controller),
             lyreVideoController.isLive
-                ? Expanded(child: const Text('LIVE'))
+                ? const Expanded(child: Text('LIVE'))
                 : _buildPosition(iconColor),
             lyreVideoController.isLive ? const SizedBox() : _buildProgressBar(),
             lyreVideoController.allowMuting
@@ -202,45 +205,48 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            PopupMenuButton<LyreVideoFormat>(
-              icon: const Icon(Icons.settings),
-              initialValue: lyreVideoController.currentFormat,
-              itemBuilder: (_) => List<PopupMenuItem<LyreVideoFormat>>.generate(
-                lyreVideoController.formats.length, 
-                (i) => PopupMenuItem<LyreVideoFormat>(
-                  value: lyreVideoController.formats[i],
-                  child: Text(lyreVideoController.formats[i].height.toString()),
-                )
-              ),
-              onSelected: (format) {
-                LyreVideoController.of(context).changeFormat(lyreVideoController.formats.indexOf(format)).then((_){
-                  final _oldController = lyreVideoController;
-                  lyreVideoController = LyreVideoController.of(context);
-                  controller = lyreVideoController.videoPlayerController;
-
-                  if (true) {
-                    _dispose();
-                    _initialize().then((_){
-                    });
-                  }
-                  
-                });
-                
-              },
-            ),
-            Row(children: <Widget>[
-              _buildSlowerButton(),
-              _buildPlayBackSpeedIndicator(),
-              _buildFasterButton()
-            ],),
-            Text(lyreVideoController.currentFormat.height.toString()),
-            const Icon(Icons.share) //TODO: IMPLEMENT
+            !lyreVideoController.isSingleFormat ? _buildQualityButton(context) : const SizedBox(),
+            // Row(children: <Widget>[
+            //   _buildSlowerButton(),
+            //   _buildPlayBackSpeedIndicator(),
+            //   _buildFasterButton()
+            // ]),
+            _buildShareButton
           ],
         ),
         padding: EdgeInsets.symmetric(horizontal: buttonPadding),
       )
     );
   }
+
+  PopupMenuButton _buildQualityButton(BuildContext context) => PopupMenuButton<LyreVideoFormat>(
+    child: Row(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(right: 5.0),
+          child: Icon(Icons.settings)
+        ),
+        Text(lyreVideoController.currentFormat.height.toString())
+      ]
+    ),
+    initialValue: lyreVideoController.currentFormat,
+    itemBuilder: (_) => List<PopupMenuItem<LyreVideoFormat>>.generate(
+      lyreVideoController.formats.length, 
+      (i) => PopupMenuItem<LyreVideoFormat>(
+        value: lyreVideoController.formats[i],
+        child: Text(lyreVideoController.formats[i].height.toString()),
+      )
+    ),
+    onSelected: (format) {
+      LyreVideoController.of(context).changeFormat(lyreVideoController.formats.indexOf(format)).then((_){
+        lyreVideoController = LyreVideoController.of(context);
+        controller = lyreVideoController.videoPlayerController;
+        _dispose();
+        _initialize().then((_){
+        });
+      });
+    },
+  );
 
   /// Widget which shows current playback speed
   Container _buildPlayBackSpeedIndicator(){
@@ -319,6 +325,14 @@ class _MaterialControlsState extends State<MaterialControls> with SingleTickerPr
       ),
     );
   }
+
+  IconButton get _buildShareButton => IconButton(
+    icon: const Icon(Icons.share),
+    onPressed: () {
+      shareString(lyreVideoController.sourceUrl);
+    },
+  );
+  
 
   Expanded _buildHitArea() {
     return Expanded(

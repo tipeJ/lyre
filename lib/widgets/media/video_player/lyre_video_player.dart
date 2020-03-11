@@ -164,11 +164,13 @@ class LyreVideoState extends State<LyreVideo> {
 /// In addition, you can listen to the LyreVideoController for presentational
 /// changes, such as entering and exiting full screen mode. To listen for
 /// changes to the playback, such as a change to the seek position of the
-/// player, please use the standard information provided by the
-/// `VideoPlayerController`.
+/// 
+/// Supports videos with multiple qualities/formats in addition to single url
+/// sources. Provide either a VideoPlayerController or a list of 
+/// [LyreVideoFormat]s
 class LyreVideoController extends ChangeNotifier {
   LyreVideoController({
-    // this.videoPlayerController,
+    this.sourceUrl,
     this.aspectRatio,
     this.autoInitialize = false,
     this.autoPlay = false,
@@ -186,6 +188,7 @@ class LyreVideoController extends ChangeNotifier {
     this.allowFullScreen = true,
     this.allowMuting = true,
     this.formats,
+    this.videoPlayerController,
     this.formatHint,
     this.systemOverlaysAfterFullScreen = SystemUiOverlay.values,
     this.deviceOrientationsAfterFullScreen = const [
@@ -195,10 +198,12 @@ class LyreVideoController extends ChangeNotifier {
       DeviceOrientation.landscapeRight,
     ],
     this.routePageBuilder,
-  }) : assert(formats != null && formats.isNotEmpty,
+  }) : assert((formats != null && formats.isNotEmpty) || videoPlayerController != null,
             'You must provide a format to play a video') {
     _initialize();
   }
+  /// Source url of the network video file. Not necessarily the video link that is played
+  final String sourceUrl;
 
   /// Defines if the player will sleep in fullscreen or not
   final bool allowedScreenSleep;
@@ -265,10 +270,12 @@ class LyreVideoController extends ChangeNotifier {
 
   final List<LyreVideoFormat> formats;
 
+  bool get isSingleFormat => formats == null || formats.isEmpty;
+
   // Index of the current video format
   int _currentFormat = 0;
 
-  LyreVideoFormat get currentFormat => _currentFormat == -1 ? null : formats[_currentFormat];
+  LyreVideoFormat get currentFormat => formats == null ? null : formats[_currentFormat];
 
   final VideoFormat formatHint;
 
@@ -289,8 +296,11 @@ class LyreVideoController extends ChangeNotifier {
   bool get isFullScreen => _isFullScreen;
 
   Future _initialize() async {
-    videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
-    await videoPlayerController.initialize();
+    // Initialize videoplayercontroller if formats are not given
+    if (videoPlayerController == null) {
+      videoPlayerController = VideoPlayerController.network(formats[_currentFormat].url, formatHint: formatHint);
+      await videoPlayerController.initialize();
+    }
     await videoPlayerController.setLooping(looping);
 
     if ((autoInitialize || autoPlay) &&
@@ -317,6 +327,8 @@ class LyreVideoController extends ChangeNotifier {
 
   /// Change the current format of the file to the given index
   Future<void> changeFormat(int i) async {
+    if (formats == null || formats.isEmpty) return;
+
     final playing = videoPlayerController.value.isPlaying;
     final position = videoPlayerController.value.position;
 

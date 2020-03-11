@@ -37,12 +37,16 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
   CurvedAnimation animation;
   double fittedScale;
 
-  LyreVideoFormat _currentFormat;
+  Size _currentSize;
   
   @override
   Widget build(BuildContext context) {
     final LyreVideoController lyreVideoController = LyreVideoController.of(context);
-    _currentFormat = lyreVideoController.currentFormat;
+    if (lyreVideoController.isSingleFormat) {
+      _currentSize = lyreVideoController.videoPlayerController.value.size;
+    } else {
+      _currentSize = Size(lyreVideoController.currentFormat.width.toDouble(), lyreVideoController.currentFormat.height.toDouble());
+    }
     final aspectRatio = _calculateAspectRatio(context);
     final videoAspectRatio = lyreVideoController.videoPlayerController.value.aspectRatio;
     fittedScale = aspectRatio / videoAspectRatio;
@@ -92,7 +96,7 @@ class _LyreVideoPlayerState extends State<LyreVideoPlayer> with SingleTickerProv
             initialScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered,
             minScale: PhotoViewComputedScale.contained, //Calculates the corrent initial and minimum scale
-            childSize: Size(_currentFormat.width.toDouble(), _currentFormat.height.toDouble()),
+            childSize: _currentSize,
             child: VideoPlayer(lyreVideoController.videoPlayerController),
           ),
           lyreVideoController.overlay ?? Container(),

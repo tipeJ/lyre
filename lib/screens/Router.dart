@@ -8,6 +8,7 @@ import 'package:lyre/Themes/bloc/bloc.dart';
 import 'package:lyre/screens/screens.dart';
 import 'package:lyre/Bloc/bloc.dart';
 import 'package:lyre/widgets/media/media_viewer.dart';
+import 'package:provider/provider.dart';
 
 class Router {
   static Widget generateWidget(String route, dynamic args, [String key]) {
@@ -100,7 +101,10 @@ class Router {
         return replyWindow(comment, text);
       case 'instant_view':
         final uri = args as Uri;
-        return InstantViewScreen(initialUri: uri);
+        return ChangeNotifierProvider<InstantViewProvider>(
+          create: (_) => InstantViewProvider(),
+          child: InstantViewScreen(initialUri: uri)
+        );
       case 'top_growing':
         return BlocProvider(
           key: Key(key),

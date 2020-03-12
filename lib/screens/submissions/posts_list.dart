@@ -1156,7 +1156,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                         width: 50.0,
                         height: 50.0,
                         child: Image(
-                          image: AdvancedNetworkImage(_selectedSubmission.preview.last.source.url.toString())
+                          image: AdvancedNetworkImage(_selectedSubmission.preview.last.resolutions.first.url.toString())
                         ),
                       ),
                       Padding(

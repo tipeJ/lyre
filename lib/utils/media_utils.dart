@@ -16,6 +16,7 @@ Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async
       final videoUrl = await getGfyVideoUrl(url);
       return _initializeVideo(url: videoUrl);
     } else if (linkType == LinkType.RedditVideo) {
+      print(url.toString());
       return _initializeVideo(url: url, formatHint: VideoFormat.dash);
     } else if (linkType == LinkType.TwitchClip) {
       final clipVideoUrl = await getTwitchClipVideoLink(url);

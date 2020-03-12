@@ -8,6 +8,7 @@ import 'package:lyre/Resources/PreferenceValues.dart';
 import 'package:lyre/Resources/credential_loader.dart';
 import 'package:lyre/Resources/globals.dart' as globals;
 import 'package:lyre/Resources/reddit_api_provider.dart';
+import 'package:lyre/utils/utils.dart';
 import './bloc.dart';
 import '../themes.dart';
 
@@ -207,7 +208,7 @@ Future<List<String>> _getUserSubscriptions(String displayName) async {
   return subscriptions;
 }
 
-Future<LyreState> newLyreState([String displayName]) async {
+Future<LyreState> newLyreState([String displayName]) async {    
     final userNames = (await getAllUsers()).map<String>((redditUser) => redditUser.username.isEmpty ? "Guest" : redditUser.username).toList();
     final currentUser = displayName == null ? await PostsProvider().logInToLatest() : await PostsProvider().logIn(displayName);
 

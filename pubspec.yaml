@@ -27,6 +27,7 @@ dependencies:
   connectivity: ^0.4.6+1
   volume: ^0.1.0
   provider: ^4.0.3
+  xml_parser: ^0.1.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

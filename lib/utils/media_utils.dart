@@ -9,6 +9,7 @@ import 'package:lyre/Resources/globals.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lyre/widgets/media/video_player/lyre_video_player.dart';
 import 'package:video_player/video_player.dart';
+import 'package:xml_parser/xml_parser.dart';
 
 /// Prepare a video URL for playback via a [LyreVideoController]
 Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async {
@@ -16,8 +17,8 @@ Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async
       final videoUrl = await getGfyVideoUrl(url);
       return _initializeVideo(url: videoUrl);
     } else if (linkType == LinkType.RedditVideo) {
-      print(url.toString());
-      return _initializeVideo(url: url, formatHint: VideoFormat.dash);
+      final formats = await getRedditVideoFormats(url);
+      return _initializeVideo(formats: formats);
     } else if (linkType == LinkType.TwitchClip) {
       final clipVideoUrl = await getTwitchClipVideoLink(url);
       if (clipVideoUrl.contains('http')) {
@@ -102,19 +103,21 @@ Future<String> getGfyVideoUrl(String url) {
   return gfycatProvider().getGfyWebmUrl(id);
 }
 
+// * Streamable
 Future<String> getStreamableVideoUrl(String url) async {
   final streamableId = getStreamableId(url);
   final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
   final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
-  print(formats[0].url);
   return formats[0].url;
 }
+
 Future<List<LyreVideoFormat>> getStreamableVideoFormats(String url) async {
   final streamableId = getStreamableId(url);
   final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
   final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
   return formats;
 }
+
 /// Return a list of video formats from a streamable url
 List<LyreVideoFormat> _computeStreamableResponse(String body) {
   // decode Json
@@ -125,7 +128,6 @@ List<LyreVideoFormat> _computeStreamableResponse(String body) {
   }
   List<LyreVideoFormat> formats = [];
   j['files'].forEach((formatId, format) {
-    print(format.toString());
     if (format['url'] == null) return;
     formats.add(LyreVideoFormat(
       formatId: formatId,
@@ -137,5 +139,26 @@ List<LyreVideoFormat> _computeStreamableResponse(String body) {
       bitrate: format['bitrate'] ?? 1000,
     ));
   });
+  return formats;
+}
+
+// TODO: Audio is not working on reddit multi-quality videos
+// * Reddit Internal Videos
+Future<List<LyreVideoFormat>> getRedditVideoFormats(String playlistUrl) async {
+  final baseUrl = playlistUrl.replaceAll("DASHPlaylist.mpd", "");
+  List<LyreVideoFormat> formats = [];
+  final playlist = await PostsProvider().client.get(playlistUrl);
+  final xmlDoc = await compute(XmlDocument.fromString, playlist.body);
+  final List<XmlElement> formatElements = xmlDoc.getElement("AdaptationSet").getElementsWhere(
+    name: 'Representation'
+  );
+  formatElements.forEach((fe) => formats.add(LyreVideoFormat(
+    formatId: fe.getAttribute('mimeType').split('/').last,
+    url: baseUrl + fe.getElement('BaseURL').text,
+    width: int.parse(fe.getAttribute('width')),
+    height: int.parse(fe.getAttribute('height')),
+    framerate: double.parse(fe.getAttribute('frameRate')),
+    filesize: int.parse(fe.getAttribute('bandwidth')),
+  )));
   return formats;
 }

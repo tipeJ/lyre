@@ -69,6 +69,14 @@ class LyreTheme {
     accentColor: HexColor.fromHex(accentColor),
     highlightColor: HexColor.fromHex(highLightColor),
     splashColor: Colors.grey,
+    primaryTextTheme: TextTheme(
+      bodyText1: TextStyle(
+        color: HexColor.fromHex(primaryTextColor)
+      ),
+      bodyText2: TextStyle(
+        color: HexColor.fromHex(secondaryTextColor)
+      )
+    ),
     textTheme: TextTheme(
       body1: TextStyle(
         color: HexColor.fromHex(primaryTextColor),

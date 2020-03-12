@@ -175,7 +175,7 @@ class SidebarView extends StatelessWidget {
         return SliverToBoxAdapter(
           child: OutlineButton(
             child: Padding(
-              padding: EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(10.0),
               child: Text(
                 subbed ? "Unsubscribe" : "Subscribe",
                 style: TextStyle(color: subbed ? LyreColors.unsubscribeColor : LyreColors.subscribeColor),
@@ -205,5 +205,5 @@ class SidebarView extends StatelessWidget {
         )
       )
       : null
-  ].where((w) => notNull(w)).toList();
+  ].nonNulls();
 }

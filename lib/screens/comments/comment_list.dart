@@ -385,63 +385,57 @@ class __CommentsBottomBarState extends State<_CommentsBottomBar> {
                 duration: appBarContentTransitionDuration,
                 height: _barVisibility == _CommentsBottomBarVisibility.Default ? kBottomNavigationBarHeight : 0.0,
                 curve: Curves.ease,
+                color: Theme.of(context).primaryColor,
                 child: Row(
                   children: <Widget>[
-                    Material(
-                      color: Colors.transparent,
-                      child: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),)
-                    ),
+                    IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context),),
                     Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            Scaffold.of(context).showBottomSheet((context) => _sortParamsSheet(context));
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "${(widget.state.submission as Submission).subreddit.displayName}",
-                                style: Theme.of(context).textTheme.title,
+                      child: InkWell(
+                        onTap: () {
+                          Scaffold.of(context).showBottomSheet((context) => _sortParamsSheet(context));
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              "${(widget.state.submission as Submission).subreddit.displayName}",
+                              style: Theme.of(context).textTheme.title,
+                            ),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(text: "${widget.state.comments.length} Comments"),
+                                  TextSpan(text: widget.state.submission is Submission
+                                    ? " | ${widget.state.sortTypeString()}"
+                                    : "")
+                                ]
                               ),
-                              Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(text: "${widget.state.comments.length} Comments"),
-                                    TextSpan(text: widget.state.submission is Submission
-                                      ? " | ${widget.state.sortTypeString()}"
-                                      : "")
-                                  ]
-                                ),
-                                style: LyreTextStyles.timeParams.apply(
-                                  color: Theme.of(context).textTheme.display1.color
-                                ),
+                              style: LyreTextStyles.timeParams.apply(
+                                color: Theme.of(context).textTheme.display1.color
                               ),
-                            ],
-                          )
+                            ),
+                          ],
                         )
                       ),
                     ),
-                    Material(
-                      color: Colors.transparent,
-                      child: IconButton(icon: const Icon(Icons.reply), tooltip: "Reply", onPressed: () {
-                        setState(() {
-                          _barVisibility = _CommentsBottomBarVisibility.QuickReply;
-                        });
-                      })
-                    ),
+                    IconButton(icon: const Icon(Icons.reply), tooltip: "Reply", onPressed: () {
+                      setState(() {
+                        _barVisibility = _CommentsBottomBarVisibility.QuickReply;
+                      });
+                    }),
                   ],
                 )
               ),
               AnimatedContainer(
                 duration: appBarContentTransitionDuration,
                 height: _barVisibility == _CommentsBottomBarVisibility.QuickReply ? kBottomNavigationBarHeight : 0.0,
+                color: Theme.of(context).primaryColor,
                 curve: Curves.ease,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Material(
+                    color: Theme.of(context).primaryColor,
                     child: Row(
                       children: <Widget>[
                         Expanded(

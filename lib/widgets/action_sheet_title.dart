@@ -47,7 +47,7 @@ class ActionSheetTitle extends StatelessWidget {
             ],
           ),
           showDivider ? const Divider() : null
-        ].where((w) => notNull(w)).toList(),
+        ].nonNulls(),
       )
     );
   }

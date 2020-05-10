@@ -190,11 +190,11 @@ class __InstantViewFABState extends State<_InstantViewFAB> with SingleTickerProv
                             children: <Widget>[
                               Text(
                                 "Text Size",
-                                style: Theme.of(context).primaryTextTheme.bodyText2.apply(color: Theme.of(context).primaryTextTheme.bodyText1.color),
+                                style: Theme.of(context).primaryTextTheme.body1.apply(color: Theme.of(context).primaryTextTheme.body1.color),
                               ),
                               Text(
                                 Provider.of<InstantViewProvider>(context).textSizeTitle,
-                                style: Theme.of(context).primaryTextTheme.bodyText2,
+                                style: Theme.of(context).primaryTextTheme.body2,
                               )
                             ],
                           ),
@@ -202,7 +202,6 @@ class __InstantViewFABState extends State<_InstantViewFAB> with SingleTickerProv
                         onTap: () {
                           Scaffold.of(context).showBottomSheet((_) => Container(
                             width: MediaQuery.of(context).size.width,
-                            color: Theme.of(context).cardColor,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: List<ListTile>.generate(_fontSizesMap.length, (i) => ListTile(

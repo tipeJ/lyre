@@ -221,7 +221,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                         textInputAction: TextInputAction.send,
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          labelText: "Title",
+                          hintText: "Title",
                         ),
                         controller: _titleController,
                       ),
@@ -231,8 +231,7 @@ class SubmitWidgetState extends State<SubmitWindow> with TickerProviderStateMixi
                             style: Theme.of(context).textTheme.body1,
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.only(left: 5.0, right: 85.0),
-                              helperText: "Choose your subreddit",
-                              hintText: 'r/'
+                              hintText: 'Choose your subreddit'
                             ),
                             controller: _subredditController,
                           ),

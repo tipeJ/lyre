@@ -1,10 +1,11 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=D:\JPR\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\admin\3D Objects\Projects\lyre"
+export "FLUTTER_ROOT=D:\flutter"
+export "FLUTTER_APPLICATION_PATH=E:\Projects\Flutter\lyre"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build\ios"
-export "FLUTTER_FRAMEWORK_DIR=D:\JPR\flutter\bin\cache\artifacts\engine\ios"
+export "OTHER_LDFLAGS=$(inherited) -framework Flutter"
+export "FLUTTER_FRAMEWORK_DIR=D:\flutter\bin\cache\artifacts\engine\ios"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"

@@ -70,10 +70,10 @@ class LyreTheme {
     highlightColor: HexColor.fromHex(highLightColor),
     splashColor: Colors.grey,
     primaryTextTheme: TextTheme(
-      bodyText1: TextStyle(
+      body1: TextStyle(
         color: HexColor.fromHex(primaryTextColor)
       ),
-      bodyText2: TextStyle(
+      body2: TextStyle(
         color: HexColor.fromHex(secondaryTextColor)
       )
     ),

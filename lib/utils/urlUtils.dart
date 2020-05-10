@@ -53,7 +53,7 @@ LinkType getLinkType(String url){
     return LinkType.YouTube;
   } else if (url.contains("imgur.com/a/")){
     return LinkType.ImgurAlbum;
-  } else if (url.contains("gfycat.com")){
+  } else if (url.contains("gfycat.com") || url.contains("redgifs.com")){
     return LinkType.Gfycat;
   } else if (url.contains("v.redd.it")){
     return LinkType.RedditVideo;
@@ -89,8 +89,11 @@ String getYoutubeIdFromUrl(String url){
 }
 
 String getGfyId(String url){
-  final divided = url.split("/");
-  return divided.last;
+  var divided = url.split("/").last;
+  if (divided.contains('-')){
+    divided = divided.split('-').first;
+  }
+  return divided;
 }
 
 String getStreamableId(String url){

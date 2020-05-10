@@ -263,124 +263,121 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                 BlocBuilder<LyreBloc, LyreState>(
                   builder: (context, LyreState state) {
                     final currentUser = state.readOnly ? "" : state.currentUserName;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: CustomScrollView(
-                        slivers: <Widget>[
-                          SliverSafeArea(
-                            sliver: SliverToBoxAdapter(
-                              child: CustomExpansionTile(
-                                title: currentUser.isNotEmpty ? currentUser : "Guest",
-                                trailing: state.readOnly
-                                  ? Container()
-                                  : OutlineButton.icon(
-                                      textColor: LyreColors.unsubscribeColor,
-                                      highlightedBorderColor: LyreColors.unsubscribeColor.withOpacity(0.6),
-                                      icon: const Icon(MdiIcons.logout),
-                                      label: const Text("Log Out"),
-                                      onPressed: () async {
-                                        var deleteSettings = false;
-                                        final result = await showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text("Log Out"),
-                                              content: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  const Text("Delete Settings"),
-                                                  StatefulBuilder(
-                                                    builder: (BuildContext context, setState) {
-                                                      return Checkbox(
-                                                        value: deleteSettings,
-                                                        onChanged: (newValue) {
-                                                          setState(() {
-                                                            deleteSettings = newValue;
-                                                          });
-                                                        },
-                                                      );
+                    return ListView(
+                      padding: const EdgeInsets.only(
+                        left: 20.0,
+                        right: 20.0,
+                        bottom: kBottomNavigationBarHeight,
+                      ),
+                      children: <Widget>[
+                        SafeArea(
+                          child: CustomExpansionTile(
+                            title: currentUser.isNotEmpty ? currentUser : "Guest",
+                            trailing: state.readOnly
+                              ? Container()
+                              : OutlineButton.icon(
+                                  textColor: LyreColors.unsubscribeColor,
+                                  highlightedBorderColor: LyreColors.unsubscribeColor.withOpacity(0.6),
+                                  icon: const Icon(MdiIcons.logout),
+                                  label: const Text("Log Out"),
+                                  onPressed: () async {
+                                    var deleteSettings = false;
+                                    final result = await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text("Log Out"),
+                                          content: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Delete Settings"),
+                                              StatefulBuilder(
+                                                builder: (BuildContext context, setState) {
+                                                  return Checkbox(
+                                                    value: deleteSettings,
+                                                    onChanged: (newValue) {
+                                                      setState(() {
+                                                        deleteSettings = newValue;
+                                                      });
                                                     },
-                                                  ),
-                                                ],
+                                                  );
+                                                },
                                               ),
-                                              actions: [
-                                                OutlineButton(
-                                                  child: const Text("Cancel"),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop(false);
-                                                  },
-                                                ),
-                                                OutlineButton(
-                                                  child: const Text("Log Out"),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop(true);
-                                                  },
-                                                )
-                                              ],
-                                            );
-                                          }
+                                            ],
+                                          ),
+                                          actions: [
+                                            OutlineButton(
+                                              child: const Text("Cancel"),
+                                              onPressed: () {
+                                                Navigator.of(context).pop(false);
+                                              },
+                                            ),
+                                            OutlineButton(
+                                              child: const Text("Log Out"),
+                                              onPressed: () {
+                                                Navigator.of(context).pop(true);
+                                              },
+                                            )
+                                          ],
                                         );
-                                        if (result) {
-                                          final logOutResult = await PostsProvider().logOut(state.currentUserName, deleteSettings);
-                                          final snackBar = SnackBar(content: Text(logOutResult ? "Logged Out" : "Failed To Log Out"));
-                                          BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only
-                                          Navigator.of(context).pop();
-                                          Scaffold.of(context).showSnackBar(snackBar);
-                                        }
-                                      },
-                                    ),
-                                showDivider: true,
-                                initiallyExpanded: true,
-                                children: _getRegisteredUsernamesList(state.userNames, currentUser),
+                                      }
+                                    );
+                                    if (result) {
+                                      final logOutResult = await PostsProvider().logOut(state.currentUserName, deleteSettings);
+                                      final snackBar = SnackBar(content: Text(logOutResult ? "Logged Out" : "Failed To Log Out"));
+                                      BlocProvider.of<LyreBloc>(context).add(UserChanged(userName: "")); //Empty for Read-Only
+                                      Navigator.of(context).pop();
+                                      Scaffold.of(context).showSnackBar(snackBar);
+                                    }
+                                  },
+                                ),
+                            showDivider: true,
+                            initiallyExpanded: true,
+                            children: _getRegisteredUsernamesList(state.userNames, currentUser),
+                          )
+                        ),
+                        state.currentUser != null ? CustomExpansionTile(
+                          title: "Profile",
+                          initiallyExpanded: true,
+                          showDivider: true,
+                          children: <Widget>[
+                            Text(
+                              state.currentUser.commentKarma.toString(),
+                              style: Theme.of(context).textTheme.display1,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 5.0),
+                              child: Text(
+                                'Comment karma',
+                                style: TextStyle(fontSize: 18.0, color: Colors.grey),
                               ),
-                            )
-                          ),
-                          state.currentUser != null ? SliverToBoxAdapter(
-                            child: CustomExpansionTile(
-                              title: "Profile",
-                              initiallyExpanded: true,
-                              showDivider: true,
-                              children: <Widget>[
-                                Text(
-                                  state.currentUser.commentKarma.toString(),
-                                  style: Theme.of(context).textTheme.display1,
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 5.0),
-                                  child: Text(
-                                    'Comment karma',
-                                    style: TextStyle(fontSize: 18.0, color: Colors.grey),
-                                  ),
-                                ),
-                                Text(
-                                  state.currentUser.linkKarma.toString(),
-                                  style: Theme.of(context).textTheme.display1,
-                                ),
-                                const Text(
-                                  'Link karma',
-                                  style: TextStyle(fontSize: 18.0, color: Colors.grey),
-                                ),
-                                const Divider(),
-                                const _SelfContentTypeWidget("Comments"),
-                                const _SelfContentTypeWidget("Submitted"),
-                                const _SelfContentTypeWidget("Upvoted"),
-                                const _SelfContentTypeWidget("Saved"),
-                                const _SelfContentTypeWidget("Hidden"),
-                                const _SelfContentTypeWidget("Watching"),
-                                const _SelfContentTypeWidget("Friends")
-                              ],
-                            )
-                          ) : null,
-                        ].where(notNull).toList(),
-                      )
+                            ),
+                            Text(
+                              state.currentUser.linkKarma.toString(),
+                              style: Theme.of(context).textTheme.display1,
+                            ),
+                            const Text(
+                              'Link karma',
+                              style: TextStyle(fontSize: 18.0, color: Colors.grey),
+                            ),
+                            const Divider(),
+                            const _SelfContentTypeWidget("Comments"),
+                            const _SelfContentTypeWidget("Submitted"),
+                            const _SelfContentTypeWidget("Upvoted"),
+                            const _SelfContentTypeWidget("Saved"),
+                            const _SelfContentTypeWidget("Hidden"),
+                            const _SelfContentTypeWidget("Watching"),
+                            const _SelfContentTypeWidget("Friends")
+                          ],
+                        ) : null,
+                      ].where(notNull).toList()
                     );
                   },
                 ),
-                
                 Positioned(
                   bottom: 0.0,
                   child: Container(
-                    height: 50.0,
+                    height: kBottomNavigationBarHeight,
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
                       color: Theme.of(context).canvasColor,
@@ -401,7 +398,7 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
                   child: Material(
                     textStyle: Theme.of(context).textTheme.body1,
                     child: Container(
-                      height: 50.0,
+                      height: kBottomNavigationBarHeight,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -984,17 +981,17 @@ class PostsListState extends State<PostsList> with TickerProviderStateMixin{
             _selectedSubmission.preview.isNotEmpty && notNull(_selectedSubmission.preview.last)
               ? InkWell(
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     alignment: Alignment.centerLeft,
                     height: 50.0,
-                    child: Text('Post Preview'),
+                    child: const Text('Post Preview'),
                   ),
                   onTap: () {
                     //Copy to Clipboard, and show a snackbar response message
                     copyToClipboard(_selectedSubmission.preview.last.source.url.toString()).then((success) {
                       final snackBar = SnackBar(
                         content: Text(success ? "Copied Image to Clipboard" : clipBoardErrorMessage),
-                        duration: Duration(seconds: 1),
+                        duration: const Duration(seconds: 1),
                       );
                       Scaffold.of(context).showSnackBar(snackBar);
                       //Close the Sheet

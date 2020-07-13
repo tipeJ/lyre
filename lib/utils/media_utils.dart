@@ -12,39 +12,47 @@ import 'package:video_player/video_player.dart';
 import 'package:xml_parser/xml_parser.dart';
 
 /// Prepare a video URL for playback via a [LyreVideoController]
-Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async {
-    if (linkType == LinkType.Gfycat) {
-      final videoUrl = await getGfyVideoUrl(url);
-      return _initializeVideo(url: videoUrl);
-    } else if (linkType == LinkType.RedditVideo) {
-      final formats = await getRedditVideoFormats(url);
-      return _initializeVideo(formats: formats);
-    } else if (linkType == LinkType.TwitchClip) {
-      final clipVideoUrl = await getTwitchClipVideoLink(url);
-      if (clipVideoUrl.contains('http')) {
-        return _initializeVideo(url: clipVideoUrl);
-      } else {
-        return Future.error(clipVideoUrl);
-      }
-    } else if (linkType == LinkType.Streamable) {
-      final formats = await getStreamableVideoFormats(url);
-      return _initializeVideo(formats: formats);
+Future<LyreVideoController> handleVideoLink(
+    LinkType linkType, String url) async {
+  if (linkType == LinkType.Gfycat) {
+    final videoUrl = await getGfyVideoUrl(url);
+    return _initializeVideo(url: videoUrl);
+  } else if (linkType == LinkType.RedGifs) {
+    final videoUrl = await getRedGifVideoUrl(url);
+    return _initializeVideo(url: videoUrl);
+  } else if (linkType == LinkType.RedditVideo) {
+    final formats = await getRedditVideoFormats(url);
+    return _initializeVideo(formats: formats);
+  } else if (linkType == LinkType.TwitchClip) {
+    final clipVideoUrl = await getTwitchClipVideoLink(url);
+    if (clipVideoUrl.contains('http')) {
+      return _initializeVideo(url: clipVideoUrl);
+    } else {
+      return Future.error(clipVideoUrl);
     }
-    return Future.error("MEDIA NOT SUPPORTED");
+  } else if (linkType == LinkType.Streamable) {
+    final formats = await getStreamableVideoFormats(url);
+    return _initializeVideo(formats: formats);
   }
+  return Future.error("MEDIA NOT SUPPORTED");
+}
 
-  /// Initialize the video source. Use a string url for single-source videos and a 
-  /// list of [LyreVideoFormat]s for videos with multiple formats/qualities
-  Future<LyreVideoController> _initializeVideo({List<LyreVideoFormat> formats, String url, VideoFormat formatHint}) async {
-    VideoPlayerController videoController;
-    if (url != null) {
-      videoController = VideoPlayerController.network(url, formatHint: formatHint);
-      await videoController.initialize();
-    }
-    return LyreVideoController(
+/// Initialize the video source. Use a string url for single-source videos and a
+/// list of [LyreVideoFormat]s for videos with multiple formats/qualities
+Future<LyreVideoController> _initializeVideo(
+    {List<LyreVideoFormat> formats, String url, VideoFormat formatHint}) async {
+  VideoPlayerController videoController;
+  if (url != null) {
+    videoController =
+        VideoPlayerController.network(url, formatHint: formatHint);
+    await videoController.initialize();
+  }
+  return LyreVideoController(
       sourceUrl: url,
       showControls: true,
-      aspectRatio: videoController != null ? videoController.value.aspectRatio : formats[0].width / formats[0].height,
+      aspectRatio: videoController != null
+          ? videoController.value.aspectRatio
+          : formats[0].width / formats[0].height,
       autoPlay: true,
       looping: true,
       placeholder: const CircularProgressIndicator(),
@@ -53,18 +61,17 @@ Future<LyreVideoController> handleVideoLink(LinkType linkType, String url) async
       videoPlayerController: videoController,
       errorBuilder: (context, errorMessage) {
         return Center(
-          child: Text(
-            errorMessage,
-            style: LyreTextStyles.errorMessage
-          ),
+          child: Text(errorMessage, style: LyreTextStyles.errorMessage),
         );
-      }
-    );
-  }
+      });
+}
 
 Future<String> getTwitchClipVideoLink(String url) async {
   final slug = url.split('/').last;
-  final response = await PostsProvider().client.post('https://gql.twitch.tv/gql', body: json.encode({'query' : '''{
+  final response =
+      await PostsProvider().client.post('https://gql.twitch.tv/gql',
+          body: json.encode({
+            'query': '''{
     clip(slug: "$slug") {
       broadcaster {
         displayName
@@ -87,7 +94,9 @@ Future<String> getTwitchClipVideoLink(String url) async {
       }
       viewCount
     }
-  }'''}), headers: {'Client-ID' : TWITCH_CLIENT_ID});
+  }'''
+          }),
+          headers: {'Client-ID': TWITCH_CLIENT_ID});
   final videoUrl = await compute(_computeTwitchResponse, response.body);
   return videoUrl;
 }
@@ -95,7 +104,8 @@ Future<String> getTwitchClipVideoLink(String url) async {
 String _computeTwitchResponse(String body) {
   final parsedJson = json.decode(body);
   final errorMessage = parsedJson['errors'];
-  return errorMessage ?? parsedJson['data']['clip']['videoQualities'][0]['sourceURL'];
+  return errorMessage ??
+      parsedJson['data']['clip']['videoQualities'][0]['sourceURL'];
 }
 
 Future<String> getGfyVideoUrl(String url) {
@@ -103,18 +113,34 @@ Future<String> getGfyVideoUrl(String url) {
   return gfycatProvider().getGfyWebmUrl(id);
 }
 
+Future<String> getRedGifVideoUrl(String url) async {
+  final id = getGfyId(url);
+  final response = await PostsProvider()
+      .client
+      .get("https://www.gifdeliverynetwork.com/$id");
+  final splitBody = response.body.split('"');
+  final sourceUrl = splitBody[splitBody.indexOf("mp4Source") + 2];
+  return sourceUrl;
+}
+
 // * Streamable
 Future<String> getStreamableVideoUrl(String url) async {
   final streamableId = getStreamableId(url);
-  final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
-  final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
+  final response = await PostsProvider()
+      .client
+      .get("https://ajax.streamable.com/videos/$streamableId");
+  final List<LyreVideoFormat> formats =
+      await compute(_computeStreamableResponse, response.body);
   return formats[0].url;
 }
 
 Future<List<LyreVideoFormat>> getStreamableVideoFormats(String url) async {
   final streamableId = getStreamableId(url);
-  final response = await PostsProvider().client.get("https://ajax.streamable.com/videos/$streamableId");
-  final List<LyreVideoFormat> formats = await compute(_computeStreamableResponse, response.body);
+  final response = await PostsProvider()
+      .client
+      .get("https://ajax.streamable.com/videos/$streamableId");
+  final List<LyreVideoFormat> formats =
+      await compute(_computeStreamableResponse, response.body);
   return formats;
 }
 
@@ -124,7 +150,8 @@ List<LyreVideoFormat> _computeStreamableResponse(String body) {
   final j = json.decode(body);
   final status = j['status'];
   if (status != 2) {
-    throw Exception("This video is currently unavailable. It may still be uploading or processing.");
+    throw Exception(
+        "This video is currently unavailable. It may still be uploading or processing.");
   }
   List<LyreVideoFormat> formats = [];
   j['files'].forEach((formatId, format) {
@@ -149,16 +176,16 @@ Future<List<LyreVideoFormat>> getRedditVideoFormats(String playlistUrl) async {
   List<LyreVideoFormat> formats = [];
   final playlist = await PostsProvider().client.get(playlistUrl);
   final xmlDoc = await compute(XmlDocument.fromString, playlist.body);
-  final List<XmlElement> formatElements = xmlDoc.getElement("AdaptationSet").getElementsWhere(
-    name: 'Representation'
-  );
+  final List<XmlElement> formatElements = xmlDoc
+      .getElement("AdaptationSet")
+      .getElementsWhere(name: 'Representation');
   formatElements.forEach((fe) => formats.add(LyreVideoFormat(
-    formatId: fe.getAttribute('mimeType').split('/').last,
-    url: baseUrl + fe.getElement('BaseURL').text,
-    width: int.parse(fe.getAttribute('width')),
-    height: int.parse(fe.getAttribute('height')),
-    framerate: double.parse(fe.getAttribute('frameRate')),
-    filesize: int.parse(fe.getAttribute('bandwidth')),
-  )));
+        formatId: fe.getAttribute('mimeType').split('/').last,
+        url: baseUrl + fe.getElement('BaseURL').text,
+        width: int.parse(fe.getAttribute('width')),
+        height: int.parse(fe.getAttribute('height')),
+        framerate: double.parse(fe.getAttribute('frameRate')),
+        filesize: int.parse(fe.getAttribute('bandwidth')),
+      )));
   return formats;
 }

@@ -23,7 +23,7 @@ dependencies:
   auto_size_text: ^2.1.0
   material_design_icons_flutter: ^3.4.4595
   basic_utils: ^2.3.8
-  flutter_markdown: ^0.3.2
+  flutter_markdown: ^0.4.2
   connectivity: ^0.4.6+1
   volume: ^0.1.0
   provider: ^4.0.3

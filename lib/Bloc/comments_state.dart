@@ -13,9 +13,13 @@ class CommentsState extends Equatable {
   final List<CommentM> comments;
   final CommentSortType sortType;
 
+  String get subredditName => submission is Submission
+      ? (submission as Submission).subreddit.displayName
+      : (submission as Comment).subreddit.displayName;
+
   /// If disabled, the submission view next to the comments list is hidden.
   /// Only available in landscape expanded mode.
-   bool showSubmission;
+  bool showSubmission;
 
   String sortTypeString() {
     switch (sortType) {
@@ -24,37 +28,37 @@ class CommentsState extends Equatable {
 
       case CommentSortType.confidence:
         return "Confidence";
-        
+
       case CommentSortType.controversial:
         return "Controversial";
-        
+
       case CommentSortType.newest:
         return "New";
-        
+
       case CommentSortType.old:
         return "Old";
-        
+
       case CommentSortType.qa:
         return "Q/A";
-        
+
       case CommentSortType.random:
         return "Random";
-        
+
       case CommentSortType.top:
         return "Top";
-        
+
       default:
         return ""; //Default to blank
     }
   }
 
-   CommentsState({
-      @required this.state,
+  CommentsState(
+      {@required this.state,
       @required this.submission,
       @required this.comments,
       @required this.sortType,
       this.showSubmission = true,
-      this.parentComment
-    });
-  List<dynamic> get props => [state, comments, sortType, submission, showSubmission];
+      this.parentComment});
+  List<dynamic> get props =>
+      [state, comments, sortType, submission, showSubmission];
 }

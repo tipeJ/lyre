@@ -4,8 +4,8 @@ import 'package:lyre/screens/screens.dart';
 import 'package:lyre/utils/utils.dart';
 import 'package:lyre/widgets/media/image_viewer/image_viewer.dart';
 import 'package:video_player/video_player.dart';
- 
- class MediaPreview extends StatelessWidget with MediaViewerCallback{
+
+class MediaPreview extends StatelessWidget with MediaViewerCallback {
   final String url;
   LinkType linkType;
 
@@ -18,28 +18,32 @@ import 'package:video_player/video_player.dart';
   @override
   Widget build(BuildContext context) {
     final linkType = getLinkType(url);
-    if (linkType == LinkType.DirectImage || albumLinkTypes.contains(linkType)){ 
+    if (linkType == LinkType.DirectImage || albumLinkTypes.contains(linkType)) {
       return ImageViewer(url);
     } else if (videoLinkTypes.contains(linkType)) {
       return FutureBuilder<void>(
         future: _handleVideoLink(),
-        builder: (context, snapshot){
-          if (snapshot.connectionState == ConnectionState.done){
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.error == null) {
               _videoPlayerController.play();
-              final double scaleRatio = MediaQuery.of(context).size.width / _videoPlayerController.value.size.width;
+              final double scaleRatio = MediaQuery.of(context).size.width /
+                  _videoPlayerController.value.size.width;
               return Align(
-                alignment: Alignment.center,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints.expand(
-                    width: _videoPlayerController.value.size.width * scaleRatio,
-                    height: _videoPlayerController.value.size.height* scaleRatio
-                  ),
-                  child: VideoPlayer(_videoPlayerController)
-                )
-              );
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                      constraints: BoxConstraints.expand(
+                          width: _videoPlayerController.value.size.width *
+                              scaleRatio,
+                          height: _videoPlayerController.value.size.height *
+                              scaleRatio),
+                      child: VideoPlayer(_videoPlayerController)));
             }
-            return Material(color: Colors.black26, child: Center(child: Text('ERROR: ${snapshot.error.toString()}', style: LyreTextStyles.errorMessage)));
+            return Material(
+                color: Colors.black26,
+                child: Center(
+                    child: Text('ERROR: ${snapshot.error.toString()}',
+                        style: LyreTextStyles.errorMessage)));
           } else {
             return const Center(child: CircularProgressIndicator());
           }
@@ -53,8 +57,12 @@ import 'package:video_player/video_player.dart';
     if (linkType == LinkType.Gfycat) {
       final videoUrl = await getGfyVideoUrl(url);
       _videoPlayerController = VideoPlayerController.network(videoUrl);
+    } else if (linkType == LinkType.RedGifs) {
+      final videoUrl = await getRedGifVideoUrl(url);
+      _videoPlayerController = VideoPlayerController.network(videoUrl);
     } else if (linkType == LinkType.RedditVideo) {
-      _videoPlayerController = VideoPlayerController.network(url, formatHint: VideoFormat.dash);
+      _videoPlayerController =
+          VideoPlayerController.network(url, formatHint: VideoFormat.dash);
     } else if (linkType == LinkType.TwitchClip) {
       final clipVideoUrl = await getTwitchClipVideoLink(url);
       if (clipVideoUrl.contains('http')) {
@@ -74,7 +82,7 @@ import 'package:video_player/video_player.dart';
   @override
   Future<bool> canPopMediaViewer() {
     if (_videoPlayerController != null) {
-      _videoPlayerController.pause().then((_){
+      _videoPlayerController.pause().then((_) {
         _videoPlayerController.dispose();
         _videoPlayerController = null;
         return Future.value(true);
